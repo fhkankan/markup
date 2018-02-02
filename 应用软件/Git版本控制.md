@@ -22,19 +22,14 @@ git config --global user.name "Your Name"
 git config --global user.email "youremail@example.com"
 ```
 
-git服务器会通过此用户名和邮箱来标识是谁提交的代码, 例如gith
-
 ## 创建&提交&查看历史
 
 **一、创建版本库**
 
-- 创建飞机大战项目：PlaneGame, 并进入到该项目下。
-
-
-- 编写飞机大战项目的源码： 比如添加一个文件Plane.py
-- 为项目创建Git版本库
-
 ```
+# 进入需要提交的文件夹及文件所在目录中
+cd 目标文件夹下
+# 初始化仓库
 git init
 ```
 
