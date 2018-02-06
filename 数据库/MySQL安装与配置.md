@@ -155,6 +155,9 @@ vcredist_x86.exe
 ```
 # 安装(ubuntu命令行)
 sudo apt-get install mysql-server
+# 安装开发版依赖
+sudo libmysqld-dev 
+sudo libmysqlclient-dev 
 # 启动服务
 sudo service mysql start 
 # 查看进程中是否存在mysql服务
@@ -178,7 +181,7 @@ bind-address表示服务器绑定的ip，默认为127.0.0.1
 port表示端口，默认为3306
 datadir表示数据库目录，默认为/var/lib/mysql
 general_log_file表示普通日志，默认为/var/log/mysql/mysql.log
-log_error表示错误日志，默认为/var/log/mysql/error.log
+log_error表示错误日志，默认为/var/log/mysql/error.logsu
 ```
 
 ### 客户端

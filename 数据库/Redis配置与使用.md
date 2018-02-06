@@ -2,6 +2,17 @@
 
 ## 安装
 
+**Ubuntu**
+
+```
+sudo apt-get install software-properties-common
+sudo apt-add-repository ppa:chris-lea/redis-server
+sudo apt-get update
+sudo apt-get install redis-server
+```
+
+**官方下载**
+
 ```
 1、下载：打开redis官方网站，推荐下载稳定版本(stable)
 

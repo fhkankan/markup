@@ -1,6 +1,6 @@
 # zbar
 
-用于解析二维码，常用的还有zbarlight（支持Python2与python3），zxing(需要java插件)等
+用于解析二维码，可用于图片，视频，传感器，常用的还有zbarlight（支持Python2与python3），zxing(需要java插件)等
 
 ## 安装
 
@@ -72,10 +72,6 @@ for symbol in image:
 # clean up  
 del(image)  
 ```
-
-
-
-
 
 ## 视频检测
 

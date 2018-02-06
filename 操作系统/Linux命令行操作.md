@@ -520,6 +520,11 @@ sudo apt-get remove package --purge       --->删除包，包括配置文件等
 sudo apt-get clean && sudo apt-get autoclean--->清理无用的包
 
 
+安装离线deb包
+第一种：使用Ubuntu软件中心安装，即直接双击软件包就可以了；
+第二种：使用dpkg命令方法安装：sudo dpkg -i package.deb；
+第三种：使用apt命令方法安装：sudo apt-get install package.deb；
+
 安装python第三方库
 pip install  libname
 python setup.py install

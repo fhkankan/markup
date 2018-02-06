@@ -129,6 +129,16 @@ pip list
 pip list --outdated
 ```
 
+## ipython---交互环境
+
+```
+sudo pip install ipython
+
+sudo pip3 install ipython
+```
+
+
+
 ## virtualenv-虚环境
 
 安装
@@ -213,7 +223,7 @@ mkvirtualenv env1
 
 # Linux
 创建python2虚拟环境：
-mkvirtualenv 虚拟环境名
+mkvirtualenv -p python2 虚拟环境名
 创建python3虚拟环境：
 mkvirtualenv -p python3 虚拟环境名
 
