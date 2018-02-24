@@ -68,8 +68,7 @@ app = Flask(__name__)
 # 使用配置文件
 app.config.from_object(Config)
 
-# 装饰器的作用是将路由映射到视图函数index
-# 
+# 装饰器的作用是将路由映射到视图函数index 
 @app.route('/')
 def index():
     return 'Hello World'

@@ -478,9 +478,6 @@ usermod -s /bin/ksh -d /home/z –g developer sam
 
 # 删除用户
 sudo userdel -r 用户名
-
-
-
 ```
 # 关机重启
 ```

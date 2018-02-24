@@ -3,23 +3,25 @@
 参考： 
 Ubuntu 16.04 安装后优化
 
+# ======================卸载=========================
 1.卸载不必要的软件
 # 删除libreoffice
 $ sudo apt-get remove libreoffice-style-galaxy 
 # 删除亚马逊链接
 $ sudo apt-get remove unity-webapps-common 
+# 删除邮件客户端
+$ sudo apt-get remove thunderbird
 # 删除不必要的包
-$ sudo apt-get remove  totem  simple-scan gnome-mahjongg aisleriot gnome-mines  transmission-common gnome-orca webbrowser-app gnome-sudoku onboard deja-dup 
+$ sudo apt-get remove  totem  rhythmbox simple-scan gnome-mahjongg aisleriot gnome-mines  transmission-common gnome-orca webbrowser-app gnome-sudoku onboard deja-dup 
 # 清理缓存
 $ sudo apt-get autoremove
 $ sudo apt-get autoclean 
-
+# =====================源=============================
 2.修改镜像源
 #修改为163的源
 $ sudo cp /etc/apt/sources.list /etc/apt/sources.list.backup
 $ sudo vi /etc/apt/sources.list
-
-# 163 ubuntu16.04源
+# 添加如下163 ubuntu16.04源
 deb http://mirrors.163.com/ubuntu/ xenial main restricted universe multiverse
 deb http://mirrors.163.com/ubuntu/ xenial-security main restricted universe multiverse
 deb http://mirrors.163.com/ubuntu/ xenial-updates main restricted universe multiverse
@@ -30,9 +32,17 @@ deb-src http://mirrors.163.com/ubuntu/ xenial-security main restricted universe 
 deb-src http://mirrors.163.com/ubuntu/ xenial-updates main restricted universe multiverse
 deb-src http://mirrors.163.com/ubuntu/ xenial-proposed main restricted universe multiverse
 deb-src http://mirrors.163.com/ubuntu/ xenial-backports main restricted universe multiverse
+# 添加优麒麟的源
+$ echo deb http://archive.ubuntukylin.com:10006/ubuntukylin trusty main | sudo tee /etc/apt/sources.list.d/ubuntukylin.list 
+# 更新源
+$ sudo apt-get update 
+# 注:如果提示没有公钥,无法验证下列数字签名 xxx
+$ sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-　keys xxxx
+$ sudo apt-get update
 
-安装必要软件
-# 更新缓存
+
+# ======================软件安装========================
+# 更新源
 $ sudo apt-get update
 # 安装最新的vim
 $ sudo add-apt-repository ppa:jonathonf/vim
@@ -41,13 +51,18 @@ $ sudo apt install vim
 $ sudo apt ctags
 $ sudo apt vim-docsuta
 已编译，支持python3
+# 安装typora(markdown编辑器)
+$ sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys BA300B7755AFCFAE
+$ sudo add-apt-repository 'deb http://typora.io linux/'
+$ sudo apt-get update
+$ sudo apt-get install typora
 # 安装R语言开发环境
 $ sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E084DAB9
 $ sudo sh -c "echo deb http://mirror.bjtu.edu.cn/cran/bin/linux/ubuntu precise/ >>/etc/apt/sources.list"
 $ sudo apt-get install r-base
 $ sudo apt-get install r-base-dev
 $ sudo apt-get update
-# 安装wine-de
+# 安装wine-de(windows软件运行环境)
 $ sudo add-apt-repository ppa:wine/wine-builds
 $ sudo apt-get update
 $ sudo apt-get install wine-devel
@@ -56,29 +71,75 @@ $ sudo apt install winehq-devel
 $ sudo add-apt-repository ppa:ubuntu-mozilla-security/ppa
 $ sudo apt-get update
 $ sudo apt-get install thunderbird
-# 安装最新版的gimp
+# 安装最新版的gimp图片处理工具
 $ sudo add-apt-repository ppa:otto-kesselgulasch/gimp
 $ sudo apt-get update
 $ sudo apt-get install gimp
 # (可选)卸载gimp
 $ sudo apt-get install ppa-purge
 $ sudo ppa-purge ppa:otto-kesselgulasch/gimp
-
-# 下载chrome浏览器
-$ wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb 
-# 安装依赖
-$ sudo apt-get install libappindicator1 libindicator7 
 # 安装chrome浏览器
+$ wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb 
+$ sudo apt-get install libappindicator1 libindicator7 
 $ sudo dpkg -i google-chrome-stable_current_amd64.deb 
 # 自动安装依赖
 $ sudo apt-get -f install 
 # 卸载火狐浏览器
 $ sudo apt-get purge firefox
-# 下载typora
-$ sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys BA300B7755AFCFAE
-$ sudo add-apt-repository 'deb http://typora.io linux/'
+# 安装VLC音频视频播放器
+$ sudo apt-get install vlc
+# 状态栏系统监控插件安装
+# 安装完成后打开indicator-sysmonitor，设置开机启动，定制规则
+$ sudo add-apt-repository ppa:fossfreedom/indicator-sysmonitor 
+$ sudo apt-get update 
+$ sudo apt-get install indicator-sysmonitor
+# 安装硬盘分区管理工具
+$ sudo apt-get install gparted
+# 安装搜狗输入法
+# 如果重启后只有搜狗输入法,则在命令行使用fcitx-configtool命令,添加系统输入法
+$ sudo apt-get install sogoupinyin
+# 安装wps
+$ sudo apt-get install wps-office 
+# 1. 下载缺失的字体文件
+# 国外下载地址：https://www.dropbox.com/s/lfy4hvq95ilwyw5/wps_symbol_fonts.zip
+# 国内下载地址：https://pan.baidu.com/s/1eS6xIzo
+# 解压并进入目录中，继续执行：
+sudo cp * /usr/share/fonts
+# 2. 执行以下命令,生成字体的索引信息：
+sudo mkfontscale
+sudo mkfontdir
+# 3. 运行fc-cache命令更新字体缓存。
+sudo fc-cache
+# 4. 重启wps即可，字体缺失的提示不再出现。
+# 安装git
+$ sudo apt-get install git
+# 安装rar
+$ sudo apt-get install unrar 
+# 设置开启小键盘
+$ sudo apt-get install numlockx
+$ sudo gedit /usr/share/lightdm/lightdm.conf.d/50-unity-greeter.conf
+# 在配置文件最后添加：
+greeter-setup-script=/usr/bin/numlockx on
+# 修改时间同步，与Windows双系统时间一致
+$ sudo timedatectl set-local-rtc 1  
+$ sudo apt-get install ntpdate
+$ sudo ntpdate time.windows.com
+$ sudo hwclock --localtime --systohc
+
+# 安装mysql
+$ sudo apt-get install mysql-server
+$ sudo libmysqld-dev 
+$ sudo libmysqlclient-dev 
+# 安装redis
+$ sudo apt-get install software-properties-common
+$ sudo apt-add-repository ppa:chris-lea/redis-server
 $ sudo apt-get update
-$ sudo apt-get install typora
+$ sudo apt-get install redis-server
+# 安装nginx
+$ sudo apt-get install nginx
+
+# 重启系统
+$ sudo reboot 
 
 # ===========================yq=========================
 # 下载remarkable（一款优秀的markdown编辑器）
@@ -149,72 +210,9 @@ VMware Workstation v10 for Windows
 4C4EK-89KDL-5ZFP9-1LA5P-2A0J0 
 HY086-4T01N-CZ3U0-CV0QM-13DNU 
 # =============================end=================================
-# 状态栏系统监控插件安装
-$ sudo add-apt-repository ppa:fossfreedom/indicator-sysmonitor 
-$ sudo apt-get update 
-$ sudo apt-get install indicator-sysmonitor
-# 打开indicator-sysmonitor，设置开机启动，定制规则
 
-# 安装硬盘分区管理工具
-$ sudo apt-get install gparted
-# 添加优麒麟的源
-$ echo deb http://archive.ubuntukylin.com:10006/ubuntukylin trusty main | sudo tee /etc/apt/sources.list.d/ubuntukylin.list 
-# 更新源
-$ sudo apt-get update 
-# 注:如果提示没有公钥,无法验证下列数字签名 xxx
-$ sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-　keys xxxx
-$ sudo apt-get update
-# 安装搜狗输入法
-# 如果重启后只有搜狗输入法,则在命令行使用fcitx-configtool命令,添加系统输入法
-$ sudo apt-get install sogoupinyin
-# 安装wps
-$ sudo apt-get install wps-office 
-# 1. 下载缺失的字体文件
-# 国外下载地址：https://www.dropbox.com/s/lfy4hvq95ilwyw5/wps_symbol_fonts.zip
-# 国内下载地址：https://pan.baidu.com/s/1eS6xIzo
-# 解压并进入目录中，继续执行：
-sudo cp * /usr/share/fonts
-# 2. 执行以下命令,生成字体的索引信息：
-sudo mkfontscale
-sudo mkfontdir
-# 3. 运行fc-cache命令更新字体缓存。
-sudo fc-cache
-# 4. 重启wps即可，字体缺失的提示不再出现。
-# 安装git
-$ sudo apt-get install git
-# 安装rar
-$ sudo apt-get install unrar 
-# 设置开启小键盘
-$ sudo apt-get install numlockx
-$ sudo gedit /usr/share/lightdm/lightdm.conf.d/50-unity-greeter.conf
-# 在配置文件最后添加：
-greeter-setup-script=/usr/bin/numlockx on
-# 修改时间同步，与Windows双系统时间一致
-$ sudo timedatectl set-local-rtc 1  
-$ sudo apt-get install ntpdate
-$ sudo ntpdate time.windows.com
-$ sudo hwclock --localtime --systohc
-
-# 安装mysql
-$ sudo apt-get install mysql-server
-$ sudo libmysqld-dev 
-$ sudo libmysqlclient-dev 
-# 安装redis
-$ sudo apt-get install software-properties-common
-$ sudo apt-add-repository ppa:chris-lea/redis-server
-$ sudo apt-get update
-$ sudo apt-get install redis-server
-# 安装nginx
-$ sudo apt-get install nginx
-
-# 重启系统
-$ sudo reboot 
-
-3.添加vim 配置文件
 # 添加vim配置文件
 $ vim .vimrc
-1
-2
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " 显示相关 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""

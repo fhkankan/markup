@@ -59,7 +59,9 @@ python3 --version
 在双击安装时，选择复选框add python to path
 3、添加环境变量
 若2完成后命令行验证ok即可。
-若命令行无法启动python,则打开控制面板/系统与安全/系统/高级系统设置/环境变量，在path中添加python.exe的路径
+若命令行无法启动python,则打开控制面板/系统与安全/系统/高级系统设置/环境变量，在path中添加python.exe的路径和同级Script目录
+
+注意：若安装多个python版本，在各安装目录下修改python.exe名称为python2.exe/python3.exe。
 ```
 
 #模块安装
@@ -89,18 +91,27 @@ Windows
 pip --version
 # 安装
 python get-pip.py
+python3 get-pip.py
 
 执行完成后，在python的安装目录下的Scripts子目录下，可以看到pip.exe、pip2.7.exe、pip2.exe等，这就表示pip安装成功了。
 注意：要想能在命令行上直接运行pip程序，需要scripts这个目录加入到环境变量PATH中。
 # 更新
-python -m pip install -U pip
+python2 -m pip install -U pip
+python3 -m pip install -U pip
 ```
 
 使用
 
 ```
-# 安装单个包
+# 默认python版本下安装单个包
 pip install somepackage
+
+# 多种python环境下包安装
+python2 －m pip install 包名
+python3 －m pip install 包名
+# 也可
+pip2 install 包名
+pip3 install 包名
 
 安装特定版本的package，通过使用==, >=, <=, >, <来指定一个版本号。
 pip install 'Markdown==2.0'
@@ -127,6 +138,8 @@ pip list
 
 # 显示已过时的包
 pip list --outdated
+
+
 ```
 
 ## ipython---交互环境
@@ -137,27 +150,42 @@ sudo pip install ipython
 sudo pip3 install ipython
 ```
 
-
-
 ## virtualenv-虚环境
 
 安装
 
 ```
+# ubuntu/windows
+# 默认python版本下
 pip install virtualenv
 
-# 若安装多个python版本，在各安装目录下修改python.exe名称为python2.exe/python3.exe。并使用以下命令安装
+# 不同python版本下安装
 python2 －m pip install virtualenv
 python3 －m pip install virtualenv
+或
+pip2 install virtualenv
+pip3 install virtualenv
+
+注意：安装一个即可，对系统里有多版本的Python，可以通过指定系统相应版本的python.exe路径来安装不同版本的Python虚拟环境
 ```
 
 新建虚环境
 
 ```
+# 默认python版本下
 virtualenv env1
 
-# 对系统里有多版本的Python，可以通过指定系统相应版本的python.exe路径来安装不同版本的Python虚拟环境
- virtualenv -p C:\Python27\python2.exe test2 
+#ubuntu
+创建python2虚拟环境：
+virtualenv -p python2 虚拟环境名
+创建python3虚拟环境：
+virtualenv -p python3 虚拟环境名
+
+# windows
+# 创建python2虚环境
+virtualenv -p C:\Python27\python.exe test2 
+# 创建python3虚环境
+virtualenv -p C:\Python36\python.exe test3 
 ```
 
 基础操作
@@ -195,9 +223,26 @@ pip install (下载的二进制安装文件路径）
 
 ```
 # Linux
+# 默认python版本下安装
 pip install virtualenvwrapper
+# 不同python版本下安装
+python2 －m pip install virtualenvwrapper
+python3 －m pip install virtualenvwrapper
+# 或
+pip2 install virtualenvwrapper
+pip3 install virtualenvwrapper
+
 # Windows
+# 默认python版本下安装
 pip install virtualenvwrapper-win
+# 不同python版本下安装
+python2 －m pip install virtualenvwrapper-win
+python3 －m pip install virtualenvwrapper-win
+# 或
+pip2 install virtualenvwrapper-win
+pip3 install virtualenvwrapper-win
+
+注意：安装一个即可，对系统里有多版本的Python，可以通过指定系统相应版本的python.exe路径来安装不同版本的Python虚拟环境
 ```
 
 配置环境变量
@@ -219,6 +264,7 @@ source .bashrc
 新建虚拟环境
 
 ```
+# 默认python版本环境下
 mkvirtualenv env1
 
 # Linux
@@ -228,8 +274,10 @@ mkvirtualenv -p python2 虚拟环境名
 mkvirtualenv -p python3 虚拟环境名
 
 # windows:
-也可指定新建虚拟环境的版本：
-mkvirtualenv --python=[python路径] env1
+创建python2虚拟环境
+mkvirtualenv -p c:\python27\python.exe 虚拟环境名
+创建python3虚拟环境
+mkvirtualenv --python=c:\python36\python.exe 虚拟环境名
 ```
 
 基础操作
