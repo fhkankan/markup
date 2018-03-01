@@ -103,15 +103,15 @@ python3 -m pip install -U pip
 使用
 
 ```
-# 默认python版本下安装单个包
-pip install somepackage
-
 # 多种python环境下包安装
 python2 －m pip install 包名
 python3 －m pip install 包名
 # 也可
 pip2 install 包名
 pip3 install 包名
+
+# 默认python版本下安装单个包
+pip install somepackage
 
 安装特定版本的package，通过使用==, >=, <=, >, <来指定一个版本号。
 pip install 'Markdown==2.0'
@@ -138,8 +138,6 @@ pip list
 
 # 显示已过时的包
 pip list --outdated
-
-
 ```
 
 ## ipython---交互环境
@@ -370,9 +368,37 @@ $ pip freeze > requirements.txt
 $ from flask import Flask
 ```
 
+## mysql-python
 
+ubuntu
 
+```
+# ubuntu下安装简单
+pip install MySQL-python
+```
 
+windows
+
+```
+pip install mysql-python
+```
+
+会报异常
+
+```
+error: Microsoft Visual C++ 9.0 is required (Unable to find vcvarsall.bat).
+Get it from http://aka.ms/vcpython27
+```
+
+解决方法
+
+```
+1. 在http://www.lfd.uci.edu/~gohlke/pythonlibs/#mysql-python下载对应的包版本:
+若是32位2.7版本的python，则下载MySQL_python‑1.2.5‑cp27‑none‑win32.whl
+若是64位2.7版本的python，就下载MySQL_python-1.2.5-cp27-none-win_amd64.whl
+
+2.在cmd下跳转到下载MySQL_python-1.2.5-cp27-none-win_amd64.whl的目录下,然后在命令行执行pip install MySQL_python-1.2.5-cp27-none-win_amd64.whl
+```
 
 
 

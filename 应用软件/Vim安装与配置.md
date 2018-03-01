@@ -885,35 +885,30 @@ jedi-vim			# 需要python编译，需要jedi包
 pydiction			# 不需编译，支持python
 ```
 
-## emmet-vim
+## xptemplate
 
-自动补全代码块（html,css）
+自动补全代码块
 
 配置
 
 ```
-Plugin 'mattn/emmet-vim'
-
-"Enable in different mode
-let g:user_emmet_mode='n'    "only enable normal mode functions.
-let g:user_emmet_mode='inv'  "enable all functions, which is equal to
-let g:user_emmet_mode='a'    "enable all function in all mode.
-"Enable just for html/css
-let g:user_emmet_install_global = 0
-autocmd FileType html,css EmmetInstall
-"Redefine trigger key
-let g:user_emmet_leader_key='<C-Z>'
+Plugin 'drmingdrmer/xptemplate'
 ```
 
- 用法
+用法
 
 ```
-html:5
-ctr+y， 自动创建html
+>vim xpt.c
+for<C-\>
+generates:
 
-选中需要变换的行，Tag:ul>li*>span>a
-
+for (i = 0; i < len; ++i){
+    /* cursor */
+}
+Press <tab>,<tab>.. to navigate through "i", "0", "len" and finally stop at "/* cursor */"
 ```
+
+
 
 ## vim-fugitive
 

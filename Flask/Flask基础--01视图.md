@@ -102,10 +102,11 @@ from werkzeug.routing import BaseConverter
 class Regex_url(BaseConverter):
     def __init__(self,url_map,*args):
     	# url_map就是路由
-    	# args是正则表达式组成的元组   			  						super(Regex_url,self).__init__(url_map)
+    	# args是正则表达式组成的元组   			  							super(Regex_url,self).__init__(url_map)
         self.regex = args[0]
 
 app = Flask(__name__)
+# 注册自定义正则转换器
 app.url_map.converters['re'] = Regex_url
 
 @app.route('/user/<re("[a-z]{3}"):id>')
@@ -285,5 +286,10 @@ python hello.py runserver --help
 
 # 启动服务
 python hello.py runserver -h ip地址 -p 端口号
+
+# pytcharm启动
+需在Run/Debug Configurations中修改：
+Script中添加启动文件manage.py
+Script parameters中添加runserver
 ```
 

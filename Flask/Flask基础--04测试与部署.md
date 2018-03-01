@@ -100,11 +100,6 @@ import index import render_template
 @api.route('/register')
 def register():
 	return render_template('register.html')
-
-
-
-
-
 ```
 
 ## 单元测试

@@ -53,6 +53,8 @@ ZZ 保存并退出。
 vim file
 同时打开多个文件
 vim file1 file2 file3 ...
+在vim窗口新建一个文件
+:new file
 在vim窗口中打开一个新文件
 :open file
 在新窗口中打开文件

@@ -69,6 +69,9 @@ htop
 # 显示系统中名为xxx的进程
 ps -aux|grep xxx
 
+# 根据端口号查pid进程
+sudo lsof -i:端口号
+
 # 终止进程
 kill [-signal] pid 
 [0~15],其中9为绝对终止，可以处理一般无法终止的进程
