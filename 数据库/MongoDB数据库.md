@@ -443,6 +443,18 @@ use 数据库名称
 
 # 删除当前指向的数据库，如果数据库不存在，则什么也不做
 db.dropDatabase()
+
+# 备份
+mongodump -h dbhost -d dbname -o dbdirector
+-h：服务器地址，也可以指定端口号
+-d：需要备份的数据库名称
+-o：备份的数据存放位置，此目录中存放着备份出来的数据
+
+# 恢复
+mongorestore -h dbhost -d dbname --dir dbdirectory
+-h：服务器地址
+-d：需要恢复的数据库实例
+--dir：备份数据所在位置
 ```
 
 # 集合操作
@@ -641,7 +653,232 @@ db.集合名称.distinct('去重字段',{条件})
 db.stu.distinct('hometown',{age:{$gt:18}})
 ```
 
+# 聚合 aggregate
 
+```
+# 聚合(aggregate)主要用于计算数据，类似sql中的sum()、avg()
+db.集合名称.aggregate([ {管道 : {表达式}} ])
+```
+
+## 管道
+
+```
+# 常用管道
+$group：将集合中的文档分组，可用于统计结果
+$match：过滤数据，只输出符合条件的文档
+$project：修改输入文档的结构，如重命名、增加、删除字段、创建计算结果
+$sort：将输入文档排序后输出
+$limit：限制聚合管道返回的文档数
+$skip：跳过指定数量的文档，并返回余下的文档
+$unwind：将数组类型的字段进行拆分
+
+# 表达式
+# 处理输入文档并输出
+表达式:'$列名'
+# 常用表达式
+$sum：计算总和，$sum:1同count表示计数
+$avg：计算平均值
+$min：获取最小值
+$max：获取最大值
+$push：在结果文档中插入值到一个数组中
+$first：根据资源文档的排序获取第一个文档数据
+$last：根据资源文档的排序获取最后一个文档数据
+
+```
+
+### $group
+
+- 将集合中的文档分组，可用于统计结果
+- _id表示分组的依据，使用某个字段的格式为'$字段'
+
+```
+# 统计男生、女生的总人数
+db.stu.aggregate([
+    {$group:
+        {
+            _id:'$gender',
+            counter:{$sum:1}
+        }
+    }
+])
+
+Group by null
+将集合中所有文档分为一组
+# 求学生总人数、平均年龄
+db.stu.aggregate([
+    {$group:
+        {
+            _id:null,
+            counter:{$sum:1},
+            avgAge:{$avg:'$age'}
+        }
+    }
+])
+
+透视数据
+# 统计学生性别及学生姓名
+db.stu.aggregate([
+    {$group:
+        {
+            _id:'$gender',
+            name:{$push:'$name'}
+        }
+    }
+])
+
+使用$$ROOT可以将文档内容加入到结果集的数组中
+db.stu.aggregate([
+    {$group:
+        {
+            _id:'$gender',
+            name:{$push:'$$ROOT'}
+        }
+    }
+])
+```
+
+### $match
+
+- 用于过滤数据，只输出符合条件的文档
+- 使用MongoDB的标准查询操作
+
+```
+# 查询年龄大于20的学生
+db.stu.aggregate([
+    {$match:{age:{$gt:20}}}
+])
+
+# 查询年龄大于20的男生、女生人数
+db.stu.aggregate([
+    {$match:{age:{$gt:20}}},
+    {$group:{_id:'$gender',counter:{$sum:1}}}
+])
+```
+
+### $project
+
+- 修改输入文档的结构，如重命名、增加、删除字段、创建计算结果
+
+```
+# 查询学生的姓名、年龄
+db.stu.aggregate([
+    {$project:{_id:0,name:1,age:1}}
+])
+
+# 查询男生、女生人数，输出人数
+db.stu.aggregate([
+    {$group:{_id:'$gender',counter:{$sum:1}}},
+    {$project:{_id:0,counter:1}}
+])
+```
+
+### $sort
+
+- 将输入文档排序后输出
+
+```
+# 查询学生信息，按年龄升序
+b.stu.aggregate([{$sort:{age:1}}])
+
+# 查询男生、女生人数，按人数降序
+db.stu.aggregate([
+    {$group:{_id:'$gender',counter:{$sum:1}}},
+    {$sort:{counter:-1}}
+])
+```
+
+### $limit
+
+- 限制聚合管道返回的文档数
+
+```
+# 查询2条学生信息
+db.stu.aggregate([{$limit:2}])
+```
+
+### $skip
+
+- 跳过指定数量的文档，并返回余下的文档
+
+```
+# 查询从第3条开始的学生信息
+db.stu.aggregate([{$skip:2}])
+
+# 统计男生、女生人数，按人数升序，取第二条数据
+db.stu.aggregate([
+    {$group:{_id:'$gender',counter:{$sum:1}}},
+    {$sort:{counter:1}},
+    {$skip:1},
+    {$limit:1}
+])
+```
+
+### $unwind
+
+- 将文档中的某一个数组类型字段拆分成多条，每条包含数组中的一个值
+
+```
+# 语法1
+# 对某字段值进行拆分
+db.集合名称.aggregate([{$unwind:'$字段名称'}])
+
+# 构造数据
+db.t2.insert({_id:1,item:'t-shirt',size:['S','M','L']})
+
+# 查询
+db.t2.aggregate([{$unwind:'$size'}])
+
+# 语法2
+# 对某字段值进行拆分
+# 处理空数组、非数组、无字段、null情况
+db.inventory.aggregate([{
+    $unwind:{
+        path:'$字段名称',
+        preserveNullAndEmptyArrays:<boolean>#防止数据丢失
+    }
+}])
+
+# 构造数据
+db.t3.insert([
+{ "_id" : 1, "item" : "a", "size": [ "S", "M", "L"] },
+{ "_id" : 2, "item" : "b", "size" : [ ] },
+{ "_id" : 3, "item" : "c", "size": "M" },
+{ "_id" : 4, "item" : "d" },
+{ "_id" : 5, "item" : "e", "size" : null }
+])
+
+# 使用语法1查询
+db.t3.aggregate([{$unwind:'$size'}])
+- 查询结果，发现对于空数组、无字段、null的文档，都被丢弃了
+
+# 使用语法2查询（可以保留空数组、无字段、null的文档）
+db.t3.aggregate([{$unwind:{path:'$sizes',preserveNullAndEmptyArrays:true}}])
+```
+
+# 索引
+
+```
+# 创建索引
+# 1表示升序，-1表示降序
+db.集合.ensureIndex({属性:1})
+# eg:
+db.t1.ensureIndex({name:1})
+
+# 对索引属性查询
+db.t1.find({name:'test10000'}).explain('executionStats')
+
+# 建立唯一索引，实现唯一约束的功能
+db.t1.ensureIndex({"name":1},{"unique":true})
+
+# 联合索引，对多个属性建立一个索引，按照find()出现的顺序
+db.t1.ensureIndex({name:1,age:1})
+
+# 查看文档所有索引
+db.t1.getIndexes()
+
+# 删除索引
+db.t1.dropIndexes('索引名称')
+```
 
 # 与Python交互
 
