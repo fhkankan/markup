@@ -4,58 +4,58 @@ import math
 # 一般是c语言中同名函数的简单封装
 
 
-# math.e
+math.e
 # 自然常数
 
-# math.pi
+math.pi
 # 圆周率pi
 
-# math.ceil(x)
+math.ceil(x)
 # 返回数字的上入整数，如math.ceil(4.1) 返回 5
 
-# math.floor(x)
+math.floor(x)
 # 返回数字的下舍整数，如math.floor(4.9)返回 4
 
-# math.trunc(x)
+math.trunc(x)
 # 返回x的整数部分
 
-# math.modf(x)
+math.modf(x)
 # 返回x的小数和整数
 
-# math.fabs(x)
+math.fabs(x)
 # 返回数字的绝对值，如math.fabs(-10) 返回10.0
 
-# math.fmod(x,y)
+math.fmod(x,y)
 # 返回x%y
 
-# math.factorial(x)
+math.factorial(x)
 # 返回x的阶乘
 
-# math.sqrt(x)
+math.sqrt(x)
 # 返回数字x的平方根
 
-# math.pow(x,y)
+math.pow(x,y)
 # 返回x的y次方
 
-# math.exp(x)
+math.exp(x)
 # 返回e的x次幂(e^x),如math.exp(1) 返回2.718281828459045
 
-# math.expm1(x)
+math.expm1(x)
 # 返回e的x次幂(e^x)减1
 
-# math.copysign(x,y)
+math.copysign(x,y)
 # 若y<0,返回-1乘以x的绝对值；否则，返回x的绝对值
 
-# math.ldexp(m,i)
+math.ldexp(m,i)
 # 返回m乘以2的i次方
 
-# math.log(x[,base])
+math.log(x[,base])
 # 返回x的以base为底的对数，base默认为e
 
-# math.log10(x)
+math.log10(x)
 # 返回以10为基数的x的对数，如math.log10(100)返回 2.0
 
-# math.hypot(x)
+math.hypot(x)
 # 返回以x和y为直角边的斜边长
 # 返回欧几里德范数 sqrt(x*x + y*y)
 
