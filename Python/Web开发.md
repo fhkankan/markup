@@ -93,6 +93,43 @@ HTTP响应如果包含body，也是通过`\r\n\r\n`来分隔的。请再次注�
 
 当存在`Content-Encoding`时，Body数据是被压缩的，最常见的压缩方式是gzip，所以，看到`Content-Encoding: gzip`时，需要将Body数据先解压缩，才能得到真正的数据。压缩的目的在于减少Body的大小，加快网络传输。
 
+#URL
+
+## 静态
+
+```
+静态URL类似 域名/news/2012-5-18/110.html 我们一般称为真静态URL，每个网页有真实的物理路径，也就是真实存在服务器里的。
+
+优点是：
+网站打开速度快，因为它不用进行运算；另外网址结构比较友好，利于记忆。
+
+缺点是：
+最大的缺点是如果是中大型网站，则产生的页面特别多，不好管理。至于有的开发者说占用硬盘空间大，我觉得这个可有忽略不计，占用不了多少空间的，况且目前硬盘空间都比较大。还有的开发者说会伤硬盘，这点也可以忽略不计。
+```
+
+## 动态
+
+```
+动态URL类似 域名/NewsMore.asp?id=5 或者 域名/DaiKuan.php?id=17，带有？号的URL，我们一般称为动态网址，每个URL只是一个逻辑地址，并不是真实物理存在服务器硬盘里的。
+
+优点是：
+适合中大型网站，修改页面很方便，因为是逻辑地址，所以占用硬盘空间要比纯静态网站小。
+
+缺点是：
+因为要进行运算，所以打开速度稍慢，不过这个可有忽略不计，目前有服务器缓存技术可以解决速度问题。最大的缺点是URL结构稍稍复杂，不利于记忆。
+```
+
+## 伪静态
+
+```
+伪静态URL类似 域名/course/74.html 这个URL和真静态URL类似。他是通过伪静态规则把动态URL伪装成静态网址。也是逻辑地址，不存在物理地址。
+
+优点是：
+URL比较友好，利于记忆。非常适合大中型网站，是个折中方案。
+
+缺点是：
+设置麻烦，服务器要支持重写规则，小企业网站或者玩不好的就不要折腾了。另外进行了伪静态网站访问速度并没有变快，因为实质上它会额外的进行运算解释，反正增加了服务器负担，速度反而变慢，不过现在的服务器都很强大，这种影响也可以忽略不计。还有可能会造成动态URL和静态URL都被搜索引擎收录，不过可以用robots禁止掉动态地址。
+```
 # Web静态服务器
 
 ##显示固定页面
@@ -927,7 +964,6 @@ Web应用的本质就是：
 
 这个接口就是WSGI：Web Server Gateway Interface。
 
-<<<<<<< HEAD
 WSGI允许开发者将选择web框架和web服务器分开。可以混合匹配web服务器和web框架，选择一个适合的配对,web服务器必须具备WSGI接口，所有的现代Python Web框架都已具备WSGI接口，它让你不对代码作修改就能使服务器和特点的web框架协同工作。
 
 其他语言也有类似接口：java有Servlet API，Ruby 有 Rack。
@@ -948,15 +984,359 @@ def application(environ, start_response):
 - environ：一个包含所有HTTP请求信息的dict对象；
 - start_response：一个发送HTTP响应的函数。
 
-整个`application()`函数本身没有涉及到任何解析HTTP的部分，也就是说，把底层web服务器解析部分和应用程序逻辑部分进行了分离，这样开发者就可以专心做一个领域了
+整个`application()`函数本身没有涉及到任何解析HTTP的部分，也就是说，把底层web服务器解析部分和应用程序逻辑部分进行了分离，这样开发者就可以专心做一个领域了，应用领域的开发者不需要编写服务器底层代码，只负责在更高层次上考虑如何响应请求就可以了。
 
 有了WSGI，我们关心的就是如何从`environ`这个`dict`对象拿到HTTP请求信息，然后构造HTML，通过`start_response()`发送Header，最后返回Body。
 
-整个`application()`函数本身没有涉及到任何解析HTTP的部分，也就是说，底层代码不需要我们自己编写，我们只负责在更高层次上考虑如何响应请求就可以了。
+## 传递的字典
 
-WSGI接口定义非常简单，它只要求Web开发者实现一个函数，就可以响应HTTP请求。
+```
+{
+    'HTTP_ACCEPT_LANGUAGE': 'zh-cn',
+    'wsgi.file_wrapper': <built-infunctionuwsgi_sendfile>,
+    'HTTP_UPGRADE_INSECURE_REQUESTS': '1',
+    'uwsgi.version': b'2.0.15',
+    'REMOTE_ADDR': '172.16.7.1',
+    'wsgi.errors': <_io.TextIOWrappername=2mode='w'encoding='UTF-8'>,
+    'wsgi.version': (1,0),
+    'REMOTE_PORT': '40432',
+    'REQUEST_URI': '/',
+    'SERVER_PORT': '8000',
+    'wsgi.multithread': False,
+    'HTTP_ACCEPT': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'HTTP_HOST': '172.16.7.152: 8000',
+    'wsgi.run_once': False,
+    'wsgi.input': <uwsgi._Inputobjectat0x7f7faecdc9c0>,
+    'SERVER_PROTOCOL': 'HTTP/1.1',
+    'REQUEST_METHOD': 'GET',
+    'HTTP_ACCEPT_ENCODING': 'gzip,deflate',
+    'HTTP_CONNECTION': 'keep-alive',
+    'uwsgi.node': b'ubuntu',
+    'HTTP_DNT': '1',
+    'UWSGI_ROUTER': 'http',
+    'SCRIPT_NAME': '',
+    'wsgi.multiprocess': False,
+    'QUERY_STRING': '',
+    'PATH_INFO': '/index.html',
+    'wsgi.url_scheme': 'http',
+    'HTTP_USER_AGENT': 'Mozilla/5.0(Macintosh;IntelMacOSX10_12_5)AppleWebKit/603.2.4(KHTML,likeGecko)Version/10.1.1Safari/603.2.4',
+    'SERVER_NAME': 'ubuntu'
+}
+```
+
+## 快速实现
+
+Python内置了一个WSGI服务器，这个模块叫wsgiref，它是用纯Python编写的WSGI服务器的参考实现。所谓“参考实现”是指该实现完全符合WSGI标准，但是不考虑任何运行效率，仅供开发和测试使用。
+
+**hello.py**
+
+实现Web应用程序的WSGI处理函数
+
+```
+# hello.py
+
+def application(environ, start_response):
+    start_response('200 OK', [('Content-Type', 'text/html')])
+    return [b'<h1>Hello, web!</h1>']
+```
+
+**server.py**
+
+负责启动WSGI服务器，加载`application()`函数
+
+```
+# server.py
+# 从wsgiref模块导入:
+from wsgiref.simple_server import make_server
+# 导入我们自己编写的application函数:
+from hello import application
+
+# 创建一个服务器，IP地址为空，端口是8000，处理函数是application:
+httpd = make_server('', 8000, application)
+print('Serving HTTP on port 8000...')
+# 开始监听HTTP请求:
+httpd.serve_forever()
+```
+
+**运行**
+
+```
+# 确保两个文件在同一目录下，命令行输入
+python server.py
+
+# 浏览器中输入
+localhost:8000/
 ```
 
 
 
+## 基本实现
+
+**文件结构**
+
 ```
+├── web_server.py
+├── web
+│   └── my_web.py
+└── html
+    └── index.html
+    .....
+```
+
+`web/my_web.py`
+
+```
+import time
+
+def application(environ, start_response):
+    status = '200 OK'
+    response_headers = [('Content-Type', 'text/html')]
+    start_response(status, response_headers)
+    return str(environ) + '==Hello world from a simple WSGI application!--->%s\n' % time.ctime()
+```
+
+`web_server.py`
+
+```
+import select
+import time
+import socket
+import sys
+import re
+import multiprocessing
+
+
+class WSGIServer(object):
+    """定义一个WSGI服务器的类"""
+
+    def __init__(self, port, documents_root, app):
+
+        # 1. 创建套接字
+        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # 2. 绑定本地信息
+        self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.server_socket.bind(("", port))
+        # 3. 变为监听套接字
+        self.server_socket.listen(128)
+
+        # 设定资源文件的路径
+        self.documents_root = documents_root
+
+        # 设定web框架可以调用的函数(对象)
+        self.app = app
+
+    def run_forever(self):
+        """运行服务器"""
+
+        # 等待对方链接
+        while True:
+            new_socket, new_addr = self.server_socket.accept()
+            # 创建一个新的进程来完成这个客户端的请求任务
+            new_socket.settimeout(3)  # 3s
+            new_process = multiprocessing.Process(target=self.deal_with_request, args=(new_socket,))
+            new_process.start()
+            new_socket.close()
+
+    def deal_with_request(self, client_socket):
+        """以长链接的方式，为这个浏览器服务器"""
+
+        while True:
+            try:
+                request = client_socket.recv(1024).decode("utf-8")
+            except Exception as ret:
+                print("========>", ret)
+                client_socket.close()
+                return
+
+            # 判断浏览器是否关闭
+            if not request:
+                client_socket.close()
+                return
+
+            request_lines = request.splitlines()
+            for i, line in enumerate(request_lines):
+                print(i, line)
+
+            # 提取请求的文件(index.html)
+            # GET /a/b/c/d/e/index.html HTTP/1.1
+            ret = re.match(r"([^/]*)([^ ]+)", request_lines[0])
+            if ret:
+                print("正则提取数据:", ret.group(1))
+                print("正则提取数据:", ret.group(2))
+                file_name = ret.group(2)
+                if file_name == "/":
+                    file_name = "/index.html"
+
+            # 如果不是以py结尾的文件，认为是普通的文件
+            if not file_name.endswith(".py"):
+
+                # 读取文件数据
+                try:
+                    f = open(self.documents_root+file_name, "rb")
+                except:
+                    response_body = "file not found, 请输入正确的url"
+
+                    response_header = "HTTP/1.1 404 not found\r\n"
+                    response_header += "Content-Type: text/html; charset=utf-8\r\n"
+                    response_header += "Content-Length: %d\r\n" % (len(response_body))
+                    response_header += "\r\n"
+
+                    response = response_header + response_body
+
+                    # 将header返回给浏览器
+                    client_socket.send(response.encode('utf-8'))
+
+                else:
+                    content = f.read()
+                    f.close()
+
+                    response_body = content
+
+                    response_header = "HTTP/1.1 200 OK\r\n"
+                    response_header += "Content-Length: %d\r\n" % (len(response_body))
+                    response_header += "\r\n"
+
+                    # 将header返回给浏览器
+                    client_socket.send(response_header.encode('utf-8') + response_body)
+
+            # 以.py结尾的文件，就认为是浏览需要动态的页面
+            else:
+                # 准备一个字典，里面存放需要传递给web框架的数据
+                env = {}
+                # 存web返回的数据
+                response_body = self.app(env, self.set_response_headers)
+
+                # 合并header和body
+                response_header = "HTTP/1.1 {status}\r\n".format(status=self.headers[0])
+                response_header += "Content-Type: text/html; charset=utf-8\r\n"
+                response_header += "Content-Length: %d\r\n" % len(response_body)
+                for temp_head in self.headers[1]:
+                    response_header += "{0}:{1}\r\n".format(*temp_head)
+
+                response = response_header + "\r\n"
+                response += response_body
+
+                client_socket.send(response.encode('utf-8'))
+
+    def set_response_headers(self, status, headers):
+        """这个方法，会在 web框架中被默认调用"""
+        response_header_default = [
+            ("Data", time.ctime()),
+            ("Server", "ItCast-python mini web server")
+        ]
+
+        # 将状态码/相应头信息存储起来
+        # [字符串, [xxxxx, xxx2]]
+        self.headers = [status, response_header_default + headers]
+
+
+# 设置静态资源访问的路径
+g_static_document_root = "./html"
+# 设置动态资源访问的路径
+g_dynamic_document_root = "./web"
+
+def main():
+    """控制web服务器整体"""
+    # python3 xxxx.py 7890
+    if len(sys.argv) == 3:
+        # 获取web服务器的port
+        port = sys.argv[1]
+        if port.isdigit():
+            port = int(port)
+        # 获取web服务器需要动态资源时，访问的web框架名字
+        web_frame_module_app_name = sys.argv[2]
+    else:
+        print("运行方式如: python3 xxx.py 7890 my_web_frame_name:application")
+        return
+
+    print("http服务器使用的port:%s" % port)
+
+    # 将动态路径即存放py文件的路径，添加到path中，这样python就能够找到这个路径了
+    sys.path.append(g_dynamic_document_root)
+
+    ret = re.match(r"([^:]*):(.*)", web_frame_module_app_name)
+    if ret:
+        # 获取模块名
+        web_frame_module_name = ret.group(1)
+        # 获取可以调用web框架的应用名称
+        app_name = ret.group(2)
+
+    # 导入web框架的主模块
+    web_frame_module = __import__(web_frame_module_name)
+    # 获取那个可以直接调用的函数(对象)
+    app = getattr(web_frame_module, app_name) 
+
+    # print(app)  # for test
+
+    # 启动http服务器
+    http_server = WSGIServer(port, g_static_document_root, app)
+    # 运行http服务器
+    http_server.run_forever()
+
+
+if __name__ == "__main__":
+    main()
+```
+
+## 运行
+
+```
+# 打开终端，输入命令，开始服务器
+python3 web_server.py my_web:application
+
+# 打开浏览器，输入url，开始请求
+127.0.0.1:7890/***.py
+```
+
+# Web框架
+
+其实一个Web App，就是写一个WSGI的处理函数，针对每个HTTP请求进行响应。
+
+但是如何处理HTTP请求不是问题，问题是如何处理100个不同的URL。
+
+每一个URL可以对应GET和POST请求，当然还有PUT、DELETE等请求，但是我们通常只考虑最常见的GET和POST请求。
+
+一个最简单的想法是从`environ`变量里取出HTTP请求的信息，然后逐个判断：
+
+```
+def application(environ, start_response):
+    method = environ['REQUEST_METHOD']
+    path = environ['PATH_INFO']
+    if method=='GET' and path=='/':
+        return handle_home(environ, start_response)
+    if method=='POST' and path='/signin':
+        return handle_signin(environ, start_response)
+    ...
+```
+
+只是这么写下去代码是肯定没法维护了。
+
+代码这么写没法维护的原因是因为WSGI提供的接口虽然比HTTP接口高级了不少，但和Web App的处理逻辑比，还是比较低级，我们需要在WSGI接口之上能进一步抽象，让我们专注于用一个函数处理一个URL，至于URL到函数的映射，就交给Web框架来做。
+
+有了Web框架，我们在编写Web应用时，注意力就从WSGI处理函数转移到URL+对应的处理函数，这样，编写Web App就更加简单了。
+
+在编写URL处理函数时，除了配置URL外，从HTTP请求拿到用户数据也是非常重要的。Web框架都提供了自己的API来实现这些功能。Flask通过`request.form['name']`来获取表单的内容。
+
+除了Flask，常见的Python Web框架还有：
+
+- [Django](https://www.djangoproject.com/)：全能型Web框架；
+- [web.py](http://webpy.org/)：一个小巧的Web框架；
+- [Bottle](http://bottlepy.org/)：和Flask类似的Web框架；
+- [Tornado](http://www.tornadoweb.org/)：Facebook的开源异步Web框架。
+
+# 模板
+
+由于在Python代码里拼HTML页面字符串是不现实的，所以，模板技术出现了。
+
+使用模板，我们需要预先准备一个HTML文档，这个HTML文档不是普通的HTML，而是嵌入了一些变量和指令，然后，根据我们传入的数据，替换后，得到最终的HTML，发送给用户：
+
+![1521105890630](C:\Users\ADMINI~1\AppData\Local\Temp\1521105890630.png)
+
+
+
+除了Jinja2，常见的模板还有：
+
+- [Mako](http://www.makotemplates.org/)：用`<% ... %>`和`${xxx}`的一个模板；
+- [Cheetah](http://www.cheetahtemplate.org/)：也是用`<% ... %>`和`${xxx}`的一个模板；
+- [Django](https://www.djangoproject.com/)：Django是一站式框架，内置一个用`{% ... %}`和`{{ xxx }}`的模板。
+

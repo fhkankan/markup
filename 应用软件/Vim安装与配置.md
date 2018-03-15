@@ -924,7 +924,7 @@ Plugin 'tpope/vim-fugitive'
 ```
 ：Gstatus	# git status的输出
 Press - to add/reset a file's changes, or p to add/reset --patch
-:Gcommit	# 提交
+:Gcommit	# git commit
 :Gblame		# git blame
 :Gedit		# go back to the work tree version.
 :Gmove		# git mv on a file and simultaneously renames the buffer.
