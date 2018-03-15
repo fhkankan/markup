@@ -927,6 +927,7 @@ Web应用的本质就是：
 
 这个接口就是WSGI：Web Server Gateway Interface。
 
+<<<<<<< HEAD
 WSGI允许开发者将选择web框架和web服务器分开。可以混合匹配web服务器和web框架，选择一个适合的配对,web服务器必须具备WSGI接口，所有的现代Python Web框架都已具备WSGI接口，它让你不对代码作修改就能使服务器和特点的web框架协同工作。
 
 其他语言也有类似接口：java有Servlet API，Ruby 有 Rack。
@@ -953,3 +954,9 @@ def application(environ, start_response):
 
 整个`application()`函数本身没有涉及到任何解析HTTP的部分，也就是说，底层代码不需要我们自己编写，我们只负责在更高层次上考虑如何响应请求就可以了。
 
+WSGI接口定义非常简单，它只要求Web开发者实现一个函数，就可以响应HTTP请求。
+```
+
+
+
+```
