@@ -13,7 +13,7 @@ finally:
 
 写`try...finally`非常繁琐。
 
-##with
+## with
 
 Python的`with`语句允许我们非常方便地使用资源，而不必担心资源没有关闭，所以上面的代码可以简化为：
 
@@ -53,7 +53,7 @@ with Query('Bob') as q:
     q.query()
 ```
 
-##@contextmanager
+## @contextmanager
 
 编写`__enter__`和`__exit__`仍然很繁琐，因此Python的标准库`contextlib`提供了更简单的写法，上面的代码可以改写如下：
 
@@ -114,7 +114,7 @@ world
 
 因此，`@contextmanager`让我们通过编写generator来简化上下文管理。
 
-##@closing
+## @closing
 
 如果一个对象没有实现上下文，我们就不能把它用于`with`语句。这个时候，可以用`closing()`来把该对象变为上下文对象。例如，用`with`语句使用`urlopen()`：
 
