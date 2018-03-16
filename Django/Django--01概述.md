@@ -98,6 +98,7 @@ workon 虚环境名
 django-admin startproject 项目名
 cd 项目名
 python manage.py startapp 应用名
+
 配置：
 1、添加静态文件：
 static/(js/,css/,image/)
@@ -112,6 +113,7 @@ INSTALLED_APPS集合增加'应用名'
 TEMPLATES中设定'DIRS': 
 [os.path.join(BASE_DIR, 'templates')]
 
+
 # pycharm
 新建Django项目，选择虚环境的解释器，创建项目名和应用名
 ```
@@ -124,7 +126,7 @@ TEMPLATES中设定'DIRS':
 __init__.py: 空文件，说明app01是一个python包（模块）
 settings.py: 项目的全局配置文件
 urls.py: 项目的url配置文件
-wsgi.py: web服务器和django框架交互的接口，详细内容会在后面布署中讲到
+wsgi.py: web服务器和django框架交互的接口，
 manage.py: 项目的管理文件，项目运行的入口，指定配置文件路径
 
 # 应用目录如下：
@@ -201,15 +203,14 @@ python manage.py  migrate
 ### 模型管理器
 
 - 每个模型类默认都有 **objects** 类属性，可以把它叫 **模型管理器**。它由django自动生成，类型为 `django.db.models.manager.Manager`
-
 - **objects模型管理器**中提供了一些查询数据的方法： 
 
-  | objects管理器中的方法       | 返回类型     | 作用                                       |
-  | -------------------- | -------- | ---------------------------------------- |
-  | 模型类.objects.get()    | 模型对象     | **返回一个对象，且只能有一个**: <br>如果查到多条数据，则报错：MultipleObjectsReturned <br>如果查询不到数据，则报错：DoesNotExist |
-  | 模型类.objects.filter() | QuerySet | 返回满足条件的对象                                |
-  | 模型类.objects.all()    | QuerySet | 返回所有的对象                                  |
 
+| objects管理器中的方法   | 返回类型 | 作用                                                         |
+| ----------------------- | -------- | ------------------------------------------------------------ |
+| 模型类.objects.get()    | 模型对象 | **返回一个对象，且只能有一个**: <br>如果查到多条数据，则报错：MultipleObjectsReturned <br>如果查询不到数据，则报错：DoesNotExist |
+| 模型类.objects.filter() | QuerySet | 返回满足条件的对象                                           |
+| 模型类.objects.all()    | QuerySet | 返回所有的对象                                               |
 
 ###关联查询
 
@@ -239,7 +240,7 @@ python manage.py  migrate
 1）本地化 (语言和时区)	
 
 	# 修改settings.py文件。
-
+	
 	# LANGUAGE_CODE = 'en-us'
 	LANGUAGE_CODE = 'zh-hans'    # 指定语言（注意不要写错，否则无法启动服务器）
 	
@@ -247,9 +248,9 @@ python manage.py  migrate
 	TIME_ZONE = 'Asia/Shanghai'  # 指定时间
 
 2）创建登录后台的管理员	
-	python3 manage.py createsuperuser
 
 	# 需要指定： 用户名，邮箱，密码
+	python3 manage.py createsuperuser
 3）注册模型类
 
 在应用下的admin.py中注册模型类：告诉djang框架，根据注册的模型类来生成对应表管理页面：
@@ -272,17 +273,18 @@ python manage.py  migrate
 5）自定义数据模型显示哪些字段信息
 
 自定义模型管理类，作用：告诉django在生成的管理页面上显示哪些内容。
+
+
 	# app01/admin.py:
 	class DepartmentAdmin(admin.ModelAdmin):
-	    # 指定后台网页要显示的字段
-	    list_display = ["id", "name", "create_date"]
-
-
+		# 指定后台网页要显示的字段
+		list_display = ["id", "name", "create_date"]
+	
 	class EmployeeAdmin(admin.ModelAdmin):
 	    # 指定后台网页要显示的字段
 	    list_display = ["id", "name", "age", "sex", "comment"]
-
-
+	
+	
 	# 注册Model类
 	admin.site.register(Department, DepartmentAdmin)
 	admin.site.register(Employee, EmployeeAdmin)
@@ -329,10 +331,11 @@ urlpatterns = [
 - url匹配流程
 
 ```
-(1)浏览器发出请求
-(2)去除域名、端口号、参数、/，剩余部分与项目中的url匹配
-(3)去除在项目中url匹配成功的部分，剩下部分与应用里面的url匹配
-(4)若匹配成功，则调用对应的视图函数，若失败，则返回相应信息5)
+1)浏览器发出请求
+2)去除域名、端口号、参数、/，剩余部分与项目中的url匹配
+3)去除在项目中url匹配成功的部分，剩下部分与应用里面的url匹配
+4)若匹配成功，则调用对应的视图函数，若失败，则返回相应信息
+5)返回界面内容并显示
 ```
 
 

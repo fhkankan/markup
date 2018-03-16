@@ -35,6 +35,35 @@ mysql -uroot -pmysql
 quit/exit
 ```
 
+#数据库引擎
+
+```python
+# 查看默认引擎
+show engines
+
+# 更改默认引擎
+# 方法一：在配置文件中更改，后重启
+default-storage-engine=InnoDB
+# 方法二：建表的时候指定
+create table mytbl(   
+    id int primary key,   
+    name varchar(50)   
+)type=MyISAM;
+# 方法三：建表后修改
+alter table mytbl2 type = InnoDB;
+```
+
+mysql的两大数据库引擎区别
+
+```
+	Innodb引擎提供了对数据库事务的支持，支持行级锁和外键，不支持FULLTEXT类型的索引，而且它没有保存表的行数，当SELECT COUNT(*) FROM TABLE时需要扫描全表。由于锁的粒度更小，写操作不会锁定全表，所以在并发较高时，使用Innodb引擎会提升效率。但是使用行级锁也不是绝对的，如果在执行一个SQL语句时MySQL不能确定要扫描的范围，InnoDB表同样会锁全表。索引结构是B+Tree,索引文件本身就是数据文件，索引的key就是主键，辅助索引数据域存储的也是相应记录主键的值而不是地址，所以当以辅助索引查找时，会先根据辅助索引找到主键，再根据主键索引找到实际的数据。
+
+	MyISAM不支持数据库事务的支持，也不支持行级锁和外键，支持FULLTEXT类型的索引，存储了表的行数，于是SELECT COUNT(*) FROM TABLE时只需要直接读取已经保存好的值而不需要进行全表扫描。如果表的读操作远远多于写操作且不需要数据库事务的支持，那么MyIASM也是很好的选择。索引结构是B+Tree,数据域存储的内容为实际数据的地址，它的索引和实际的数据是分开的，只不过是用索引指向了实际的数据
+
+	InnoDB引擎：大尺寸的数据集，支持事务，故障恢复，写操作比较多时无表锁，主键查询比较快
+	MyISAM引擎：支持FULLTEXT类型的索引，不支持事务，无行锁，读操作多时选择
+```
+
 # 对用户的操作
 
 ```python
@@ -515,6 +544,33 @@ SHOW PROCESSLIST                             //列出执行命令。
 SHOW GRANTS FOR user                         //列出某用户权限
 ```
 
+# 数据库表的连接字符串
+
+```
+
+# 连接字符串
+
+CONCAT(str1,str2,…)  
+
+返回结果为连接参数产生的字符串。如有任何一个参数为NULL ，则返回值为 NULL。
+注意：
+如果所有参数均为非二进制字符串，则结果为非二进制字符串。 
+如果自变量中含有任一二进制字符串，则结果为一个二进制字符串。
+一个数字参数被转化为与之相等的二进制字符串格式；若要避免这种情况，可使用显式类型 cast,
+SELECT CONCAT(CAST(int_col AS CHAR), char_col)
+
+CONCAT_WS(separator,str1,str2,...)
+
+CONCAT_WS() 代表 CONCAT With Separator ，是CONCAT()的特殊形式。第一个参数是其它参数的分隔符。分隔符的位置放在要连接的两个字符串之间。分隔符可以是一个字符串，也可以是其它参数。
+注意：
+如果分隔符为 NULL，则结果为 NULL。函数会忽略任何分隔符参数后的 NULL 值。
+
+group_concat([DISTINCT] 要连接的字段 [Order BY ASC/DESC 排序字段] [Separator '分隔符'])
+
+```
+
+
+
 #索引
 
 ##普通索引
@@ -569,6 +625,23 @@ create table 表名(字段名 字段类型 default 默认值,字段名 字段类
 # (MySQL 不支持)
 create table 表名(字段1 字段类型,字段2 字段类型,check(字段1 > 30),...);
 ```
+# 视图
+
+```python
+# 创建视图
+create view 视图名 as 查询的SQL语句
+
+# 查看创建视图的语句
+show create view 视图名
+
+# 删除视图
+drop view 视图名
+
+# 更新视图
+# 方法一：drop + create
+# 方法二：create or replace view
+
+```
 
 # 事务
 
@@ -608,18 +681,90 @@ begin
 # 要执行的操作
 # 终止
 end;
+
+# 检查存储过程
+show create procedure 存储过程名
 # 调用存储过程
-call 存储过程名();
+call 存储过程名([参数]);
+
 # 删除存储过程
 drop procedure 存储过程名;
+
+
+eg:
+#  创建
+create procedure ordertotal(
+	in onumber int,
+    out ototal decimal(8,2)
+)
+begin
+	select sum(item_price*quantity)
+	from orderitems
+    where order_num = onumber
+    into ototal;
+end;
+# 调用
+call ordertotal(20005, @total);
+select @total
 ```
 
-# 视图
+# 游标
 
-```python
-# 创建视图
-create view 视图名 as 查询的SQL语句
+```sql
+# mysql中的游标只能用于存储过程(和函数)
+# 创建游标
+create procedure processorders()
+begin
+	declare ordernumbers cursor
+	for
+	select order_num from orders;
+end;
+
+# 打开游标
+open ordernumbers
+
+# 关闭游标
+close ordernumbers
+
+eg:
+# 创建
+create procedure processorders()
+begin
+	-- declare local variable
+	declare done boolean default 0;
+	decalre o int;
+	declare t decimal(8,2);
+	-- declare the cursor
+	declare ordernumbers cursor
+	for 
+	select order_num from orders;
+	-- declare continue handler
+	declare continue handler for sqlstate '02000' set done=1;
+	-- create a table to store the results
+	create table if not exists ordertotals
+	(order_num int, total decimal(8,2));
+	-- open the cursor
+	open ordernumbers
+	-- loop through all rows
+	repeat
+		-- get order number
+		fetch ordernumbers into o;
+		--get the total for this order
+		call ordertotal(o, 1, t)
+		--insert order and total into ordertotals
+		insert into ordertotals(order_num, total)
+		values(o, t);
+	-- nd of loop
+	until done end repeat;
+	-- close the cursor
+	close ordernumbers;
+end;
+
+# 使用
+select * from  ordertotals;	
 ```
+
+
 
 # 导入导出sql文件
 
