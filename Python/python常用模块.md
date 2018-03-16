@@ -29,7 +29,7 @@ contextlib
 
 ```
 sys			控制shell程序
-os			对文件夹进行操作
+os			与操作系统相关的函数
 copy		复制
 keyword		关键字
 ```
@@ -50,6 +50,18 @@ hmac        hmac算法
 urlib
 urlib2(python2)
 ```
+## 网络
+
+| 协议   | 功能用处                         | 端口号 | Python 模块                |
+| ------ | -------------------------------- | ------ | -------------------------- |
+| HTTP   | 网页访问                         | 80     | httplib, urllib, xmlrpclib |
+| NNTP   | 阅读和张贴新闻文章，俗称为"帖子" | 119    | nntplib                    |
+| FTP    | 文件传输                         | 20     | ftplib, urllib             |
+| SMTP   | 发送邮件                         | 25     | smtplib                    |
+| POP3   | 接收邮件                         | 110    | poplib                     |
+| IMAP4  | 获取邮件                         | 143    | imaplib                    |
+| Telnet | 命令行                           | 23     | telnetlib                  |
+| Gopher | 信息查找                         | 70     | gopherlib, urllib          |
 
 ## HTML解析
 ```
@@ -59,6 +71,20 @@ HTMLParser
 ```
 XML
 ```
+## 数学
+```
+math
+```
+
+## 数据压缩
+```
+zlib
+gzip
+bz2
+zipfile
+tarfile
+```
+
 
 # 第三方
 
