@@ -61,9 +61,11 @@ from flask import Flask
 # 导入配置文件
 from config import Config
 
-# 确定flask程序所在的目录
-# 可传入__name__,__main__，字符串(非模块名)
-app = Flask(__name__)
+# 确定flask程序所在的工程目录
+# __name__表示当前模块名
+# flsk以模块名对应的模块所在的目录为工程目录，默认以目录中的static为静态文件目录，以tetemplates目录为模板目录
+app = Flask(__name__, static_url_path="/python", static_folder="static",
+template_folder="templates")
 
 # 使用配置文件
 app.config.from_object(Config)
@@ -81,68 +83,91 @@ if __name__ == '__main__':
     app.run()  
 ```
 
-# 视图
+#app对象
 
-## 动态路由参数
-
-```
-# 路由传递的参数默认当做string处理(兼容数值)，这里指定int，尖括号中冒号后面的内容是动态的
-@app.route('/user/<int:id>')
-def hello_itcast(id):
-    return 'hello itcast %d' %id
-```
-## 自定义转换器-正则URL
+##对象参数
 
 ```
-# 内置了6中转换器：path/any/str/int/float/uuid/unicode
-# 自定义转换器，可以限制ip访问，以及优化访问路径
-from flask import Flask
-from werkzeug.routing import BaseConverter
-
-class Regex_url(BaseConverter):
-    def __init__(self,url_map,*args):
-    	# url_map就是路由
-    	# args是正则表达式组成的元组   			  							super(Regex_url,self).__init__(url_map)
-        self.regex = args[0]
-
-app = Flask(__name__)
-# 注册自定义正则转换器
-app.url_map.converters['re'] = Regex_url
-
-@app.route('/user/<re("[a-z]{3}"):id>')
-def hello_itcast(id):
-    return 'hello %s' %id
+app = Flask(参数)
+# 参数
+__name__: 导入路径（寻找静态目录与模板目录位置的参数）
+static_url_path:默认空
+static_folder: 默认‘static’
+template_folder: 默认‘templates’
 ```
 
-## 自定义状态码
+##配置信息
 
 ```
-# return后面可以自主定义状态码(即使这个状态码不存在)。当客户端的请求已经处理完成，由视图函数决定返回给客户端一个状态码，告知客户端这次请求的处理结果。
-@app.route('/')
-def hello_itcast():
-    return 'hello itcast',999
+app.config保存了flask的所有配置信息，可以当字典使用
+
+# 设定配置参数
+# 方法一：使用文件
+# 创建config.cfg
+DEBUG = True
+# 使用配置文件
+app.config.from_pyfile("config.cfg")
+
+# 方法二：使用对象
+# 创建类
+class Config(object):
+	DEBUG = True
+# 使用类
+app.config.from_object(Config)
+
+# 方式三：使用app.config字典(python)
+app.config["DEBUG"] = True
+
+
+# 提取配置参数
+# 方法一：
+app.config.get("字典的key")
+
+# 方法二：
+from flask import current_app
+current_app.config.get("字典的key")
 ```
 
-## 抛出异常
+##启动参数
 
 ```
-# abort()函数立即终止视图函数的执行,向前端返回一个http标准中存在的错误状态码，表示出现的错误信息。其类似于python中raise.
-from flask import Flask,abort
-@app.route('/')
-def hello_itcast():
-    abort(404)
-    return 'hello itcast',999
+# ip和端口
+host：默认0.0.0.0
+port:默认5000
+debug:默认False
 ```
 
-## 自定义错误页面显示
+#路由
+
+##路由地图
 
 ```
-# 通过装饰器来实现捕获异常，errorhandler()接收的参数为异常状态码
-@app.errorhandler(404)
-def error(e):
-    return '您请求的页面不存在了，请确认后再次访问！%s'%e
+# 查看所有路由
+app.url_map
 ```
 
+##同一路由装饰多个视图函数
+
+```
+# 同一路径指向不同的视图函数
+# 若请求方式相同，则前面的定义会覆盖后面的
+# 若请求方式不同，则不会冲突
+@app.route('/index', mehoods=["POST"])
+def index1():
+	pass
+@app.route('/index')
+def index2():
+	pass
+```
+
+## 同一函数多个路由装饰器
+
+```
+@app.route('/h1')
+@app.route('/h2')
+def hello():
+	pass
+```
 ## 重定向redirect
 
 ```
@@ -155,49 +180,362 @@ def hello_itcast():
 ## url反向解析
 
 ```
+# url_for()辅助函数可以使用程序URL映射中保存的信息生成URL；url_for()接收视图函数名作为参数，返回对应的URL
+
 from flask import redirect, url_for
+
 @app.route('/')
 def hello_itcast():
     return redirect('http://www.itcast.cn')
 
-# url_for()辅助函数可以使用程序URL映射中保存的信息生成URL；url_for()接收视图函数名作为参数，返回对应的URL
 @app.route('/url')
 def url_info():
     return redirect(url_for('hello_itcast')) 
 ```
 
-## cookie
+
+## 动态路由参数
 
 ```
-# 设置cookie
-from flask import Flask,make_response
-@app.route('/cookie')
-def set_cookie():
-    resp = make_response('this is to set cookie')
-    resp.set_cookie('username', 'itcast')
-    return resp
+# 路由传递的参数默认当做string处理(兼容数值)，这里指定int，尖括号中冒号后面的内容是动态的
+@app.route('/user/<int:id>')
+def hello_itcast(id):
+    return 'hello itcast %d' %id
+```
+## 自定义转换器
+
+```
+# 内置了6种转换器：path(接受/)/any/str/int/float/uuid/unicode
+
+# 自定义转换器
+from flask import Flask，url_for, redirect
+from werkzeug.routing import BaseConverter
+
+# 1.以类的方式定义
+class MobileConverter(BaseConverter):
+    def __init__(self,url_map):
+    	"""
+    	url_map就是flask传递的初始化参数路由，args是正则表达式组成的元组
+        """
+        # 调用父类的初始化方法，将url_map传给父类
+    	super(Regex_url,self).__init__(url_map)
+    	# regex用来保存正则表达式，最终被flask使用匹配提取
+		self.regex = r'1[34578]\d{9}'
+		
+	def to_python(self, value):
+		"""
+		自定义重写父类，由flask调用，从路径中提取采纳数先经过这个函数的处理，函数返回的值作为视图函数的传入参数
+		"""
+		return '111111'
+	
+	def to_url(self, value):
+		"""
+		自定义重写父类，由flask调用，在用url_for反推路径时被调用，用来将处理后的参数添加到路径中
+		"""
+		return "222222"
+
+app = Flask(__name__)
+# 2.注册自定义转换器
+# converters包含了flask的所有的转换器，类似字典使用方式
+app.url_map.converters['re'] = MobileConverter
+# 3.使用自定义转换器
+# 根据转换器的类型名字找到转换器的类，然后实例化这个转换器对象
+# 转换器对象中有一个对象属性regex，保存了用来匹配提取的正则表达式
+@app.route('/send_sms/<mobile:mobile_num>')
+def hello_itcast(mobile_num):
+    return 'hello %s' % mobile_num
     
-# 获取cookie
-# request是请求上细纹对象，cookies是其对象的属性
-from flask import Flask,request
-@app.route('/request')
-def resp_cookie():
-    resp = request.cookies.get('username')
-    return resp
+@app.route('/hello')
+def hello():
+	url = url_for(hello_itcast, mobile_num="123456")
+	return redirect(url)
 ```
 
-## 返回json
+## 自定义转换器-正则URL
+
+```
+# 自定义转换器，可以限制ip访问，以及优化访问路径
+from flask import Flask
+from werkzeug.routing import BaseConverter
+
+# 1.以类的方式定义
+class Regex_url(BaseConverter):
+    def __init__(self,url_map,*args):
+    	# url_map就是flask传递的初始化参数路由，args是正则表达式组成的元组			  			
+    	super(Regex_url,self).__init__(url_map)
+		self.regex = args[0]
+
+app = Flask(__name__)
+# 2.注册自定义正则转换器
+app.url_map.converters['re'] = Regex_url
+# 3.使用自定义转换器
+@app.route('/user/<re("[a-z]{3}"):id>')
+def hello_itcast(id):
+    return 'hello %s' %id
+```
+
+# 视图
+
+## 前端数据传参
+
+```
+HTTp协议报文
+起始行
+请求头 Header
+请求体 body
+
+POST /goods/1234?a=1&b=2 HTTp/1.1
+User-agent:xxx
+Content-Type:xxx
+Itcast: xxx
+Cookie: cookie1=xxx;cookie2=xxx
+\r\n
+body
+
+# 前端向后端发送参数的方式
+1.从路径中使用正则传参
+2.路径？传参    查询字符串 query string ?a=1&b=2  ,不限制请求方式(get,post)
+3.请求头中传参
+4.cookie中传参
+5.请求体参数
+  图片，文件，
+  字符串(
+  普通form格式	"c=3&d=4"
+  json字符串	'{"c":3, "d":4}' 键中的引号需是双引号
+  xml格式字符串 "<xml><c>3</c><d>4</d></xml>"
+  )
+```
+
+## 获取请求参数
+
+```
+from flask import request
+```
+
+ Flask 中当前请求的 request 对象，request对象中保存了一次HTTP请求的一切信息。
+
+requests常用的属性如下
+
+| 属性    | 说明                           | 类型           |
+| ------- | ------------------------------ | -------------- |
+| data    | 记录请求的数据，并转换为字符串 | *              |
+| form    | 记录请求中的表单数据           | MultiDict      |
+| args    | 记录请求中 的查询参数          | MultiDict      |
+| cookies | 记录请求中的cookie信息         | Dict           |
+| headers | 记录请求中的报文头             | EnvironHeaders |
+| method  | 记录请求中使用的HTTP方法       | GET/POST       |
+| url     | 记录请求的URL                  | string         |
+| files   | 记录请求上传的文件             | *              |
+
+###字符串
+
+```
+from flask import Flask, request
+import json
+
+app = Flask(__name__)
+
+# POST /?a=***&b=***
+@app.route("/", methods=["POST"])
+def index():
+	# 获取查询字符串的数据
+	a = request.args.get("a")	# 获取同名参数的第一个值
+	b = request.args.get("b")
+	a_list = request.args.getlist("a")	# 获取所有同名参数
+	
+	# 获取请求头的数据
+	content_type = request.headers.get("Content-Type")
+	
+	# 获取请求体数据
+	# 1.普通form格式字符串
+	c = request.form.get("c")
+	d = request.form.get("d")
+	
+	# 2.json/xml格式的字符串
+	# 方法一：通用
+	json_str = rquest.data
+	body_dict = json.loads(json_str)
+	e = body_dict.get("e")
+	# 方法二： Content-Type需是application/json
+	request_dict = request.get_json()
+	e = body_dict.get("e")
+	
+
+if __name__ = "__main__":
+	app.run(debug=True)	
+```
+
+### 文件上传
+
+```
+# 前端多媒体表单
+<form method="POST", enctype="multipart/form-data">
+	<input type="file" name="pic">
+	<input type="submit">
+</form>
+
+# 视图函数
+@app.route("/upload", methods=["POST"])
+def upload():
+	# 通过files属性获取文件数据
+	file_obj = request.files.get("pic")
+	# 读取保存文件内容
+	# 方法一：手动保存
+	file_obj.read()	
+	fie_name = file_obj.name
+	with open("./file_name", "wb") as f:
+		f.write(file_obj)
+	# 方法二：save方法
+	file_obj.save()
+```
+
+##处理状态返回
+
+### 自定义状态码
+
+```
+# return后面可以自主定义状态码(即使这个状态码不存在)。当客户端的请求已经处理完成，由视图函数决定返回给客户端一个状态码，告知客户端这次请求的处理结果。
+@app.route('/')
+def hello_itcast():
+    return 'hello itcast',999
+```
+
+### 抛出异常
+
+```
+# abort()函数立即终止视图函数的执行,向前端返回一个http标准中存在的错误状态码，表示出现的错误信息。其类似于python中raise.
+from flask import Flask,abort
+@app.route('/')
+def hello_itcast():
+    abort(404)
+    return 'hello itcast',999
+```
+
+### 自定义错误页面显示
+
+```
+# 通过装饰器来实现捕获异常，errorhandler()接收的参数为异常状态码
+@app.errorhandler(404)
+def error(e):
+    return '您请求的页面不存在了，请确认后再次访问！%s'%e
+```
+
+## 响应信息
+
+### 元组
+
+```
+@app.route("/")
+def index():
+	# 构造响应信息的方式
+	# 方式一：元组
+	# return (响应体， 状态码， 响应头)
+	# return 响应体， 状态码， 响应头
+	# return "index page", "403 itcast error", [("Content-Type", "application/json"), ("Itcast", "python")]
+	# return "index page", 403, {"Content-Type":"application/json", "Itcast": "python"}
+	# return "index page", "666 perfect", {"Content-Type":"application/json", "Itcast": "python"}
+```
+
+### make_response
+
+```
+@app.route("/")
+def index():
+	# 构造响应信息的方式
+	# 方式二：make_response
+	resp = make_response("index page 2")
+	resp.status = "400 bad request"	# 响应码
+	resp.headers["Itcast3"] = "python3"	# 响应头
+	return resp
+```
+##返回json
 
 ```
 from flask import Flask,jsonify
+import json
 
 @app.route('/json')
 	def resp_json():
-        my_dict = {'name': 'python6', "age": 17}
+        # my_dict = {"name": "python6", "age": 17}
+        # 方法一：通用
+        # json.dumps()对字典序列化
+        # json_str = json.dumps(my_dict)
+        # return json_str, 200, {"Content-Type": "application/json"}
+        
+        # 方法二：jsonify
+        # 把字典数据转换为json字符串，并自动添加响应头Content-Type为application/json
         return jsonify(my_dict)
+        
+        # 方法三:jsonify中直接传内容
+        return jsonify(name="python6", age=17)
 ```
 
 
+## cookie
+
+```
+from flask import Flask,make_response
+@app.route('/set_cookie')
+def set_cookie():
+	# 响应对象
+    resp = make_response('set cookie ok')
+    # 设置cookie
+    # 参数1：key, 参数2：value，临时cookie,浏览器关闭即失效
+    resp.set_cookie('username', 'itcast')
+    # max_age指明有效期，单位秒
+    resp.set_cookie('username2', 'itcast', max_age=3600)
+    return resp
+    
+# set_cookie实质是在响应报头中添加Set-Cookie项   
+@app.route('/set_cookie2')
+def set_cookie2():
+    # 设置cookie
+    return "set cookie 2", 200, [("Set-coojie", "user_name3=itcast; path=/")]
+    
+    
+# request是请求上下文对象，cookies是其对象的属性
+from flask import Flask,request
+@app.route('/get_cookie')
+def resp_cookie():
+	# 获取cookie
+    resp = request.cookies.get('username')
+    return resp
+    
+    
+from flask import Flask,make_response
+@app.route('/del_cookie')
+def set_cookie():
+	# 响应对象
+    resp = make_response('del cookie ok')
+    # 删除cookie,有效期为0
+    resp.delete_cookie('username2')
+    return resp
+```
+
+## session
+
+```
+# Flask中默认把session经secret_key签名后存储至cookie中，
+# 用扩展Flask-session可更改为存储后端数据库
+
+from flask import Flask, session
+
+# flask中使用session需要设置secret_key参数，签名验证防止别人修改
+app.config["SECRET_KEY"] = "asdsd@#￥uge7t7w6g@！e76r5"
+
+@app.route('/login')
+def login():
+	# 设置session
+	session["user_id"] = 123
+	session["user_name"] = "python"
+	return "login_ok"
+	
+@app.route('/')
+def index():
+	# 获取session
+	name = session.get("user_name")
+	return "hello!"
+```
 
 ## 上下文
 

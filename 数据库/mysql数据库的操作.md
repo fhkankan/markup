@@ -60,9 +60,94 @@ mysql的两大数据库引擎区别
 
 	MyISAM不支持数据库事务的支持，也不支持行级锁和外键，支持FULLTEXT类型的索引，存储了表的行数，于是SELECT COUNT(*) FROM TABLE时只需要直接读取已经保存好的值而不需要进行全表扫描。如果表的读操作远远多于写操作且不需要数据库事务的支持，那么MyIASM也是很好的选择。索引结构是B+Tree,数据域存储的内容为实际数据的地址，它的索引和实际的数据是分开的，只不过是用索引指向了实际的数据
 
-	InnoDB引擎：大尺寸的数据集，支持事务，故障恢复，写操作比较多时无表锁，主键查询比较快
+	InnoDB引擎：大尺寸的数据集，支持事务，故障恢复，写操作比较多时无表锁，主键查询比较快，并发建议
 	MyISAM引擎：支持FULLTEXT类型的索引，不支持事务，无行锁，读操作多时选择
 ```
+
+# 性能改善
+
+```
+# 数据操作
+避免使用select *，精确检索
+减少or,使用多条语句和union
+减少like，使用fulltext
+存储过程比多条语句快
+导入数据时，关闭自动提交，导入完成后重建索引
+
+
+# 数据库设计
+正确的数据类型
+不适用过长的主键名(尤其innodb)
+建立索引便于检索，避免过多索引印象插入和更新
+
+
+# mysql配置
+内存分配
+缓冲区大小
+制约的进程改善
+
+# 硬件性能
+
+
+```
+
+
+
+# 全球化与本地化
+
+```sql
+# 字符集：为字母和符号的集合
+# 编码：为摸个字符集成员的内部表示
+# 校对：为规定字符如何比较的指令
+
+# 查看支持的字符集
+show character set;
+# 查看支持的校对
+show collation;
+
+eg:
+create table mytable
+(
+	column1 int,
+    column2 varchar(10),
+    column3 varchar(10) character set latin1 collate latin1_general_ci
+)
+default character set hebrew
+collate hebrew_general_ci
+```
+
+# 安全管理
+
+```
+# 管理用户
+use mysql;
+select user from user;
+
+# 创建用户账户
+create user ben identified by 'p@$$w0rd'
+
+# 重命名用户账号
+rename user ben to bforta
+
+# 删除用户账户
+drop user bforta
+
+# 查看权限
+show grants for bforta
+
+# 授予权限
+grant select on mydatabase.* to bforta
+
+# 撤销权限
+revoke select on mydatabase.* from bforta
+
+# 更改密码
+set password for bforta = password('new password')
+# 当前用户更改
+set password = password('new password')
+```
+
+
 
 # 对用户的操作
 
@@ -266,6 +351,22 @@ select 字段名 + 字段名 as '别名' from 表名;
 
 ```
 select concat(str1,str2,...) as '别名' from 表名;
+
+CONCAT(str1,str2,…)  
+返回结果为连接参数产生的字符串。如有任何一个参数为NULL ，则返回值为 NULL。
+注意：
+如果所有参数均为非二进制字符串，则结果为非二进制字符串。 
+如果自变量中含有任一二进制字符串，则结果为一个二进制字符串。
+一个数字参数被转化为与之相等的二进制字符串格式；若要避免这种情况，可使用显式类型 cast,
+SELECT CONCAT(CAST(int_col AS CHAR), char_col)
+
+CONCAT_WS(separator,str1,str2,...)
+CONCAT_WS() 代表 CONCAT With Separator ，是CONCAT()的特殊形式。第一个参数是其它参数的分隔符。分隔符的位置放在要连接的两个字符串之间。分隔符可以是一个字符串，也可以是其它参数。
+注意：
+如果分隔符为 NULL，则结果为 NULL。函数会忽略任何分隔符参数后的 NULL 值。
+
+group_concat([DISTINCT] 要连接的字段 [Order BY ASC/DESC 排序字段] [Separator '分隔符'])
+
 ```
 
 ### 常用函数
@@ -544,32 +645,41 @@ SHOW PROCESSLIST                             //列出执行命令。
 SHOW GRANTS FOR user                         //列出某用户权限
 ```
 
-# 数据库表的连接字符串
+# 全文本搜索
 
+```sql
+# mysql数据库的MyISAM支持全文本搜索，不支持事务
+# 启用全文本搜索
+create table 表名
+（
+	字段名  	类型  	约束，
+	note_text  text 	null,
+	fulltext(note_text)
+）engine=myisam
+
+# 使用全文本搜索
+select note_text from 表名
+where match(note_text) against('匹配字符串')
+
+# 使用查询扩展
+select note_text from 表名
+where match(note_text) against('匹配字符串' with query expansion)
+
+# 使用布尔文本搜索
+select note_text from 表名
+where match(note_text) against('匹配字符串的布尔操作' in boolean mode)
 ```
 
-# 连接字符串
-
-CONCAT(str1,str2,…)  
-
-返回结果为连接参数产生的字符串。如有任何一个参数为NULL ，则返回值为 NULL。
-注意：
-如果所有参数均为非二进制字符串，则结果为非二进制字符串。 
-如果自变量中含有任一二进制字符串，则结果为一个二进制字符串。
-一个数字参数被转化为与之相等的二进制字符串格式；若要避免这种情况，可使用显式类型 cast,
-SELECT CONCAT(CAST(int_col AS CHAR), char_col)
-
-CONCAT_WS(separator,str1,str2,...)
-
-CONCAT_WS() 代表 CONCAT With Separator ，是CONCAT()的特殊形式。第一个参数是其它参数的分隔符。分隔符的位置放在要连接的两个字符串之间。分隔符可以是一个字符串，也可以是其它参数。
-注意：
-如果分隔符为 NULL，则结果为 NULL。函数会忽略任何分隔符参数后的 NULL 值。
-
-group_concat([DISTINCT] 要连接的字段 [Order BY ASC/DESC 排序字段] [Separator '分隔符'])
-
-```
-
-
+| 布尔操作符 | 说明                                                         |
+| ---------- | ------------------------------------------------------------ |
+| +          | 包含，词必须存在                                             |
+| -          | 排除，词必须不出现                                           |
+| >          | 包含，增加等级值                                             |
+| <          | 包含，减少等级值                                             |
+| ()         | 把词组成子表达式<br>允许子表达式作为一个组被包含、排除、排列等 |
+| ~          | 取消一个词的排序值                                           |
+| *          | 词尾的通配符                                                 |
+| ""         | 定义一个短句<br>匹配整个短语以便包含或排除这个短语           |
 
 #索引
 
@@ -590,7 +700,7 @@ create table 表名(字段名 字段类型,字段名 字段类型,unique 索引�
 # 只支持 MyISAM 引擎
 create fulltext index 索引名 on 表名(字段名);
 alter table 表名 add fulltext 索引名(字段名);
-create table 表名(字段名 字段类型,字段名 字段类型,fulltext (字段名);
+create table 表名(字段名 字段类型,字段名 字段类型,fulltext (字段名)）;
 ```
 ##组合索引
 ```
@@ -652,6 +762,12 @@ begin; 或者 start transaction;
 commit;
 # 回滚
 rollback;
+
+# 使用保留点
+# 创建占位符
+savepoint 保留点名
+# 回退至保留点
+rollback to 保留点名
 ```
 
 # 触发器
@@ -669,6 +785,10 @@ begin
 #如果要获取表中的数据当作条件,insert时用NEW，delete时用OLD,update时都可以
 # 结束
 end;
+
+# 删除触发器
+drop trigger 触发器名
+
 ```
 
 # 存储过程

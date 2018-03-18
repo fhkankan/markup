@@ -13,6 +13,48 @@ Web应用开发可以说是目前软件开发中最重要的部分。Web开发�
 
 目前，Web开发技术仍在快速发展中，异步开发、新的MVVM前端技术层出不穷。
 ```
+# HTTP通信与We框架
+
+##流程
+
+```
+客户端将请求打包成HTTP的请求报文（HTTP协议格式的请求数据）
+
+采用TCP传输发送给服务器端
+
+服务器接收到请求报文后按照HTTP协议进行解析
+
+服务器根据解析后获知的客户端请求进行逻辑执行
+
+服务器将执行后的结果封装成HTTP的响应报文（HTTP协议格式的响应数据）
+
+采用刚才的TCP连接将响应报文发送给客户端
+
+客户端按照HTTP协议解析响应报文获取结果数据
+```
+
+## 细节
+
+```
+客户端
+浏览器，PC软件、手机APP、程序等
+
+
+服务器端：
+服务器：与客户端进行tcp通信，接收、解析、打包、发送http格式数据
+
+业务程序：根据解析后的请求数据执行逻辑处理，形成要返回的数据交给服务器
+
+服务器与Python业务程序的配合使用WSGI协议
+```
+
+## 框架
+
+```
+能够被服务器调用起来，根据客户端的不同请求执行不同的逻辑处理形成要返回的数据的 程序
+
+核心：实现路由和视图（业务逻辑处理）
+```
 
 # HTTP协议
 
@@ -1339,4 +1381,49 @@ def application(environ, start_response):
 - [Mako](http://www.makotemplates.org/)：用`<% ... %>`和`${xxx}`的一个模板；
 - [Cheetah](http://www.cheetahtemplate.org/)：也是用`<% ... %>`和`${xxx}`的一个模板；
 - [Django](https://www.djangoproject.com/)：Django是一站式框架，内置一个用`{% ... %}`和`{{ xxx }}`的模板。
+
+
+#Cookie/Session
+
+## Cookie
+
+```
+
+
+
+```
+
+
+
+## Session
+
+```
+# 传递流程
+前端用户登录 ---> 后端服务器生成sesson数据保存至数据库  --->发送sesson_id=1 ---> 前端接收session_id保存到cookie中 ---> 前端后续访问携带session_id=1
+
+# 保存内容
+前端cookie
+session_id:1
+
+后端服务器
+{
+    session_id_1:{"user_id":123,"user_name":"python"},
+    session_id_2:{"user_id":124,"user_name":"itcast"},    
+}
+
+# 保存位置
+数据库
+redis
+文件
+程序-内存(配置ngix应对跨机访问)
+
+# 没有cookie也能实现session
+方案：在url路径中保存
+eg：
+后端向前端返回redirect("/?session_id=1")
+
+# 框架更改
+django默认存储到后端数据库中，前端cookie保存session_id
+Flask默认存储到cookie中,故需要签名认证，或使用扩展来更改保存至后端数据库中
+```
 
