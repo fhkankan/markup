@@ -1,7 +1,5 @@
 # 模板
 
-[TOC]
-
 ## 基本流程
 
 **前端**
@@ -202,46 +200,10 @@ def filter_double_sort(ls):
 
 HTML页面中负责数据采集的部件。表单有三个部分组成：表单标签、表单域、表单按钮。表单允许用户输入数据，负责HTML页面数据采集，通过表单将用户输入的数据提交给服务器。
 
-WTForms支持的HTML标准字段
-
-| 字段对象                | 说明                         |
-| ------------------- | -------------------------- |
-| StringField         | 文本字段                       |
-| TextAreaField       | 多行文本字段                     |
-| PasswordField       | 密码文本字段                     |
-| HiddenField         | 隐藏文本字段                     |
-| DateField           | 文本字段，值为datetime.date格式     |
-| DateTimeField       | 文本字段，值为datetime.datetime格式 |
-| IntegerField        | 文本字段，值为整数                  |
-| DecimalField        | 文本字段，值为decimal.Decimal     |
-| FloatField          | 文本字段，值为浮点数                 |
-| BooleanField        | 复选框，值为True和False           |
-| RadioField          | 一组单选框                      |
-| SelectField         | 下拉列表                       |
-| SelectMultipleField | 下拉列表，可选择多个值                |
-| FileField           | 文本上传字段                     |
-| SubmitField         | 表单提交按钮                     |
-| FormField           | 把表单作为字段嵌入另一个表单             |
-| FieldList           | 一组指定类型的字段                  |
-
-WTForms常用验证函数
-
-| 验证函数         | 说明                   |
-| ------------ | -------------------- |
-| DataRequired | 确保字段中有数据             |
-| EqualTo      | 比较两个字段的值，常用于比较两次密码输入 |
-| Length       | 验证输入的字符串长度           |
-| NumberRange  | 验证输入的值在数字范围内         |
-| URL          | 验证URL                |
-| AnyOf        | 验证输入值在可选列表中          |
-| NoneOf       | 验证输入值不在可选列表中         |
-
-使用Flask-WTF需要配置参数SECRET_KEY。CSRF_ENABLED是为了CSRF（跨站请求伪造）保护。 SECRET_KEY用来生成加密令牌，当CSRF激活的时候，该设置会根据设置的密匙生成加密令牌。
-
-HTML页面中的form表单
+### 无Flask-WTF扩展
+HTML页面中含form表单的模板文件
 
 ```
-#模板文件
 <form method='post'>
     <input type="text" name="username" placeholder='Username'>
     <input type="password" name="password" placeholder='password'>
@@ -264,13 +226,26 @@ def login():
     return render_template('login.html',method=request.method)
 ```
 
-使用Flask_WPF实现表单
+### 使用Flask_WTF
+
+使用Flask-WTF表单扩展，可以帮助进行CSRF验证，帮助我们以类的方式定义表单模板，而且可以帮助我们在视图中验证表的数据
+
+安装
+```
+pip install Flask-WTF
+```
+
+配置参数
 
 ```
-# 配置参数
-app.config['SECRET_KEY'] = 'silents is gold'
+# 使用Flask-WTF需要配置参数SECRET_KEY。CSRF_ENABLED是为了CSRF（跨站请求伪造）保护。 SECRET_KEY用来生成加密令牌，当CSRF激活的时候，该设置会根据设置的密匙生成加密令牌。
 
-# 模板页面
+app.config['SECRET_KEY'] = 'silents is gold'
+```
+
+模板页面
+
+```
 <form method="post">
         #设置csrf_token
         {{ form.csrf_token }}
@@ -285,26 +260,29 @@ app.config['SECRET_KEY'] = 'silents is gold'
             {{ x }}
         {% endfor %}
  </form>
+```
 
-# 视图函数
+视图函数
+
+
+```
 #coding=utf-8
-from flask import Flask,render_template,\
-    redirect,url_for,session,request,flash
-
+from flask import Flask,render_template, redirect,url_for,session,request,flash
 #导入wtf扩展的表单类
 from flask_wtf import FlaskForm
 #导入自定义表单需要的字段
 from wtforms import SubmitField,StringField,PasswordField
 #导入wtf扩展提供的表单验证器
 from wtforms.validators import DataRequired,EqualTo
+
 app = Flask(__name__)
 app.config['SECRET_KEY']='1'
 
 #自定义表单类，文本字段、密码字段、提交按钮
 class Login(FlaskForm):
-    us = StringField(label=u'用户：',validators=[DataRequired()])
-    ps = PasswordField(label=u'密码',validators=[DataRequired(),EqualTo('ps2','err')])
-    ps2 = PasswordField(label=u'确认密码',validators=[DataRequired()])
+    us = StringField(label=u'用户：',validators=[DataRequired(u'用户名不能为空')])
+    ps = PasswordField(label=u'密码',validators=[DataRequired(u'密码不能为空')])
+    ps2 = PasswordField(label=u'确认密码',validators=[DataRequired(),EqualTo('ps','err')])
     submit = SubmitField(u'提交')
 
 @app.route('/login')
@@ -331,6 +309,40 @@ if __name__ == '__main__':
     app.run(debug=True)
 ```
 
+###WTForms支持的HTML标准字段
+
+| 字段对象                | 说明                         |
+| ------------------- | -------------------------- |
+| StringField         | 文本字段                       |
+| TextAreaField       | 多行文本字段                     |
+| PasswordField       | 密码文本字段                     |
+| HiddenField         | 隐藏文本字段                     |
+| DateField           | 文本字段，值为datetime.date格式     |
+| DateTimeField       | 文本字段，值为datetime.datetime格式 |
+| IntegerField        | 文本字段，值为整数                  |
+| DecimalField        | 文本字段，值为decimal.Decimal     |
+| FloatField          | 文本字段，值为浮点数                 |
+| BooleanField        | 复选框，值为True和False           |
+| RadioField          | 一组单选框                      |
+| SelectField         | 下拉列表                       |
+| SelectMultipleField | 下拉列表，可选择多个值                |
+| FileField           | 文本上传字段                     |
+| SubmitField         | 表单提交按钮                     |
+| FormField           | 把表单作为字段嵌入另一个表单             |
+| FieldList           | 一组指定类型的字段                  |
+
+###WTForms常用验证函数
+
+| 验证函数         | 说明                   |
+| ------------ | -------------------- |
+| DataRequired | 确保字段中有数据             |
+| EqualTo      | 比较两个字段的值，常用于比较两次密码输入 |
+| Length       | 验证输入的字符串长度           |
+| NumberRange  | 验证输入的值在数字范围内         |
+| URL          | 验证URL                |
+| AnyOf        | 验证输入值在可选列表中          |
+| NoneOf       | 验证输入值不在可选列表中         |
+
 ## 宏(macro)
 
 Jinja2支持宏，还可以导入宏，需要在多处重复使用的模板代码片段可以写入单独的文件，再包含在所有模板中，以避免重复。
@@ -345,6 +357,7 @@ Jinja2支持宏，还可以导入宏，需要在多处重复使用的模板代�
          value=""
          size="30"/>
 {% endmacro %}
+
 
 # 有参数
 {% macro input(name,value='',type='text',size=20) %}
@@ -365,7 +378,7 @@ Jinja2支持宏，还可以导入宏，需要在多处重复使用的模板代�
 {{ input(value='name',type='password',size=40)}}
 ```
 
-###抽取封装调用 
+###单文件封装/调用 
 
 ```
 # 文件名可以自定义macro.html
