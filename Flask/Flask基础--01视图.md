@@ -139,13 +139,24 @@ debug:默认False
 
 #路由
 
+
+##装饰器路由的实现
+
+```
+Flask有两大核心：Werkzeug和Jinja2。Werkzeug实现路由、调试和Web服务器网关接口。Jinja2实现了模板。
+
+Werkzeug是一个遵循WSGI协议的python函数库。其内部实现了很多Web框架底层的东西，比如request和response对象；与WSGI规范的兼容；支持Unicode；支持基本的会话管理和签名Cookie；集成URL请求路由等。
+
+Werkzeug库的routing模块负责实现URL解析。不同的URL对应不同的视图函数，routing模块会对请求信息的URL进行解析，匹配到URL对应的视图函数，以此生成一个响应信息。
+
+routing模块内部有Rule类（用来构造不同的URL模式的对象）、Map类（存储所有的URL规则）、MapAdapter类（负责具体URL匹配的工作）；
+```
 ##路由地图
 
 ```
 # 查看所有路由
 app.url_map
 ```
-
 ##同一路由装饰多个视图函数
 
 ```
@@ -181,16 +192,13 @@ def hello_itcast():
 
 ```
 # url_for()辅助函数可以使用程序URL映射中保存的信息生成URL；url_for()接收视图函数名作为参数，返回对应的URL
+@app.route('/index')
+def index():
+    return render_template('index.html')
 
-from flask import redirect, url_for
-
-@app.route('/')
-def hello_itcast():
-    return redirect('http://www.itcast.cn')
-
-@app.route('/url')
-def url_info():
-    return redirect(url_for('hello_itcast')) 
+@app.route('/user/')
+def redirect():
+    return url_for('index',_external=True)
 ```
 
 
@@ -218,7 +226,7 @@ class MobileConverter(BaseConverter):
     	url_map就是flask传递的初始化参数路由，args是正则表达式组成的元组
         """
         # 调用父类的初始化方法，将url_map传给父类
-    	super(Regex_url,self).__init__(url_map)
+    	super(MobileConverter,self).__init__(url_map)
     	# regex用来保存正则表达式，最终被flask使用匹配提取
 		self.regex = r'1[34578]\d{9}'
 		
@@ -235,9 +243,11 @@ class MobileConverter(BaseConverter):
 		return "222222"
 
 app = Flask(__name__)
+
 # 2.注册自定义转换器
 # converters包含了flask的所有的转换器，类似字典使用方式
-app.url_map.converters['re'] = MobileConverter
+app.url_map.converters['mobile'] = MobileConverter
+
 # 3.使用自定义转换器
 # 根据转换器的类型名字找到转换器的类，然后实例化这个转换器对象
 # 转换器对象中有一个对象属性regex，保存了用来匹配提取的正则表达式
@@ -358,7 +368,7 @@ def index():
 	e = body_dict.get("e")
 	# 方法二： Content-Type需是application/json
 	request_dict = request.get_json()
-	e = body_dict.get("e")
+	e = request_dict.get("e")
 	
 
 if __name__ = "__main__":
@@ -543,10 +553,11 @@ def index():
 
 **区别：** 请求上下文：保存了客户端和服务器交互的数据。 应用上下文：在flask程序运行过程中，保存的一些配置信息，比如程序文件名、数据库的连接、用户信息等。
 
-请求上下文
+###请求上下文
 
 ```
 request和session都属于请求上下文对象。
+是进程中的全局变量，在多线程的使用中，由用户请求的线程编码标记不同线程的请求内容，当做局部变量使用
 
 request：封装了HTTP请求的内容，针对的是http请求。
 user = request.args.get('user')，获取的是get请求的参数。
@@ -555,48 +566,67 @@ session：用来记录请求会话中的信息，针对的是用户信息。
 session['name'] = user.id，可以记录用户信息。还可以通过session.get('name')获取用户信息。
 ```
 
-应用上下文
+###应用上下文
 
 ```
 current_app和g都属于应用上下文对象。
-g:处理请求时，用于临时存储的对象，每次请求都会重设这个变量。
+
+g:处理请求时，用于临时存储的对象，方便其他函数调用，每次请求都会重设这个变量。
 
 urrent_app:表示当前运行程序文件的程序实例。
 current_app.name		# 打印出当前应用程序实例的名字。
 current_app.send_static_file(filename)	# 把文件名返回给浏览器
+```
+
+注意
+
+```
 - 当调用app = Flask(_name_)的时候，创建了程序应用对象app；
 - request 在每次http请求发生时，WSGI server调用Flask.call()；然后在Flask内部创建的request对象；
 - app的生命周期大于request和g，一个app存活期间，可能发生多次http请求，所以就会有多个request和g。
 - 最终传入视图函数，通过return、redirect或render_template生成response对象，返回给客户端。
 ```
 
-## 请求钩子
+## 请求钩子hook
 
 在客户端和服务器交互的过程中，有些准备工作或扫尾工作需要处理，比如：在请求开始时，建立数据库连接；在请求结束时，指定数据的交互格式。为了让每个视图函数避免编写重复功能的代码，Flask提供了通用设施的功能，即请求钩子。
 
 ```
-# 请求钩子是通过装饰器的形式实现，Flask支持如下四种请求钩子：
+# 以函数形式定义，函数名可自定义，通过装饰器的形式实现，Flask支持如下四种请求钩子：
+
 before_first_request：在处理第一个请求前运行。
 before_request：在每次请求前运行。通常情况不需要返回Response。一旦在一个before_request()中返回Response，则停止该次请求的调用链，直接将Response返回给客户端
 after_request：如果没有未处理的异常抛出，在每次请求后运行。在after_request()中可以检查之前的处理函数中生成的Response,甚至可以对其修改
 teardown_request：在每次请求后运行，即使有未处理的异常抛出。可以用来做异常处理
-```
 
-## 装饰器路由的实现
-
-```
-Flask有两大核心：Werkzeug和Jinja2。Werkzeug实现路由、调试和Web服务器网关接口。Jinja2实现了模板。
-
-Werkzeug是一个遵循WSGI协议的python函数库。其内部实现了很多Web框架底层的东西，比如request和response对象；与WSGI规范的兼容；支持Unicode；支持基本的会话管理和签名Cookie；集成URL请求路由等。
-
-Werkzeug库的routing模块负责实现URL解析。不同的URL对应不同的视图函数，routing模块会对请求信息的URL进行解析，匹配到URL对应的视图函数，以此生成一个响应信息。
-
-routing模块内部有Rule类（用来构造不同的URL模式的对象）、Map类（存储所有的URL规则）、MapAdapter类（负责具体URL匹配的工作）；
+@app.before_first_request
+def handle_before_first_request():
+	pass
+	
+@app.before_request
+def handle_before_request():
+	pass
+	
+@app.after_request
+def handle_after_request(response):
+	return response
+	
+@app.teardown_request
+def handle_teardown_request(response):
+	return response
 ```
 
 ## 扩展命令行
 
 通过使用Flask-Script扩展，我们可以在Flask服务器启动的时候，通过命令行的方式传入参数。
+
+**安装**
+
+```
+pip install Flask-Script
+```
+
+
 
 **创建程序**
 
@@ -613,7 +643,8 @@ def index():
     return '床前明月光'
 
 if __name__ == "__main__":
-    manager.run()
+	# app.run()
+	manager.run()
 ```
 
 **命令行启动**
@@ -625,7 +656,7 @@ python hello.py runserver --help
 # 启动服务
 python hello.py runserver -h ip地址 -p 端口号
 
-# pytcharm启动
+# pycharm启动
 需在Run/Debug Configurations中修改：
 Script中添加启动文件manage.py
 Script parameters中添加runserver
