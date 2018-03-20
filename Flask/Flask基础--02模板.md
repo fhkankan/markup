@@ -32,9 +32,17 @@ def index():
     return render_template("index.html", **data)
 ```
 
-## 基本语法
+## 变量和语句
 
 ```
+# 变量
+<p>{{mydict['key']}}</p>
+<p>{{mydict.key}}</p>
+<p>{{mylist[1]}}</p>
+<p>{{mylist[myvariable]}}</p>
+
+
+# 语句
 {% if user %}
     {{ user }}
 {% else %}
@@ -251,10 +259,20 @@ app.config['SECRET_KEY'] = 'silents is gold'
         {{ form.csrf_token }}
         {{ form.us.label }}
         <p>{{ form.us }}</p>
+        # 显示验证结果
+        {% for err in form.us.errors %}
+        	<p>{{err}}<p>
+        {% endfor %}
         {{ form.ps.label }}
         <p>{{ form.ps }}</p>
+        {% for err in form.ps.errors %}
+        	<p>{{err}}<p>
+        {% endfor %}
         {{ form.ps2.label }}
         <p>{{ form.ps2 }}</p>
+        {% for err in form.ps2.errors %}
+        	<p>{{err}}<p>
+        {% endfor %}
         <p>{{ form.submit() }}</p>
         {% for x in get_flashed_messages() %}
             {{ x }}
@@ -279,7 +297,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY']='1'
 
 #自定义表单类，文本字段、密码字段、提交按钮
-class Login(FlaskForm):
+class RegisterForm(FlaskForm):
     us = StringField(label=u'用户：',validators=[DataRequired(u'用户名不能为空')])
     ps = PasswordField(label=u'密码',validators=[DataRequired(u'密码不能为空')])
     ps2 = PasswordField(label=u'确认密码',validators=[DataRequired(),EqualTo('ps','err')])
@@ -290,21 +308,26 @@ def login():
     return render_template('login.html')
 
 #定义根路由视图函数，生成表单对象，获取表单数据，进行表单数据验证
-@app.route('/',methods=['GET','POST'])
-def index():
-    form = Login()
-    if form.validate_on_submit():
-        name = form.us.data
-        pswd = form.ps.data
-        pswd2 = form.ps2.data
-        print name,pswd,pswd2
-        return redirect(url_for('login'))
+@app.route('/register',methods=['GET','POST'])
+def register():
+    form = RegisterForm()
+    if request.method == "GET":
+    	return render_template("register.html", form=form)
     else:
-        if request.method=='POST':
-            flash(u'信息有误，请重新输入！')
-        print form.validate_on_submit()
+    	# 如果用户满足所有全部验证行为，返回真，否则返回假
+    	if form.validate_on_submit():
+    		# 提取表单数据
+			name = form.us.data
+			pswd = form.ps.data
+			pswd2 = form.ps2.data
+			print name,pswd,pswd2
+			return redirect(url_for('login'))
+    	else:
+    		# 用闪现保存要展示的数据
+    		flash(u'信息有误，请重新输入！')
+    		print form.validate_on_submit()
+    		return render_template('register.html',form=form)
 
-    return render_template('index.html',form=form)
 if __name__ == '__main__':
     app.run(debug=True)
 ```
@@ -447,7 +470,7 @@ Jinja2支持宏，还可以导入宏，需要在多处重复使用的模板代�
 
 ## 特殊变量和方法
 
-有一些特殊的变量和方法是可以在模板文件中直接访问的
+有一些特殊的变量和方法不需要传递，是可以在模板文件中直接访问的
 
 ###config对象
 
@@ -494,6 +517,9 @@ url_for() 会返回传入的路由函数对应的URL，所谓路由函数就是�
 from flask import Flask, flash, request
 if request.method == 'GET':
     # 重启浏览器可以解决编码问题：
+    # 利用闪现保存要展示的消息数据
+    # 一次保存的数据在模板中只能提取一次，再次提取就没有了
+    # flask在实现闪现的时候，是将flask的数据保存到session中，故需要程序中有SECRET_KEY
     flash(u'请输入用户信息和密码')
 ```
 

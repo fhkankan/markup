@@ -2,7 +2,9 @@
 
 ## SQLALchemy
 
-**安装数据库 **
+SQLALchemy是python成熟的ORM框架模块，可适用于Django,Flask等。为了便于在Flask中使用，对它进行了再次封装，形成了Flask-SQLALchemy
+
+###安装数据库 
 
 ```
 # 安装服务端
@@ -19,21 +21,36 @@ show databases;
 desc create table 数据表名;
 ```
 
-**安装flask-sqlalchemy**
+###安装flask-sqlalchemy
 
 ```
+# ORM(将模型类操作转换为sql语句，将结果转换为模型类对象)
 pip install flask-sqlalchemy
-pip install flask-mysqldb（或）
+
+# 数据库驱动程序(数据库连接，sql语句传输，执行结果获取)
+pip install mysql-python(mysql官方,ORM自动识别为mysqldb)
+或
+pip install flask-mysqldb(封装过，ORM自动识别为mysqldb)
+或
+pip install pymysql(需要在程序中执行
+import pymysql
+pymysql.install_as_mysqldb(),之后ORM才能识别为myslqdb)
 ```
 
-**数据库配置**
+###数据库配置
 
 ```
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:mysql@127.0.0.1:3306/test3'
-
+# 设置连接数据库的URL(必需)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:mysql@127.0.0.1:3306/Flask_test'
+# 设置每次请求结束后会自动提交数据库中的改动（后期会去除）
+app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
+# 数据库变更追踪，可以设定为False
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+# 查询时会显示原始SQL语句
+app.config['SQLALCHEMY_ECHO'] = True
 ```
 
-**字段类型**
+###字段类型
 
 | 类型名          | python中类型         | 说明                            |
 | ------------ | ----------------- | ----------------------------- |
@@ -51,7 +68,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:mysql@127.0.0.1:3306/test3
 | Time         | datetime.datetime | 日期和时间                         |
 | LargeBinary  | str               | 二进制文件                         |
 
-**列选项**
+###列选项
 
 | 选项名         | 说明                            |
 | ----------- | ----------------------------- |
@@ -61,7 +78,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:mysql@127.0.0.1:3306/test3
 | nullable    | 如果为True，允许有空值，如果为False，不允许有空值 |
 | default     | 为这列定义默认值                      |
 
-**关系选项**
+###关系选项
 
 | 选项名            | 说明                                  |
 | -------------- | ----------------------------------- |
@@ -82,29 +99,9 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:mysql@127.0.0.1:3306/test3
 
 在Flask-SQLAlchemy中，查询操作是通过query对象操作数据。最基本的查询是返回表中所有数据，可以通过过滤器进行更精确的数据库查询。
 
-###增删
-
-```
-创建表：
-db.create_all()
-
-删除表
-db.drop_all()
-
-# 插入一条数据
-ro1 = Role(name='admin')
-db.session.add(ro1)
-db.session.commit()
-
-# 一次插入多条数据
-us1 = User(name='wang',email='wang@163.com',pswd='123456',role_id=ro1.id)
-us2 = User(name='zhang',email='zhang@189.com',pswd='201512',role_id=ro2.id)
-
-db.session.add_all([us1,us2])
-db.session.commit()
-```
-
 ###定义模型类
+
+从数据库表的层面考虑定义模型类
 
 ```
 from flask import Flask
@@ -123,16 +120,20 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 app.config['SQLALCHEMY_ECHO'] = True
 
 # 实例化SQLAlchemy对象
+# 方法一：
+# db = SQLALchemy()
+# db.init_app(app)
+# 方法二：
 db = SQLAlchemy(app)
 
 class Role(db.Model):
     # 定义表名，若不写，则默认创建为类名的小写格式
     __tablename__ = 'roles'
-    # 定义列对象
+    # 定义列对象，db.column数据库中有实体
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True)
-    # 创建一对多的外键，在数据库中无实体，第一个参数为对应的类，第二个关键字参数值一般写为对象名小写(可任意)
-    us = db.relationship('User', backref='role')
+    # 创建一对多的外键，在数据库中无实体，第一个参数为对应的类，第二个关键字指明为User类添加了一个额外数据行role
+    users = db.relationship('User', backref='role')
 
     #repr()方法显示一个可读字符串
     def __repr__(self):
@@ -148,7 +149,9 @@ class User(db.Model):
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
 
     def __repr__(self):
-        return 'User:%s'%self.name
+        return 'User:%s'%self.name      
+        
+ 
         
 if __name__ == '__main__':
 	# 删除表
@@ -170,6 +173,50 @@ if __name__ == '__main__':
     db.session.commit()
     app.run(debug=True)
 ```
+### 一对多表对比
+
+```
+ user类和role类
+ 
+ # 在django中的user类创建外键
+ role = ForeignKey(Role)
+ # 在django中使用
+ user1.role 	 ---> Role对象
+ role1.user_set  ---> User对象列表
+ 
+ 
+# 在Flask中的user类创建外键
+role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
+# 在Flask中的role类创建关联
+users = db.relationship('User', backref='role')
+# 在Flask中使用
+user1.role_id	---> roles表主键的id值 --->role对象值
+user1.role		---> Role对象
+role1.users		---> User表的对象列表
+```
+###增删表数据
+
+```
+创建表：
+db.create_all()
+
+删除表
+db.drop_all()
+
+# 插入一条数据
+ro1 = Role(name='admin')
+db.session.add(ro1)
+db.session.commit()
+
+# 一次插入多条数据
+us1 = User(name='wang',email='wang@163.com',pswd='123456',role_id=ro1.id)
+us2 = User(name='zhang',email='zhang@189.com',pswd='201512',role_id=ro2.id)
+
+db.session.add_all([us1,us2])
+db.session.commit()
+```
+
+
 ###查询过滤器
 
 | 过滤器         | 说明                       |
@@ -194,26 +241,69 @@ if __name__ == '__main__':
 | paginate()     | 返回一个Paginate对象，它包含指定范围内的结果 |
 
 
-### 查询
+### 查询数据
 
 ```
-在ipython中，from flask.dbs(文件名) import *
+# 方法一：
+db.session.query(模型类).[过滤器]执行器
+# 方法二：
+模型类.query.[过滤器]执行器
 
+# 注意：在SQL_ALchemy中查询数据不存在，不报错，返回NoneType
+
+在ipython中，from flask.dbs(文件名) import *
+```
+
+####简单查询
+
+```
 # first()返回查询到的第一个对象
+db.session.query(User).first()
 User.query.first()
 
-# all()返回查询到的所有对象
+# all()返回查询到的所有对象的列表
 User.query.all()
 
 # get()，参数为主键，如果主键不存在没有返回内容
 User.query.get(主键值)
+```
 
+#### 过滤查询
+
+```
 # filter_by精确查询，参数只需指定字段名
 User.query.filter_by(name='wang').all()
+User.query.filter_by(id=3, name='wang').first()
 
 # filter模糊查询，参数需要指定模型类名
-User.query.filter(User.name.endswith('g')).all()
+User.query.filter(User.name=='wang').all()
+User.query.filter(User.id==3, User.name=='wang').first()
+User.query.filter(User.name.endswith('g')).first()
+```
 
+#### 关联查询
+
+```
+# 一对多
+# 查询roles表id为1的角色
+role1 = Role.query.get(1)
+role1.name
+# 查询该角色的所有用户
+role1.users		---> 对象列表
+role1.users[0].name
+
+# 多对一
+# 查询users表id为4的用户
+user1 = User.query.get(4)
+user1.name
+user1.role_id
+# 查询用户属于什么角色
+user1.role		---> 对象
+user1.role.name
+```
+#### 逻辑查询
+
+```
 # 逻辑非，返回名字不等于wang的所有数据。
 User.query.filter(User.name!='wang').all()
 
@@ -230,46 +320,73 @@ from sqlalchemy import not_
 User.query.filter(not_(User.name=='chen')).all()
 ```
 
-### 查询数据后删除
+####限制查询
 
 ```
-user = User.query.first()
-db.session.delete(user)
-db.session.commit()
-User.query.all()
+# count()，返回符合过滤条件的条数
+User.query.filter(过滤条件).count()
+
+# limit(number),返回限制的条数
+User.query.filter(过滤条件).limit(3).all()
+
+# offset(number),跳过条目数
+User.query.offset(1).all()
+
+# order_by，排序,默认升序
+User.query.order_by(User.id).all()
+# 降序排序
+User.query.order_by(User.id.desc()).all()
 ```
 
+#### 分组查询
+
+```
+# func存储了聚合函数
+import sqlalchemy import func
+# 返回元组组成的列表,例如[(1L,2L),(2L,2L)]
+db.session.query(User.role_id, func.count(User.role_id)).group_by(User.role_id).all()
+```
+
+#### 分页查询
+
+```
+# 返回一个pagenate对象，参数1：第几页，参数2：每页几条，参数3：是否自动错误返回
+page_obj = User.query.pagenate(1， per_page=2, error_out=False)
+
+# 获取总页数
+page_obj.pages
+
+# 返回对象的列表
+page_obj.items
+page_obj.items[0].name
+```
 ### 更新数据
 
 ```
+# 方式一：对象存在直接赋值
 user = User.query.first()
 user.name = 'dong'
 db.session.commit()
 User.query.first()
 
-# 使用update
+# 方式二：查询时更新
 User.query.filter_by(name='zhang').update({'name':'li'})
+# 或
+User.query.filter(User.name=='zhang').update({'name':'li'})
 db.session.commit()
 ```
-
-### 关联查询
-
-**查询角色的所有用户**
+### 删除数据
 
 ```
-# 查询roles表id为1的角色
-ro1 = Role.query.get(1)
-# 查询该角色的所有用户
-ro1.us
-```
+# 方式一：对象存在直接删除
+user = User.query.get(3)
+db.session.delete(user)
+db.session.commit()
+User.query.query.get(3)
 
-**查询用户所属角色**
-
-```
-# 查询users表id为3的用户
-us1 = User.query.get(3)
-# 查询用户属于什么角色
-us1.role
+# 方式二：查询时删除
+User.query.filter_by(name='zhang').delete()
+db.session.commit()
 ```
 
 ## 数据库迁移
@@ -278,13 +395,15 @@ us1.role
 
 为了导出数据库迁移命令，Flask-Migrate提供了一个MigrateCommand类，可以附加到flask-script的manager对象上。
 
-**在虚拟环境中安装Flask-Migrate**
+###安装Flask-Migrate
 
 ```
 pip install flask-migrate
 ```
 
-**创建模型类文件database.py**
+###创建模型类文件
+
+database.py
 
 ```
 #coding=utf-8
@@ -306,7 +425,7 @@ db = SQLAlchemy(app)
 # 数据库迁移
 # 1.创建Manager管理器Flask-Script实例
 manager = Manager(app)
-# 2.创建迁移框架于程序的关联，第一个参数是Flask的实例，第二个参数是Sqlalchemy数据库实例
+# 2.创建迁移框架于程序的关联，参数1:Flask的实例，参数2:Sqlalchemy数据库实例
 migrate = Migrate(app,db) 
 # 3.添加迁移命令，manager是Flask-Script的实例，这条语句在flask-Script中添加一个db命令
 manager.add_command('db',MigrateCommand)
@@ -334,27 +453,28 @@ if __name__ == '__main__':
     manager.run()
 ```
 
-**创建迁移仓库**
+###创建迁移仓库
 
 ```
 # 这个命令会创建migrations文件夹，所有迁移文件都放在里面。
 python 文件名.py db init
 ```
 
-**创建迁移脚本**
+###创建迁移脚本
 
 ```
 # 创建自动迁移脚本
 python 文件名.py db migrate -m 'initial migration'
 ```
 
-**更新数据库**
+###更新数据库
 
 ```
+# 同步模型类的操作至数据库中
 python 文件名.py db upgrade
 ```
 
-**回退数据库**
+###回退数据库
 
 ```
 # 查看数据库历史版本
@@ -364,7 +484,7 @@ python 文件名.py db history
 python 文件名.py db downgrade 版本号
 ```
 
-## 邮箱
+#邮箱
 
 Flask的扩展包Flask-Mail通过包装了Python内置的smtplib包，可以用在Flask程序中发送邮件。
 
@@ -375,7 +495,9 @@ from flask import Flask
 from flask_mail import Mail, Message
 
 app = Flask(__name__)
+
 # 配置邮件：服务器／端口／传输层安全协议／邮箱名／密码
+# dict.update(多个键值对)（python中字典的内置方法）
 app.config.update(
     DEBUG = True,
     MAIL_SERVER='smtp.qq.com',

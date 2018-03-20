@@ -1,6 +1,4 @@
-# 测试与部署
-
-## 蓝图
+#蓝图
 
 蓝图：用于实现单个应用的视图、模板、静态文件的集合。
 
@@ -8,7 +6,7 @@
 
 简单来说，蓝图就是一个存储操作路由映射方法的容器，主要用来实现客户端请求和URL相互关联的功能。 在Flask中，使用蓝图可以帮助我们实现模块化应用的功能。
 
-### 运行机制
+##运行机制
 
 ```
 蓝图是保存了一组将来可以在应用对象上执行的操作。
@@ -20,7 +18,72 @@
 当执行应用对象的 register_blueprint() 方法时，应用对象从蓝图对象的 defered_functions 列表中取出每一项，即调用应用对象的 add_url_rule() 方法，这将会修改程序实例的路由映射列表。
 ```
 
-### 蓝图的使用
+## 无蓝图的模块化
+
+```
+不使用蓝图，做模块化时，无论是导模块还是函数延迟，各个子模块均依赖于主程序的app
+```
+
+main.py
+
+```
+# coding:utf-8
+from flaks import Flask
+
+
+app = Flask(__name__)
+
+# 在goods.py中拆出
+# @app.route('/get_goods')
+# def get_goods():
+# 	return "get goods page"
+# from goods import get_goods  # 循环导入，后移
+
+
+# 在orders.py中拆出
+# @app.route('/get_order')
+# def get_order():
+# 	return "get order page"	
+# 使用装饰器的原理，直接函数调用，延迟加载，避免循环导入
+@app.route('/get_order')(get_order)
+
+
+@app.route("/")
+def index():
+	return "index page"
+	
+if __name__ == "__main__":
+	# 导入goods模块视图,注意避免循环导入
+	from goods import get_goods
+	app.run(debug=True)
+```
+
+goods.py
+
+```
+# coding:utf-8
+from main import app
+
+@app.route('/get_goods')
+def get_goods():
+	return "get goods page"	
+```
+
+orders.py
+
+```
+# coding:utf-8
+
+# @app.route('/get_order')  # 使用装饰器原理在main中装饰
+def get_order():
+	return "get order page"	
+```
+
+##有蓝图的使用
+
+```
+各个子模块不再依赖主程序的app
+```
 
 **创建蓝图对象**
 
@@ -31,7 +94,7 @@ from flask import Blueprint
 admin = Blueprint('admin',__name__)
 ```
 
-**创建蓝图路由**
+**注册蓝图路由**
 
 ```
 @admin.route('/')
@@ -46,7 +109,7 @@ def admin_index():
 app.register_blueprint(admin,url_prefix='/admin')
 ```
 
-**蓝图的分布**
+**蓝图使用实例**
 
 ```
 # 多个文件
@@ -102,7 +165,22 @@ def register():
 	return render_template('register.html')
 ```
 
-## 单元测试
+## 循环导入
+
+```
+当两个模块存在相互导入，形成死循环时，会出现报错
+can not import ...
+
+# 解决方法一：
+移动一个导入语句的位置
+
+# 解决方法二：
+将导入语句置于函数当中
+```
+
+
+
+#单元测试
 
 Web程序开发过程一般包括以下几个阶段：[需求分析，设计阶段，实现阶段，测试阶段]。其中测试阶段通过人工或自动来运行测试某个系统的功能。目的是检验其是否满足需求，并得出特定的结果，以达到弄清楚预期结果和实际结果之间的差别的最终目的
 
@@ -279,7 +357,7 @@ class DatabaseTest(unittest.TestCase):
         self.assertIsNotNone(book)
 ```
 
-## 部署
+#部署
 
 在生产环境中，flask自带的服务器，无法满足性能要求，我们这里采用Gunicorn做wsgi容器，来部署flask程序。
 

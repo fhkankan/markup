@@ -103,8 +103,8 @@ app.config保存了flask的所有配置信息，可以当字典使用
 
 # 设定配置参数
 # 方法一：使用文件
-# 创建config.cfg
-DEBUG = True
+# 创建config.cfg，在其中输入下行代码
+# DEBUG = True
 # 使用配置文件
 app.config.from_pyfile("config.cfg")
 
