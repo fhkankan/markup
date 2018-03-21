@@ -4,7 +4,7 @@
 
 SQLALchemy是python成熟的ORM框架模块，可适用于Django,Flask等。为了便于在Flask中使用，对它进行了再次封装，形成了Flask-SQLALchemy
 
-###安装数据库 
+### 安装数据库 
 
 ```
 # 安装服务端
@@ -21,7 +21,7 @@ show databases;
 desc create table 数据表名;
 ```
 
-###安装flask-sqlalchemy
+### 安装flask-sqlalchemy
 
 ```
 # ORM(将模型类操作转换为sql语句，将结果转换为模型类对象)
@@ -37,7 +37,7 @@ import pymysql
 pymysql.install_as_mysqldb(),之后ORM才能识别为myslqdb)
 ```
 
-###数据库配置
+### 数据库配置
 
 ```
 # 设置连接数据库的URL(必需)
@@ -50,7 +50,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 app.config['SQLALCHEMY_ECHO'] = True
 ```
 
-###字段类型
+### 字段类型
 
 | 类型名          | python中类型         | 说明                            |
 | ------------ | ----------------- | ----------------------------- |
@@ -68,7 +68,7 @@ app.config['SQLALCHEMY_ECHO'] = True
 | Time         | datetime.datetime | 日期和时间                         |
 | LargeBinary  | str               | 二进制文件                         |
 
-###列选项
+### 列选项
 
 | 选项名         | 说明                            |
 | ----------- | ----------------------------- |
@@ -78,7 +78,7 @@ app.config['SQLALCHEMY_ECHO'] = True
 | nullable    | 如果为True，允许有空值，如果为False，不允许有空值 |
 | default     | 为这列定义默认值                      |
 
-###关系选项
+### 关系选项
 
 | 选项名            | 说明                                  |
 | -------------- | ----------------------------------- |
@@ -99,7 +99,7 @@ app.config['SQLALCHEMY_ECHO'] = True
 
 在Flask-SQLAlchemy中，查询操作是通过query对象操作数据。最基本的查询是返回表中所有数据，可以通过过滤器进行更精确的数据库查询。
 
-###定义模型类
+### 定义模型类
 
 从数据库表的层面考虑定义模型类
 
@@ -194,7 +194,7 @@ user1.role_id	---> roles表主键的id值 --->role对象值
 user1.role		---> Role对象
 role1.users		---> User表的对象列表
 ```
-###增删表数据
+### 增删表数据
 
 ```
 创建表：
@@ -217,7 +217,7 @@ db.session.commit()
 ```
 
 
-###查询过滤器
+### 查询过滤器
 
 | 过滤器         | 说明                       |
 | ----------- | ------------------------ |
@@ -228,7 +228,7 @@ db.session.commit()
 | order_by()  | 根据指定条件对原查询结果进行排序，返回一个新查询 |
 | group_by()  | 根据指定条件对原查询结果进行分组，返回一个新查询 |
 
-###查询执行器
+### 查询执行器
 
 | 方法             | 说明                         |
 | -------------- | -------------------------- |
@@ -254,7 +254,7 @@ db.session.query(模型类).[过滤器]执行器
 在ipython中，from flask.dbs(文件名) import *
 ```
 
-####简单查询
+#### 简单查询
 
 ```
 # first()返回查询到的第一个对象
@@ -320,7 +320,7 @@ from sqlalchemy import not_
 User.query.filter(not_(User.name=='chen')).all()
 ```
 
-####限制查询
+#### 限制查询
 
 ```
 # count()，返回符合过滤条件的条数
@@ -395,13 +395,13 @@ db.session.commit()
 
 为了导出数据库迁移命令，Flask-Migrate提供了一个MigrateCommand类，可以附加到flask-script的manager对象上。
 
-###安装Flask-Migrate
+### 安装Flask-Migrate
 
 ```
 pip install flask-migrate
 ```
 
-###创建模型类文件
+### 创建模型类文件
 
 database.py
 
@@ -453,28 +453,28 @@ if __name__ == '__main__':
     manager.run()
 ```
 
-###创建迁移仓库
+### 创建迁移仓库
 
 ```
 # 这个命令会创建migrations文件夹，所有迁移文件都放在里面。
 python 文件名.py db init
 ```
 
-###创建迁移脚本
+### 创建迁移脚本
 
 ```
 # 创建自动迁移脚本
 python 文件名.py db migrate -m 'initial migration'
 ```
 
-###更新数据库
+### 更新数据库
 
 ```
 # 同步模型类的操作至数据库中
 python 文件名.py db upgrade
 ```
 
-###回退数据库
+### 回退数据库
 
 ```
 # 查看数据库历史版本
@@ -484,7 +484,7 @@ python 文件名.py db history
 python 文件名.py db downgrade 版本号
 ```
 
-#邮箱
+# 邮箱
 
 Flask的扩展包Flask-Mail通过包装了Python内置的smtplib包，可以用在Flask程序中发送邮件。
 
