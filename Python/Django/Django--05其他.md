@@ -60,7 +60,7 @@ MIDDLEWARE: 中间件
 
 二、中间件
 
-**中间件： django框架预留的接口，可以控制请求和响应的过程。**Django在中间件中预置了6个方法，这些方法会在不同的阶段执行，对输入或输出进行干预。
+中间件： django框架预留的接口，可以控制请求和响应的过程。Django在中间件中预置了6个方法，这些方法会在不同的阶段执行，对输入或输出进行干预。
 
 - 初始化：无需任何参数，服务器响应第一个请求的时候调用一次：
 
@@ -90,7 +90,7 @@ def process_exception(self, request, exception):
     return response
 ```
 
-- 【了解】视图函数处理后，模板响应处理前调用： 返回实现了render方法的响应对象
+- 视图函数处理后，模板响应处理前调用： 返回实现了render方法的响应对象
 
 ```
 def process_template_response(self, request, response):
@@ -221,11 +221,7 @@ class MyMiddleware(object):
     def process_exception(self, request, exception):
         print('-----process_exception')
 		return HttpResponse('运行出错了：%s' % exception)
-
-
 ```
-
-
 
 ### 多个中间件的调用流程
 
@@ -265,8 +261,6 @@ MIDDLEWARE_CLASSES = (
     'app01.middleware.MyMiddleware',
     'app01.middleware.MyMiddleware2',
 )
-
-
 ```
 
 小结：某个中间件处理异常的方法返回HttpResponse对象后，其它中间件的处理异常的方法就不会执行了。
@@ -399,7 +393,7 @@ class AreaAdmin(ModelAdmin):
 
 - 修改显示的列的名字
 
-​	列标题默认为属性或方法的名称，可以通过属性设置。对于模型属性，通过`verbose_name`设置，对于方法，通过`short_description`设置，如下：
+		列标题默认为属性或方法的名称，可以通过属性设置。对于模型属性，通过`verbose_name`设置，对于方法，通过`short_description`设置，如下：
 
 ```
 # models.py
