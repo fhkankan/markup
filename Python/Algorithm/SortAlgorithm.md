@@ -195,7 +195,7 @@ def quick_sort(array):
         pivot = array[0]
         # 由所有小于等于基准值的元素构成的子数组
         less = [i for i in array[1:] if i <= pivot]
-        # 由所有大鱼基准值的匀速构成的子数组
+        # 由所有大于基准值的元素构成的子数组
         greeter = [i for i in array[1:] if  i > pivot]
         return quick_sort(less) + [pivot] + quick_sort(greeter)
  

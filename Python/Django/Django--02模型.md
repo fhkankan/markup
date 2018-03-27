@@ -191,8 +191,6 @@ date类: date(2017,1,1)
 from django.db.models import F
 ```
 
-
-
 ### Q对象
 
 ```

@@ -181,9 +181,9 @@ ALLOWED_HOSTS = ['*']
 - 案例： 
 
    需求：从POST属性中获取请求参数
-   ​	
-   	html表单提交界面参考：templates/app01/post.html 
-   	<html>
+   	html表单提交界面参考：`templates/app01/post.html` 
+   ```
+   <html>
    	<head>
    	    <title>POST属性</title>
    	</head>
@@ -200,6 +200,7 @@ ALLOWED_HOSTS = ['*']
    	</form>
    	</body>
    	</html>
+   ```
 
 ## HttpResponse对象
 
@@ -323,7 +324,7 @@ arr指的是json数组。数组结构是以“[”开始，到“]”结束，�
 
 $.ajax方法使用：
 
-	
+
 	$.ajax({
 	    url:'/js/data.json',
 	    type:'POST', 

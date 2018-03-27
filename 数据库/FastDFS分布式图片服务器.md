@@ -19,7 +19,7 @@ Storage:实际保存文件 Storage 分为多个组，每个组之间保存的文
 上传
 
 ```
-1. strrage server定时向tracker server上传状态信息
+1. storage server定时向tracker server上传状态信息
 2. client向tracker server上传连接请求
 3. tracker server查询可用storage
 4. tracker server向client返回信息（storage的ip和端口）

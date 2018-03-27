@@ -21,7 +21,7 @@ python setup.py build
 python setup.py install
 ```
 
-## 中间人
+## 中间人(broker)
 
 RabbitMQ
 
@@ -67,6 +67,8 @@ celery -A tasks worker --loglevel=info
 ## 调用任务
 
 任务加入到broker队列中，以便刚才我们创建的celery workder服务器能够从队列中取出任务并执行。如何将任务函数加入到队列中，可使用delay()。
+
+默认多进程执行，也可以多协程处理(greenlet/gevent)
 
 进入python终端, 执行如下代码:
 
