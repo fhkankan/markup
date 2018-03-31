@@ -22,6 +22,11 @@ Matplotlib 是一个 Python 的 2D绘图库，通过 Matplotlib，开发者可�
 import numpy as np
 import matplotlib.pyplot as plt
 
+# 指定为黑体中文字体，防止中文乱码
+plt.rcParams["font.sans-serif"] = ["SimHei"]
+# 解决保存图像是负号'-'显示为方块的问题
+plt.rcParams['axes.unicode_minus'] = False
+
 # 默认大小(6 * 4) * 72 = (432 * 288)
 # 1.创建画布，绘图就回执在画布上
 plt.figure(figsize=(10.24, 7.68), dpi=100)
