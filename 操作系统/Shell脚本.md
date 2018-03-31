@@ -794,3 +794,479 @@ deactivate
 netstat -tnulp | grep ':80'
 ```
 
+# 脚本发布代码
+
+## 简单脚本
+
+- 命令罗列
+
+实现代码仓库主机上的操作命令功能即可
+
+```
+#!/bin/bash
+# 功能：打包代码
+# 脚本名：tar_code.sh
+# 作者：itcast
+# 版本：V 0.1
+# 联系方式：www.itcast.cn
+cd /data/codes
+[ -f django.tar.gz ] && rm -f django.tar.gz
+tar zcf django.tar.gz django
+```
+
+测试
+
+```
+sed -i 's#1.1#1.2#' /data/codes/django/views.py
+bash /data/scripts/tar_code.sh
+```
+
+查看压缩文件内容
+
+```
+zcat django.tar.gz
+```
+
+- 固定内容变量化
+
+```shell
+#!/bin/bash
+# 功能：打包代码
+# 脚本名：tar_code.sh
+# 作者：itcast
+# 版本：V 0.2
+# 联系方式：www.itcast.cn
+FILE='django.tar.gz'
+CODE_DIR='/data/codes'
+CODE_PRO='django'
+cd "${CODE_DIR}"
+[ -f "${FILE}" ] && rm -f "${FILE}"
+tar zcf "${FILE}" "${CODE_PRO}"
+```
+
+测试
+
+```
+sed -i 's#1.2#1.3#' /data/codes/django/views.py
+bash /data/scripts/tar_code.sh
+```
+
+查看压缩文件
+
+```
+zcat django.tar.gz
+```
+
+- 功能函数实现
+
+```shell
+#!/bin/bash
+# 功能：打包代码
+# 脚本名：tar_code.sh
+# 作者：itcast
+# 版本：V 0.3
+# 联系方式：www.itcast.cn
+FILE='django.tar.gz'
+CODE_DIR='/data/codes'
+CODE_PRO='django'
+code_tar(){
+cd "${CODE_DIR}"
+[ -f "${FILE}" ] && rm -f "${FILE}"
+tar zcf "${FILE}" "${CODE_PRO}"
+}
+code_tar
+```
+
+测试
+
+```
+sed -i 's#1.2#1.3#' /data/codes/django/views.py
+bash /data/scripts/tar_code.sh
+```
+
+查看压缩文件内容
+
+```
+zcat /data/codes/django.tar.gz
+```
+
+- 远程执行命令
+
+格式：
+
+```
+ssh 远程主机登录用户名@远程主机ip地址 "执行命令"
+```
+
+效果
+
+```shell
+admin-1@ubuntu:/data/server/itcast# ssh root@192.168.8.15 "ifconfig eth0"
+
+eth0 Link encap:Ethernet HWaddr 00:0c:29:f7:ca:d4
+
+inet addr:192.168.8.15 Bcast:192.168.56.255 Mask:255.255.255.0
+
+...
+```
+
+远程执行脚本测试
+
+```shell
+# 远程更新文件内容
+ssh root@192.168.8.15 "sed -i /'s#1.4#1.5#' /data/codes/django/views.py"
+# 远程查看脚本
+ssh root@192.168.8.15 "ls /data/scripts"
+# 远程
+```
+
+## 大型脚本
+
+- 脚本框架
+
+```shell
+#!/bin/bash
+# 功能：打包代码
+# 脚本名：deploy.sh
+# 作者：itcast
+# 版本：V 0.1
+# 联系方式：www.itcast.cn
+# 获取代码
+get_code(){
+echo "获取代码"
+}
+# 打包代码
+tar_code(){
+echo "打包代码"
+}
+# 传输代码
+scp_code(){
+echo "传输代码"
+}
+# 关闭应用
+stop_serv(){
+echo "关闭应用"
+echo "关闭 nginx 应用"
+echo "关闭 django 应用"
+}
+# 解压代码
+untar_code(){
+echo "解压代码"
+}
+# 放置代码
+fangzhi_code(){
+echo "放置代码"
+echo "备份老文件"
+echo "放置新文件"
+}
+# 开启应用
+start_serv(){
+echo "开启应用"
+echo "开启 django 应用"
+echo "开启 nginx 应用"
+}
+# 检查
+check(){
+echo "检查项目"
+}
+# 部署函数
+deploy_pro(){
+get_code
+tar_code
+scp_code
+stop_serv
+untar_code
+fangzhi_code
+start_serv
+check
+}
+# 主函数
+main(){
+deploy_pro
+}
+# 执行主函数
+main
+```
+
+- 命令填充
+
+```shell
+#!/bin/bash
+# 功能：打包代码
+# 脚本名：deploy.sh
+# 作者：itcast
+# 版本：V 0.2
+# 联系方式：www.itcast.cn
+# 获取代码
+get_code(){
+echo "获取代码"
+}
+# 打包代码
+tar_code(){
+echo "打包代码"
+ssh root@192.168.8.15 "/bin/bash /data/scripts/tar_code.sh"
+}
+# 传输代码
+scp_code(){
+echo "传输代码"
+cd /data/codes
+[ -f django.tar.gz ] && rm -f django.tar.gz
+scp root@192.168.8.15:/data/codes/django.tar.gz ./
+}
+# 关闭应用
+stop_serv(){
+echo "关闭应用"
+echo "关闭 nginx 应用"
+/data/server/nginx/sbin/nginx -s stop
+echo "关闭 django 应用"
+kill $(lsof -Pti :8000)
+}
+# 解压代码
+untar_code(){
+	echo "解压代码"
+cd /data/codes
+tar xf django.tar.gz
+}
+# 放置代码
+fangzhi_code(){
+echo "放置代码"
+echo "备份老文件"
+mv /data/server/itcast/test1/views.py /data/backup/views.py-$(date +%Y%m%d%H%M%S)
+echo "放置新文件"
+mv /data/codes/django/views.py /data/server/itcast/test1/
+}
+# 开启应用
+start_serv(){
+echo "开启应用"
+echo "开启 django 应用"
+source /data/virtual/venv/bin/activate
+cd /data/server/itcast/
+python manage.py runserver >> /dev/null 2>&1 &
+deactivate
+echo "开启 nginx 应用"
+/data/server/nginx/sbin/nginx
+}
+# 检查
+check(){
+echo "检查项目"
+netstat -tnulp | grep ':80'
+}
+...	
+```
+
+- 增加日志功能
+
+```shell
+#!/bin/bash
+...
+LOG_FILE='/data/logs/deploy.log'
+# 增加日志功能
+write_log(){
+DATE=$(date +%F)
+TIME=$(date +%T)
+buzhou="$1"
+echo "${DATE} ${TIME} $0 : ${buzhou}" >> "${LOG_FILE}"
+}
+# 获取代码
+get_code(){
+...
+write_log "获取代码"
+}
+# 打包代码
+tar_code(){
+...
+write_log "打包代码"
+}
+# 传输代码
+scp_code(){
+...
+write_log "传输代码"
+}
+# 关闭应用
+stop_serv(){
+...
+write_log "关闭应用"
+...
+write_log "关闭 nginx 应用"
+...
+write_log "关闭 django 应用"
+}
+# 解压代码
+untar_code(){
+...
+write_log "解压代码"
+}
+# 放置代码
+fangzhi_code(){
+...
+write_log "放置代码"
+...
+write_log "备份老文件"
+...
+write_log "放置新文件"
+}
+# 开启应用
+start_serv(){
+...
+write_log "开启应用"
+...
+write_log "开启 django 应用"
+...
+write_log "开启 nginx 应用"
+}
+# 检查
+check(){
+...
+write_log "检查项目"
+}
+...
+```
+
+- 增加锁文件
+
+```shell
+#!/bin/bash
+...
+PID_FILE='/tmp/deploy.pid'
+...
+# 增加锁文件功能
+add_lock(){
+echo "增加锁文件"
+touch "${PID_FILE}"
+write_log "增加锁文件"
+}
+# 删除锁文件功能
+del_lock(){
+echo "删除锁文件"
+rm -f "${PID_FILE}"
+write_log "删除锁文件"
+}
+# 部署函数
+deploy_pro(){
+add_lock
+...
+del_lock
+}
+# 脚本报错信息
+err_msg(){
+echo "脚本 $0 正在运行，请稍候..."
+}
+# 主函数
+main(){
+if [ -f "${PID_FILE}" ]
+then
+err_msg
+else
+deploy_pro
+fi
+}
+# 执行主函数
+main
+```
+
+## 脚本知识点填充
+
+需求
+
+```shell
+如果我给脚本输入的参数是deploy，那么脚本才执行，否则的话，提示该脚本的使用帮助信息，然后退出
+提示信息：脚本 deploy.sh 的使用方式： deploy.sh [ deploy ]
+```
+
+分析
+
+```shell
+1、脚本传参，就需要在脚本内部进行调用参数
+2、脚本的帮助信息
+3、脚本内容就需要对传参的内容进行判断
+```
+
+方案
+
+```shell
+1、脚本的传参
+脚本执行：bash deploy.sh deploy
+位置参数的调用： $1
+2、脚本的帮助信息
+定义一个usage函数，然后调用。
+提示信息格式：
+脚本 deploy.sh 的使用方式： deploy.sh [ deploy ]
+3、内容判断
+main函数体调用函数传参: $1
+在main函数中，结合case语句，对传入的参数进行匹配
+如果传入参数内容是"deploy"，那么就执行代码部署流程
+如果传入参数内容不是"deploy"，那么输出脚本的帮助信息
+if语句和case语句的结合
+if语句在外，case语句在内
+case语句在外，if语句在内
+```
+
+脚本
+
+```shell
+#!/bin/bash
+...
+# 脚本帮助信息
+usage(){
+echo "脚本 $0 的使用方式: $0 [deploy]"
+exit
+}
+# 主函数
+main(){
+case "$1" in
+"deploy")
+if [ -f "${PID_FILE}" ]
+then
+err_msg
+else
+deploy_pro
+fi
+;;
+*)
+usage
+;;
+esac
+}
+# 执行主函数
+main $1
+```
+
+## 输入参数安全优化
+
+需求
+
+```
+对脚本传入的参数的数量进行判断，如果参数数量不对，提示脚本的使用方式，然后退出
+```
+
+分析
+
+```
+1、脚本参数数量判断
+2、条件判断
+数量对，那么执行主函数
+数量不对，那么调用脚本帮助信息
+```
+
+脚本
+
+```shell
+#!/bin/bash
+...
+# 执行主函数
+if [ $# -eq 1 ]
+then
+main $1
+else
+usage
+fi
+```
+
+# 脚本调试
+
+```shell
+-n 检查脚本中的语法错误
+-v 先显示脚本所有内容， 然后执行脚本，结果输出，如果执行遇到错误，将错误输出。
+-x 将执行的每一条命令和执行结果都打印出来
+```
+
