@@ -157,7 +157,18 @@ python manage.py runserver [192.168.210.137:8001]
 
 ###模型使用
 
-1、定义模型类
+- 驱动安装
+
+```
+# 在安装环境中安装pymysql
+pip install pymysql
+
+# 在__init__.py文件中引入
+import pymysql
+pymysql.install_as_MySQLdb()
+```
+
+- 定义模型类
 
 ```
 在应用models.py中编写模型类, 必须继承与models.Model类。
@@ -175,13 +186,13 @@ ForeignKey--外键，建立一对多关系
 不需要定义主键id，会自动生成
 ```
 
-2、生成迁移文件(类名，属性名)
+- 生成迁移文件(类名，属性名)
 
 ```
 python manage.py makemigrations
 ```
 
-3、执行迁移，生成表结构(默认使用sqllite3)
+- 执行迁移，生成表结构(默认使用sqllite3)
 
 ```
 python manage.py  migrate
@@ -189,7 +200,7 @@ python manage.py  migrate
 
 确认表结构(使用sqliteman工具查看表结构)
 
-4、通过ORM实现增删改查
+- 通过ORM实现增删改查
 
 ```
 用python交互环境进行数据库表增删改查,两种方法：
@@ -235,7 +246,7 @@ python manage.py  migrate
 4. 自定义管理页面  
 ````
 
-操作演示：
+### 操作演示
 
 1）本地化 (语言和时区)	
 
@@ -256,6 +267,7 @@ python manage.py  migrate
 在应用下的admin.py中注册模型类：告诉djang框架，根据注册的模型类来生成对应表管理页面：
 
 	# app01/admin.py:
+	from django.contrib import admin
 	from app01.models import Department, Employee
 	
 	# 注册Model类
@@ -270,7 +282,7 @@ python manage.py  migrate
 
 	http://127.0.0.1:8000/admin
 
-5）自定义数据模型显示哪些字段信息
+### 自定义
 
 自定义模型管理类，作用：告诉django在生成的管理页面上显示哪些内容。
 
@@ -293,6 +305,11 @@ python manage.py  migrate
 
 作用： 处理用户请求，调用M和T，响应请求
 
+```
+1. 定义视图函数
+2. 配置URLconf
+```
+
 ### 视图函数
 
 ```
@@ -309,21 +326,33 @@ def index(request):
 
 ### 配置url
 
+```
+一条URLconf包括url规则、视图两部分：
+url规则使用正则表达式定义。
+视图就是在views.py中定义的视图函数。
+
+需要两步完成URLconf配置：
+1.在应用中定义URLconf
+2.包含到项目的URLconf中
+```
+
 作用：建立url地址和视图函数的对应关系，当用户请求某个url地址时，让django能找到对应的视图函数进行处理。
 
-```
-# 在应用下创建urls.py，然后在项目下的urls.py文件中包含进来： 
-urlpatterns = [
-	...
-    # 包含应用下的urls.py文件
-    url(正则表达式, include('应用名.urls'))]
-    
+```python
 # 在应用下的urls.py中，进行url请求的配置： 
 urlpatterns = [
 	# 每一个url配置项都需要调用url函数，指定两个参数
 	# 参数1: 匹配url的正则表达式
 	# 参数2: 匹配成功后执行的视图函数
 	url(正则表达式, 视图函数名), ]
+
+
+# 在应用下创建urls.py，然后在项目下的urls.py文件中包含进来： 
+urlpatterns = [
+	...
+    # 包含应用下的urls.py文件
+    url(r'^admin/', include(admin.site.urls)),
+    url(正则表达式, include('应用名.urls'))]
 ```
 
 ### url匹配
@@ -378,7 +407,7 @@ urlpatterns = [
 3、在视图中调用模板
 ```
 
-调用模板完整写法：
+- 调用模板完整写法：
 
 ```
 1.加载模板
@@ -401,7 +430,7 @@ urlpatterns = [
      return HttpResponse(html)
 ```
 
-调用模板简写
+- 调用模板简写
 
 ```
 Django提供了一个函数render封装了以上代码,方法render包含3个参数

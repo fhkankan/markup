@@ -1,5 +1,5 @@
 
-# 其它技术
+# 常用技术
 
 ## 静态文件
 
@@ -312,6 +312,36 @@ admin.site.register(Area)
 通过http://127.0.0.1:8000/admin/访问服务器: 输入刚创建的用户名和密码，登录到后台管理界面，登录成功可以看到如下，可以对Area进行增加、修改、删除、查询的管理操作
 ```
 
+### 控制管理页显示
+
+类ModelAdmin可以控制模型在Admin界面中的展示方式，主要包括在列表页的展示方式、添加修改页的展示方式。
+
+在booktest/admin.py中，注册模型类前定义管理类AreaAdmin。
+
+```
+class AreaAdmin(admin.ModelAdmin):
+    pass
+```
+
+管理类有两种使用方式：
+
+- 注册参数
+- 装饰器
+
+注册参数：打开booktest/admin.py文件，注册模型类代码如下：
+
+```
+admin.site.register(AreaInfo,AreaAdmin)
+```
+
+装饰器：打开booktest/admin.py文件，在管理类上注册模型类，代码如下：
+
+```
+@admin.register(AreaInfo)
+class AreaAdmin(admin.ModelAdmin):
+    pass
+```
+
 ### 列表页选项
 
 类ModelAdmin可以控制模型在Admin界面中的展示方式，主要包括在列表页的展示方式、添加修改页的展示方式。
@@ -378,8 +408,6 @@ class Area(models.Model):
         if self.parent is None:
             return ''
         return self.parent.title
-
-
 ```
 
 注册列：
@@ -393,7 +421,7 @@ class AreaAdmin(ModelAdmin):
 
 - 修改显示的列的名字
 
-		列标题默认为属性或方法的名称，可以通过属性设置。对于模型属性，通过`verbose_name`设置，对于方法，通过`short_description`设置，如下：
+   列标题默认为属性或方法的名称，可以通过属性设置。对于模型属性，通过`verbose_name`设置，对于方法，通过`short_description`设置，如下：
 
 ```
 # models.py
@@ -458,6 +486,17 @@ class AreaAdmin(ModelAdmin):
 
     # 要搜索的列的值 
     search_fields = ['title']
+
+```
+
+6.  中文标题
+
+打开booktest/models.py文件，修改模型类，为属性指定verbose_name参数，即第一个参数。
+
+```
+class AreaInfo(models.Model):
+    atitle=models.CharField('标题',max_length=30)#名称
+    ...
 ```
 
 ### 编辑页选项
@@ -470,7 +509,6 @@ class AreaAdmin(ModelAdmin):
     ...
     # 表单中字段显示的顺序
     fields = ['parent', 'title']
-
 ```
 
 2. 修改对象显示的字符串： 重写\__str\__方法
@@ -677,26 +715,9 @@ Django中的分页操作：
   - 属性previous_page_number： 上一页页码
   - 方法len()： 返回当前页面对象的个数
 
-**案例：区域分页显示**  
+### 示例
 
-- 实现步骤： 
 
-  一、进入分页演示界面
-
-  1. 进入分页演示界面
-  2. 定义进入分页界面的视图函数
-  3. 定义分页显示的html界面
-
-  二、通过Paginator实现分页显示
-
-  1. 修改视图函数的代码
-  2. 修改html界面
-
-  三、点击实现切换分页
-
-  1. 服务器提供分页切换服务
-  2. 视图函数需要多加一个参数，表示第几页，并且它有个默认值，因为url有可能没有传参数过来
-  3. 修改html界面
 
 
 ## 案例-省市选择

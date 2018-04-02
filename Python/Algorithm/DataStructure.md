@@ -21,7 +21,7 @@
 分类：单向链表，双向链表，单向循环链表
 ```
 
-## 顺序表
+# 顺序表
 
 - 形式
 
@@ -98,8 +98,15 @@ B：实际分配的用于存储数据的空间
 
 # 单向链表
 
-单向链表是链表中最简单的一种形式
+链表的定义：
 
+　　链表(linked list)是由一组被称为结点的数据元素组成的数据结构，每个结点都包含结点本身的信息和指向下一个结点的地址。由于每个结点都包含了可以链接起来的地址信息，所以用一个变量就能够访问整个结点序列。也就是说，结点包含两部分信息：一部分用于存储数据元素的值，称为信息域；另一部分用于存储下一个数据元素地址的指针，称为指针域。链表中的第一个结点的地址存储在一个单独的结点中，称为头结点或首结点。链表中的最后一个结点没有后继元素，其指针域为空。　
+
+![img](https://images0.cnblogs.com/blog/51154/201311/08101605-4dca2917e4164bcfaf78b3625b589b96.jpg)
+
+![img](https://images0.cnblogs.com/blog/51154/201311/08101617-50347cb58527433cb83665ce43c7b338.jpg)
+
+单向链表是链表中最简单的一种形式
 ```python
 结点：元素+下一元素的地址
 头结点：单向链表中的第一个结点
@@ -112,6 +119,547 @@ B：实际分配的用于存储数据的空间
 尾结点中的"下一地址"内容为空(None)
 保存单向链表，只需要保存头结点地址
 ```
+
+代码实现
+
+```python
+class BaseNode(object):
+    """单向链表的结点"""
+    def __init__(self, item):
+        # item存放数据元素
+        self.item = item
+        self.next = None
+
+class SingleLinkedList(object):
+    def __init__(self, node=None):
+        self.__head = node
+
+    # 判断是否是链表为空
+    def is_empty(self):
+        return self.__head is None
+
+    # 获取链表的长度
+    def length(self):
+        # 定义临时变量表示当前结点，指向链表的头结点
+        cur = self.__head
+        # 设置计数器的初始值为0
+        count = 0
+        # 查找尾结点
+        while cur is not None:
+            # 对计数进行递增
+            count += 1
+            # 移动当前的结点位置
+            cur = cur.next
+        # 输出最终计数
+        return count
+    
+    # 所有内容查看
+    def travel(self):
+        # 找到当前链表头信息
+        cur = self.__head
+        # 查找尾结点
+        while cur is not None:
+            # 输出每个结点的内容，设置分割符为空格
+            print(cur.item, end=" ")
+            # 移动当前的结点位置
+            cur = cur.next
+        # 还原分割符为换行符
+        print("")
+
+    # 搜索某个元素
+    def search(self, item):
+        # 找到当前链表的头信息
+        cur = self.__head
+        # 判断当前结点不是尾结点
+        while cur is not None:
+            # 若当前结点的内容就是我们要查找的，就返回True
+            if cur.item == item:
+                return True
+            # 移动当前结点位置到下一结点
+            cur = cur.next
+        # 如果整个循环都找不到我们要的内容，就返回False
+        return False
+
+    # 插头增加
+    def add(self, item):
+        # 定义一个存储数据的新结点
+        node = BaseNode(item)
+        # 指定新结点的next属性为之前链表的头信息
+        node.next = self.__head
+        # 指定的当前链表的头结点为新结点
+        self.__head = node
+    
+    # 插尾增加
+    def append(self, item):
+        # 定义一个存储数据的新结点
+        node = BaseNode(item)
+        # 如果当前列表为空，那么指定头信息为新结点即可
+        if self.is_empty():
+            self.__head = node
+        # 如果当前列表不为空
+        else:
+            # 找到当前链表的头信息，然后找到尾结点
+            cur = self.__head
+            while cur.next is not None:
+                cur = cur.next
+            # 找到尾结点就退出循环，尾结点的next指向新结点即可
+            cur.next = node
+
+    # 指定位置增
+    def insert(self, pos, item):
+        # 定义一个存储数据的新结点
+        node = BaseNode(item)
+        # 头部添加内容
+        if pos <= 0:
+            self.add(item)
+        # 尾部添加内容
+        elif pos >= self.length():
+            self.append(item)
+        # 在中间添加元素
+        else:
+            # 找到头信息，并且开始设置计数器初始值
+            cur = self.__head
+            count = 0
+            # 找到要插入的位置的上一个位置
+            while count < (pos - 1):
+                count += 1
+                cur = cur.next
+            # 设置新结点的next属性为当前结点的下一个结点
+            node.next = cur.next
+            # 设置当前结点的next属性为新接结点
+            cur.next = node
+
+    # 删除
+    def remove(self, item):
+        # 引入头结点
+        cur = self.__head
+        # 引入前驱结点，默认为None
+        pre = None
+        # 当前链表不为空
+        while cur is not None:
+            # 若当前结点的item就是要删除的内容
+            if cur.item == item:
+                # 若当前结点A就是当前链表的头信息
+                if cur == self.__head:
+                    self.__head = cur.next
+                # 其他位置删除
+                else:
+                    # 将当前结点B的上一节点A的next属性设定为下一个结点C
+                    pre.next = cur.next
+                # 确定移出后，退出函数即可
+                return
+            # 若不是要找的删除元素，移动cur的标签，继续进行判断
+            pre = cur
+            # 将当前结点A的next属性为下一结点C
+            cur = cur.next
+
+
+def main():
+    l1 = SingleLinkedList()
+    l1.append(1)
+    l1.append(2)
+    l1.append(3)
+    l1.append(4)
+    l1.append(5)
+    l1.travel()
+    l1.remove(3)
+    l1.travel()
+
+
+if __name__ == '__main__':
+    main()
+```
+
+
+
+# 链表VS顺序表
+
+- 结构上
+
+```
+链表：灵活，跳转，消耗资源
+顺序表：块
+```
+
+- 成本上
+
+| 操作            | 链表 | 顺序表 |
+| --------------- | ---- | ------ |
+| 访问元素        | O(n) | O(1)   |
+| 在头部插入/删除 | O(1) | O(n)   |
+| 在尾部插入/删除 | O(n) | O(1)   |
+| 在中间插入/删除 | O(n) | O(n)   |
+
+
+
+# 双链表
+
+双向链表的每个结点都有两个链接地址：
+
+next:指向下一个结点，当此结点为最后一个结点时，指向空值
+
+pre:指向前一个结点，当此结点为第一个节点时，指向空值
+
+示意图：
+
+![img](https://images0.cnblogs.com/blog/51154/201311/08102601-17d62d106d8449c8ad759d5ad264584f.png)
+
+```python
+class BaseNode(object):
+    """双向链表的结点"""
+    def __init__(self, item):
+        self.pre = None
+        self.item = item
+        self.next = None
+
+class DoubleLinkedList(object):
+    def __init__(self, node=None):
+        self.__head = node
+
+    # 判断是否是链表为空
+    def is_empty(self):
+        return self.__head is None
+
+    # 获取链表的长度
+    def length(self):
+        # 找到当前链表的头结点
+        cur = self.__head
+        # 设置计数器的初始值为0
+        count = 0
+        # 查找尾结点
+        while cur is not None:
+            # 对计数进行递增
+            count += 1
+            # 移动当前的结点位置
+            cur = cur.next
+        # 输出最终计数
+        return count
+    
+    # 所有内容查看
+    def travel(self):
+        # 找到当前链表头信息
+        cur = self.__head
+        # 查找尾结点
+        while cur is not None:
+            # 输出每个结点的内容，设置分割符为空格
+            print(cur.item, end=" ")
+            # 移动当前的结点位置
+            cur = cur.next
+        # 还原分割符为换行符
+        print("")
+
+    # 搜索某个元素
+    def search(self, item):
+        # 找到当前链表的头信息
+        cur = self.__head
+        # 判断当前结点不是尾结点
+        while cur is not None:
+            # 若当前结点的内容就是我们要查找的，就返回True
+            if cur.item == item:
+                return True
+            # 移动当前结点位置到下一结点
+            cur = cur.next
+        # 如果整个循环都找不到我们要的内容，就返回False
+        return False
+
+    # 头部增加
+    def add(self, item):
+        # 定义一个存储数据的新结点
+        node = BaseNode(item)
+        # 指定新结点的next属性为之前链表的头信息
+        node.next = self.__head
+        # 指定当前链表的头信息为新结点
+        self.__head = node
+        # 若链表不为空
+        if node.next:
+            # 修改老结点的pre指向新结点
+            node.next.pre = node
+
+    # 尾部增加
+    def append(self, item):
+        # 定义一个存储数据的新结点
+        node = BaseNode(item)
+        # 若当前列表为空，那么直接指定头信息为新结点即可
+        if self.is_empty():
+            self.__head = node
+        # 若当前列表不为空
+        else:
+            # 找到当前连链表的头信息，然后找到尾结点
+            cur = self.__head
+            while cur.next is not None:
+                cur = cur.next
+            # 指定新结点的pre属性为当前结点
+            node.pre = cur
+            # 指定当前结点的next属性为新结点
+            cur.next = node
+          
+    # 指定位置增加
+    def insert(self, pos, item):
+        # 定义一个存储数据的新结点
+        node = BaseNode(item)
+        # 头部添加内容
+        if pos < 0:
+            self.add(item)
+        # 尾部添加内容
+        elif pos > self.length() - 1:
+            self.append(item)
+        # 中间添加内容
+        else:
+            # 找到头信息，并开始设置计数器初始值
+            cur = self.__head
+            count = 0
+            # 找到要插入的位置的上一个位置
+            while count < pos:
+                count += 1
+                cur = cur.next
+            # 设置新结点的next属性为当前结点
+            node.next = cur
+            # 设置新结点的pre属性为当前结点的上一个结点
+            node.pre = cur.pre
+            # 设置当前结点的上一个结点的next属性为新的结点
+            cur.pre.next = node
+            # 设置当前结点的pre为新结点
+            cur.pre = node
+
+    # 删除
+    def remove(self, item):
+        # 找到当前链表的头结点
+        cur = self.__head
+        # 遍历所有结点
+        while cur is not None:
+            # 若当前结点的item就是要删除的内容
+            if cur.item == item:
+                # 若当前结点A就是链表的首结点
+                if cur == self.__head:
+                    # 设置当前链表的头信息为当前结点A的下一个结点B
+                    self.__head = cur.next
+                    # 链表不是只有一个结点，新的结点的pre属性指向None
+                    if cur.next:
+                        cur.next.pre = None
+                # 若当前结点不是头结点
+                else:
+                    # 尾结点
+                    # 将当前结点B的上一结点A的next属性设定为下一结点C
+                    cur.pre.next = cur.next
+                    # 中间删
+                    if cur.next:
+                        cur.next.pre = cur.pre
+                return 
+            # 将当前结点A的next属性为下一结点C
+            cur = cur.next
+
+
+
+
+def main():
+    node = DoubleLinkedList()
+    node.add(1)
+    node.add(2)
+    node.add(3)
+    node.travel()
+    node.insert(2, 4)
+    node.travel()
+
+if __name__ == '__main__':
+    main()
+```
+
+
+# 单向循环链表
+
+单俩表的一个特殊形式就是单向循环链表，链表中最后一个结点的next不再为None，而是指向当前链表的头结点
+
+```python
+class BaseNode(object):
+    """单向链表的结点"""
+    def __init__(self, item):
+        # item存放数据元素
+        self.item = item
+        # next是下一个结点的地址
+        self.next = None
+
+class CycleLinkedList(object):
+    # 定义操作的接班属性
+    def __init__(self, node=None):
+        # 确定当前链表的头信息
+        self.__head = node
+
+    # 判断是否是链表为空
+    def is_empty(self):
+        return self.__head is None
+
+    # 判断单向循环链表的长度
+    def length(self):
+        # 若当前链表是空链表
+        if self.is_empty():
+            return 0
+        # 设计数器的初始值为1,不对尾结点计数
+        count = 1
+        # 找到当前链表的头位置
+        cur = self.__head
+        # 查找尾结点
+        while cur.next is not self.__head:
+            # 对计数进行递增
+            count += 1
+            # 移动当前的结点位置
+            cur = cur.next
+        # 输出最终计数
+        return count
+
+    # 获取单向循环链表的所有内容
+    def travel(self):
+        # 若果当前链表是空链表
+        if self.is_empty():
+            print("")
+            return 
+        # 找到当前链表的头信息
+        cur = self.__head
+        # 查找尾结点
+        while cur.next is not self.__head:
+            # 输出每个结点的内容，设置分隔符为空格
+            print(cur.item, end=" ")
+            # 移动当前的结点位置
+            cur = cur.next
+        # 从循环退出，cur指向的是尾结点，所以打印cur的item即可
+        print(cur.item)
+
+    # 获取单向循环链表的指定内容
+    def search(self, item):
+        # 若链表示空链表
+        if self.is_empty():
+            return False
+        # 找到当前链表的头信息
+        cur = self.__head
+        # 判断当前结点不是尾结点
+        while cur.next is not self.__head:
+            # 若当前的结点内容就是我们要查找的，就返回True
+            if cur.item == item:
+                return True
+            # 移动当前结点到下一结点
+            cur = cur.next
+        # 对尾结点进行判断
+        if cur.item == item:
+            return True
+        # 若整个循环都找不到，返回False
+        return False
+    
+    # 头增加
+    def add(self, item):
+        # 定义一个存储数据的新结点
+        node = BaseNode(item)
+        # 对于空链表，我们单独操作
+        if self.is_empty():
+            self.__head = node
+            node.next = self.__head
+        # 对于非空链表，定位首结点
+        cur = self.__head
+        # 查找尾结点，退出循环，表示cur处在尾结点
+        while cur.next is not self.__head:
+            cur = cur.next
+        # 指定当前尾结点的next徐行为新结点
+        cur.next = node
+        # 指定新结点的next属性为之前链表的头结点
+        node.next = self.__head
+        # 指定的当前链表的头结点为新结点
+        self.__head = node
+
+    # 尾增加
+    def append(self, item):
+        # 定义一个存储数据的新结点
+        node = BaseNode(item)
+        # 如果当前列表为空，那么直接指定头信息为新结点即可
+        if self.is_empty():
+            self.__head = node
+            node.next = self.__head
+        # 如果当前列表不为空
+        # 找到当前链表的头信息，然后找到尾结点
+        cur = self.__head
+        while cur.next is not self.__head:
+            cur = cur.next
+        # 找到尾结点就退出循环，尾结点的next指向新结点即可
+        cur.next = node
+        # 将新结点的next 指向当前链表的首结点
+        node.next = self.__head
+
+    # 指定位置增加
+    def insert(self, pos, item):
+        # 定义一个存储数据的新结点
+        node = BaseNode(item)
+        # 头部添加内容
+        if pos <= 0:
+            self.add(item)
+        # 尾部添加元素
+        elif pos >= self.length():
+            self.append(item)
+        # 中间添加元素
+        else:
+            # 找到头信息，并且设置计数器初始值
+            cur = self.__head
+            count = 0
+            # 找到要插入的位置的上一个位置
+            while count < (pos - 1):
+                count += 1
+                cur = cur.next
+            # 设置新结点的next属性为当前结点的下一结点
+            node.next = cur.next
+            # 设置当前结点的next属性为新结点
+            cur.next = node 
+
+    # 删除
+    def remove(self, item):
+        # 若链表是空链表
+        if self.is_empty():
+            return 
+        # 获取头信息,cur标签用于删除结点
+        cur = self.__head
+        # pre用来表示当前结点的上一结点
+        pre = None
+        # 链表不为空情况下
+        while cur.next is not self.__head:
+            # 若当前结点cur的item就是要删除的内容
+            if cur.item == item:
+                # 如果头结点
+                if cur == self.__head:
+                    # tnode用于标识尾结点
+                    tnode = self.__head
+                    while tnode.next is not self.__head:
+                        tnode = tnode.next
+                    self.__head = cur.next
+                    tnode.next = self.__head
+                # 如果当前结点cur不是头结点
+                else:
+                    # 将当前结点的上一结点的next属性设定为cur的下一个结点C
+                    pre.next = cur.next
+                return 
+            # 若找不到要找的删除元素，将当前结点cur的上一结点作为当前结点
+            pre = cur
+            # 将当前结点cur的next属性为下一结点C
+            cur = cur.next
+        # cur是尾结点情况
+        if cur.item == item:
+            # 链表只有一个元素
+            if cur == self.__head:
+                self.__head = None
+            # 链表不止一个元素
+            else:
+                pre.next = self.__head
+    
+
+
+def main():
+    node = CycleLinkedList()
+    node.add(1)
+    node.append(2)
+    node.insert(1,6)
+    node.travel()
+    node.remove(6)
+    node.travel()
+
+if __name__ == '__main__':
+    main()
+```
+
+
 
 # 栈
 
@@ -172,425 +720,61 @@ print(s.pop())
 print(s.size()) 
 ```
 
-# 队
+# 队列
 
 It is also possible to use a list as a queue, where the first element added is the first element retrieved (“first-in, first-out”); however, lists are not efficient for this purpose. While appends and pops from the end of list are fast, doing inserts or pops from the beginning of a list is slow (because all of the other elements have to be shifted by one).
 
 To implement a queue, use [`collections.deque`](https://docs.python.org/3.6/library/collections.html#collections.deque)which was designed to have fast appends and pops from both ends. For example:
 
+```python
+class Queue(object):
+    """队列的基本属性"""
+    def __init__(self):
+        self.__items = []
+
+    # 判断队列是否为空
+    def is_empty(self):
+        return self.__items == []
+
+    # 队列长度获取
+    def size(self):
+        return len(self.__items)
+
+    # 给队列添加元素
+    def enqueue(self, item):
+        self.__items.append(item)
+
+    # 将队列中元素删除
+    def dequeue(self):
+        return self.__items.pop()
 ```
->>> from collections import deque
->>> queue = deque(["Eric", "John", "Michael"])
->>> queue.append("Terry")           # Terry arrives
->>> queue.append("Graham")          # Graham arrives
->>> queue.popleft()                 # The first to arrive now leaves
-'Eric'
->>> queue.popleft()                 # The second to arrive now leaves
-'John'
->>> queue                           # Remaining queue in order of arrival
-deque(['Michael', 'Terry', 'Graham'])
 
-```
-
-# 单链表
-
-链表的定义：
-
-　　链表(linked list)是由一组被称为结点的数据元素组成的数据结构，每个结点都包含结点本身的信息和指向下一个结点的地址。由于每个结点都包含了可以链接起来的地址信息，所以用一个变量就能够访问整个结点序列。也就是说，结点包含两部分信息：一部分用于存储数据元素的值，称为信息域；另一部分用于存储下一个数据元素地址的指针，称为指针域。链表中的第一个结点的地址存储在一个单独的结点中，称为头结点或首结点。链表中的最后一个结点没有后继元素，其指针域为空。　
-
-![img](https://images0.cnblogs.com/blog/51154/201311/08101605-4dca2917e4164bcfaf78b3625b589b96.jpg)
-
-![img](https://images0.cnblogs.com/blog/51154/201311/08101617-50347cb58527433cb83665ce43c7b338.jpg)
+# 双向对列
 
 ```python
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
-class Node(object):
-    def __init__(self,val,p=0):
-        self.data = val
-        self.next = p
-
-class LinkList(object):
+class Queue(object):
+    """队列的基本属性"""
     def __init__(self):
-        self.head = 0
+        self.__items = []
 
-    def __getitem__(self, key):
-
-        if self.is_empty():
-            print 'linklist is empty.'
-            return
-
-        elif key <0  or key > self.getlength():
-            print 'the given key is error'
-            return
-
-        else:
-            return self.getitem(key)
-
-
-
-    def __setitem__(self, key, value):
-
-        if self.is_empty():
-            print 'linklist is empty.'
-            return
-
-        elif key <0  or key > self.getlength():
-            print 'the given key is error'
-            return
-
-        else:
-            self.delete(key)
-            return self.insert(key)
-
-    def initlist(self,data):
-
-        self.head = Node(data[0])
-
-        p = self.head
-
-        for i in data[1:]:
-            node = Node(i)
-            p.next = node
-            p = p.next
-
-    def getlength(self):
-
-        p =  self.head
-        length = 0
-        while p!=0:
-            length+=1
-            p = p.next
-
-        return length
-
+    # 判断队列是否为空
     def is_empty(self):
+        return self.__items == []
 
-        if self.getlength() ==0:
-            return True
-        else:
-            return False
+    # 队列长度获取
+    def size(self):
+        return len(self.__items)
 
-    def clear(self):
+    # 给队列添加元素
+    def enqueue(self, item):
+        self.__items.append(item)
 
-        self.head = 0
-
-
-    def append(self,item):
-
-        q = Node(item)
-        if self.head ==0:
-            self.head = q
-        else:
-            p = self.head
-            while p.next!=0:
-                p = p.next
-            p.next = q
-
-
-    def getitem(self,index):
-
-        if self.is_empty():
-            print 'Linklist is empty.'
-            return
-        j = 0
-        p = self.head
-
-        while p.next!=0 and j <index:
-            p = p.next
-            j+=1
-
-        if j ==index:
-            return p.data
-
-        else:
-
-            print 'target is not exist!'
-
-    def insert(self,index,item):
-
-        if self.is_empty() or index<0 or index >self.getlength():
-            print 'Linklist is empty.'
-            return
-
-        if index ==0:
-            q = Node(item,self.head)
-
-            self.head = q
-
-        p = self.head
-        post  = self.head
-        j = 0
-        while p.next!=0 and j<index:
-            post = p
-            p = p.next
-            j+=1
-
-        if index ==j:
-            q = Node(item,p)
-            post.next = q
-            q.next = p
-
-
-    def delete(self,index):
-
-        if self.is_empty() or index<0 or index >self.getlength():
-            print 'Linklist is empty.'
-            return
-
-        if index ==0:
-            q = Node(item,self.head)
-
-            self.head = q
-
-        p = self.head
-        post  = self.head
-        j = 0
-        while p.next!=0 and j<index:
-            post = p
-            p = p.next
-            j+=1
-
-        if index ==j:
-            post.next = p.next
-
-    def index(self,value):
-
-        if self.is_empty():
-            print 'Linklist is empty.'
-            return
-
-        p = self.head
-        i = 0
-        while p.next!=0 and not p.data ==value:
-            p = p.next
-            i+=1
-
-        if p.data == value:
-            return i
-        else:
-            return -1
-
-
-l = LinkList()
-l.initlist([1,2,3,4,5])
-print l.getitem(4)
-l.append(6)
-print l.getitem(5)
-
-l.insert(4,40)
-print l.getitem(3)
-print l.getitem(4)
-print l.getitem(5)
-
-l.delete(5)
-print l.getitem(5)
-
-l.index(5)
+    # 将队列中元素删除
+    def dequeue(self):
+        return self.__items.pop()
 ```
 
-# 双链表
 
-和单链表类似，只不过是增加了一个指向前面一个元素的指针而已。
-
-示意图：
-
-![img](https://images0.cnblogs.com/blog/51154/201311/08102601-17d62d106d8449c8ad759d5ad264584f.png)
-
-```python
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
-class Node(object):
-    def __init__(self,val,p=0):
-        self.data = val
-        self.next = p
-        self.prev = p
-
-class LinkList(object):
-    def __init__(self):
-        self.head = 0
-
-    def __getitem__(self, key):
-
-        if self.is_empty():
-            print 'linklist is empty.'
-            return
-
-        elif key <0  or key > self.getlength():
-            print 'the given key is error'
-            return
-
-        else:
-            return self.getitem(key)
-
-
-
-    def __setitem__(self, key, value):
-
-        if self.is_empty():
-            print 'linklist is empty.'
-            return
-
-        elif key <0  or key > self.getlength():
-            print 'the given key is error'
-            return
-
-        else:
-            self.delete(key)
-            return self.insert(key)
-
-    def initlist(self,data):
-
-        self.head = Node(data[0])
-
-        p = self.head
-
-        for i in data[1:]:
-            node = Node(i)
-            p.next = node
-            node.prev  = p
-            p = p.next
-
-    def getlength(self):
-
-        p =  self.head
-        length = 0
-        while p!=0:
-            length+=1
-            p = p.next
-
-        return length
-
-    def is_empty(self):
-
-        if self.getlength() ==0:
-            return True
-        else:
-            return False
-
-    def clear(self):
-
-        self.head = 0
-
-
-    def append(self,item):
-
-        q = Node(item)
-        if self.head ==0:
-            self.head = q
-        else:
-            p = self.head
-            while p.next!=0:
-                p = p.next
-            p.next = q
-            q.prev = p
-
-
-    def getitem(self,index):
-
-        if self.is_empty():
-            print 'Linklist is empty.'
-            return
-        j = 0
-        p = self.head
-
-        while p.next!=0 and j <index:
-            p = p.next
-            j+=1
-
-        if j ==index:
-            return p.data
-
-        else:
-
-            print 'target is not exist!'
-
-    def insert(self,index,item):
-
-        if self.is_empty() or index<0 or index >self.getlength():
-            print 'Linklist is empty.'
-            return
-
-        if index ==0:
-            q = Node(item,self.head)
-
-            self.head = q
-
-        p = self.head
-        post  = self.head
-        j = 0
-        while p.next!=0 and j<index:
-            post = p
-            p = p.next
-            j+=1
-
-        if index ==j:
-            q = Node(item,p)
-            post.next = q
-            q.prev = post
-            q.next = p
-            p.prev = q
-
-
-    def delete(self,index):
-
-        if self.is_empty() or index<0 or index >self.getlength():
-            print 'Linklist is empty.'
-            return
-
-        if index ==0:
-            q = Node(item,self.head)
-
-            self.head = q
-
-        p = self.head
-        post  = self.head
-        j = 0
-        while p.next!=0 and j<index:
-            post = p
-            p = p.next
-            j+=1
-
-        if index ==j:
-            post.next = p.next
-            p.next.prev = post
-
-    def index(self,value):
-
-        if self.is_empty():
-            print 'Linklist is empty.'
-            return
-
-        p = self.head
-        i = 0
-        while p.next!=0 and not p.data ==value:
-            p = p.next
-            i+=1
-
-        if p.data == value:
-            return i
-        else:
-            return -1
-
-
-l = LinkList()
-l.initlist([1,2,3,4,5])
-print l.getitem(4)
-l.append(6)
-print l.getitem(5)
-
-l.insert(4,40)
-print l.getitem(3)
-print l.getitem(4)
-print l.getitem(5)
-
-l.delete(5)
-print l.getitem(5)
-
-l.index(5)
-```
 
 # 二叉树
 

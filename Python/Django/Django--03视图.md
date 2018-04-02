@@ -8,28 +8,159 @@
 - 每一个请求的url地址，都对应着一个视图，由视图处理请求后，再返回html页面内容给浏览器显示。
 ```
 
-## URL配置及匹配
+## 创建示例项目
+
+- 创建项目test
 
 ```
-1、复制项目同名文件夹下的urls.py至应用下：
+django-admin startproject test
+```
 
-2、配置
-在项目名下的urls中添加：
-url(r'^',include('项目名.urls'))
-在应用名下的urls中添加
-from 应用名 import views
+- 进入项目目录，创建应用booktest
 
-3、url匹配流程
+```
+cd test
+python manage.py startapp booktest
+```
+
+- 在test3/settings.py中INSTALLED_APPS项安装应用
+
+```
+INSTALLED_APPS = (
+	'django.contrib.admin',
+	'django.contrib.auth',
+	'django.contrib.contenttypes',
+	'django.contrib.sessions',
+	'django.contrib.messages',
+	'django.contrib.staticfiles',
+	'booktest',
+)
+```
+
+- 在test/settings.py中DATABASES项配置使用MySQL数据库test2，数据库在第二部分已经创建。
+
+```
+DATABASES = {
+    'default':{
+        'ENGINE':'django.db.backends.mysql',
+        'NAME':'test',
+        'HOST':'localhost',
+        'PORT':'3306',
+        'USER':'root',
+        'PASSWORD':'mysql',
+    }
+}
+```
+
+- 在test3/settings.py中TEMPLATES项配置模板查找路径
+
+```
+TEMPLATES=[
+{
+'DIRS': 
+[os.path.join(BASE_DIR, 'templates')]
+},
+]
+```
+
+- 创建模板目录结构
+
+```
+test/templates/booktest
+```
+
+## 使用视图的过程
+
+- 在"应用/views.py"中定义视图
+
+```python
+# 在booktest/views.py中定义视图函数index
+def index(request):
+    return HttpResponse("视图函数index")
+```
+
+- 配置URLconf，将视图函数和url对应起来
+
+```python
+# 在test3/urls.py中编辑加入如下代码
+from django.conf.urls import include, url
+from django.contrib import admin
+
+urlpatterns = [
+    url(r'^admin/', include(admin.site.urls)),
+    url(r'^', include('booktest.urls')), #这句代码是新加入的，包含booktest应用中的urls文件
+]
+
+# 在booktest目录下创建urls.py文件并编辑其内容如下
+from django.conf.urls import url #导入url函数
+from booktest import views #导入视图模块
+
+urlpatterns = [
+    url(r'^$', views.index), #建立url和views.index视图函数的关联
+]
+```
+
+
+
+
+
+## URLconf
+
+用户通过在浏览器的地址栏中输入网址请求网站，对于Django开发的网站，由哪一个视图进行处理请求，是由url匹配找到的
+
+### 配置
+
+- 在test3/settings.py中通过ROOT_URLCONF指定url配置，默认已经有此配置。
+
+```
+root_utlconf = 'test3.urls'
+```
+
+- 打开test3/urls.py可以看到默认配置
+
+```python
+from django.conf.urls import include, url
+from django.contrib import admin
+
+urlpatterns = [
+    url(r'^admin/', include(admin.site.urls)),
+]
+```
+
+### 语法
+
+url()对象，被定义在django.conf.urls包中，有两种语法结构：
+
+- 语法一：包含，一般在自定义应用中创建一个urls.py来定义url。
+
+这种语法用于test3/urls.py中，目的是将应用的urls配置到应用内部，数据更清晰并且易于维护。
+
+```
+url(正则,include('应用.urls'))
+```
+
+- **语法二**：定义，指定URL和视图函数的对应关系。
+
+在应用内部创建urls.py文件，指定请求地址与视图的对应关系。
+
+```
+url(正则,'视图函数名称')
+```
+
+### 匹配
+
+```python
+# url匹配流程
 (1)浏览器发出请求
 (2)去除域名、端口号、参数、/，剩余部分与项目中的url匹配
 (3)去除在项目中url匹配成功的部分，剩下部分与应用里面的url匹配
 (4)若匹配成功，则调用对应的视图函数，若失败，则返回相应信息5)
 
-3、url配置规则 （针对应用下的url配置）
+# url配置规则 （针对应用下的url配置）
 正则表达式应使用 ^ 和 /$ 严格匹配请求url的开头和结尾，以便匹配用户以 / 结尾的url请求地址。
 了解：django中的 APPEND_SLASH参数：默认会让浏览器在请求的url末尾添加 /，所以浏览器请求时url末尾不添加 / 也没问题
 
-4、url匹配小结：
+# url匹配小结：
 域名、端口、参数不参与匹配
 先到项目下的urls.py进行匹配，再到应用的urls.py匹配
 自上而下的匹配
@@ -94,22 +225,82 @@ ALLOWED_HOSTS = ['*']
 
 ## HttpRequest对象
 
-```
+```python
 请求一个页面时，Django会把请求数据包装成一个HttpRequest对象，然后调用对应的视图函数，把这个HttpRequest对象作为第一个参数传给视图函数。
 ```
 
-| Attribute | Description                              |
-| --------- | ---------------------------------------- |
+| Attribute | Description                                                  |
+| --------- | ------------------------------------------------------------ |
 | path      | 请求页面的全路径，不包括域名端口参数。例如： "/music/bands/beatles/" |
 | method    | 一个全大写的字符串，表示请求中使用的HTTP方法。常用值：‘GET’, 'POST'。以下三种会为Get请求：<br/><li>`form表单默认提交（或者method指定为get）`<li>`在浏览器中输入地址直接请求`<li>`网页中的超链接（a标签）`<br/>form表单中指定method为post，则为post请求 |
 | encoding  | 一个字符串，表示提交的数据的编码方式（如果为 None 则表示使用 DEFAULT_CHARSET 的设置，默认为 'utf-8'） |
-| GET       | 类似字典的QueryDict对象，包含get请求的所有参数            |
+| GET       | 类似字典的QueryDict对象，包含get请求的所有参数               |
 | POST      | 类似字典的QueryDict对象，包含post请求的所有参数<br><li>`服务器收到空的POST请求的情况也是有可能发生的` <li> `因此，不能使用语句if request.POST来判断是否使用HTTP POST方法`, <br>`应该使用if request.method == "POST" ` |
-| COOKIES   | 一个标准的python字典，包含所有的cookies, 键和值都是字符串     |
+| COOKIES   | 一个标准的python字典，包含所有的cookies, 键和值都是字符串    |
 | session   | 可读可写的类似字典的对象(`django.contrib.sessions.backends.db.SessionStore`)。django提供了session模块，默认就会开启用来保存session数据 |
-| FILES     | 类似字典的对象，包含所有的上传文件<br>                    |
+| FILES     | 类似字典的对象，包含所有的上传文件<br>                       |
 
 [官方文档：request和reponse对象](http://python.usyiyi.cn/documents/django_182/ref/request-response.html)
+
+- path/encoding
+
+1）打开booktest/views.py文件，代码如下：
+
+```
+def index(request):
+    str='%s,%s'%(request.path,request.encoding)
+    return render(request, 'booktest/index.html', {'str':str})
+```
+
+2）在templates/booktest/下创建index.html文件，代码如下：
+
+```
+<html>
+<head>
+    <title>首页</title>
+</head>
+<body>
+1. request对象的path,encoding属性：<br/>
+{{ str }}
+<br/>
+</body>
+</html>
+```
+
+- method
+
+1）打开booktest/views.py文件，编写视图method_show，代码如下：
+
+```
+def method_show(request):
+    return HttpResponse(request.method)
+```
+
+2）打开booktest/urls.py文件，新增配置如下：
+
+```
+url(r'^method_show/$', views.method_show),
+```
+
+3）修改templates/booktest/下创建index.html文件，添加代码如下：
+
+```
+<html>
+<head>
+    <title>首页</title>
+</head>
+<body>
+...
+...
+2.request对象的method属性：<br/>
+<a href='/method_show/'>get方式</a><br/>
+<form method="post" action="/method_show/">
+    <input type="submit" value="post方式">
+</form>
+<br/>
+</body>
+</html>
+```
 
 ### QueryDict对象
 
@@ -118,23 +309,55 @@ ALLOWED_HOSTS = ['*']
 - 与python字典不同，**使用QueryDict类型的对象，同一个键可以有多个值**
 - get()方法：根据键获取值，如果一个键同时拥有多个值将获取最后一个值，键不存在则返回None，也可以指定默认值：
 
-    dict.get('键',默认值)
-    	可简写为
-    	dict['键']
+```
+dict.get('键',默认值)
+	可简写为
+	dict['键']
+```
 
-   注意：通过 dict['键'] 访问，如果键不存在会报错
+注意：通过 dict['键'] 访问，如果键不存在会报错
+
+- 方法getlist()：根据键获取值，值以列表返回，可以获取指定键的所有值，如果键不存在则返回空列表[]，可以设置默认值进行后续处理
+
+```
+dict.getlist('键',默认值)
+```
 
 
 ### GET属性
 
 - 关于GET请求：
+请求格式：
 
-  ```
-  - 当需要从服务器中读取数据时使用get请求； 
-  - 请求参数会跟在url末尾传递给服务器： http：//127.0.0.1:8000/login/?username=admin&password=123
-  - 提交的参数有大小限制（浏览器对url长度有限制）；
-  - 安全性较低
-  ```
+```
+在请求地址结尾使用?，之后以"键=值"的格式拼接，多个键值对之间以&连接。
+```
+
+例：网址如下
+
+```
+http://www.itcast.cn/?a=10&b=20&c=python
+```
+
+其中的请求参数为：
+
+```
+a=10&b=20&c=python
+```
+
+分析
+
+```
+分析请求参数，键为'a'、'b'、'c'，值为'10'、'20'、'python'。
+
+在Django中可以使用HttpRequest对象的GET属性获得get方方式请求的参数。
+
+GET属性是一个QueryDict类型的对象，键和值都是字符串类型。
+
+键是开发人员在编写代码时确定下来的。
+
+值是根据数据生成的。
+```
 
 - 实现参考：
 
@@ -204,6 +427,34 @@ ALLOWED_HOSTS = ['*']
 
 ## HttpResponse对象
 
+#### 属性
+
+- content：表示返回的内容。
+- charset：表示response采用的编码字符集，默认为utf-8。
+- status_code：返回的HTTP响应状态码。
+- content-type：指定返回数据的的MIME类型，默认为'text/html'。
+
+#### 方法
+
+- `__init__`：创建HttpResponse对象后完成返回内容的初始化。
+
+- set_cookie：设置Cookie信息。
+
+  ```
+  set_cookie(key, value='', max_age=None, expires=None)
+  ```
+
+- cookie是网站以键值对格式存储在浏览器中的一段纯文本信息，用于实现用户跟踪。
+
+  - max_age是一个整数，表示在指定秒数后过期。
+  - expires是一个datetime或timedelta对象，会话将在这个指定的日期/时间过期。
+  - max_age与expires二选一。
+  - 如果不指定过期时间，在关闭浏览器时cookie会过期。
+
+- delete_cookie(key)：删除指定的key的Cookie，如果key不存在则什么也不发生。
+
+- write：向响应体中写数据
+
 ```
 视图函数处理完逻辑后，必须返回一个HttpResponse对象或子对象作为响应：
 
@@ -214,13 +465,15 @@ JsonResponse对象
 
 ### HttpResponse
 
-```
 HttpResponse():参数为字符串
+
 若要返回浏览器html文件，可以有以下三种：
+
 直接传入html编码，难以维护，代码混乱
 出入读取好的html，难以处理动态数据
 调用Django模板，可处理动态数据，便于维护
 
+```
 在视图中调用模板分为三步：
 1.加载模板
 2.定义上下文
@@ -251,6 +504,63 @@ def index(request):
     return render(request, "app01/index.html", {})
 ```
 
+- 示例
+
+```
+1）打开booktest/views.py文件，定义视图index2如下：
+def index2(request):
+    str='<h1>hello world</h1>'
+    return HttpResponse(str)
+    
+2）打开booktest/urls.py文件，配置url。
+url(r'^index2/$',views.index2),
+
+3）运行服务器，在浏览器中打开如下网址。
+http://127.0.0.1:8000/index2/
+```
+
+- 使用模板
+
+```
+1）打开booktest/views.py文件，定义视图index3如下：
+from django.template import RequestContext, loader
+...
+def index3(request):
+    #加载模板
+    t1=loader.get_template('booktest/index3.html')
+    #构造上下文
+    context=RequestContext(request,{'h1':'hello'})
+    #使用上下文渲染模板，生成字符串后返回响应对象
+    return HttpResponse(t1.render(context))
+
+2）打开booktest/urls.py文件，配置url。
+    url(r'^index3/$',views.index3),
+    
+3）在templates/booktest/目录下创建index3.html，代码如下：
+<html>
+<head>
+    <title>使用模板</title>
+</head>
+<body>
+<h1>{{h1}}</h1>
+</body>
+</html>
+
+4）运行服务器，在浏览器中打开如下网址。
+http://127.0.0.1:8000/index3/
+```
+
+- 简写
+
+```
+from django.shortcuts import render
+...
+def index3(request):
+    return render(request, 'booktest/index3.html', {'h1': 'hello'})
+```
+
+
+
 ### HttpResponseRedirect
 
 ```
@@ -263,9 +573,40 @@ redict(),重定向到某个界面
 参数与HttpResponseRedirect类似
 ```
 
-### JsonResponse
+- 示例
 
 ```
+1）在booktest/views.py文件中定义视图red1，代码如下：
+from django.http import HttpResponseRedirect
+...
+# 定义重定义向视图，转向首页
+def red1(request):
+    return HttpResponseRedirect('/')
+    
+2）在booktest/urls.py文件中配置url。
+    url(r'^red1/$', views.red1),
+    
+3）在地址栏中输入网址如下：
+http://127.0.0.1:8000/red1/
+```
+
+- 简写
+
+```
+1）修改booktest/views.py文件中red1视图，代码如下：
+from django.shortcuts import redirect
+...
+def red1(request):
+    return redirect('/')
+```
+
+
+
+
+
+### JsonResponse
+
+```python
 JsonReponse： 给客户端请求返回json格式的数据
 
 应用场景：网页的局部刷新(ajax技术)
@@ -273,6 +614,59 @@ JsonReponse： 给客户端请求返回json格式的数据
 接收字典作为参数
 JsonResponse对象的 content-type 为 application/json
 ```
+
+- 示例
+
+```python
+1）在booktest/views.py文件中定义视图json1、json2，代码如下：
+from django.http import JsonResponse
+...
+def json1(request):
+    return render(request,'booktest/json1.html')
+def json2(request):
+    return JsonResponse({'h1':'hello','h2':'world'})
+    
+2）在booktest/urls.py文件中配置url。
+    url(r'^json1/$', views.json1),
+    url(r'^json2/$', views.json2),
+    
+3）创建目录static/js/，把jquery文件拷贝到这个目录下。
+
+4）打开test3/settings.py文件，在文件最底部，配置静态文件查找路径，并且要求开启调试
+DEBUG = True
+...
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
+
+5）在templates/booktest/目录下创建json1.html，代码如下：
+<html>
+<head>
+    <title>json</title>
+    <script src="/static/js/jquery-1.12.4.min.js"></script>
+    <script>
+        $(function () {
+            $('#btnJson').click(function () {
+                $.get('/json2/',function (data) {
+                    ul=$('#jsonList');
+                    ul.append('<li>'+data['h1']+'</li>')
+                    ul.append('<li>'+data['h2']+'</li>')
+                })
+            });
+        });
+    </script>
+</head>
+<body>
+<input type="button" id="btnJson" value="获取json数据">
+<ul id="jsonList"></ul>
+</body>
+</html>
+
+6）运行服务器，在浏览器中输入如下地址。
+http://127.0.0.1:8000/json1/
+```
+
+
 
 #### 相关知识
 
@@ -389,7 +783,7 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
 ### Cookie
 
-一、Cookie介绍
+#### 介绍
 
 - **Cookie是由服务器生成的，存储在浏览器端的少量数据(键值对)**
 - 服务器生成Cookie后，会在响应请求时发送Cookie数据给浏览器，浏览器接收到后会自动保存
@@ -404,17 +798,15 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
   - 浏览器请求某个网站时，会自动携带该网站所有的Cookie数据给服务器，但不会携带其它网站生成的Cookie数据。
 
 
-二、Cookie操作：
+#### 操作
 
-```
-在Django中Cookie的读写： 
-
-读取数据
+```python
+# 读取数据
 request.COOKIE['键名']
 或者：
 request.COOKIES.get('键名')
 
-保存数据
+# 保存数据
 response.set_cookie('键名', count，max_age, expires)
 
 - max_age是一个整数，表示在指定秒数后过期
@@ -425,7 +817,7 @@ response.set_cookie('键名', count，max_age, expires)
 
 ### Session
 
-**一、Session介绍**
+#### 介绍
 
 - 一些重要敏感的数据（银行卡账号，余额，验证码...），应该存储在服务器端，而不是存储在浏览器，**这种在服务器端进行状态数据保存的方案就是Session**
 
@@ -435,16 +827,35 @@ response.set_cookie('键名', count，max_age, expires)
 - Session也是有过期时间的，如果不指定，默认两周就会过期
 
 
-
-**二、Session的使用**
+#### 启动
 
 ```
-1. 开启session功能
 在django项目中，session功能默认是开启的；要禁用session功能，则可禁用session中间件：
+```
 
-注意事项： session默认是保存到数据库表中的，通过一张session表来保存，所以注意保存数据的session表是否已经存在了。（项目刚创建需要迁移才会有数据库表）
+#### 存储
 
-2. session对象操作（request.session字典）
+Session数据可以存储在数据库、内存、Redis等，可以通过在项目的setting.py中设置SESSION_ENGINE项，指定Session数据存储的方式。
+
+```python
+# 存储在数据库中，如下设置可以写，也可以不写，这是默认存储方式。
+SESSION_ENGINE='django.contrib.sessions.backends.db'
+
+# 存储在缓存中：存储在本机内存中，如果丢失则不能找回，比数据库的方式读写更快。
+SESSION_ENGINE='django.contrib.sessions.backends.cache'
+
+# 混合存储：优先从本机内存中存取，如果没有则从数据库中存取。
+SESSION_ENGINE='django.contrib.sessions.backends.cached_db'
+
+# 注意：如果存储在数据库中，需要在项INSTALLED_APPS中安装Session应用。
+INSTALLED_APPS = (
+	'django.contrib.sessions',
+)
+```
+
+#### 操作
+
+```python
 # 保存session数据（键值对）
 request.session['键']=值
 
@@ -453,6 +864,9 @@ request.session.get('键',默认值)
 
 # 清除session数据（清空值）
 request.session.clear()
+
+# 清除session数据(在存储中删除session的整条数据)
+request.session.flush()
 
 # 删除会话中的指定键及值，在存储中只删除某个键及对应的值。
 del request.session['键']
@@ -464,17 +878,3 @@ request.session.set_expiry(value)
   - 如果value为None，那么会话永不过期。
 ```
 
-**三、session存储方式**
-
-Session数据可以存储在数据库、内存、Redis等，可以通过在项目的setting.py中设置SESSION_ENGINE项，指定Session数据存储的方式。
-
-```
-- 存储在数据库中，如下设置可以写，也可以不写，这是默认存储方式。  SESSION_ENGINE='django.contrib.sessions.backends.db'
-
-- 存储在内存中：存储在本机内存中，如果丢失则不能找回，比数据库的方式读写更快  SESSION_ENGINE='django.contrib.sessions.backends.cache'
-
-
-- 混合存储：优先从本机内存中存取，如果没有则从数据库中存取。  SESSION_ENGINE='django.contrib.sessions.backends.cached_db'	
-
-- 通过Redis存储session（后续项目中介绍）
-```
