@@ -659,13 +659,18 @@ if __name__ == '__main__':
     main()
 ```
 
-
-
 # 栈
 
-http://docs.python.org/2/tutorial/datastructures.html#more-on-lists
+栈（stack），是一种数据项按序排列的数据结构，只能在一端对数据项进行插入和删除等操作，简单来说它就是一
+个数据的容器。
 
-The list methods make it very easy to use a list as a stack, where the last element added is the first element retrieved (“last-in, first-out”). To add an item to the top of the stack, use `append()`. To retrieve an item from the top of the stack, use `pop()` without an explicit index. For example:
+栈特点：
+只能允许在容器的一端进行加入数据和输出数据的运算。
+由于栈数据结构只允许在一端进行操作，因而按照 后进先出（LIFO, Last In First Out）的原理运作。
+
+术语：
+
+栈顶、栈底、栈顶元素、栈底元素、入栈、出栈
 
 **实现**
 
@@ -722,9 +727,9 @@ print(s.size())
 
 # 队列
 
-It is also possible to use a list as a queue, where the first element added is the first element retrieved (“first-in, first-out”); however, lists are not efficient for this purpose. While appends and pops from the end of list are fast, doing inserts or pops from the beginning of a list is slow (because all of the other elements have to be shifted by one).
-
-To implement a queue, use [`collections.deque`](https://docs.python.org/3.6/library/collections.html#collections.deque)which was designed to have fast appends and pops from both ends. For example:
+队列 是一种数据项按序排列的数据结构，只能在一端对数据项进行插入和删除等操作
+队列是一种 先进先出的（First In First Out）的线性表，简称FIFO。允许插入的一端为队尾，允许删除的一端
+为队头。队列不允许在中间部位进行操作！
 
 ```python
 class Queue(object):
@@ -751,6 +756,10 @@ class Queue(object):
 
 # 双向对列
 
+双端队列（deque，全名double-ended queue），是一种具有队列和栈的性质的数据结构。
+双端队列中的元素可以从两端弹出，其限定插入和删除操作在表的两端进行。双端队列可以在队列任意一端入队和出
+队。
+
 ```python
 class Queue(object):
     """队列的基本属性"""
@@ -774,23 +783,64 @@ class Queue(object):
         return self.__items.pop()
 ```
 
+# 树
 
+树是一种数据结构，基本单位是节点。它是由n个节点组成一个具有 层次关系的集合。因为看像一棵 倒挂的树，也就是说它是根朝上，而叶朝下的。
+树结构的特点是：它的每一个结点都可以有不止一个直接后继，除根结点外的所有结点都有且只有一个直接前驱。
+
+树的递归定义如下：（1）至少有一个结点（称为根）（2）其它是互不相交的子树 
+
+- 基本特点：
+
+每个节点有零个或多个子节点；
+没有父节点的节点称为根节点；
+每一个非根节点有且只有一个父节点；
+
+- 基本术语
+
+父节点：含有子节点的节点；
+子节点：有父节点的节点
+兄弟节点：相同父节点的节点
+叶节点或终端节点：没有子节点的结点；
+节点的祖先：根节点到该节点之间所有父节点的集合；
+节点的度：一个节点含有子节点的个数；
+节点的层次：根节点到该节点所经历的结点的个数；
+树的度：一棵树中，最大的节点的度称为树的度；
+树的高度或深度：树中节点的最大层次；
+森林：由m（m>=0）棵互不相交的树的集合称为森林；
+
+- 树的种类
+
+无序树：树中任意节点的子节点之间没有顺序关系，这种树称为无序树，也称为自由树；
+有序树：树中任意节点的子节点之间有顺序关系，这种树称为有序树；
+
+​	二叉树：每个节点最多含有两个子树(度小于2)的树称为二叉树；
+
+- 树的存储
+
+  - 顺序存储：将二叉树的所有数据，从上到下分层，每层从做到右，依次编号，然后按照编号顺序把所有元素存储到一个存储空间中，常见形式为列表
+
+    父节点和子节点关系：
+    	父节点位置 i,找子节点：
+    		左子节点位置：2i + 1 右子节点位置：2i + 2
+    	左子节点位置 i，找父节点：
+    		父节点位置：(i-1)/2
+    	右子节点位置i，找父节点：
+    		父节点位置：(i-2)/2
+
+    ​
+
+  - 链式存储：书序表只是保存元素的前后关系，并没有前有的调用关系，而二叉树的重点就是关系，故二叉树采用链式存储。
+
+    特点：
+
+    链表格式：存储数据+关系索引
 
 # 二叉树
 
-**树的定义**　　
-
-　　树是一种重要的非线数据结构，直观地看，它是数据元素（在树中称为结点）按分支关系组织起来的结构，很象自然界中的树那样。树结构在客观世界中广泛存在，如人类社会的族谱和各种社会组织机构都可用树形象表示。树在计算机领域中也得到广泛应用，如在编译源程序时，可用树表示源程序的语法结构。又如在数据库系统中，树型结构也是信息的重要组织形式之一。一切具有层次关系的问题都可用树来描述。 
-
-​      树结构的特点是：它的每一个结点都可以有不止一个直接后继，除根结点外的所有结点都有且只有一个直接前驱。
-
-　　树的递归定义如下：（1）至少有一个结点（称为根）（2）其它是互不相交的子树 
-
- **二叉树**：　
-
 二叉树是由n（n≥0）个结点组成的有限集合、每个结点最多有两个子树的有序树。它或者是空集，或者是由一个根和称为左、右子树的两个不相交的二叉树组成。
 
-特点：
+- 特点：
 
 （1）二叉树是有序树，即使只有一个子树，也必须区分左、右子树；
 
@@ -798,27 +848,71 @@ class Queue(object):
 
 （3）二叉树中所有结点的形态有5种：空结点、无左右子树的结点、只有左子树的结点、只有右子树的结点和具有左右子树的结点。
 
+- 分类：
+
+1)完美：除了叶子节点，都有2个子节点
+
+2)完全：最后一层子补全，左对齐
+
+3)完满：除了叶子，其他都有2个子节点
+
+## 二叉树增加
+
 ```python
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
+class BaseNode(object):
+    """定义结点的基本属性"""
+    def __init__(self, item):
+        # 结点存储的内容
+        self.item = item
+        # 左侧子节点的索引
+        self.lsub = None
+        # 右侧子节点的索引
+        self.rsub = None
 
-class TreeNode(object):
-    def __init__(self,data,left,right):
-        self.data = data
-        self.left = left
-        self.right = right
-
-
-class BTree(object):
-    def __init__(self,root=0):
-        self.root = root
+class Tree(object):
+    # 定义树结构的基本属性：根节点
+    def __init__(self, node=None):
+        self.root = node
+    
+    def add(self, item):
+        # 定义要添加到树结构中的节点信息
+        node = BaseNode(item)
+        # 树为空，对根节点赋值
+        if self.root == None:
+            self.root = node
+        # 根节点有数据
+        else:
+            # 使用一个临时表来存储我们要处理的元素
+            queue = []
+            # 把根节点方放到临时队列
+            queue.append(self.root)
+            # 只要处理队列中有要处理的元素，就一直处理下去
+            while queue:
+                # 从队列的头部获取要处理的元素
+                cur = queue.pop(0)
+                # 若左侧子节点为空
+                if cur.lsub == None:
+                    # 把接收的item放到左侧子节点位置
+                    cur.lsub = node
+                    return 
+                # 在左侧节点有数据，把左侧节点的数据对象追加到待处理父节点队列末尾
+                else:
+                    queue.append(cur.lsub)
+                 # 若右侧子节点为空
+                if cur.rsub == None:
+                    # 把接收的item放到右侧子节点位置
+                    cur.rsub = node
+                    return 
+                # 在右侧节点有数据，把右侧节点的数据对象追加到待处理父节点队列末尾
+                else:
+                    queue.append(cur.rsub)      
 ```
 
-# 二叉树遍历
+## 二叉树遍历
 
 实现二叉树的三种遍历，先序遍历，中序遍历，后序遍历
 
-```
+```python
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
@@ -888,7 +982,7 @@ python数据结构之图的实现，官方有一篇文章介绍，http://www.pyt
 
 比如有这么一张图：
 
-```
+```python
     A -> B
     A -> C
     B -> C
@@ -901,18 +995,20 @@ python数据结构之图的实现，官方有一篇文章介绍，http://www.pyt
 
 可以用字典和列表来构建
 
-```
- graph = {'A': ['B', 'C'],
-             'B': ['C', 'D'],
-             'C': ['D'],
-             'D': ['C'],
-             'E': ['F'],
-             'F': ['C']}
+```python
+ graph = {
+     'A': ['B', 'C'],
+     'B': ['C', 'D'],
+     'C': ['D'],
+     'D': ['C'],
+     'E': ['F'],
+     'F': ['C']
+ }
 ```
 
 找到一条路径：
 
-```
+```python
 def find_path(graph, start, end, path=[]):
         path = path + [start]
         if start == end:
@@ -928,7 +1024,7 @@ def find_path(graph, start, end, path=[]):
 
 找到所有路径：
 
-```
+```python
 def find_all_paths(graph, start, end, path=[]):
         path = path + [start]
         if start == end:
@@ -946,7 +1042,7 @@ def find_all_paths(graph, start, end, path=[]):
 
 找到最短路径：
 
-```
+```python
 def find_shortest_path(graph, start, end, path=[]):
         path = path + [start]
         if start == end:
@@ -963,124 +1059,6 @@ def find_shortest_path(graph, start, end, path=[]):
         return shortest
 ```
 
-# 图深度/广度优先
-
-首先有一个概念：回溯
-
-　　回溯法(探索与回溯法)是一种选优搜索法，按选优条件向前搜索，以达到目标。但当探索到某一步时，发现原先选择并不优或达不到目标，就退回一步重新选择，这种走不通就退回再走的技术为回溯法，而满足回溯条件的某个状态的点称为“回溯点”。
-
-深度优先算法：
-
-（1）访问初始顶点v并标记顶点v已访问。
-（2）查找顶点v的第一个邻接顶点w。
-（3）若顶点v的邻接顶点w存在，则继续执行；否则回溯到v，再找v的另外一个未访问过的邻接点。
-（4）若顶点w尚未被访问，则访问顶点w并标记顶点w为已访问。
-（5）继续查找顶点w的下一个邻接顶点wi，如果v取值wi转到步骤（3）。直到连通图中所有顶点全部访问过为止。
-
-广度优先算法：
-
-（1）顶点v入队列。
-（2）当队列非空时则继续执行，否则算法结束。
-（3）出队列取得队头顶点v；访问顶点v并标记顶点v已被访问。
-（4）查找顶点v的第一个邻接顶点col。
-（5）若v的邻接顶点col未被访问过的，则col入队列。
-（6）继续查找顶点v的另一个新的邻接顶点col，转到步骤（5）。直到顶点v的所有未被访问过的邻接点处理完。转到步骤（2）。
-
-```
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
-class Graph(object):
-
-    def __init__(self,*args,**kwargs):
-        self.node_neighbors = {}
-        self.visited = {}
-
-    def add_nodes(self,nodelist):
-
-        for node in nodelist:
-            self.add_node(node)
-
-    def add_node(self,node):
-        if not node in self.nodes():
-            self.node_neighbors[node] = []
-
-    def add_edge(self,edge):
-        u,v = edge
-        if(v not in self.node_neighbors[u]) and ( u not in self.node_neighbors[v]):
-            self.node_neighbors[u].append(v)
-
-            if(u!=v):
-                self.node_neighbors[v].append(u)
-
-    def nodes(self):
-        return self.node_neighbors.keys()
-
-    def depth_first_search(self,root=None):
-        order = []
-        def dfs(node):
-            self.visited[node] = True
-            order.append(node)
-            for n in self.node_neighbors[node]:
-                if not n in self.visited:
-                    dfs(n)
-
-
-        if root:
-            dfs(root)
-
-        for node in self.nodes():
-            if not node in self.visited:
-                dfs(node)
-
-        print order
-        return order
-
-    def breadth_first_search(self,root=None):
-        queue = []
-        order = []
-        def bfs():
-            while len(queue)> 0:
-                node  = queue.pop(0)
-
-                self.visited[node] = True
-                for n in self.node_neighbors[node]:
-                    if (not n in self.visited) and (not n in queue):
-                        queue.append(n)
-                        order.append(n)
-
-        if root:
-            queue.append(root)
-            order.append(root)
-            bfs()
-
-        for node in self.nodes():
-            if not node in self.visited:
-                queue.append(node)
-                order.append(node)
-                bfs()
-        print order
-
-        return order
-
-
-if __name__ == '__main__':
-    g = Graph()
-g.add_nodes([i+1 for i in range(8)])
-g.add_edge((1, 2))
-g.add_edge((1, 3))
-g.add_edge((2, 4))
-g.add_edge((2, 5))
-g.add_edge((4, 8))
-g.add_edge((5, 8))
-g.add_edge((3, 6))
-g.add_edge((3, 7))
-g.add_edge((6, 7))
-print "nodes:", g.nodes()
-
-order = g.breadth_first_search(1)
-order = g.depth_first_search(1)
-```
 
 
 
