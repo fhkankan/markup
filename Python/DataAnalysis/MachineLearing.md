@@ -67,6 +67,14 @@ import sklearn
 sklearn.datasets.load_iris()
 # 加载并返回波士顿放假数据集
 sklearn.datasets.load_boston()
+# 加载并返回20类新闻数据集
+sklearn.datasets.fetch_20newsgroups(data_home=None,subset='all')
+data_home:表示数据集下载的目录,默认是 ~/scikit_learn_data/
+subset: 'all'，'train'或'test'，可选，选择要加载的数据集.
+      训练集的“训练”，测试集的“测试”，两者的“全部”
+datasets.clear_data_home(data_home=None)
+	清除目录下的数据
+
 # 属性
 DESCR			---> 数据集描述
 feature_names	---> 特征名
@@ -507,8 +515,25 @@ random_state 随机数种子，不同的种子会造成不同的随机采样结�
 
 实现
 
-```
+```python
+import numpy as np
+from sklearn.model_selection import train_test_split
 
+# 特征值
+x = np.arange(0,10).reshape([5,2])
+print(x)
+# 目标值
+y = range(5)
+print(y)
+x_train, x_test, y_train, y_test = train_test_split(x, y)
+print("训练集的特征值")
+print(x_train)
+print("测试集的特征值")
+print(x_test)
+print("训练集的目标值")
+print(y_train)
+print("测试集的目标值")
+print(y_train)
 ```
 
 ## 估计器
@@ -558,8 +583,62 @@ n_neighbors:int,可选，默认=5
 
 实现
 
-```
+```python
+# 1.导入所需的包
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.preprocessing import StandardScaler
 
+# 2.加载数据文件
+data = pd.read_csv("./FBlocation/train.csv")
+print(len(data))
+# 3.缩小数据范围
+data = data.query("x > 1 & x < 1.25 & y >3 &y < 3.25")
+print(len(data))
+# 4.时间特征抽取
+# 将时间戳转换为日期
+time_value = pd.to_datetime(data["time"], unit="s")
+# 将时间转换为DatetimeIndex
+date_time_index = pd.DatetimeIndex(time_value)
+data["hour"] = date_time_index.hour
+data["month"] = date_time_index.month
+data["dayofweek"] = date_time_index.dayofweek
+# 5.删除掉入住率比较低的样本
+# 分组聚合 以place_id分组，count计数，小于3，筛选掉
+place_count = data.groupby("place_id").aggregate(np.count_nonzero)
+# print(place_count)
+#            row_id      x      y  accuracy  time  hour  month  dayofweek
+# place_id
+# 1009781224     219  219.0  219.0       219   219   216    219        200
+# 所有入住次数大于3的结果，数据并不是原始数据，而只是一个统计数据
+result = place_count[place_count["row_id"] > 3].reset_index()
+# 从原始数据中选择place_id在result中的样本
+data = data[data["place_id"].isin(result["place_id"])]
+# 6.特征选择
+# 特征值
+x = data.drop(["row_id", "time", "place_id"], axis=1)
+# 目标值
+y = data["place_id"]
+# 7.分割数据集
+x_train, x_test, y_train, y_test = train_test_split(x, y)
+# 8.对数据集进标准化
+ss = StandardScaler()
+# 对特征值进行标准化
+x_train = ss.fit_transform(x_train)
+# 对测试集的特征值标准化
+x_test = ss.transform(x_test)  # 按照原来训练集的平均值做标准化，统一数据转换标准
+# 9.KNeighborsClassifiler训练模型
+knn = KNeighborsClassifier(n_neighbors=3)
+knn.fit(x_train, y_train)
+# 10.准确率
+# 使用测试集的特征值，预测测试集的特征值对应的目标值place_id
+y_predict = knn.predict(x_test)
+print(y_predict)
+# 测试模型在测试集上的准确性
+score = knn.score(x_test, y_test)
+print(score)
 ```
 
 ### 交叉验证
@@ -580,9 +659,10 @@ sklearn.model_selection.GridSearchCV(estimator, param_grid=None,cv=None)
 estimator：估计器对象
 param_grid：估计器参数(dict){“n_neighbors”:[1,3,5]}
 cv：指定几折交叉验证
+# 方法
 fit：输入训练数据
 score：准确率
-# 输出
+# 属性
 best_score_:最好结果
 best_estimator_：最好的参数模型
 cv_results_:交叉验证的结果
@@ -590,8 +670,62 @@ cv_results_:交叉验证的结果
 
 实现
 
-```
+```python
+# 1.导入所需要的包
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.preprocessing import StandardScaler
+from sklearn.neighbors import KNeighborsClassifier
 
+# 2.载入数据
+data = pd.read_csv('./FBlocation/train.csv')
+print(len(data))
+# 3.缩小数据范围
+data = data.query("x > 1 & x < 1.25 & y >3 &y < 3.25")
+print(len(data))
+# 4.时间特征抽取
+# 将时间戳转换为日期
+time_value = pd.to_datetime(data["time"], unit="s")
+# 将时间转换为DatetimeIndex
+date_time_index = pd.DatetimeIndex(time_value)
+data["hour"] = date_time_index.hour
+data["month"] = date_time_index.month
+data["dayofweek"] = date_time_index.dayofweek
+# 5.删除掉入住率比较低的样本
+# 分组聚合 以place_id分组，count计数，小于3，筛选掉
+place_count = data.groupby("place_id").aggregate(np.count_nonzero)
+# print(place_count)
+#            row_id      x      y  accuracy  time  hour  month  dayofweek
+# place_id
+# 1009781224     219  219.0  219.0       219   219   216    219        200
+# 所有入住次数大于3的结果，数据并不是原始数据，而只是一个统计数据
+result = place_count[place_count["row_id"] > 3].reset_index()
+# 从原始数据中选择place_id在result中的样本
+data = data[data["place_id"].isin(result["place_id"])]
+# 6.特征选择
+# 特征值
+x = data.drop(["row_id", "time", "place_id"], axis=1)
+# 目标值
+y = data["place_id"]
+# 7.分割数据集
+x_train, x_test, y_train, y_test = train_test_split(x, y)
+# 8.对数据集进标准化
+ss = StandardScaler()
+# 对特征值进行标准化
+x_train = ss.fit_transform(x_train)
+# 对测试集的特征值标准化
+x_test = ss.transform(x_test)  # 按照原来训练集的平均值做标准化，统一数据转换标准
+# 9.KNeighborsClassifiler训练模型
+knn = KNeighborsClassifier(n_neighbors=3)
+# 网格搜索与交叉验证
+params = {"n_neighbors": [1, 3, 5]}
+gscv = GridSearchCV(estimator=knn, param_grid=params, cv=2)
+gscv.fit(x_train, y_train)
+print(gscv.best_params_)
+print(gscv.best_estimator_)
+print(gscv.best_score_)
+print(gscv.cv_results_)
 ```
 
 ## 朴素贝叶斯
@@ -634,8 +768,34 @@ m为训练文档中特征词个数，Ni为xi在分类ci下出现的次数，N为
 
 实现
 
-```
+```python
+# 1.导入需要的包
+from sklearn.datasets import fetch_20newsgroups
+from sklearn.feature_extraction.text import CountVectorizer,TfidfVectorizer
+from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import MultinomialNB
 
+# 2.载入数据
+news = fetch_20newsgroups(subset="all")
+# 3.特征选取
+# 特征值,文章内容
+x = news.data
+# 目标值，文章的类别
+y = news.target
+print(len(y))
+# 4.分割训练集
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.25, random_state=1)
+# 5.TF-IDF生成文章特征词
+# 特征抽取
+cv = TfidfVectorizer()
+x_train = cv.fit_transform(x_train)  # 词频矩阵
+x_test = cv.transform(x_test)  # 按照训练集抽取特征词统计词频
+# 6.朴素贝叶斯estimator流程进行预估
+mnb = MultinomialNB()
+mnb.fit(x_train, y_train)
+mnb.predict(x_test)
+score = mnb.score(x_test, y_test)
+print(score)
 ```
 
 ## 决策树
@@ -728,8 +888,38 @@ $ dot -Tpng tree.dot -o tree.png
 
 实现
 
-```
+```python
+# 1.导入合适的包
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier,export_graphviz
+from sklearn.metrics import classification_report
 
+# 2.加载数据
+data = pd.read_csv("http://biostat.mc.vanderbilt.edu/wiki/pub/Main/DataSets/titanic.txt")
+# 3.数据处理
+# 填补缺失值age
+data["age"].fillna(data["age"].mean(), inplace=True)
+# 雷彪数据进行One-Hot编码
+data = pd.get_dummies(data, columns=["pclass", "sex"]) 
+print(data.head(2))
+# 4.特征选择和数据集分割
+# 特征值
+x = data[["age", "pclass_1st", "pclass_2nd", "pclass_3rd", "sex_female", "sex_male"]]
+# 目标值
+y = data["survived"]
+# 数据集分割
+x_train, x_test, y_train, y_test = train_test_split(x, y)
+# 5.决策树估计器流程
+dtc = DecisionTreeClassifier(criterion="entropy", max_depth=4)
+dtc.fit(x_train, y_train)
+# 输出图形
+export_graphviz(dtc, out_file="./tree.dot")
+# 5.预测
+predict = dtc.predict(x_test)
+# 6.准确率
+score = dtc.score(x_test, y_test)
+print(score)
 ```
 
 
@@ -772,8 +962,37 @@ bootstrap：boolean，optional（default = True）是否在构建树时使用放
 
 实现
 
-```
+```python
+# 1.导入合适的包
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier,export_graphviz
+from sklearn.metrics import classification_report
+from sklearn.ensemble import RandomForestClassifier
 
+# 2.加载数据
+data = pd.read_csv("http://biostat.mc.vanderbilt.edu/wiki/pub/Main/DataSets/titanic.txt")
+# 3.数据处理
+# 填补缺失值age
+data["age"].fillna(data["age"].mean(), inplace=True)
+# 雷彪数据进行One-Hot编码
+data = pd.get_dummies(data, columns=["pclass", "sex"]) 
+print(data.head(2))
+# 4.特征选择和数据集分割
+# 特征值
+x = data[["age", "pclass_1st", "pclass_2nd", "pclass_3rd", "sex_female", "sex_male"]]
+# 目标值
+y = data["survived"]
+# 数据集分割
+x_train, x_test, y_train, y_test = train_test_split(x, y)
+# 5.随机森林估计器流程
+rfc = RandomForestClassifier(n_estimators=5, criterion="entropy", max_depth=4)
+rfc.fit(x_train, y_train)
+# 5.预测
+predict = rfc.predict(x_test)
+# 6.准确率
+score = rfc.score(x_test, y_test)
+print(score)
 ```
 
 ## 支持向量机
@@ -802,14 +1021,41 @@ bootstrap：boolean，optional（default = True）是否在构建树时使用放
 
 函数
 
-```
-
+```python
+sklearn.scm.SVC()
 ```
 
 实现
 
-```
+```python
+# 1.导入合适的包
+import pandas as pd
+import pickle
+from sklearn.model_selection import train_test_split
+from sklearn.svm import SVC
 
+# 2.载入数据
+data = pd.read_csv(r'./water/moment.csv', encoding="gbk")
+print(data.head(2))
+# 3.特征和数据集划分
+# 特征值
+x = data.drop(["类别", "序号"], axis=1)
+# 目标值
+y = data["类别"]
+# 数据集划分
+x_train, x_test, y_train, y_test = train_test_split(x, y)
+# # 4.训练模型
+# svc = SVC()
+# svc.fit(x_train*30, y_train)
+# 4.读取模型
+with open("./svc.model", "rb") as f:
+    svc = pickle.load(f)
+# 5.准确率
+score = svc.score(x_test*30, y_test)
+print(score)
+# # 6.保存模型
+# with open("./svc.model", "wb") as f:
+#     svc = pickle.dump(svc, f)
 ```
 
 ## 分类评估
@@ -834,7 +1080,47 @@ F1-score
 
 反应了模型的稳健性
 $$
-F1=\frac{2TP}{2TP+FN+FP}
+F1=\frac{2TP}{2TP+FN+FP}=\frac{2*Precision*Recall}{Precision+Recall}
 $$
 
+函数
+
+```python
+sklearn.metrics.confusion_matrix(y_true, y_pred,)
+
+# 输入
+y_true：真实目标值
+y_pred：估计器预测目标值
+
+
+sklearn.metrics.classification_report(y_true, y_pred, target_names=None)
+
+# 输入
+y_true：真实目标值
+y_pred：估计器预测目标值
+target_names：目标类别名称
+# 返回
+每个类别精确率与召回率
+```
+
+实现
+
+```
+
+```
+
+
+
+## 模型保存和加载
+
+```python
+# 保存模型
+import pickle
+with open("./svm.model", "wb") as f:
+    pickle.dump(svc, f)
+
+# 加载模型
+with open("./svm.model", "rb") as f:
+    svc = pickle.load(f)
+```
 
