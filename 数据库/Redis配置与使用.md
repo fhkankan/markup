@@ -123,7 +123,27 @@ redis是key-value的数据结构，每条数据都是一个键值对
 
 keys *
 ```
+### 键命令
 
+```
+# 查找键，参数支持正则表达式
+keys pattern
+
+# 判断键是否存在，如果存在返回1，不存在返回0
+exists key1
+
+# 查看键对应的value的类型
+type key
+
+# 删除键及对应的值
+del key1 key2 ...
+
+# 设置过期时间，以秒为单位,如果没有指定过期时间则一直存在，直到使用DEL移除
+expire key seconds
+
+# 查看有效时间，以秒为单位
+ttl key
+```
 ### string
 
 ```
@@ -146,29 +166,6 @@ get key
 # 根据多个键获取多个值
 mget key1 key2 ...
 ```
-
-### 键命令
-
-```
-# 查找键，参数支持正则表达式
-keys pattern
-
-# 判断键是否存在，如果存在返回1，不存在返回0
-exists key1
-
-# 查看键对应的value的类型
-type key
-
-# 删除键及对应的值
-del key1 key2 ...
-
-# 设置过期时间，以秒为单位,如果没有指定过期时间则一直存在，直到使用DEL移除
-expire key seconds
-
-# 查看有效时间，以秒为单位
-ttl key
-```
-
 ### hash
 
 ```
@@ -522,4 +519,3 @@ if __name__=="__main__":
     except Exception as e:
         print e
 ```
-

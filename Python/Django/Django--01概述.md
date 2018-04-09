@@ -295,8 +295,8 @@ python manage.py  migrate
 	class EmployeeAdmin(admin.ModelAdmin):
 	    # 指定后台网页要显示的字段
 	    list_display = ["id", "name", "age", "sex", "comment"]
-	
-	
+
+
 	# 注册Model类
 	admin.site.register(Department, DepartmentAdmin)
 	admin.site.register(Employee, EmployeeAdmin)
