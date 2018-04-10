@@ -102,7 +102,7 @@ python3 -m pip install -U pip
 
 使用
 
-```
+```python
 # 多种python环境下包安装
 python2 －m pip install 包名
 python3 －m pip install 包名
@@ -399,6 +399,110 @@ Get it from http://aka.ms/vcpython27
 
 2.在cmd下跳转到下载MySQL_python-1.2.5-cp27-none-win_amd64.whl的目录下,然后在命令行执行pip install MySQL_python-1.2.5-cp27-none-win_amd64.whl
 ```
+
+# Anaconda
+
+## 安装
+
+```python
+1. 安装
+# windows
+在官方地址下载安装包
+# Ubuntu
+进入下载目录，打开终端，输入
+bash Anaconda3-4.3.1-Linux-x86_64.sh 
+
+2. 环境变量
+# windows
+在系统环境变量path处添加安装路径
+C:\ProgramData\Anaconda3;C:\ProgramData\Anaconda3\Scripts
+# Ubuntu
+在 ~/.bashrc中添加anaconda的bin目录加入PATH
+echo 'export PATH="~/anaconda2/bin:$PATH"' >> ~/.bashrc
+# 更新bashrc以立即生效
+source ~/.bashrc
+
+3. 检查
+conda -v
+```
+
+## 包管理
+
+```python
+# 检查更新当前conda
+conda update conda 
+
+# 查看安装了哪些包
+conda list 
+
+# 对所有工具包进行升级
+conda upgrade --all
+
+# 安装一个包
+conda install package_name
+
+# 指定安装的版本
+conda install package_name=x.x
+
+# 升级 package 版本
+conda update package_name
+
+# 移除一个 package
+conda remove package_name
+
+# 模糊查询
+conda  search search_term
+
+# 将当前环境下的 package 信息存入名为 environment 的 YAML 文件中
+conda env export > environment.yaml
+
+# 用对方分享的 YAML 文件来创建一摸一样的运行环境
+conda env create -f environment.yaml
+```
+
+## 虚环境
+
+```python
+# 查看当前存在哪些虚拟环境
+conda env list 或 conda info -e
+
+# 创建python虚拟环境,在Anaconda安装目录envs下
+conda create -n your_env_name python=X.X 
+
+# 检查当前python的版本
+python --version
+
+# 激活虚拟环境
+# Linux 
+source activate your_env_name
+# Windows
+activate your_env_name
+
+# 对虚拟环境中安装额外的包
+conda install -n your_env_name [package]
+
+# 关闭虚拟环境
+# Linux
+source deactivate
+# Windows
+deactivate
+
+# 删除虚拟环境
+conda remove -n your_env_name --all
+
+# 删除环境中的某个包
+conda remove --name your_env_name package_name
+```
+
+
+
+
+
+
+
+​    
+
+   
 
 
 
