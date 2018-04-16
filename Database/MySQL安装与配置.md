@@ -197,6 +197,18 @@ mysql -uroot -pmysql
 quit/exit/ctrl+d
 ```
 
+# Python交互
+
+```python
+# 安装pymysql
+pip install pymsql
+# 在__init__.py文件中导入
+import pymsql
+pymsql.install_as_MySQLdb()
+```
+
+
+
 # 主从同步配置
 
 ## 基本步骤

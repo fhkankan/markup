@@ -275,7 +275,7 @@ d
 | true/false      | True/False |
 | null            | None       |
 
-##字典dict
+### 字典dict
 
 ```
 # 把Python对象变成一个JSON，json.dumps()/json.dump(),前者把Python中的字典序列化为str，后者把JSON写入一个file-like Object
@@ -291,7 +291,7 @@ d
 
 ```
 
-## 类class
+### 类class
 
 ```
 # 类

@@ -1,4 +1,4 @@
-# 内置
+# Python
 
 ## 时间
 
@@ -85,22 +85,38 @@ zipfile
 tarfile
 ```
 
+## 数据获取
 
-# 第三方
+```
+Scrapy
+beautifulsoup
+requests
+paramiko
+```
 
-## 数学
+## 数据运算
 
 ```
 random		随机数
 NumPy		快速数组处理
 Scripy		数值运算
-Matplotlib	绘图
 ```
-##网络资源
+## 数据存储
+
 ```
-requests
+mysql
+hadoop
+mangodb
+redis
+spark
 ```
 
+## 结果输出
+
+```
+matplotlib
+VisPy
+```
 
 ## 图形界面
 
@@ -111,7 +127,25 @@ Qt
 GTK
 ```
 
+## 其他语言交互
+
+```python
+# 调用C/C++
+ctypes	
+Cython
+boost.python
+SWIG
+# 调用Qt
+PyQt
+# 调用R
+rpy2
+# 调用java
+Jython
+JPype
+```
+
 ##字符串编码
+
 ```
 chardet
 ```
@@ -120,12 +154,55 @@ chardet
 pillow      图片处理库
 qrcode      生成二维码
 zbar        解析二维码
+PyOpenGL
+PyOpenCV
+mayavi2
 ```
+## 信号处理
+
+```
+PyWavelets
+scipy.signal
+```
+
+## 云系统支持
+
+```
+github
+sourceforge
+EC2
+BAT
+HPC
+```
+
+## 机器学习
+
+```
+scikit-learn
+TensorFlow
+Pytorch
+caffe2
+Theano
+Cognitive Toolkit
+Keras
+```
+## 加速处理
+
+```
+pypy
+Cython
+PyCUDA
+```
+
 ##获取系统信息
+
 ```
 psutil
 ```
+
+
 ##PDF
+
 ```
 pypdf2
 ```
@@ -133,3 +210,7 @@ pypdf2
 ```
 pyinstaller
 ```
+
+
+
+

@@ -11,6 +11,56 @@ Matplotlib 是一个 Python 的 2D绘图库，通过 Matplotlib，开发者可�
 
 <http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.plot>
 
+## 配置参数
+
+- 代码中
+
+```
+# 方法一：使用参数字典rcParams
+import matplotlib as mp1
+mp1.rcParams['lines.linewidth'] = 2
+mp1.rcParams['lines.color'] = 'r'
+
+# 方法二：调用matplotlib.rc()
+import matplotlib as mp1
+mp1.rc('lines', linewidth=2, color='r')
+
+# 重置参数
+matplotlib.rcdefaults()
+```
+
+- 项目中
+
+```python
+# 配置文件位置决定了应用范围
+# 1.当前工作目录matplotlibrc
+代码运行目录，在当前目录下，可以为目录所包含的当前项目代码定制matplotlib配置项
+# 2.用户级.matplotlib/matplotlibrc
+通常是在用户的$HOME目录下(在windows系统中Documents and Settings目录)。可以用matplotlib.get_configdir()命令来找到当前用户的配置文件目录
+# 3.安装配置文件
+通常在python的site-packages目录下。是系统级配置，但每次重新安装matplotlib后，配置文件被覆盖。
+
+# 打印出配置文件目录的位置
+python -c 'import matplotlib as mpl; print mpl.get_configdir()'
+```
+
+- 配置项
+
+```
+axes: 设置坐标轴边界和表面的颜色、坐标刻度值大小和网格的显示
+backend:设置目标输出TkAgg和GTKAgg
+figure:控制dpi、边界颜色、图形大小和子区(subplot)设置
+font:字体集(font family)、字体大小和样式设置
+grid:设置网格颜色和线型
+legend:设置图例和其中文本的显示
+line:设置线条（颜色、线型、宽度等）和标记
+patch:是填充2D空间的图形对象，如多边形和圆。控制线宽、颜色和抗锯齿设置等。
+savefig:可以对保存的图形进行单独设置。如设置渲染的文件背景为白色
+text:设置字体颜色、文本解析(纯文本或latex标记)等
+verbose:设置matplotlib在执行期间信息输出，如silent/helpful/debug/debug-annoying
+xticks/yicks：为x,y轴的主刻度和次刻度设置颜色、大小、方向，以及标签大小
+```
+
 ## figure对象
 
 - 在Matplotlib中，整个图像为一个figure对象
@@ -18,7 +68,7 @@ Matplotlib 是一个 Python 的 2D绘图库，通过 Matplotlib，开发者可�
 - 创建figure：`fig = plt.figure()`
 - 如果不创建figure对象，matplotlib会自动创建一个figure对象。
 
-```
+```python
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -38,13 +88,11 @@ plt.savefig("./test.png")
 plt.show()
 ```
 
-
-
 ## 线型图
 
 `plt.plot()`
 
-```
+```python
 # 指定为黑体中文字体
 plt.rcParams["font.sans-serif"] = ["SimHei"]
 # 统一设置字体大小
@@ -101,7 +149,7 @@ plt.show()
 
 `plt.hist()`
 
-```
+```python
 # 解决负号显示问题
 plt.rcParams["axes.unicode_minus"] = False
 # arr = np.arange(10)
@@ -118,7 +166,7 @@ plt.show()
 
 `plt.scatter()`
 
-```
+```python
 x_data = np.arange(100)
 # randn()标准正态分布
 y_data = x_data * np.random.randn(100)
@@ -133,7 +181,7 @@ plt.show()
 
 `plt.bar()`
 
-```
+```python
 plt.figure(figsize=(8, 6), dpi=100)
 # 表示x轴的四组数据的刻度：四个城市
 x = np.arange(4)
@@ -168,7 +216,7 @@ plt.show()
 
 `plt.barh()`
 
-```
+```python
 plt.figure(figsize=(8, 6), dpi=100)
 # 表示x轴的四组数据的刻度：四个城市
 x = np.arange(4)
@@ -196,7 +244,7 @@ plt.show()
 
 `plt.imshow()`
 
-```
+```python
 plt.figure(figsize=(8, 6), dpi=100)
 arr = np.random.randint(-5, 10, (10, 10))
 # cmap表示颜色主题
@@ -213,7 +261,7 @@ plt.show()
 
 `plt.pie()`
 
-```
+```python
 arr = np.random.randint(10, 100, 5)
 print(arr)
 plt.figure(figsize=(8, 6), dpi=100)
@@ -231,7 +279,7 @@ plt.pie(
     # 表示显示百分比数字
     autopct = "%2.2f%%",
 )
-# 显示表针的原型(默认椭圆)
+# 显示表针的原型(默认椭圆)tt
 plt.axis("equal")
 plt.title("各城市GDP占比情况", fontsize=20)
 plt.legend()
@@ -249,7 +297,7 @@ plt.show()
   - 注意：从1开始编号（不是从0开始）
 - plot 绘图的区域是最后一次指定subplot的位置 (jupyter notebook里不能正确显示)
 
-```
+```python
 # 分隔子图需要保留画布
 fig = plt.figure(figsize=(8, 6), dpi=100)
 arr1 = np.random.randn(100)

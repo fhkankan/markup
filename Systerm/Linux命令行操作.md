@@ -740,6 +740,15 @@ pip install  libname
 python setup.py install
 ```
 
+# 快捷命令
+
+```python
+# pycharm
+vim ~/.bashrc
+alias pycharm = "bash pycharm.sh所在的目录路径"
+source ~/.bashrc
+```
+
 
 
 

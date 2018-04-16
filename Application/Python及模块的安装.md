@@ -64,6 +64,8 @@ python3 --version
 注意：若安装多个python版本，在各安装目录下修改python.exe名称为python2.exe/python3.exe。
 ```
 
+在windows下安装python某些包时出错，可在https://www.lfd.uci.edu/~gohlke/pythonlibs/下寻找windows版本
+
 #模块安装
 
 ## pip---包管理工具
@@ -219,7 +221,7 @@ pip install (下载的二进制安装文件路径）
 
 安装
 
-```
+```python
 # Linux
 # 默认python版本下安装
 pip install virtualenvwrapper
@@ -245,7 +247,7 @@ pip3 install virtualenvwrapper-win
 
 配置环境变量
 
-```
+```python
 # Linux
 1、创建目录用来存放虚拟环境
 mkdir $HOME/.virtualenvs
@@ -366,6 +368,23 @@ $ pip freeze > requirements.txt
 
 # 在ipython中测试安装是否成功
 $ from flask import Flask
+```
+
+## pymysql
+
+安装
+
+```python
+# 安装
+pip install pymysql
+```
+
+配置
+
+```python
+# 在__init__.py中
+import pymysql
+pymsql.install_as_MySQLdb()
 ```
 
 ## mysql-python
