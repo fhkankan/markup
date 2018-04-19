@@ -583,10 +583,10 @@ Plugin 'plytophogy/vim-virtualenv'
 ```
 Plugin 'Yggdroot/indentLine'
 
-# 自定义配置
-# 关闭默认颜色(灰色)
+" 自定义配置
+" 关闭默认颜色(灰色)
 let g:indentLine_setColors = 0
-# 自定义颜色
+" 自定义颜色
 " Vim
 let g:indentLine_color_term = 239
 " GVim
@@ -597,16 +597,16 @@ let g:indentLine_color_dark = 1 " (default: 2)
 " Background (Vim, GVim)
 let g:indentLine_bgcolor_term = 202
 let g:indentLine_bgcolor_gui = '#FF5F00'
-# 自定义标识符
+" 自定义标识符
 let g:indentLine_char = 'ASCII character'或¦, ┆, │, ⎸, or ▏
-# 自定义隐藏额行为
+" 自定义隐藏额行为
 let g:indentLine_concealcursor = 'inc'
-# level非1或2时插件停止运行
+" level非1或2时插件停止运行
 let g:indentLine_conceallevel = 2
-# 保留自己的隐藏设定
+" 保留自己的隐藏设定
 let g:indentLine_setConceal = 0
 
-# 关闭默认行为
+" 关闭默认行为
 let g:indentLine_enabled = 0
 ```
 
@@ -628,7 +628,7 @@ pip install autopep8
 Plugin 'Chiel92/vim-autoformat'
 nnoremap <F6> :Autoformat<CR>
 let g:autoformat_autoindent = 0
-let g:autoformat_retab = 
+let g:autoformat_retab = 0
 let g:autoformat_remove_trailing_spaces = 0
 ```
 
