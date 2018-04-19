@@ -328,8 +328,8 @@ ctr+t		返回跳转
 位置
 
 ```
-~/.vimc 	Linux中配置文件
-~/_vimc		windows中配置文件
+~/.vimrc 	Linux中配置文件
+~/_vimrc		windows中配置文件
 ```
 
 加载配置文件
