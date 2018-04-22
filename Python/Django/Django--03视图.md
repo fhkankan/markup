@@ -82,27 +82,32 @@ def index(request):
 - 配置URLconf，将视图函数和url对应起来
 
 ```python
-# 在test3/urls.py中编辑加入如下代码
+# 项目下的urls.py
 from django.conf.urls import include, url
 from django.contrib import admin
+import apps.booketest.urls  # 采用元组时需要
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^', include('booktest.urls')), #这句代码是新加入的，包含booktest应用中的urls文件
+    # 包含应用下的urls.py文件
+    # 方法一：字符串，不需要导包，自动识别
+    # url(r'^', include('booktest.urls')),
+    # 方法二：元组，需要导包
+	url(r'^', include(booktest.urls， namespace='users')),
 ]
 
-# 在booktest目录下创建urls.py文件并编辑其内容如下
-from django.conf.urls import url #导入url函数
-from booktest import views #导入视图模块
+
+# 应用下的urls.py
+from django.conf.urls import url 
+from booktest import views 
 
 urlpatterns = [
-    url(r'^$', views.index), #建立url和views.index视图函数的关联
+    # 函数视图引用
+    url(r'^$', views.index， name='index'), 
+    # 类视图引用
+    # url(r'^$', views.IndexView.as_view()， name='index')
 ]
 ```
-
-
-
-
 
 ## URLconf
 
@@ -181,22 +186,24 @@ url(正则,'视图函数名称')
 
 实例：
 
-	# /show_news/新闻类别/页码/
-	http://127.0.0.1:8000/show_news/1/2/
+```python
+# /show_news/新闻类别/页码/
+http://127.0.0.1:8000/show_news/1/2/
+
+# 位置参数：新闻查看/新闻类别/第几页
+url(r'^show_news/(\d+)/(\d+)/$', views.show_news),
+# 视图函数:views.py
+def show_news(request, a, b):
+	"""显示新闻界面"""
+	return HttpResponse("新闻界面：%s %s" % (a, b))
 	
-	# 位置参数：新闻查看/新闻类别/第几页
-	url(r'^show_news/(\d+)/(\d+)/$', views.show_news),
-	# 视图函数:views.py
-	def show_news(request, a, b):
-		"""显示新闻界面"""
-		return HttpResponse("新闻界面：%s %s" % (a, b))
-		
-	# 关键字参数：新闻查看/新闻类别/第几页
-	url(r'^show_news2/(?P<category>\d+)/(?P<page_no>\d+)/$', views.show_news2),
-	# 视图函数:views.py
-	def show_news2(request, category, page_no):
-		"""显示新闻界面2"""
-		return HttpResponse("新闻界面：%s %s" % (category, page_no))
+# 关键字参数：新闻查看/新闻类别/第几页
+url(r'^show_news2/(?P<category>\d+)/(?P<page_no>\d+)/$', views.show_news2),
+# 视图函数:views.py
+def show_news2(request, category, page_no):
+	"""显示新闻界面2"""
+	return HttpResponse("新闻界面：%s %s" % (category, page_no))
+```
 
 ## 错误视图
 
@@ -246,7 +253,7 @@ ALLOWED_HOSTS = ['*']
 
 1）打开booktest/views.py文件，代码如下：
 
-```
+```python
 def index(request):
     str='%s,%s'%(request.path,request.encoding)
     return render(request, 'booktest/index.html', {'str':str})
@@ -254,7 +261,7 @@ def index(request):
 
 2）在templates/booktest/下创建index.html文件，代码如下：
 
-```
+```html
 <html>
 <head>
     <title>首页</title>
@@ -271,20 +278,20 @@ def index(request):
 
 1）打开booktest/views.py文件，编写视图method_show，代码如下：
 
-```
+```python
 def method_show(request):
     return HttpResponse(request.method)
 ```
 
 2）打开booktest/urls.py文件，新增配置如下：
 
-```
+```python
 url(r'^method_show/$', views.method_show),
 ```
 
 3）修改templates/booktest/下创建index.html文件，添加代码如下：
 
-```
+```html
 <html>
 <head>
     <title>首页</title>
@@ -469,42 +476,13 @@ HttpResponse():参数为字符串
 
 若要返回浏览器html文件，可以有以下三种：
 
-直接传入html编码，难以维护，代码混乱
-出入读取好的html，难以处理动态数据
-调用Django模板，可处理动态数据，便于维护
+> 直接传入html编码，难以维护，代码混乱
+>
+> 传入读取好的html，难以处理动态数据
+>
+> 调用Django模板，可处理动态数据，便于维护
 
-```
-在视图中调用模板分为三步：
-1.加载模板
-2.定义上下文
-3.渲染模板
-
- def index(request):
-     """显示index.html"""
-     # 1.加载html模板文件
-     template = loader.get_template('app01/index.html')
-     # 2.定义上下文对象并指定模板要显示的数据
-     datas = {}
-     context = RequestContext(request, datas)
-     # 3.模板渲染: 根据数据生成标准的html内容
-     html = template.render(context)
-     # 4.返回给浏览器
-     return HttpResponse(html)
-
-render( , , ),Django提供函数render对以上三步的封装
-包含3个参数
-第一个参数为request对象
-第二个参数为模板文件路径
-第三个参数为字典，表示向模板中传递的上下文数据
-def index(request):
-    """显示index.html"""
-    # 参数1：请求对象
-    # 参数2：html文件
-    # 参数3：html网页中要显示的数据
-    return render(request, "app01/index.html", {})
-```
-
-- 示例
+- 直接传入
 
 ```
 1）打开booktest/views.py文件，定义视图index2如下：
@@ -523,14 +501,15 @@ http://127.0.0.1:8000/index2/
 
 ```
 1）打开booktest/views.py文件，定义视图index3如下：
+# 视图函数完整写法
 from django.template import RequestContext, loader
 ...
 def index3(request):
-    #加载模板
+    # 1.加载模板
     t1=loader.get_template('booktest/index3.html')
-    #构造上下文
+    # 2.构造上下文
     context=RequestContext(request,{'h1':'hello'})
-    #使用上下文渲染模板，生成字符串后返回响应对象
+    # 3.使用上下文渲染模板，生成字符串后返回响应对象
     return HttpResponse(t1.render(context))
 
 2）打开booktest/urls.py文件，配置url。
@@ -550,16 +529,17 @@ def index3(request):
 http://127.0.0.1:8000/index3/
 ```
 
-- 简写
+视图函数简写
 
-```
+```python
 from django.shortcuts import render
 ...
 def index3(request):
+    # 参数1：请求对象
+    # 参数2：html文件
+    # 参数3：字典，表示向模板中传递的上下文数据
     return render(request, 'booktest/index3.html', {'h1': 'hello'})
 ```
-
-
 
 ### HttpResponseRedirect
 
@@ -599,10 +579,6 @@ from django.shortcuts import redirect
 def red1(request):
     return redirect('/')
 ```
-
-
-
-
 
 ### JsonResponse
 

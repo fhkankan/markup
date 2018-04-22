@@ -32,7 +32,7 @@
 - 其他
   - 一个轻量级的、独立的web服务器，只用于开发和测试
   - 一个表单序列化及验证系统，用于将HTML表单转换成适用于数据库存储的数据
-  - 一个缓存框架，并且可以从几个花奴新年方式中选择
+  - 一个缓存框架，并且可以从几个缓存方式中选择
   - 中间件支持，能对请求处理的各个阶段进行处理
   - 内置的分发系统允许应用程序中的组件采用预定义的信号进行相互间的通信
   - 一个序列化系统，能够生成或读取采用XML或JSON表示的Django模型实例
@@ -42,16 +42,16 @@
 
 ## 虚拟环境
 
-```
+```shell
 # 安装python包的命令： 
 sudo pip3 install 包
 # 包的安装路径：
 /usr/local/lib/python3.5/dist-packages
 
 # 安装虚拟环境管理工具  	
-  sudo pip install virtualenv
+sudo pip install virtualenv
 # 安装虚拟环境管理扩展包  	 
-  sudo pip install virtualenvwrapper 
+sudo pip install virtualenvwrapper 
   
 # 编辑主目录下面的.bashrc文件，添加下面两行。
 export WORKON_HOME=$HOME/.virtualenvs
@@ -404,10 +404,11 @@ urlpatterns = [
 # 应用下的urls.py
 from django.conf.urls import url
 from . import views
-# 函数视图引用
-# urlpatterns = [r'^register$', views.register, name='register']
-# 类视图引用，使用as_view方法，将类视图转换为函数
+
 urlpatterns = [
+    # 函数视图引用
+    # url(r'^register$', views.register, name='register'),
+    # 类视图引用，使用as_view方法，将类视图转换为函数
     url(r'^register$', views.RegisterView.as_view(), name='register'),
 ]
 ```
@@ -466,7 +467,7 @@ urlpatterns = [
 
 - 调用模板完整写法：
 
-```
+```python
 1.加载模板
 2.定义上下文
 3.渲染模板
@@ -489,18 +490,13 @@ urlpatterns = [
 
 - 调用模板简写
 
-```
-Django提供了一个函数render封装了以上代码,方法render包含3个参数
-- 第一个参数为request对象
-- 第二个参数为模板文件路径
-- 第三个参数为字典，表示向模板中传递的上下文数据
-
-代码参考：
+```python
+# Django提供了一个函数render封装了以上代码,方法render包含3个参数
 def index(request):
  """显示index.html"""
-    # 参数1：请求对象
-    # 参数2：html文件
-    # 参数3：html网页中要显示的数据
+    # 参数1：请求对象request
+    # 参数2：html文件路径
+    # 参数3：字典，表示向模板中传递的上下文数据
     return render(request, "app01/index.html", {})
 ```
 
@@ -522,20 +518,18 @@ for循环：
 
  实现参考：
 
-```
+```python
 1. 在视图函数中指定数据
-
 def index(request):
 """视图函数：处理请求，调用模型和模板，返回内容给浏览器显示"""
     # 参数1：请求对象
     # 参数2：html页面
     # 参数3：字典，html页面显示的数据
-
     data = {"content":"hi,django","list":list(range(1,10))}
     return render(request, "app01/index.html", data)
+ 
     
 2. HTML界面使用模板标签显示数据
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
