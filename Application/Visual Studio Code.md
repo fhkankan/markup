@@ -42,12 +42,6 @@ python
     "showOutput": "always"
 }
 ```
-配置vitualenv运行环境
-
-```
-用户-首选项-工作区设置中修改配置（用户设置也可以）"python.pythonPath": "${workspaceRoot}/venv/bin/python"
-```
-
 安装Linting（代码格式检查工具）
 
 ```
@@ -153,8 +147,6 @@ Code—首选项—文件图标主题
 ## 设置信息
 
 ```
-# 设定python解释器的位置
-"python.pythonPath": "C:/Python36/python", 
 # 设定代码格式化调用工具
 "python.formatting.provider": "yapf",
 # 控制已更新文件的自动保存
@@ -197,6 +189,33 @@ Code—首选项—文件图标主题
 
 “stopOnEntry”: false
 ```
+
+识别虚拟环境
+
+```
+ "python.venvFolders": [
+        "envs",
+        ".virtualenvs",
+        ".pyenv",
+        ".direnv"
+    ]s
+```
+
+设置忽略文件
+
+```
+ "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/CVS": true,
+        "**/.DS_Store": true,
+        "**/*.pyc": true,
+        "**/.idea": true,
+    },
+```
+
+
 
 ## 快捷键
 

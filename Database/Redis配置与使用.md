@@ -11,6 +11,23 @@ sudo apt-get update
 sudo apt-get install redis-server
 ```
 
+**mac**
+
+```
+# 安装
+brew install redis
+
+# 后台及登录启动
+brew services start redis
+
+# 临时启动
+redis-server /usr/local/etc/redis.conf
+
+# 添加至开机启动项(第二种方法)
+$ ln -f /usr/local/Cellar/redis/2.8.13/homebrew.mxcl.redis.plist ~/Library/LaunchAgents/
+$ launchctl load ~/Library/LaunchAgents/homebrew.mxcl.redis.plist
+```
+
 **官方下载**
 
 ```

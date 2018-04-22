@@ -22,7 +22,21 @@
   - T： Template, **模板** 与MVC中的V类似，负责如何显示数据（产生html界面） 
 
 
-处理过程： **Django框架接收了用户请求和参数后，再通过正则表达式匹配URL，转发给对应视图进行处理。视图调用M处理数据，再调用T返回界面给浏览器；** 
+处理过程： **Django框架接收了用户请求和参数后，再通过正则表达式匹配URL，转发给对应视图进行处理。视图调用M处理数据，再调用T返回界面给浏览器；**
+
+## Django核心
+
+- 一个对象关系映射，作为数据模型和关系性数据库就按的媒介(model)
+- 一个基于正则表达式的URL分发器
+- 一个用于处理HTTP请求的系统，含web模板系统
+- 其他
+  - 一个轻量级的、独立的web服务器，只用于开发和测试
+  - 一个表单序列化及验证系统，用于将HTML表单转换成适用于数据库存储的数据
+  - 一个缓存框架，并且可以从几个花奴新年方式中选择
+  - 中间件支持，能对请求处理的各个阶段进行处理
+  - 内置的分发系统允许应用程序中的组件采用预定义的信号进行相互间的通信
+  - 一个序列化系统，能够生成或读取采用XML或JSON表示的Django模型实例
+  - 一个用于扩展末班引擎的能力的系统
 
 # Django项目
 
@@ -86,41 +100,65 @@ pip list
 
 Django项目结构（项目和应用）： 
 
-- 一个项目会包含有多个功能模块，比如：用户管理模块，商品管理模块，订单模块等
 - 在Django中： **一个Django项目（project），包含了多个应用(app)，一个应用代表一个功能模块**，一个应用就是一个Python包
 
-**创建项目：**
+**创建项目与应用：**
 
-```
+```python
 # 命令行
-cd 安装目录
-workon 虚环境名
-django-admin startproject 项目名
-cd 项目名
-python manage.py startapp 应用名
-
-配置：
-1、添加静态文件：
-static/(js/,css/,image/)
-2. 添加Templates文件夹
-3、修改settings.py文件
-# 本地化
-LANGUAGE_CODE='zh-hans'
-TIME_ZONE='Asia/Shanghai'
-# app
-INSTALLED_APPS集合增加'应用名'
-# templates
-TEMPLATES中设定'DIRS': 
-[os.path.join(BASE_DIR, 'templates')]
+workon 虚环境名  # 进入项目虚环境
+cd 安装目录  # 进入项目放置目录
+django-admin startproject 项目名  # 创建项目
+cd 项目名  # 进入项目根目录
+mkdir apps  # 创建apps根目录
+cd apps  # 进入apps根目录
+python manage.py startapp 应用名  # 创建app
 
 
 # pycharm
 新建Django项目，选择虚环境的解释器，创建项目名和应用名
 ```
 
+**添加文件与配置**
+
+```python
+# 添加文件：
+# 静态文件：
+static/
+static/js/
+static/css/
+static/image/
+# 添加模板文件夹
+templates/
+# 第三方文件夹
+utils/
+utils/__init__.py
+
+
+# 配置settings.py文件信息
+# 本地化
+LANGUAGE_CODE='zh-hans'
+TIME_ZONE='Asia/Shanghai'
+# app
+import sys
+sys.path.insert(1, os.path.join(BASE_DIR,'apps'))
+INSTALLED_APPS={
+  ......,
+  # 'apps.users',可引起用django自带的认证系统出错
+  'users',
+}
+# static
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+# templates
+TEMPLATES={
+'DIRS': 
+[os.path.join(BASE_DIR, 'templates')]
+}
+```
+
 **项目目录 ** ：
 
-```
+```python
 # 项目目录如下：
 与项目同名的目录: 包含项目的配置文件
 __init__.py: 空文件，说明app01是一个python包（模块）
@@ -141,7 +179,7 @@ admin.py: Django后台管理页面相关的文件
 
 开发调试阶段，可以使用django自带的服务器。有两种方式运行服务器
 
-```
+```python
 # 命令行
 # 启动django服务器，可更改主机和端口号，默认127.0.0.1:8000
 python manage.py runserver [192.168.210.137:8001]
@@ -157,9 +195,39 @@ python manage.py runserver [192.168.210.137:8001]
 
 ###模型使用
 
+- 创建数据库
+
+```sql
+mysql –uroot –p 
+show databases;
+create database db_django01 charset=utf8;
+```
+
+- 数据库配置
+
+```python
+修改setting.py中的DATABASES
+	# Project01/setting.py
+DATABASES = {
+    'default': {
+        # 默认sqlite3数据库
+        # 'ENGINE': 'django.db.backends.sqlite3',
+        # 'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+
+        # 配置mysql数据库
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': "db_django01",
+        'USER': "root",
+        'PASSWORD': "mysql",
+        'HOST': "localhost",
+        'PORT': 3306,
+    }
+}
+```
+
 - 驱动安装
 
-```
+```python
 # 在安装环境中安装pymysql
 pip install pymysql
 
@@ -178,7 +246,7 @@ pymysql.install_as_MySQLdb()
 
 字段类型(初步了解，models包下的类)：
 CharField--字符串
-IntegerField--整形
+IntegerField--整型
 BooleanField--布尔
 DateFiled--日期
 DecimalFiled--浮点
@@ -197,8 +265,6 @@ python manage.py makemigrations
 ```
 python manage.py  migrate
 ```
-
-确认表结构(使用sqliteman工具查看表结构)
 
 - 通过ORM实现增删改查
 
@@ -237,32 +303,23 @@ python manage.py  migrate
 
 ## 后台管理
 
-使用Django的管理模块，需要按照如下步骤操作
+### 常规操作
 
-````
-1. 管理界面本地化  
-2. 创建管理员  
-3. 注册模型类  
-4. 自定义管理页面  
-````
+- 管理页面本地化
 
-### 操作演示
+```python
+# 本地化
+LANGUAGE_CODE='zh-hans'
+TIME_ZONE='Asia/Shanghai'
+```
 
-1）本地化 (语言和时区)	
+- 创建后台的管理员	
 
-	# 修改settings.py文件。
-	
-	# LANGUAGE_CODE = 'en-us'
-	LANGUAGE_CODE = 'zh-hans'    # 指定语言（注意不要写错，否则无法启动服务器）
-	
-	# TIME_ZONE = 'UTC'
-	TIME_ZONE = 'Asia/Shanghai'  # 指定时间
-
-2）创建登录后台的管理员	
-
-	# 需要指定： 用户名，邮箱，密码
-	python3 manage.py createsuperuser
-3）注册模型类
+```python
+# 需要指定： 用户名，邮箱，密码
+python3 manage.py createsuperuser
+```
+- 注册模型类
 
 在应用下的admin.py中注册模型类：告诉djang框架，根据注册的模型类来生成对应表管理页面：
 
@@ -274,45 +331,47 @@ python manage.py  migrate
 	admin.site.register(Department)
 	admin.site.register(Employee)
 
-4） 启动服务器：
-
-	python manage.py runserver
-
-在浏览器上输入以下地址，进入管理后台，对数据库表数据进行管理:
-
-	http://127.0.0.1:8000/admin
-
-### 自定义
+### 自定义显示
 
 自定义模型管理类，作用：告诉django在生成的管理页面上显示哪些内容。
 
 
-	# app01/admin.py:
-	class DepartmentAdmin(admin.ModelAdmin):
-		# 指定后台网页要显示的字段
-		list_display = ["id", "name", "create_date"]
-	
-	class EmployeeAdmin(admin.ModelAdmin):
-	    # 指定后台网页要显示的字段
-	    list_display = ["id", "name", "age", "sex", "comment"]
+```python
+# app01/admin.py:
+class DepartmentAdmin(admin.ModelAdmin):
+	# 指定后台网页要显示的字段
+	list_display = ["id", "name", "create_date"]
 
+class EmployeeAdmin(admin.ModelAdmin):
+    # 指定后台网页要显示的字段
+    list_display = ["id", "name", "age", "sex", "comment"]
+    
+# 注册Model类
+admin.site.register(Department, DepartmentAdmin)
+admin.site.register(Employee, EmployeeAdmin)
+```
 
-	# 注册Model类
-	admin.site.register(Department, DepartmentAdmin)
-	admin.site.register(Employee, EmployeeAdmin)
+### 启动登录
+
+- 开启服务器
+
+```
+python manage.py runserver
+```
+
+- 进入管理后台
+
+```
+http://127.0.0.1:8000/admin
+```
 
 ## 视图
 
 作用： 处理用户请求，调用M和T，响应请求
 
-```
-1. 定义视图函数
-2. 配置URLconf
-```
-
 ### 视图函数
 
-```
+```python
 在 应用/views.py 下，定义视图函数，示例: 
 from django.http import HttpResponse
   
@@ -326,33 +385,31 @@ def index(request):
 
 ### 配置url
 
-```
-一条URLconf包括url规则、视图两部分：
-url规则使用正则表达式定义。
-视图就是在views.py中定义的视图函数。
-
-需要两步完成URLconf配置：
-1.在应用中定义URLconf
-2.包含到项目的URLconf中
-```
-
 作用：建立url地址和视图函数的对应关系，当用户请求某个url地址时，让django能找到对应的视图函数进行处理。
 
 ```python
-# 在应用下的urls.py中，进行url请求的配置： 
-urlpatterns = [
-	# 每一个url配置项都需要调用url函数，指定两个参数
-	# 参数1: 匹配url的正则表达式
-	# 参数2: 匹配成功后执行的视图函数
-	url(正则表达式, 视图函数名), ]
-
-
-# 在应用下创建urls.py，然后在项目下的urls.py文件中包含进来： 
+# 项目下的urls.py：
+import apps.users.urls
 urlpatterns = [
 	...
-    # 包含应用下的urls.py文件
     url(r'^admin/', include(admin.site.urls)),
-    url(正则表达式, include('应用名.urls'))]
+    # 包含应用下的urls.py文件
+    # 方法一：字符串，不需要导包，自动识别
+    # url(r'users/', include('apps.users.urls')),
+    # 方法二：元组，需要导包
+	url(r'users/', include(apps.users.urls， namespace='users')),
+]
+
+
+# 应用下的urls.py
+from django.conf.urls import url
+from . import views
+# 函数视图引用
+# urlpatterns = [r'^register$', views.register, name='register']
+# 类视图引用，使用as_view方法，将类视图转换为函数
+urlpatterns = [
+    url(r'^register$', views.RegisterView.as_view(), name='register'),
+]
 ```
 
 ### url匹配

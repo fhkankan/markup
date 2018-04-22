@@ -3,7 +3,7 @@
 ## Git版本库认识
 
 - **Directory**：**根目录**，由Git管理的一个目录，包含我们的工作区和Git仓库信息。
-- **Workspace**： **工作区**，即项目的根目录，但不包括.git目录。
+- **Workspace**：**工作区**，即项目的根目录，但不包括.git目录。
 - **.git**： **Git版本库目录**，保存了所有的版本信息。该目录会由git初始化仓库的时自动生成。
 - **Index/Stage(阶段；舞台)**： **暂存区**，工作区变更，先提交到暂存区，再从暂存区提交到本地仓库。
 - **Local Repo**： **本地仓库**，保存了项目所有历史变更版本。
@@ -428,15 +428,12 @@ git branch --set-upstream-to=origin/远程分支名 本地分支名
 git pull
 ```
 
-# 扩展资料
+## 忽略特殊文件
 
 [https://git-scm.com/book/zh/v2](https://git-scm.com/book/zh/v2)
 
-## 忽略特殊文件
-
 - 某些文件需要放到Git工作目录中，但又不能提交它们，比如保存了数据库密码的配置文件等。
 - 每次git status都会显示 “Untracked files ...”
-- 在Git工作区的根目录下创建一个特殊的`.gitignore`文件，然后把要忽略的文件名填进去，Git就会自动忽略这些文件
 - 以下文件应该忽略：
 
   - 操作系统自动生成的文件，比如缩略图Thumbs.db等
@@ -462,3 +459,16 @@ build
 # My configurations:
 db.ini
 ```
+- 操作
+
+```shell
+git init  # 初次提交
+git add . # 全部添加
+cd git工作区根目录  # 进入到git根目录下
+touch .gitignore  # 创建.fitignore文件  
+vim .gitignore  # 编辑.gitignore文件，写入忽略的文件类型
+git reset .  # 若添加了不需要的类型文件，需重置文件状态
+git add .gitignore  # 添加入库文件
+git commit -m '标签' # 添加至本地仓库
+```
+

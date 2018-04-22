@@ -69,6 +69,21 @@ MongoDB 既拥有Key-Value存储方式的高性能和高度伸缩性，也拥有
 python@ubuntu:~$ sudo apt-get install mongodb
 ```
 
+- mac安装MongoDB:
+
+```
+# 预先安装xcode
+brew install MongDB
+
+# 后台及登录启动
+brew services start mongodb
+
+# 临时启动
+redis-server /usr/local/etc/mongodb.conf
+```
+
+
+
 ## 客户端
 
 - 客户端命令为 **mongo**，可以通过help查看所有参数。

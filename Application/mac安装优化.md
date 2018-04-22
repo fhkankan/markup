@@ -29,3 +29,14 @@ brew list xxx
 brew help
 ```
 
+## 系统文件
+
+```
+# 显示
+defaults write com.apple.finder AppleShowAllFiles TRUE
+killall Finder
+# 关闭
+defaults write com.apple.finder AppleShowAllFiles FALSE
+killall Finder
+```
+

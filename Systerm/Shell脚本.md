@@ -1,5 +1,13 @@
 # shell脚本
 
+## shell类型
+
+```
+cat /etc/default/useradd
+# 里面有
+SHELL=/bin/bash
+```
+
 ## 创建脚本
 
 ```

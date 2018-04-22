@@ -2,13 +2,13 @@
 
 ## Windows(解压版)
 
-###  下载与解压
+- 下载与解压
 
 ```
 在官网下载解压版，将其解压至要安装的位置D:\Program Files
 ```
 
-### 配置my.ini文件
+- 配置my.ini文件
 
 ```
 在文件夹根目录下，创建my.ini配置文件，做如下配置
@@ -36,13 +36,13 @@ sql_mode=NO_ENGINE_SUBSTITUTION,NO_AUTO_CREATE_USER
 #skip-grant-tables
 ```
 
-### 添加环境变量
+- 添加环境变量
 
 ```
 在path中添加D:\Program Files\Mysql\mysql-5.7.20-winx64\bin;
 ```
 
-### 安装mysql
+- 安装mysql
 
 ```
 进入Mysql安装目录下的bin文件夹，在此处以管理员身份打开cmd 
@@ -54,7 +54,7 @@ mysqld –-initialize
 net start mysql
 ```
 
-### 设置root管理员密码
+- 设置root管理员密码
 
 ```
 新版本的mysql，root用户的密码不能为空，这时，我们的root是没有密码的，因此我们需要设置。
@@ -86,7 +86,7 @@ quit
 完成，这样就把root用户的密码设置为mysql了。 
 ```
 
-### 初次运行
+- 初次运行
 
 ```
 登录后，需要在正常模式下，再设一次root用户的密码，输入：set password=password('mysql');
@@ -101,7 +101,7 @@ net stop mysql
 net start mysql
 ```
 
-### 卸载
+- 卸载
 
 ```
 1. 执行卸载命令。mysql自己的卸载命令是 mysql -remove，正常情况下可以这样卸载。但在安装出错的情况下此命令无法执行，还可以在管理员权限下执行系统的删除服务命令: SC delete mysql
@@ -115,7 +115,7 @@ net start mysql
 
 ## Windows（安装版）
 
-### 安装
+- 安装
 
 ```
 1. 打开 mysql 安装文件 （mysql-installer-community-5.7.19.0.msi）
@@ -146,11 +146,9 @@ vcredist_x64.exe
 vcredist_x86.exe
 ```
 
-
-
 ## Ubuntu
 
-### 服务器
+- 服务器
 
 ```
 # 安装(ubuntu命令行)
@@ -168,13 +166,13 @@ sudo service mysql stop
 sudo service mysql restart
 ```
 
-### 配置
+- 配置
 
-- 配置文件目录为/etc/mysql/mysql.cnf
-
-
-- 进入conf.d目录，打开mysql.cnf，发现并没有配置
-- 进入mysql.conf.d目录，打开mysql.cnf，可以看到配置项
+> 配置文件目录为/etc/mysql/mysql.cnf
+>
+> 进入conf.d目录，打开mysql.cnf，发现并没有配置
+>
+> 进入mysql.conf.d目录，打开mysql.cnf，可以看到配置项
 
 ```
 bind-address表示服务器绑定的ip，默认为127.0.0.1
@@ -184,7 +182,7 @@ general_log_file表示普通日志，默认为/var/log/mysql/mysql.log
 log_error表示错误日志，默认为/var/log/mysql/error.logsu
 ```
 
-### 客户端
+- 客户端
 
 ```
 # 安装客户端
@@ -196,6 +194,55 @@ mysql -uroot -pmysql
 # 退出
 quit/exit/ctrl+d
 ```
+
+## Mac
+
+- 安装
+
+```
+brew install mysql
+```
+
+- 启动
+
+```
+# 服务端
+# 启动
+brew services start mysql  # 开机启动
+mysql.server start  # 临时启动
+
+mysqld -u 用户名
+$PATH/support-files/mysql.server start # 推荐
+# 关闭
+$PATH/support-files/mysql.server stop
+
+# 客户端
+mysql -uroot
+
+mysql -u 用户名 -p
+```
+
+- 修改密码
+
+```
+# 关闭服务
+sudo $PATH/support-files/mysql.server stop
+cd $PATH/bin
+sudo su
+./mysqld_safe --skip-grant-tables
+alias mysql=$PATH
+ 
+# 客户端
+mysql -u 用户名
+use mysql;
+flush privileges;
+set password for '用户名'@'localhost'='新密码';
+
+```
+
+
+
+
 
 # Python交互
 
