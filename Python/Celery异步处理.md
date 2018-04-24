@@ -62,6 +62,8 @@ def my_task():
 
 ```
 celery -A tasks worker --loglevel=info
+
+celery -A tasks worker -l info
 ```
 
 ## 存储结果

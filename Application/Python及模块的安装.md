@@ -70,6 +70,8 @@ python3 --version
 
 ## pip---包管理工具
 
+- 安装
+
 Linux/OSX
 
 ```
@@ -102,7 +104,37 @@ python2 -m pip install -U pip
 python3 -m pip install -U pip
 ```
 
-使用
+- 更换国内源
+
+pip国内的一些镜像
+
+  阿里云 http://mirrors.aliyun.com/pypi/simple/ 
+  中国科技大学 https://pypi.mirrors.ustc.edu.cn/simple/ 
+  豆瓣(douban) http://pypi.douban.com/simple/ 
+  清华大学 https://pypi.tuna.tsinghua.edu.cn/simple/ 
+  中国科学技术大学 http://pypi.mirrors.ustc.edu.cn/simple/
+
+修改源方法：
+
+```
+1.临时使用： 
+可以在使用pip的时候在后面加上-i参数，指定pip源 
+eg: pip install scrapy -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+
+2.永久修改： 
+linux: 
+修改 ~/.pip/pip.conf (没有就创建一个)， 内容如下：
+[global]
+index-url = https://pypi.tuna.tsinghua.edu.cn/simple
+
+windows: 
+直接在user目录中创建一个pip目录，如：C:\Users\xx\pip，新建文件pip.ini，内容如下
+[global]
+index-url = https://pypi.tuna.tsinghua.edu.cn/simple
+```
+
+- 使用
 
 ```python
 # 多种python环境下包安装
@@ -338,6 +370,16 @@ python manage.py runserver 192.168.210.137:8001
 ```
 
 pycharm运行
+
+## django rest framework
+
+基于Django的restful 风格前后端分离框架
+
+```
+pip install djangorestframework
+pip install markdown       # Markdown support for the browsable API.
+pip install django-filter  # Filtering support
+```
 
 
 

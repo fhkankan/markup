@@ -195,6 +195,20 @@ mysql -uroot -pmysql
 quit/exit/ctrl+d
 ```
 
+- 更改root用户密码
+
+```shell
+# 进入root账户下
+mysql -uroot -p
+# 修改密码
+select user();
+set password=password('mysql'); 
+flush privileges;
+exit;
+```
+
+
+
 ## Mac
 
 - 安装
@@ -237,12 +251,12 @@ mysql -u 用户名
 use mysql;
 flush privileges;
 set password for '用户名'@'localhost'='新密码';
-
+# 方法二：
+select user();
+set password=password('123456'); 
+flush privileges;
+exit;
 ```
-
-
-
-
 
 # Python交互
 

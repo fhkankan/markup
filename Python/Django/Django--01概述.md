@@ -182,8 +182,13 @@ admin.py: Django后台管理页面相关的文件
 ```python
 # 命令行
 # 启动django服务器，可更改主机和端口号，默认127.0.0.1:8000
-python manage.py runserver [192.168.210.137:8001]
+python manage.py runserver  # 启动默认服务器 
+python manage.py runserver 8080  # 指定端口号 
+python manage.py runserver 192.168.210.137:8001  # 指定ip和端口号
+    
+    
 注意：增加、修改、删除python文件，服务器会自动重启，ctr+c停止服务器
+
 
 # pycharm
 点击工具栏或右键
@@ -210,7 +215,7 @@ create database db_django01 charset=utf8;
 	# Project01/setting.py
 DATABASES = {
     'default': {
-        # 默认sqlite3数据库
+        # 默认内置sqlite3数据库
         # 'ENGINE': 'django.db.backends.sqlite3',
         # 'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
 
@@ -254,28 +259,55 @@ ForeignKey--外键，建立一对多关系
 不需要定义主键id，会自动生成
 ```
 
-- 生成迁移文件(类名，属性名)
+eg:
 
+```python
+# polls/models.py
+from django.db import models
+from django.utils.encoding import python_2_unicode_compatible
+
+@python_2_unicode_compatible  # 如果你需要支持Python 2
+class Question(models.Model):
+    question_text = models.CharField(max_length=200)
+    pub_date = models.DateTimeField('date published')
+    # 在交互环境中易于识别，在自动生成的管理界面使用对象的表示
+    def __str__(self):
+        return self.question_text
+
+@python_2_unicode_compatible  # 如果你需要支持Python 2
+class Choice(models.Model):
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    choice_text = models.CharField(max_length=200)
+    votes = models.IntegerField(default=0)
+    # 在交互环境中易于识别，在自动生成的管理界面使用对象的表示
+    def __str__(self):
+        return self.choice_text
 ```
+
+- 迁移，生成表
+
+```shell
+# 创建迁移文件
 python manage.py makemigrations
-```
-
-- 执行迁移，生成表结构(默认使用sqllite3)
-
-```
+# 在数据库中创建模型所对应的表
 python manage.py  migrate
 ```
 
 - 通过ORM实现增删改查
 
-```
-用python交互环境进行数据库表增删改查,两种方法：
-1、用pycharm中的python console
-2、在终端输入命令python manage.py shell
+```python
+# 用python交互环境进行数据库表增删改查,
+# 方法一：
+用pycharm中的python console
+# 方法二：
+在终端输入命令python manage.py shell
 
+# 对模型对象增删
 模型类对象.save()	# 新增或修改
 模型类对象.delete()	# 删除
 ```
+
+
 
 ### 模型管理器
 
@@ -301,7 +333,90 @@ python manage.py  migrate
 多类对象.关联属性
 ````
 
+### 综合案例
+
+```
+$ python manage.py shell
+>>> from polls.models import Question, Choice
+
+# 确认我们的 __str__()方法 正常工作.
+>>> Question.objects.all()
+<QuerySet [<Question: What's up?>]>
+
+# Django 提供了丰富的数据库查询 API 通过
+# 关键字参数来驱动
+>>> Question.objects.filter(id=1)
+<QuerySet [<Question: What's up?>]>
+>>> Question.objects.filter(question_text__startswith='What')
+<QuerySet [<Question: What's up?>]>
+
+# 获取今年发布的问题
+>>> from django.utils import timezone
+>>> current_year = timezone.now().year
+>>> Question.objects.get(pub_date__year=current_year)
+<Question: What's up?>
+
+# 请求ID不存在,这将会引发一个异常.
+>>> Question.objects.get(id=2)
+Traceback (most recent call last):
+    ...
+DoesNotExist: Question matching query does not exist.
+
+# 通过主键查询数据是常见的情况，因此 Django 提供了精确查找主键的快捷方式。
+# (与上句合并）
+# 以下内容与 Question.objects.get（id = 1）相同。
+>>> Question.objects.get(pk=1)
+<Question: What's up?>
+
+# 确认我们的自定义方法正常工作.
+>>> q = Question.objects.get(pk=1)
+>>> q.was_published_recently()
+True
+
+# 给 Question 创建几个 Choices. 创建一个新的
+# Choice 对象, 使用 INSERT 语句将选项添加到可用选项的集合并返回新的“Choice”对象。
+# （合并至上句） Django 创建
+# 一个集合来控制通过外键关联的“另一端”。
+# （例如，一个“问题”的“选项”）
+>>> q = Question.objects.get(pk=1)
+
+# 显示任何有关的选项 ——目前还没有.
+>>> q.choice_set.all()
+<QuerySet []>
+
+# 创建三个choices。
+>>> q.choice_set.create(choice_text='Not much', votes=0)
+<Choice: Not much>
+>>> q.choice_set.create(choice_text='The sky', votes=0)
+<Choice: The sky>
+>>> c = q.choice_set.create(choice_text='Just hacking again', votes=0)
+
+# Choice 对象通过 API 访问与之关联的 Question 对象.
+>>> c.question
+<Question: What's up?>
+
+# 反之亦然：Question对象可以访问Choice对象。
+>>> q.choice_set.all()
+<QuerySet [<Choice: Not much>, <Choice: The sky>, <Choice: Just hacking again>]>
+>>> q.choice_set.count()
+3
+
+# AIP 根据需要自动创建关系。
+# 可以使用双下划线分隔关系。
+# 它的工作机制是尽可能深的创建关系，而没有限制。
+# 通过 pub_date 查找今年内创建的问题的所有选项
+# (再次使用了之前创建的 'current_year' 变量).
+>>> Choice.objects.filter(question__pub_date__year=current_year)
+<QuerySet [<Choice: Not much>, <Choice: The sky>, <Choice: Just hacking again>]>
+
+# 让我删除一个选项. 使用 delete() 方法.
+>>> c = q.choice_set.filter(choice_text__startswith='Just hacking')
+>>> c.delete()
+```
+
 ## 后台管理
+
+当你的模型完成定义，Django 就会自动生成一个专业的生产级 administrative interface - 一个可以让已认证用户进行添加、更改和删除对象的 Web 站点。 你只需简单的在 admin 站点上注册你的模型即可
 
 ### 常规操作
 
@@ -317,7 +432,7 @@ TIME_ZONE='Asia/Shanghai'
 
 ```python
 # 需要指定： 用户名，邮箱，密码
-python3 manage.py createsuperuser
+python manage.py createsuperuser
 ```
 - 注册模型类
 
@@ -369,27 +484,15 @@ http://127.0.0.1:8000/admin
 
 作用： 处理用户请求，调用M和T，响应请求
 
-### 视图函数
-
-```python
-在 应用/views.py 下，定义视图函数，示例: 
-from django.http import HttpResponse
-  
-必须有一个参数request
-def index(request):
-"""进入首页的视图函数"""
-   	......
-  处理完请求，返回字符串内容给浏览器显示
-  return HttpResponse("Hello Python")
-```
-
 ### 配置url
 
-作用：建立url地址和视图函数的对应关系，当用户请求某个url地址时，让django能找到对应的视图函数进行处理。
-
+将URLs映射作为简单的正则表达式映射到Python的回调函数（视图）。 正则表达式通过圆括号来“捕获”URLs中的值。 当一个用户请求一个页面时，Django将按照顺序去匹配每一个模式，并停在第一个匹配请求的URL上。 （如果没有匹配到， Django将调用一个特殊的404视图。） 
 ```python
 # 项目下的urls.py：
+from django.conf.urls import include, url
+from django.contrib import admin
 import apps.users.urls
+
 urlpatterns = [
 	...
     url(r'^admin/', include(admin.site.urls)),
@@ -428,6 +531,8 @@ urlpatterns = [
 
 - url配置规则 （针对应用下的url配置）
 
+这些正则表达式是第一次加载URLconf模块时被编译。 它们超级快
+
 ```
 1. 正则表达式 应使用 ^ 和 $ 严格匹配请求url的开头和结尾，以便匹配唯一的字符串
 2. 正则表达式 应以 / 结尾，以便匹配用户以 / 结尾的url请求地址。
@@ -444,14 +549,29 @@ urlpatterns = [
 匹配成功的url部分会去掉，剩下的部分继续作匹配
 匹配不成功提示404错误
 ```
+### 视图函数
+一旦正则表达式匹配，Django会调用给定的视图，这是一个Python函数。 每个视图将得到一个request对象 —— 它包含了request 的metadata(元数据) —— 和正则表达式所捕获到的值
+
+每个视图只负责两件事中的一件：返回一个包含请求的页面内容的 HttpResponse对象， 或抛出一个异常如Http404。
+
+```python
+# 在 应用/views.py 下，定义视图函数，
+from django.http import HttpResponse
+  
+# 函数试图，必须有一个参数request
+def index(request):
+"""进入首页的视图函数"""
+   	......
+  # 处理完请求，返回字符串内容给浏览器显示
+  return HttpResponse("Hello Python")
+
+
+```
 
 ## 模板
 
 作用：用来生成html界面，返回给浏览器进行显示。
 
-### 使用模板文件
-
-模板文件： 即一个html文件，但该html文件中除了html，css，js等静态内容，还可以包含用来生成动态内容的模板语言。
 
 ```
 1、创建模板文件
@@ -464,45 +584,8 @@ urlpatterns = [
 
 3、在视图中调用模板
 ```
-
-- 调用模板完整写法：
-
-```python
-1.加载模板
-2.定义上下文
-3.渲染模板
-
- # 参考代码
- # app01/views.py
- def index(request):
-     """显示index.html"""
-
-     # 1.加载html模板文件
-     template = loader.get_template('app01/index.html')
-     # 2.定义上下文对象并指定模板要显示的数据
-	 datas = {}
-     context = RequestContext(request, datas)
-     # 3.模板渲染: 根据数据生成标准的html内容
-     html = template.render(context)
-     # 4.返回给浏览器
-     return HttpResponse(html)
-```
-
-- 调用模板简写
-
-```python
-# Django提供了一个函数render封装了以上代码,方法render包含3个参数
-def index(request):
- """显示index.html"""
-    # 参数1：请求对象request
-    # 参数2：html文件路径
-    # 参数3：字典，表示向模板中传递的上下文数据
-    return render(request, "app01/index.html", {})
-```
-
-### 生成动态内容
-
-可以在模板中，通过django中的模板语言，生成动态的html内容：
+### 设计模板
+模板文件： 即一个html文件，该html文件中有html，css，js等静态内容，还可以包含用来生成动态内容的模板语言。
 
 ```
 模板变量使用：
@@ -553,6 +636,40 @@ for循环：
 </body>
 </html>
 ```
+### 调用模板
 
+- 调用模板完整写法：
+
+```python
+1.加载模板
+2.定义上下文
+3.渲染模板
+
+ # 参考代码
+ # app01/views.py
+ def index(request):
+     """显示index.html"""
+
+     # 1.加载html模板文件
+     template = loader.get_template('app01/index.html')
+     # 2.定义上下文对象并指定模板要显示的数据
+	 datas = {}
+     context = RequestContext(request, datas)
+     # 3.模板渲染: 根据数据生成标准的html内容
+     html = template.render(context)
+     # 4.返回给浏览器
+     return HttpResponse(html)
+```
+- 调用模板简写
+
+```python
+# Django提供了一个函数render封装了以上代码,方法render包含3个参数
+def index(request):
+ """显示index.html"""
+    # 参数1：请求对象request
+    # 参数2：html文件路径
+    # 参数3：字典，表示向模板中传递的上下文数据
+    return render(request, "app01/index.html", {})
+```
 
 
