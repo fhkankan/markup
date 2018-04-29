@@ -154,6 +154,66 @@ class HeroInfo(models.Model):
     hbook = models.ForeignKey('BookInfo')#英雄与图书表的关系为一对多，所以属性定义在英雄模型类中
 ```
 
+## Meta元选项
+
+Meta类主要处理的是关于模型的各种元数据的使用和显示。
+
+如：对象的名显示，查询数据库表的默认排序顺序，数据表的名字
+
+- Django默认生成的表名：
+
+  应用名小写_模型类名小写
+
+- 可以通过在模型类中定义Meta类来修改表名：
+
+```python
+class Department(models.Model):    
+		"""部门类"""
+		name = models.CharField(max_length=20)
+		class Meta(object):
+	    	"""指定表名"""
+	        db_table = "department"
+```
+
+- 需重新生成迁移文件，并进行生成表
+
+## Admin选项
+
+注册模型和自定义显示
+
+```python
+# app01/admin.py:
+from django.contrib import admin
+from app01.models import Department, Employee
+
+
+class DepartmentAdmin(admin.ModelAdmin):
+	# 指定后台网页要显示的字段
+	list_display = ["id", "name", "create_date"]
+
+class EmployeeAdmin(admin.ModelAdmin):
+    # 指定后台网页要显示的字段
+    list_display = ["id", "name", "age", "sex", "comment"]
+    
+# 注册Model类
+admin.site.register(Department, DepartmentAdmin)
+admin.site.register(Employee, EmployeeAdmin)
+```
+
+ModelAdmin选项中的类型
+
+```
+# 列表格式化
+list_display:显示在列表试图里的变量
+list_display_links:激活变量查找和过滤链接
+list_filter:
+
+# 表单显示
+fields:重写模型里默认表单表现形式
+js:添加js
+save_on_top:
+```
+
 ## 迁移生成
 
 ```python
@@ -561,65 +621,5 @@ class BookInfo(models.Model):
     
 # c）调用语法如下：
 book=BookInfo.books.create_book("abc",date(1980,1,1))
-```
-
-## Meta元选项
-
-Meta类主要处理的是关于模型的各种元数据的使用和显示。
-
-如：对象的名显示，查询数据库表的默认排序顺序，数据表的名字
-
-- Django默认生成的表名：
-
-   应用名小写_模型类名小写
-
-- 可以通过在模型类中定义Meta类来修改表名：
-
-```python
-class Department(models.Model):    
-		"""部门类"""
-		name = models.CharField(max_length=20)
-		class Meta(object):
-	    	"""指定表名"""
-	        db_table = "department"
-```
-
-- 需重新生成迁移文件，并进行生成表
-
-## Admin选项
-
-注册模型和自定义显示
-
-```python
-# app01/admin.py:
-from django.contrib import admin
-from app01.models import Department, Employee
-
-
-class DepartmentAdmin(admin.ModelAdmin):
-	# 指定后台网页要显示的字段
-	list_display = ["id", "name", "create_date"]
-
-class EmployeeAdmin(admin.ModelAdmin):
-    # 指定后台网页要显示的字段
-    list_display = ["id", "name", "age", "sex", "comment"]
-    
-# 注册Model类
-admin.site.register(Department, DepartmentAdmin)
-admin.site.register(Employee, EmployeeAdmin)
-```
-
-ModelAdmin选项中的类型
-
-```
-# 列表格式化
-list_display:显示在列表试图里的变量
-list_display_links:激活变量查找和过滤链接
-list_filter:
-
-# 表单显示
-fields:重写模型里默认表单表现形式
-js:添加js
-save_on_top:
 ```
 

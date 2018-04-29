@@ -511,7 +511,7 @@ $(function(){
 # 委托写法
 $(function(){
     $list = $('#list');
-    $list.delegate('li', 'click', 		function() {        				$(this).css({background:'red'});
+    $list.delegate('li', 'click', function() {        				$(this).css({background:'red'});
     });
 })
 ```
@@ -653,11 +653,11 @@ arr指的是json数组。数组结构是以“[”开始，到“]”结束，�
 
 ## AJAX
 
-```
 AJAX = 异步 JavaScript 和 XML（Asynchronous JavaScript and XML）
 一种发送http请求与后台进行异步通讯的技术
 在不重载整个网页的情况下，AJAX从后台加载数据，并在网页上进行局部刷新
 
+```
 $.ajax方法使用：
 $.ajax({
     url:'/js/data.json',
@@ -696,13 +696,55 @@ $.ajax({
     alert('服务器超时，请重试！');
 });
 // data.json里面的数据： {"name":"tom","age
+```
 
+封装方法：
 
-简化的封装方法：
-$.get()方法: 通过 HTTP GET 请求从服务器上请求数据
-$.get(请求地址, 回调函数);
-$.post()方法： 通过 HTTP POST 请求从服务器上请求数据
-$.post(请求地址, 请求参数, 回调函数);
+- load
+
+```javascript
+# 从服务器加载数据，并把返回的数据放入被选元素中。
+$(selector).load(URL,data,callback)
+# eg
+$("button").click(function(){
+  $("#div1").load("demo_test.txt",function(responseTxt,statusTxt,xhr){
+    if(statusTxt=="success")
+      alert("外部内容加载成功！");
+    if(statusTxt=="error")
+      alert("Error: "+xhr.status+": "+xhr.statusText);
+  });
+});
+```
+
+- get
+
+```javascript
+# 通过 HTTP GET 请求从服务器上请求数据。
+$.get(URL,callback)
+# eg
+$("button").click(function(){
+  $.get("demo_test.asp",function(data,status){
+    alert("Data: " + data + "\nStatus: " + status);
+  });
+});
+```
+
+- post
+
+```javascript
+# 通过 HTTP POST 请求从服务器上请求数据
+$.post(URL,data,callback)
+# eg
+$("button").click(function(){
+  $.post("demo_test_post.asp",
+  {
+    name:"Donald Duck",
+    city:"Duckburg"
+  },
+  function(data,status){
+    alert("Data: " + data + "\nStatus: " + status);
+  });
+});
 ```
 
 
