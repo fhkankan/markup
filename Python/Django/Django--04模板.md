@@ -381,10 +381,10 @@ MIDDLEWARE_CLASSES = (
 3. 表单post提交数据时加上 {% csrf_token %} 标签
 
 ```
-<from>
+<form>
 {% csrf_token %} 
 ...
-</from>
+</form>
 ```
 
 三、防御原理【了解】
