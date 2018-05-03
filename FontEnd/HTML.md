@@ -942,7 +942,7 @@ autofocus	boolean特性，true时表示当加载页面时input元素应该拥有
 ```
 
 - color		颜色
-- file	                文件
+	 file	                文件
 
 ```
 <input type="file" name="music" accept="audio/*" />
@@ -965,7 +965,65 @@ autofocus	boolean特性，true时表示当加载页面时input元素应该拥有
 
 #### 日期时间
 
+```
+date			不带有时间部分的日期
+datetime-local	日期和时间，浏览器的本地时间
+time             本地时间
+month			一个特定年份和月份
+week			一个特定的星期，表示为年和周数
+```
 
+eg
+
+```
+<p>
+   Date:
+   <input type="date" name="Date" min="2016-08-06" max="2026-08-06" placeholder="mm/dd/yy" />
+   Date/Time:
+   <input type="datetime-local" name="DateTime" step="30" placeholder="mm/dd/yy hh:mm:ss Am" />
+   Time:
+   <input type="time" name="Time" min="10:00:00" max="17:00:00" step="15" placeholder="hh:mm:ss AM" />
+   Month:
+   <input type="month" name="month" name="Month" min="2016-01-01" max="2026-12-31" placeholder="yyyy-mm" />
+   Week:
+   <input type="week" name="Week" min="2016-01-01" max="2026-12-31" placeholder="yyyy-W##" />
+   </p>
+```
+
+#### 可视元素
+
+- label
+
+label元素与其描述的input元素相关联，两种方式:input嵌套进label或for指定
+
+```
+   <p>Deliver to: <br />
+        <label>
+            Address:
+            <input type="text" size="30" name="Address" />
+        </label>
+        <label for="telephone">Phone #:</label>
+        <input type="tel" id="telephone" name="Phone" />
+   </p>
+```
+
+- output
+
+```
+
+```
+
+- meter
+
+```
+
+```
+
+- progress
+
+```
+
+```
 
 
 
