@@ -298,8 +298,6 @@ max-content 使用不需要对任何内容进行换行的最小空间
 - 盒子大小调整
 
 ```
-border 设置元素四周的边框，如：border:1px solid black; 设置元素四周边框是1像素宽的黑色实线
-
 padding 设置元素包含的内容和元素边框的距离，也叫内边距，如padding:20px;
 
 margin 设置元素和外界的距离，也叫外边距，如margin:20px;
@@ -456,14 +454,197 @@ font 同时设置文字的几个属性，写的顺序有兼容问题，建议按
 text-align 设置文字水平对齐方式，如text-align:center 设置文字水平居中
 text-indent 设置文字首行缩进
 text-decoration 设置文字的下划线，如：text-decoration:none; 将文字下划线去掉
+text-shadow 为文本添加阴影，接收一个颜色值和三个距离值(x偏移量，y偏移量，模糊半径)
+text-transform 强制文本大小写，仅影响浏览器上字符的呈现方式，而在DOM中文本仍保持原始值，支持：capitalize,uppercase,lowercase,none
+```
 
+### 间距和对齐
 
+基本间距
 
-line-height 设置文字的行高，如：line-height:24px; 表示文字高度加上文字上下的间距是24px，也就是每一行占有的高度是24px
+```
+letter-spacing 若是正值，则创建字符之间的额外空间，若为负值，则删除空间，把那个可能产生重叠，允许像素和相对单位(em,rem,vw)。默认值normal。
+word-sapcing 影响单词和内联元素之间的空间。可以使绝对值或相对值，不支持负数。默认值normal
+line-height 指定每行文本的垂直空间，默认值normal，比字体大小大约20%，也可直接指定，如：line-height:24px; 表示文字高度加上文字上下的间距是24px
 list-style 设置无序列表中的小圆点，一般把它设为"无"，如：list-style:none
 ```
 
-## 注释
+处理空白
+
+```
+空白字符通常被忽略，这是浏览器的默认行为，除非空白字符包含在pre元素中，然而可以使用white-space特性，更改空白字符的处理方式
+white-space特性支持如下值：
+normal		默认值，空白字符序列被折叠为单个空格，而换行符被视为一个空格。文本仅在需要时换行，以填充块
+nowrap		空白被折叠，但文本不会换行
+pre			与pre元素的功能类似，保留空白字符，文本仅在换行符除换行
+pre-wrap	与pre值类似，文本只在需要时换行，以填充块
+pre-line	与normal值类似，空白字符被折叠，但文本可以子啊碰到换行符时换行
+```
+
+垂直对齐
+
+```
+vertical-align特性可以实现垂直对齐，但是主要适用于表格单元格，其他内容，则仅适用于inline和inline-block元素
+verttical-align的特性值:
+baseline	元素的基线与父元素的基线对齐
+bottom		元素的底部与当前行的底部对齐
+middle		元素的中间与父元素的基线加上父元素中字母x的高度的一半对齐
+sub			基线与父元素的下标基线对齐
+super		基线与父元素的上标基线对齐
+text-bottom	元素的底部与父元素的底部对齐
+text-top	元素的顶部与父元素的顶部对齐
+top			元素的顶部与当前行的顶部对齐
+```
+
+### break
+
+单词换行
+
+```
+overflow-wrap	确定插入换行符的位置，以便为了使用容器的宽度二换行文本
+此特性的值：
+noraml		换行只能在单词之间
+wbr			元素中或者硬或软连字符上发生
+
+word-break	类似overflow-wrap
+此特性的值：
+normal		换行只能在单词之间
+break-all	元素中或者硬或软连字符上发生
+keep-all	应用于中文、日文和韩文
+
+hyphens		连字符
+此特性的值：
+none		当换行一个单词时，不使用连字符			
+manual		只有当硬或软连字符存在于单词换行的位置时，才使用连字符
+auto		默认值，类似manual
+```
+
+分页符
+
+```
+page-break-after	标识要在元素末尾应用的规则
+page-break-before	指定应在元素前面引用的任何分页规则
+此两特性支持的值：
+auto		默认值，未定义任何规则
+avoid		防止在特定元素中间出现分页符
+always		在元素之前或之后始终应该创建一个分页符
+left		类似work值，但不同的是它可能会产生一个或两个分页符并强制下一页为左侧页
+right		类似left，强制下一页为右侧页
+
+page-break-inside	标识是否允许分页符出现在元素内部
+此特性的值：
+auto		默认值，未定义任何规则
+avoid		防止在特定元素中间出现分页符
+```
+
+### 光标
+
+```
+# 设置光标的形状
+a{ cursor:pointer; }
+
+# 指定图像文件的URL自定义光标
+a{
+    cursor: url(custom.png), url(fallback.cur), crosshair;
+}
+```
+
+## 边框和背景
+
+### 边框
+
+```
+border 设置元素四周的边框，如：border:1px solid black; 设置元素四周边框是1像素宽的黑色实线
+
+等同于
+boder-width: 1px;
+border-style: solid;
+border-color: black;
+```
+
+- 基本样式
+
+```
+<section>
+	<div class="box solid"></div>
+	<div class="box double"></div>
+	<div class="box dashed"></div>
+	<div class="box dotted"></div>
+	<div class="box inset"></div>
+	<div class="box outset"></div>
+	<div class="box ridge"></div>
+	<div class="box groove"></div>
+</section>
+```
+
+- 单个边
+
+```
+border-top
+border-right
+border-left
+border-bottom
+```
+
+- 半径
+
+```
+border-radius: 5px
+
+单个值
+border-top-left-radius
+border-top-right-radius
+border-bottom-left-radius
+border-bottom-right-radius
+```
+
+### 阴影
+
+```
+box-shadow 实现阴影
+支持如下值(必须按照如下顺序)
+inset
+x偏移
+y偏移
+模糊半径
+扩散半径
+颜色
+```
+
+### 轮廓
+
+轮廓不占用任何空间，在分配给现有元素的空间之上绘制。常与伪类一起使用，删除或添加轮廓并不会对页面布局产生影响
+
+```
+定义一个轮廓时，可以指定如下特性
+outline-color
+outline-style
+outline-width
+
+可以简写为
+outline: 1px solid black
+```
+
+### 背景
+
+background属性是css中应用比较多，且比较重要的一个属性，它是负责给盒子设置背景图片和背景颜色的，background是一个复合属性，它可以分解成如下几个设置项：
+
+```
+background 设置元素背景色或者背景图片，如:background:gold; 
+可分解为：
+background-image 设置背景图片地址
+background-position 设置背景图片的位置		left right center top bottom center 1px
+background-repeat 设置背景图片如何重复平铺
+background-color 设置背景颜色
+合并为：
+background:url(bgimage.gif) left center no-repeat #00FF00
+```
+
+
+
+## 注释与颜色
+
+- 注释
 
 ```
 /* 设置头部的样式 */
@@ -474,7 +655,7 @@ list-style 设置无序列表中的小圆点，一般把它设为"无"，如：l
 }
 ```
 
-## 颜色
+- 颜色
 
 ```
 颜色值主要有三种表示方法：
@@ -553,22 +734,4 @@ input{
     outline:none;
 }
 ```
-
-## 背景
-
-ackground属性是css中应用比较多，且比较重要的一个属性，它是负责给盒子设置背景图片和背景颜色的，background是一个复合属性，它可以分解成如下几个设置项：
-
-```
-
-background 设置元素背景色或者背景图片，如:background:gold; 
-可分解为：
-background-image 设置背景图片地址
-background-position 设置背景图片的位置		left right center top bottom center 1px
-background-repeat 设置背景图片如何重复平铺
-background-color 设置背景颜色
-合并为：
-background:url(bgimage.gif) left center no-repeat #00FF00
-```
-
-
 
