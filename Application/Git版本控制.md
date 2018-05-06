@@ -472,3 +472,37 @@ git add .gitignore  # 添加入库文件
 git commit -m '标签' # 添加至本地仓库
 ```
 
+# 综合命令行操作
+
+## 创建网络仓库
+
+```
+git clone git@www.paicrobot.com:EX-FUHANG001/robotQA.git
+cd robotQA
+touch README.md
+git add README.md
+git commit -m "add README"
+git push -u origin master
+```
+
+## 本地文件—>网络仓库
+
+```
+cd existing_folder
+git init
+git remote add origin git@www.paicrobot.com:EX-FUHANG001/robotQA.git
+git add .
+git commit -m "Initial commit"
+git push -u origin master
+```
+
+## 本地仓库—>网络仓库
+
+```
+cd existing_repo
+git remote rename origin old-origin
+git remote add origin git@www.paicrobot.com:EX-FUHANG001/robotQA.git
+git push -u origin --all
+git push -u origin --tags
+```
+

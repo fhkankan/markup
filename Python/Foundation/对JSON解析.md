@@ -38,6 +38,8 @@ arr指的是json数组。数组结构是以“[”开始，到“]”结束，�
 
 # python解析
 
+从python2.6开始，python标准库中添加了对json的支持，操作json时，只需要`import json`即可
+
 Python3 中可以使用 json 模块来对 JSON 数据进行编解码，它包含了两个函数：
 
 - **json.dumps():** 对数据进行编码。

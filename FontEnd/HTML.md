@@ -735,39 +735,46 @@ _self:在当前的窗口或者选项卡找那个打开(默认)
 
 download特性：
 文件保存的默认名称，如download="name.png"
+由于无法使用/\，无法指定默认文件路径
+
+hreflang 表明链接资源额语言
+rel 定义了与链接资源的关系
+type 表明了资源的MIME类型
 ```
 
 ### 图像
 
-图像元素的格式
+src指定了所引用图像文件的URL
+
+alt提供了文本描述信息，当图像无法下载或格式不支持时显示
 
 ```
 <img src="Media/HTML5.jpg" alt="The HTML5 Bage logo">
 ```
 
-### 图片格式
+- 图片格式
 
 图片是网页制作中很重要的素材，图片有不同的格式，每种格式都有自己的特性，了解这些特效，可以方便我们在制作网页时选取适合的图片格式，图片格式及特性如下：
 
-- psd 
+> psd 
 
 photoshop的专用格式。
 优点：完整保存图像的信息，包括未压缩的图像数据、图层、透明等信息，方便图像的编辑。
 缺点：应用范围窄，图片容量相对比较大。
 
-- jpg
+> jpg
 
 网页制作及日常使用最普遍的图像格式。
 优点：图像压缩效率高，图像容量相对最小。
 缺点：有损压缩，图像会丢失数据而失真，不支持透明背景，不能制作成动画。
 
-- gif
+> gif
 
 制作网页小动画的常用图像格式。
 优点：无损压缩，图像容量小、可以制作成动画、支持透明背景。
 缺点：图像色彩范围最多只有256色，不能保存色彩丰富的图像，不支持半透明，透明图像边缘有锯齿。
 
-- png
+> png
 
 网页制作及日常使用比较普遍的图像格式。
 优点：无损压缩，图像容量小、支持透明背景和半透明色彩、透明图像的边缘光滑。
@@ -777,6 +784,172 @@ photoshop的专用格式。
 在网页制作中，如何选择合适的图片格式呢？
 1、使用大幅面图片时，如果要使用不透明背景的图片，就使用jpg图片；如果要使用透明或者半透明背景的图片，就使用png图片；
 2、使用小幅面图片或者图标图片时，使用png图片；如果图片是动画，可以使用gif。
+
+- 多个来源
+
+图像元素包含srcset和sizes特性，可以指定一组带有相关信息的图像文件
+
+> 像素比选择
+>
+> 需要根据像素密度提供统一图像的一个或多个缩小版本
+
+```html
+<img src="Media/HTML5.jpg" alt="The HTML5 Badge logo" srcset="Media/HTML5_2.jpg 2x, Media/HTML5_3.jpg 3x" />
+```
+
+> 视口选择
+>
+> 根据设备或窗口大小选择图片
+
+```html
+# 宽度大小
+srcset="Media/HTML5.jpg 300w, Media/HTML5_2.jpg 150w"
+# 视口的个数
+sizes="(max-width: 600px) 25vw, (max-width: 400px), (max-width: 200px) 50vw, 100vw"
+```
+
+- 图像映射
+
+将图像放置于锚标签，图像称为超链接
+
+```html
+<a href="www.baidu.com"><img src="Media/BAIDU.jpg" alt="The Baidu log" /></a>
+```
+
+在单个图像上定义多个区域，每个区域导航到不同的链接，需要图像映射
+
+```html
+    <img src="Media/Shapes.png" alt="Shapes" width="150" height="50" usemap="#shapeMap">
+    <map name="shapeMap">
+        <area shape="rect" coords="0,0,50,50" href="www.baidu.com" alt="squrare" title="Square">
+        <area shape="circle" coords="75,25,25" href="www.sina.com" alt="circle" title="Circle">
+        <area shape="poly" coords="101,50,126,0,150,50" href="www.taobao.com" alt="triangle" title="Triangle">
+    </map>
+```
+
+### 音频
+
+src指定音频剪辑资源的位置
+
+当元素不被支持或音频文件无法加载时，使用开始和结束标签中的内容
+
+```
+<audio src="Media/Tom.mp3">
+    <p>The audio is not supported on your browser</p>
+</audio>
+```
+
+audio支持很多布尔特性
+
+```
+preload 当贤惠页面时预加载音频内容
+autoplay 一旦内容加载，音频剪辑会播放
+muted 音频静音
+loop 当音频剪辑结束时自动从开始出重新播放
+controls 用户可以使用本机控件与音频剪辑进行交互
+```
+
+- 使用本机控件
+
+```
+<audio src="Media/Topm.mp3" autoplay controls></audio>
+```
+
+在用户界面方面，主要有三个选项
+
+> 没有控件
+
+音频播放，但用户没有控件可用，若使用了autoplay，页面被加载时自动开始播放音频，但可以痛殴javascript开始、暂停和停止
+
+> 本机控件
+
+浏览器为用户提供了播放、暂停和停止音频以及控制音量所需的本机控制
+
+> 自定义控件
+
+页面提供了通过JavaScript与audio元素进行交互的自定义控件
+
+- 多文件格式
+
+```
+<audio autoplay controls>
+	<source src="Media/Tom.ogg" />
+    <source src="Media/Tom.mp3" />
+    <p>The audio is not supported on your browser</p>
+</audio>
+```
+
+### 视频
+
+```
+<video src="Media/Tom.mp4" controls poster="Media/Poster_1.png" width="852" height="480">
+    <p>The video is not supported on your browser</p>
+</video>
+```
+
+支持特性
+
+```
+autoplay 在页面加载时启动视频，但无本机控件，但在视频右击，可现实交互选项菜单
+controls 提供控件，但需鼠标悬停在视频上，否则会隐藏
+source 指定多个源
+poster 在视频播放前，指定所显示的图像
+```
+
+### 轨道
+
+track元素用于提供与媒体剪辑时间同步的基于文本的内容，如音频歌词，视频字幕
+
+track是一个空元素，使用自结束标签，仅通过其特性进行配置，只能在audio和video中使用。若使用了source元素提供的多个文件类型，则track元素应位于source之后
+
+- kind
+
+指定了轨道细节信息的作用，包括如下几个值
+
+> captions
+
+用于隐藏字幕，该轨道提供了对白的转录以及相关的声音效果，主要用于听力受损的用户或音频静音时
+
+> chapters
+
+用于较长的视频剪辑，当用户通过媒体文件导航是，该轨道提供了章节标题
+
+> descriptions
+
+提供了音频或视频文件内容的文本描述。主要用于视力受损的用户或当视频不可用时
+
+> matedata
+
+提供了脚本所使用的相关数据，通常不想用户展示
+
+> subtitles
+
+若无指定kindl，此为默认值。提供了不同语言之间的对白文本转换，提供额外的信息，如描述事件的日期和地点
+
+```html
+<video src="Media/Tom.mp4" controls 
+            poster="Media/Poster_1.png" width="852" height="480">
+        <track kind="captions" src="bbb.vtt" srclang="en" label="English"/>
+        <p>The video is supported on your browser</p>
+</video>
+```
+
+### HTML5插件
+
+object是任何外部内容的通用容器，对象的实际类型由type特性所定义
+
+有两个必须特性：data定义了外部资源，type指定了应是使用什么插件来显示内容
+
+可以指定height/width特性，为该内容分配所需的空间
+
+允许通过param元素向插件传递参数
+
+```
+<object data="some file" type="application/some plug in">
+    <param name="paramName" value="paramValue" />
+    <p>fallback content</p>
+</object>
+```
 
 ## 表单HTML元素
 
@@ -990,7 +1163,7 @@ eg
    </p>
 ```
 
-#### 可视元素
+### 可视元素
 
 - label
 
@@ -1009,21 +1182,109 @@ label元素与其描述的input元素相关联，两种方式:input嵌套进labe
 
 - output
 
-```
+HTML5之后有了output元素，用作基于用户输入数据的计算输出数据
 
+支持for特性，通过该特性，可以指定用来计算结果值得input元素，每个input元素的id应包含在for特性中，并由空格分隔
+
+```
+<p>
+    <label>
+        Total due:
+        <output id="total" name="Total">$0.00</output>
+    </label>
+</p>
 ```
 
 - meter
 
-```
+meter元素与前面的range元素相类似，显示的都是一个值，但不同的是meter元素显示的不是一个特定的数字，而是沿着刻度的位置值。meter元素的值不能被用户修改
 
+```
+<p>
+        Meter example:<br/>
+        <meter min="0" max="100" low="33" high="65" optimum="66" value="25"></meter>
+        <meter min="0" max="100" low="33" high="65" optimum="66" value="50"></meter>
+        <meter min="0" max="100" low="33" high="65" optimum="66" value="75"></meter>
+        Optimal: high<br/>
+        <meter min="0" max="100" low="34" high="66" optimum="33" value="25"></meter>
+        <meter min="0" max="100" low="34" high="66" optimum="33" value="50"></meter>
+        <meter min="0" max="100" low="34" high="66" optimum="33" value="75"></meter>
+        Optimal: low<br/>
+        <meter min="0" max="100" low="32" high="66" optimum="33" value="25"></meter>
+        <meter min="0" max="100" low="32" high="66" optimum="33" value="50"></meter>
+        <meter min="0" max="100" low="32" high="66" optimum="33" value="75"></meter>
+        Optimal: media<br/>
+</p>
 ```
 
 - progress
 
-```
+与meter类似，但无low、high和optimum特性，只是显示进度
 
 ```
+<p>
+    Progress example:
+    <progress min="0" max="10" value="3">
+            Your browser does not support the progress element! Value is 3 to 7.
+    </progress>
+</p>
+```
 
+### 按钮类型
 
+input的四种类型与button的三种类型本质上是等同的。
 
+input没有内容，文本是通过value特性设置，src特性用于指定一个图像(image)
+
+button较新，可以使用任何类型的短语内容，所有元素都包括图像，使用了正则内容，拥有更多样式，包括::before和::after伪元素
+
+- input元素支持四种type值
+
+```
+- submit 单击时提交订单
+- reset 单击时清楚input元素，并将表单返回到原始值
+- image 功能与submit类似，但支持使用src特性指定一个按钮所使用的图象
+- button 创建一个没有默认动作的按钮，可以用它实现自定义动作(使用JavaScript)
+```
+
+- button元素支持三种type值
+
+```
+- submit 提交表单
+- reset 重设表单
+- button 不带有默认动作的按钮
+```
+
+eg
+
+```
+    <input type="submit" value="Submit" />
+    <button type="submit">Submit</button>
+```
+
+### 组织表单
+
+fieldset元素用于提供input元素的可视分组。会在input元素周围绘制一个框。
+
+fieldset元素中包含一个legend元素，用来定义框所显示的文本
+
+支持disable特性，则fieldset中的所有input元素会被禁用
+
+```
+<fieldset>
+        <legend>Topping:</legend>
+                <input type="checkbox" name="Topping" value="Mushrooms" />Mushroom?
+                <input type="checkbox" name="Topping" value="Sausage" />Sausage?
+                <input type="checkbox" name="Topping" value="Olives" />Olives?
+</fieldset> 
+```
+
+### 验证
+
+maxlength 设定最大值
+
+pattern 确保数据有效
+
+placeholder 提供暗示，以便用户知道期望的内容
+
+required 指定必须被填充的字段
