@@ -478,7 +478,7 @@ git commit -m '标签' # 添加至本地仓库
 
 ```shell
 # gitlab
-ssh-keygen -t rsa -C "ex-fuhang001@pingan.com.cn" -f ~/.ssh/gitlab_id_rsa
+ssh-keygen -t rsa -C "EX-FUHANG001@pingan.com.cn" -f ~/.ssh/gitlab_id_rsa
 # github
 ssh-keygen -t rsa -C "fu.hang.2008@163.com" -f ~/.ssh/github_id_rsa
 ```
@@ -533,13 +533,14 @@ git remote add origin git@ieit.github.com
 ## 全局设定
 
 ```
-git config --global user.name "limengqin"
-git config --global user.email "XXXXX@XX.com"
+git config --global user.name "fu_hang"
+git config --global user.email "ex-fuhang001@pingan.com.cn"
 ```
 
 ## 创建网络仓库
 
 ```
+git clone http://www.paicrobot.com:12808/EX-FUHANG001/robotQA.git
 git clone git@www.paicrobot.com:EX-FUHANG001/robotQA.git
 cd robotQA
 touch README.md
@@ -553,6 +554,7 @@ git push -u origin master
 ```
 cd existing_folder
 git init
+git remote add origin http://www.paicrobot.com:12808/EX-FUHANG001/robotQA.git
 git remote add origin git@www.paicrobot.com:EX-FUHANG001/robotQA.git
 git add .
 git commit -m "Initial commit"
@@ -564,6 +566,7 @@ git push -u origin master
 ```
 cd existing_repo
 git remote rename origin old-origin
+git remote add origin http://www.paicrobot.com:12808/EX-FUHANG001/robotQA.git
 git remote add origin git@www.paicrobot.com:EX-FUHANG001/robotQA.git
 git push -u origin --all
 git push -u origin --tags
