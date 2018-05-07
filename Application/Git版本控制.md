@@ -17,7 +17,7 @@
 sudo apt-get update
 sudo apt-get install git
 
-# 设置git用户名和邮箱
+# 设置git用户名和邮箱(全局)
 git config --global user.name "Your Name"
 git config --global user.email "youremail@example.com"
 ```
@@ -160,26 +160,27 @@ git commit -m "注释"
 - dev 开发分支： 不稳定的，团队成员都把各自代码提交到这里。当需要发布一个新版本，经测试通过后，把dev分支合并到master分支上, 作为一个稳定版本，比如v1.0
 - featrue 功能分支： 团队每个人负责不同的功能，分别有各的分支，在各自的分支中干活，适当的时候往 dev开发分支合并代码。
 
-## 分支创建查看切换及合并
+## 分支创建查看切换合并
 
-**一、小结  **
+HEAD指针： 表示工作区当前版本，HEAD指向哪个版本，当前工作区就是哪个版本；
 
-- 每个分支都有一个指针，指向当前分支的最新版本
-- 每次提交一个版本，分支指针就会向前移动一步，HEAD指针也会往前移动一步； 
-- **HEAD指针： 表示工作区当前版本，HEAD指向哪个版本，当前工作区就是哪个版本；**
+每个分支都有一个指针，指向当前分支的最新版本
 
-**二、操作演示**
+每次提交一个版本，分支指针就会向前移动一步，HEAD指针也会往前移动一步； 
 
-```
+```shell
+git branch			# 列出所有分支,当前分支前面会标一个*号
+
 git branch dev	   	# 创建分支 (开发分支)
 git checkout dev   	# 切换分支
 # 以上两个操作，可以使用以下一个命令代替
 git checkout -b dev # 创建+切换分支
 
-git branch			# 列出所有分支,当前分支前面会标一个*号
+git add readme.md	# 增加内容
+git commit -m "branch test"	# 提交本地
 
-# 合并到哪个分支就需要先切换回哪个分支
-git merge dev		# 合并分支到主分支
+git checkout master	# 切回master分支
+git merge dev		# 合并指定分支到当前分支
 ```
 
 ## 分支合并冲突解决
@@ -307,46 +308,45 @@ git branch -D 分支名
 
 ## 配置SSH密钥对
 
-- Git通信协议
+Git通信协议
 
-  ```
-  Git支持多种协议，包括SSH, https协议
+```
+Git支持多种协议，包括SSH, https协议
 
-  使用ssh协议速度快，但是在某些只开放http端口的公司，内部就无法使用ssh协议， 而只能用https了
+使用ssh协议速度快，但是在某些只开放http端口的公司，内部就无法使用ssh协议， 而只能用https了
 
-  与ssh相比，使用https速度较慢，而且每次通过终端上传代码到远程仓库时，都必须输入账号密码
-  ```
+与ssh相比，使用https速度较慢，而且每次通过终端上传代码到远程仓库时，都必须输入账号密码
+```
+配置SSH密钥对
 
-- 配置SSH密钥对
+Git服务器会使用SSH密钥对来确认代码提交者的合法身份。
 
-  Git服务器会使用SSH密钥对来确认代码提交者的合法身份。
+> 注册github账号
+>
+> 创建秘钥对
+>
+> 配置github后台
 
-  ```
-  1. 登录github网站，注册github账号
+```shell
+# 查看秘钥对(.ssh)
+cd ~/.ssh/
+ls 
 
-  2. 创建SSH密钥对
-  查看ubuntu 用户根目录下(即：/home/用户名 目录)， 是否有.ssh目录 （可以通过在文件管理器中按 ctrl + h 显示隐藏文件快速查看）
-     - 有，并且该目录下有id_rsa 和 id_rsa.pub这两个文件，则跳到第2步
-     - 没有，打开Shell执行以下命令创建
-         $ ssh-keygen -t rsa -C youremail@example.com
-       按三次回车，即可生成.ssh目录，里面存放的就是ssh的密钥对：id_rsa （私钥）和id_rsa.pub （公钥）
+# 创建
+# 三次回车，生成.ssh目录，id_rsa （私钥）和id_rsa.pub （公钥）
+ssh-keygen -t rsa -C youremail@example.com
        
-  3. 查看生成的：id_rsa.pub公钥
-     cat ~/.ssh/id_rsa.pub
-     会输出类似以下的字符串，即： 公钥字符串：	
-         ssh-rsa AAAAB3NzaC1yc2EAA(省略...)AvoIWr9MB5Dihmv62J islet1010@163.com
-         
-  4. 把上述的公钥字符串配置到 GitHub 的后台
-     登陆GitHub，点击 头像 -> settings -> SSH And GPG keys -> New SSH Keys: 
-     GitHub会通过上面的id_rsa.pub，能够识别是你进行了代码提交，而不是别人冒充的。
-     
-  5. 验证是否配置成功
-  在终端执行以下命令:
-  ssh -T git@github.com
-  第一次，需要输入“yes”, 若返回类似 “Hi islet1010! You've successfully authenticated”，则配置成功。
+# 查看id_rsa.pub公钥
+cat ~/.ssh/id_rsa.pub
+    
+# 配置到 GitHub 的后台
+登陆GitHub，点击 头像 -> settings -> SSH And GPG keys -> New SSH Keys: 
+   
+# 验证是否配置成功
+ssh -T git@github.com
+# 第一次，需要输入“yes”, 若返回类似 “Hi islet1010! You've successfully authenticated”，则配置成功。
 
-  ```
-
+```
 ## 上传本地项目
 
 ```
@@ -472,7 +472,70 @@ git add .gitignore  # 添加入库文件
 git commit -m '标签' # 添加至本地仓库
 ```
 
+# 使用多平台git
+
+生成不同名称
+
+```shell
+# gitlab
+ssh-keygen -t rsa -C "ex-fuhang001@pingan.com.cn" -f ~/.ssh/gitlab_id_rsa
+# github
+ssh-keygen -t rsa -C "fu.hang.2008@163.com" -f ~/.ssh/github_id_rsa
+```
+
+添加config文件
+
+```python
+# 添加config配置文件
+# vi ~/.ssh/config
+
+# 文件内容如下：
+# gitlab
+Host gitlab.com
+    HostName gitlab.com
+    PreferredAuthentications publickey
+    IdentityFile ~/.ssh/gitlab_id_rsa
+# github
+Host github.com
+    HostName github.com
+    PreferredAuthentications publickey
+    IdentityFile ~/.ssh/github_id_rsa
+
+# 配置文件参数
+# Host : Host可以看作是一个你要识别的模式，对识别的模式，进行配置对应的的主机名和ssh文件
+# HostName : 要登录主机的主机名
+# User : 登录名
+# IdentityFile : 指明上面User对应的identityFile路径
+```
+
+取消全局，进入项目文件夹单独设置
+
+```shell
+# 查看全局设置
+git config --global --list 				
+# 取消全局配置
+git config --global --unset user.name	
+git config --global --unset user.email
+# 进入项目文件夹，设置局部配置
+git config user.name "yourname"
+git config user.email "your@email.com"
+```
+
+命令行进入项目目录，重建 origin
+
+```shell
+git remote rm origin
+git remote add origin git@ieit.github.com
+```
+
 # 综合命令行操作
+
+## 全局设定
+
+```
+git config --global user.name "limengqin"
+git config --global user.email "XXXXX@XX.com"
+```
 
 ## 创建网络仓库
 
@@ -504,5 +567,23 @@ git remote rename origin old-origin
 git remote add origin git@www.paicrobot.com:EX-FUHANG001/robotQA.git
 git push -u origin --all
 git push -u origin --tags
+```
+
+## 本地与远程交互
+
+```
+git init //初始化
+git add main.cpp //将某一个文件添加到暂存区
+git add .          //将文件夹下的所有的文件添加到暂存区
+git commit -m ‘note’ //将暂存区中的文件保存成为某一个版本
+git log             //查看所有的版本日志
+git status          //查看现在暂存区的状况
+git diff            //查看现在文件与上一个提交-commit版本的区别
+git reset --hard HEAD^ //回到上一个版本
+git reset --hard XXXXX //XXX为版本编号，回到某一个版本
+git pull origin master //从主分支pull到本地
+git push -u origin master //从本地push到主分支
+git pull                //pull默认主分支
+git push                //push默认主分支
 ```
 
