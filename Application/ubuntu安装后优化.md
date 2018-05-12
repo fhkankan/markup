@@ -5,14 +5,8 @@ Ubuntu 16.04 安装后优化
 
 # ======================卸载=========================
 1.卸载不必要的软件
-# 删除libreoffice
-$ sudo apt-get remove libreoffice-style-galaxy 
-# 删除亚马逊链接
-$ sudo apt-get remove unity-webapps-common 
-# 删除邮件客户端
-$ sudo apt-get remove thunderbird
 # 删除不必要的包
-$ sudo apt-get remove  totem  rhythmbox simple-scan gnome-mahjongg aisleriot gnome-mines  transmission-common gnome-orca webbrowser-app gnome-sudoku onboard deja-dup 
+$ sudo apt-get remove libreoffice-style-galaxy unity-webapps-common thunderbird totem  rhythmbox simple-scan gnome-mahjongg aisleriot gnome-mines  transmission-common gnome-orca webbrowser-app gnome-sudoku onboard deja-dup 
 # 清理缓存
 $ sudo apt-get autoremove
 $ sudo apt-get autoclean 
@@ -47,10 +41,10 @@ $ sudo apt-get update
 # 安装最新的vim
 $ sudo add-apt-repository ppa:jonathonf/vim
 $ sudo apt update
-$ sudo apt install vim
-$ sudo apt ctags
-$ sudo apt vim-docsuta
+$ sudo apt install vim ctags vim-doc
+
 已编译，支持python3
+
 # 安装typora(markdown编辑器)
 $ sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys BA300B7755AFCFAE
 $ sudo add-apt-repository 'deb http://typora.io linux/'
@@ -126,10 +120,13 @@ $ sudo apt-get install ntpdate
 $ sudo ntpdate time.windows.com
 $ sudo hwclock --localtime --systohc
 
+# 安装pycharm
+sudo snap install [pycharm-professional|pycharm-community] --classic
+
 # 安装mysql
 $ sudo apt-get install mysql-server
-$ sudo libmysqld-dev 
-$ sudo libmysqlclient-dev 
+$ sudo apt-get install libmysqld-dev 
+$ sudo apt-get install libmysqlclient-dev 
 # 安装redis
 $ sudo apt-get install software-properties-common
 $ sudo apt-add-repository ppa:chris-lea/redis-server

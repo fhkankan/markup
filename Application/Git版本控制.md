@@ -478,7 +478,7 @@ git commit -m '标签' # 添加至本地仓库
 
 ```shell
 # gitlab
-ssh-keygen -t rsa -C "EX-FUHANG001@pingan.com.cn" -f ~/.ssh/gitlab_id_rsa
+crobot
 # github
 ssh-keygen -t rsa -C "fu.hang.2008@163.com" -f ~/.ssh/github_id_rsa
 ```

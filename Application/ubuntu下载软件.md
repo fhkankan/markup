@@ -89,6 +89,7 @@ Axel将会使用文件搜索引擎来查找文件的镜像。缺省时用的是f
 ```
 
 axel http://www.baidu.com
+axel -n 30 https://download.jetbrains.8686c.com/cpp/CLion-2017.3.dmg
 
 需要指定http://或ftp://。
 ```
