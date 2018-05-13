@@ -291,7 +291,10 @@ window.onload = function(){
 ## 封闭函数
 
 ```javascript
-封闭函数是javascript中匿名函数的另外一种写法，创建一个一开始就执行而不用命名的函数。
+封闭函数是javascript中匿名函数的另外一种写法，
+具有如下特性：
+1.脚本一旦解析，函数就开始就执行
+2.函数不用命名。
 
 封闭函数的作用 
 封闭函数可以创造一个独立的空间，在封闭函数内定义的变量和函数不会影响外部同名的函数和变量，可以避免命名冲突，在页面上引入多个js文件时，用这种方式添加js文件比较安全
@@ -337,15 +340,13 @@ while(条件){循环体}
 for（var i=0;i<len;i++）{循环体}
 ```
 
-
-
 ## 上下文
 
 关键字this指的是单个对象。
 
 在一个函数中，this指向调用该函数的对象；在一个带有属性和方法的典型对象中，若函数使用了this，则this指向包含该函数的对象
 
-```
+```javascript
 var myObject = {
     color: "Red",
     count: 5,
@@ -355,9 +356,9 @@ var myObject = {
 };
 ```
 
-call()函数允许调用一个函数并制定this值
+call()函数允许调用一个函数并指定this值
 
-```
+```javascript
 fucntion Vehicle(weight, cost){
     this.weight = weight;
     this.cost = cost;
@@ -401,6 +402,34 @@ finally{
 2、局部变量：在函数内部定义的变量，只能在定义该变量的函数内部访问，外部无法访问。
 
 注意：在函数内部若使用var新建与全局变量同名的变量，则在函数内部调用时，优先调用内部变量，不对外部变量产生影响
+```
+
+## 命名空间
+
+```
+在JavaScript中，所有全局作用域的对象都需要一个唯一名称，以避免名称冲突。注意：运行在浏览器中的所有脚本都共享全局作用域。
+命名空间是一种以层次结构的方式组织代码的技术。一个对象的完全限定名称包括其在层次结构中定义的路径
+早JavaScript中以嵌套的对象实现命名空间的概念
+```
+
+eg
+
+```
+// global object
+var mySample = {};
+// Define the namespace hierarchy
+mySample.things = {};
+mySample.things.helpers = {};
+mySample.otherThings = {};
+// Add stuff to the namespace
+mySample.things.count = 0;
+mySample.things.helpers.logger = function(msg){
+    console.log(msg);
+}
+
+// 若代码被分割为多个文件，或需要在多个地方使用该代码，就需要确保对象不会被创建两次
+// 若未定义，创建对象返回False，or语句可以执行语句的后面部分，创建对象；若已被创建，则返回True，不执行后面部分
+this.mySample = this.mySample || {};
 ```
 
 ## 数组及操作方法
@@ -642,13 +671,289 @@ level			0~1之间的值，表示当前充电程度
 
 ## 窗口对象
 
+### 创建窗口
 
+```
+// open函数参数1:页面路径，参数2：窗口名称，返回新窗口的window对象
+// 若使用相同的窗口名称，则在原来的窗口中使用新的URL替换内容
+window.name = "chapter1";
+var people = window.open("PopUp.html", "popup");
+```
 
-## 获取元素与加载执行
+- 配置参数
+
+open函数接收第三个参数，此为窗口特性字符串
+
+```
+window.open("PopUp.html", "popup", "height=300,width=400,top=400,left=150, status");
+
+//位置和大小
+left, top, height, width, outerHeight, outerWidth
+//chrome(用户界面UI)特性(Boolean值)
+location, menubar, personalbar, status, titlebar, toolbar
+// 窗口特性
+alwaysLowered 在Z轴方向上将新窗口放置到现有窗口之下
+alwaysRaised 在Z轴方向将新窗口放置到现有窗口之上
+close 设置为no，禁用关闭图标
+dependent 当父窗口关闭时从属窗口自动关闭
+minimizable 禁用最小化图标
+fullscreen 以全屏模式显示新窗口
+resizable 使窗口能够缩放，默认值
+scrollbars 设置为no，禁用滚动条，默认情况下，当内容不适合所分配的空间时包含滚动条
+
+```
+
+- 操作窗口
+
+创建一个窗口后，可以使用window属性和方法来查看并调整其大小、位置和滚动属性
+
+```
+// 属性
+innerHeight	可用于内容的空间高度
+innerWidth	可用于内容的空间宽度
+outerHeight	窗口总高度
+outerWidth	窗口总宽度
+screenX		设备左边缘与窗口左边缘之间的距离
+screenY		设备上边缘与窗口上边缘之间的距离
+scrollX		文档已经水平滚动的像素数
+scrollY		文档已经垂直滚动的像素数
+
+// 方法
+moveBy()	将窗口移动指定的像素数，可水平或垂直移动，若某方向无移动值为0，若为负值，则向上或向右移动
+moveto()	移动窗口，使其左上角位于指定的位置
+resizeBy()	按指定的数量增加窗口大小，可水平或垂直增加，负值为收缩大小。上左边缘保持不变
+resizeTo()	指定新窗口大小。上左边缘保持不变
+scrollBy()	滚动指定的像素；可指定水平或垂直的滚动值
+scrollByLines()	垂直滚动文档指定的行数
+scrollByPages()	垂直滚动文档指定的页数
+scrollTo()		滚动到指定的水平和垂直位置
+sizeToContent()	更改窗口大小以使用现有的内容
+focus()		使窗口保持聚焦
+blur()		从窗口删除焦点
+```
+
+### 模态对话框窗口
+
+之前的窗口都是非模态的(modeless),用户可以与其他窗口交互
+
+模态(modal)窗口获取焦点并禁用应用程序的其他部分，直到关闭窗口为止
+
+- 标准的弹出对话框
+
+```
+// 警告框
+window.alter("alert box");
+// 确认框, 提示框
+if (windos.confirm("Is it OK to proceed?")){
+    var answer = window.prompt("How many pets do you have?", 0);
+    console.log("%i pets were entered.", answer);
+}
+else{
+    console.log("Confirmation failed");
+}
+```
+
+- 自定义模态对话框
 
 ```javascript
-var 变量名 = document.getElelmentById('对象id')
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    <p>Hello World</p>
+    <button onclick="showDialog()">Show Dialog</button>
+    <div id="glass" class="glass">
+        <div class="dialog">
+            <h3>Prompt</h3>
+            <p>How many pets do you have</p>
+            <input type="number" value="0" id="numPets" />
+            <button id="dialogOK" type="Submit" onclick="OK()">OK</button>
+        </div>
+    </div>
+    <style type="text/css">
+        .glass{
+            position: fixed;
+            left: 0;
+            top: 0;
+            background-color: rgba(225,225,225,.7);
+            height: 100vh;
+            width: 100vw;
+            z-index: 100;
+        }
+        .dialog{
+            height: 125px;
+            width: 220px;
+            margin: 0 auto;
+            padding: 15px;
+            border: 1px solid black;
+            background-color: white;
+        }
+    </style>
+    <script type="text/javascript">
+        var result = 0;
+        function showDialog(){
+            var dialog = document.getElementById("glass");
+            dialog.style.visibility = "visible";
+        }
+        function closeDialog(){
+            var dialog = document.getElementById("glass");
+            dialog.style.visibility = "hidden"; 
+        }
+        function OK(){
+            var input = document.getElementById("numPets");
+            result = input.value;
+            closeDialog();
+            console.log("#Pets:" + result);
+        }
+        closeDialog()
+    </script>
+</body>
+</html>
+```
 
+### 框架
+
+可以包含在一个内联框架(iframe)元素来嵌入来自其他HTML文档的内容。
+
+内联框架是通过使用iframe元素嵌入的，同时将该元素的src特性设置为包括在框架内的文档的位置
+
+```
+<iframe src="http://www.baidu.com"></iframe>
+<style type="text/css">
+    iframe{
+        width: 95vw;
+        height: 300px;
+        border: 3px solid blue;
+        margin-top: 5px;
+        }
+ </style>
+```
+
+- 内联框架元素支持多个可以在标记中设置的特性
+
+```
+allowfullscreen	如何想要嵌入的窗口可以切换到全屏模式，可以使用该特性
+height		元素的高度
+name		框架名称，可用来创建指向该元素的链接
+sandbox		用来指定对窗口的限制
+src			框架中所加载的文档的URL
+srcdoc		与sandbox特性一起使用
+width		元素的宽度
+```
+
+- 访问框架
+
+```
+window.frames.length	框架的数量
+window.frames[0]		访问第一个框架
+window.parent			访问外部窗口
+```
+
+- 使用sandbox
+
+嵌入他人页面进入自己网站，为了降低风险，可指定sandbox模式
+
+```
+<iframe src="http://www.baidu.com" sandbox=""></iframe>
+```
+
+允许的功能可通过指定特性值
+
+```
+allow-forms
+allow-modals
+allow-orientation-lock
+allow-pointer-lock
+allow-popups
+allow-popups-to-escape-sandbox
+allow-presentation
+allow-same-origin
+allow-scripts
+allow-top-navigation
+```
+
+## DOM元素
+
+```javascript
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+</body>
+</html>
+
+<script type="text/javascript">
+// 用JavaScript创建HTML文件中的body元素
+function populateBody(){
+	//获取body元素
+    var body = document.getElementsByTagName("body")[0];
+    //创建段落元素
+    var paragraph = document.createElement("p");
+    //更新innerHTML属性
+    paragraph.innerHTML = "<strong>Hello</strong>Word!";
+    //将创建的段落插入到body元素中
+    body.appendChild(paragraph);
+}
+populateBody();
+</script>
+```
+
+### 查找元素
+
+```javascript
+// 通过id定位元素，返回零个或一个元素，若无，返回null
+var element = document.getElementById(id);
+// 返回与元素类型相匹配的元素数组,若无，返回[]
+var elementArray = document.getElementsByTagName(name);
+// 返回与class类型相匹配的元素数组,若无，返回[]
+var elementArray = document.getElementsByClassName(names);
+//通过css定位
+var elementArray = document.querySelector(name)
+var elementArray = document.querySelectorAll(names)
+```
+
+### 创建元素
+
+```javascript
+// 创建元素节点
+var p = document.createElement("p")
+
+// 方法一
+// 创建文本节点
+var text = document.createTextNode("This is a test");
+// 插入节点
+p.appendChild(text)
+
+// 方法二
+// 采用textContent
+p.textContent = "This ia a test"
+
+// 方法三
+// 使用innerHTML，可创建子节点
+p.innerHTML = "This ia a test";
+```
+
+
+
+
+
+
+
+
+
+## 加载执行
+
+```javascript
 注意：若把javascript写在元素的上面，就会出错，因为页面上从上往下加载执行的，javascript去页面上获取元素div1的时候，元素div1还没有加载，解决方法有两种：
 第一种方法：将javascript放到页面最下边；
 第二种方法：将javascript语句放到window.onload触发的函数里面,获取元素的语句会在页面加载完后才执行。
