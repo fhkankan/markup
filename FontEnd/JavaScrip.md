@@ -18,6 +18,19 @@
 <script type="text/javascript" src="js/index.js"></script>
 ```
 
+## 加载执行
+
+```javascript
+注意：若把javascript写在元素的上面，就会出错，因为页面上从上往下加载执行的，javascript去页面上获取元素div1的时候，元素div1还没有加载，解决方法有两种：
+第一种方法：将javascript放到页面最下边；
+第二种方法：将javascript语句放到window.onload触发的函数里面,获取元素的语句会在页面加载完后才执行。
+window.onload = function(){
+        var oDiv = document.getElementById('div1');
+    }
+```
+
+
+
 ## 调试程序的方法
 
 ```
@@ -44,6 +57,36 @@
 浮点数f Float 比如：fPrice
 函数fn Function 比如：fnHandler
 正则表达式re RegExp 比如：reEmailCheck
+```
+
+## 操作元素属性
+
+```javascript
+操作元素属性 
+读取属性		var 变量 = 元素.属性名 
+改写属性		元素.属性名 = 新属性值 
+注意：用js读取元素的属性必须是在行间已有赋值的，否则为空
+
+
+属性名在js中的写法 
+1、html的属性和js里面属性写法一样
+2、“class” 属性写成 “className”
+3、“style” 属性里面的属性，有横杠的改成驼峰式，比如：“font-size”，改成”style.fontSize”
+
+innerHTML 
+innerHTML可以读取或者写入标签包裹的内容
+<script type="text/javascript">
+    window.onload = function(){
+        var oDiv = document.getElementById('div1');
+        //读取
+        var sTxt = oDiv.innerHTML;
+        alert(sTxt);
+        //写入
+        oDiv.innerHTML = '<a href="http://www.itcast.cn">传智播客<a/>';
+    }
+</script>
+......
+<div id="div1">这是一个div元素</div>
 ```
 
 ## 基本概念
@@ -943,54 +986,57 @@ p.textContent = "This ia a test"
 p.innerHTML = "This ia a test";
 ```
 
-
-
-
-
-
-
-
-
-## 加载执行
+### 移动元素
 
 ```javascript
-注意：若把javascript写在元素的上面，就会出错，因为页面上从上往下加载执行的，javascript去页面上获取元素div1的时候，元素div1还没有加载，解决方法有两种：
-第一种方法：将javascript放到页面最下边；
-第二种方法：将javascript语句放到window.onload触发的函数里面,获取元素的语句会在页面加载完后才执行。
-window.onload = function(){
-        var oDiv = document.getElementById('div1');
-    }
+// appendChild()添加子节点至父节点(若已有子节点，则位于同级节点尾部)
+var child = parentNode.appendChild(childNode);
+// insertBefore()添加子节点位于某个同级子节点前方,
+var child = parentNode.isertBefore(childNode, sibling);
+// removeChild()删除父节点中的子节点
+var removedElement = parentNode.removeChild(childNode);
+// 删除某一元素
+element.parentNode.removeChild(element)
+// replaceChild()用新元素替换已有的元素
+var removedElement = parentNode.replaceChild(newElement, existingElement);
 ```
 
-## 操作元素属性
+### 修改元素
 
 ```javascript
-操作元素属性 
-读取属性		var 变量 = 元素.属性名 
-改写属性		元素.属性名 = 新属性值 
-注意：用js读取元素的属性必须是在行间已有赋值的，否则为空
-
-
-属性名在js中的写法 
-1、html的属性和js里面属性写法一样
-2、“class” 属性写成 “className”
-3、“style” 属性里面的属性，有横杠的改成驼峰式，比如：“font-size”，改成”style.fontSize”
-
-innerHTML 
-innerHTML可以读取或者写入标签包裹的内容
-<script type="text/javascript">
-    window.onload = function(){
-        var oDiv = document.getElementById('div1');
-        //读取
-        var sTxt = oDiv.innerHTML;
-        alert(sTxt);
-        //写入
-        oDiv.innerHTML = '<a href="http://www.itcast.cn">传智播客<a/>';
-    }
-</script>
-......
-<div id="div1">这是一个div元素</div>
+// 为了操作创建元素中使用的特性，每个元素都有attributes属性，其中包含了元素上锁定义的所有的特性。这是键/值对集合
+hasAttribule()	// 确定某个特定的特性是否被指定
+// 添加或修改现有特性
+var link = documnet.getElementByTagName("link")[0];
+link.id = "myID";
+link.className = "myClass";
+link.lang = "en";
+var attr = link.attributes;
+for (var i=0; i< attr.lenght; i++){
+    console.log(attr[i].name + "=" + attr[i].value + "'");
+}
 ```
+
+### 相关元素
+
+在文档中获取了一个元素之后，可以使用如下属性导航到相关联元素
+
+```
+parentNode		节点的直接父节点，若是根节点则为空
+children		HTMLCollection对象，包含了该节点所有的直接子节点
+firstChild		子节点集合中的第一个元素
+lastChild		子节点集合中的最后一个元素
+previousSibling	与当前节点有相同父节点，且在子节点集合汇总位于当前节点之前，若是父节点的第一子节点，则属性为空
+nextSibling		与当前节点有相同父节点，且在子节点集合汇总位于当前节点之后，若是父节点的最后一子节点，则属性为空
+```
+
+
+
+
+
+
+
+
 
 
 
