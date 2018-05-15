@@ -1030,17 +1030,299 @@ previousSibling	与当前节点有相同父节点，且在子节点集合汇总�
 nextSibling		与当前节点有相同父节点，且在子节点集合汇总位于当前节点之后，若是父节点的最后一子节点，则属性为空
 ```
 
+## 动态样式设计
 
+### 更改样式表
 
+- 启动样式表
 
+通过documnet.styleSheets属性访问可用的样式表，返回已加载的样式表集合
 
+HTML
 
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link rel="stylesheet" href="Sample.css" title="Shared">
+    <script src="SampleScript.js" defer></script>
+</head>
+<body>
+   <p><strong>Hello</strong></p> 
+   <button onclick="toggleSS()">Toggle</button>
+</body>
+</html>
+```
 
+Sample.css
 
+```css
+p {
+    font-size: xx-large;
+}
+```
 
+SampleScript.js
 
+```javascript
+"use strict";
+function toggleSS(){
+    for (var i = 0; i < document.styleSheets.length; i++){
+        if (document.styleSheets[i].title == "Shared") {
+            document.styleSheets[i].disabled = !document.styleSheets[i].disabled;
+            break;
+        }
+    }
+}
+```
 
+- 选择样式表
 
+css
+
+```css
+// Red.css
+p {
+    color: red;
+}
+// Green.css
+p {
+    color: green;
+}
+// Blue.css
+p {
+    color: blue;
+}
+```
+
+html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link rel="stylesheet" href="Sample.css" title="Shared">
+    <link rel="stylesheet" href="Red.css">
+    <link rel="stylesheet" href="Green.css">
+    <link rel="stylesheet" href="Blue.css">
+    <script src="SamplesScript.js" defer></script>
+</head>
+<body>
+   <p><strong>Hello</strong></p> 
+   <button onclick="toggleSS()">Toggle</button>
+   <button onclick="disableAll()">Black</button>
+   <button onclick="enable('Red')" style="color: red">Red</button>
+   <button onclick="enable('Green')" style="color: green">Green</button>
+   <button onclick="enable('Blue')" style="color: blue">Blue</button>
+</body>
+</html>
+```
+
+js
+
+```javascript
+function disableAll(){
+    for (var i = 0; i < document.styleSheets.length; i++ ){
+        if (document.styleSheets[i].title != "Shared"){
+            document.styleSheets[i].disabled = true;
+        }
+    }
+}
+function enable(color){
+    for (var i = 0; i < document.styleSheets.length; i++ ){
+        if (document.styleSheets[i].href.includes(color)){
+            document.styleSheets[i].disabled = false;
+        }
+        else if (document.styleSheets[i].title != "Shared"){
+            document.styleSheets[i].disabled = true;
+        }
+    }
+}
+```
+
+### 修改规则
+
+每个样式表都有一个枚举了样式表中所有包含规则的cssRules属性。该属性是CSSStyleRule对象集合。
+
+```javascript
+var newRuleIndex
+function toggleRule(){
+    if (newRuleIndex == -1){
+        newRuleIndex = document.styleSheets[0].insertRule("p {border: 1px solid black;}", 1)
+    }
+    else {
+        document.styleSheets[0].deleteRule(newRuleIndex);
+        newRuleIndex = -1;
+    }
+}
+```
+
+### 修改类
+
+上面修改样式表中规则的方法可能会影响文档中的多个元素，然而，多数情况下，只需将现有的规则应用于某些情况的特定元素即可。:enabled、:selected、:hover等伪类允许在某些动态条件下应用样式规则，但是条件有限
+
+可以创建一个使用类选择器的样式规则，然后使用JavaScript动态地应用合适的类。
+
+Sample.css
+
+```css
+.special {
+    opacity: .5;
+}
+```
+
+js
+
+```javascript
+function toggleClass(){
+    var paragraph = document.querySelector("p");
+    if (paragraph){
+    	// contians()返回一个布尔值，指明类是否存在
+        if (paragraph.classList.contains("special")){
+        	// remove()删除指定的类
+            paragraph.classList.remove("special");
+        }
+        else {
+        	// add()添加一个新类
+            paragraph.classList.add("special");
+        }
+        // 也可以被下面的代码执行
+        //paragraph.classList.toggle("special");
+    }
+}
+```
+
+html
+
+```html
+<button onclick="toggleClass()">Opacity</button>
+```
+
+### 修改内联样式
+
+修改规则仅仅影响了单个元素
+
+添加/删除一个类可以应用或删除多条样式规则，同时在每条规则上可以定义多个声明
+
+修改内联元素适用于单个元素，同时使外部的CSS不能更改其样式
+
+- 使用CSSStyleDeclaration
+
+所有的HTML元素上都可以使用style特性，而在javascript中通过style属性可以访问该特性，并返回CSSStyleDeclaration对象(键/值对集合)
+
+```
+# 通过下面的方法修改此对象中的样式声明
+setProperty()	添加一个声明，接收两个必须的参数(属性/值)以及一个可选的优先级参数(空白/important)
+getpropertyValue()	作为参数传入属性名并返回相应的值
+getPropertyPriority()	如果指定的属性有关键字important，则返回important
+cssText		返回该样式中的所有声明，并格式化为CSS文件中的格式
+removeProperty()	删除指定的属性
+```
+
+- 设置样式属性
+
+针对每个CSS属性，CSSStyleDeclaration对象都有一个属性与之对应。
+
+```
+// 获取或设置属性
+var p = document.querySelector("p");
+p.style.fontStyle = "italic";
+p.style.fontSize = "xx-small"
+console.log("Current color is " + p.style.color)
+```
+
+- 使用setAttribute
+
+通过setAttribute()方法设置任何HTML特性值，它接收两个参数：特性名称、想要设置的值
+
+```
+var p = document.querySelector("p");
+p.setAttribute("style", "font-style:italic; font-size:xx-small;");
+```
+
+## 事件
+
+### 事件注册
+
+```
+// 方法一:内联注册
+<div id="div2" onclick="someAction()">
+
+// 方法二：将事件处理程序分配给DOM元素的事件属性
+var div = document.getElementById("div2");
+div.onclick = someAciton;
+
+// 方法三：早期版本用attachEvent()
+div.addEventListener("click", someAction);
+```
+
+方法一：违反了关注点分离，每个元素的每个事件只能注册单个事件处理程序
+
+方法二：每个元素的每个事件只能注册单个事件处理程序，若注册第二个，则覆盖
+
+方法三：允许为同一事件分配多个事件处理程序
+
+### 事件传播
+
+向下传播事件被称为捕获阶段，向上传播事件被称为冒泡阶段
+
+addEventListener()方法支持传入第三个参数，可用来指定是否要监听捕获事件或冒泡事，若为True,则监听捕获事件；False/忽略,则监听冒泡事件
+
+其他注册方法，只能用来注册冒泡事件
+
+若只是想知道某个按钮是否被单击，则是否监听捕获或冒泡事件并不重要。然而若有多个事件处理程序分配给了不同的元素，箭筒这两个事件就非常有用
+
+事件处理程序可以连续执行；在调用下一个处理程序之前，当前处理程序必须完成。如果在同一个元素上分配了多个事件处理程序，则按照事件注册顺序连续执行
+
+### 删除注册事件
+
+对于addEventListener()/attachEvent()，由于可将多个事件处理程序分配给单个元素，为了正确删除，需要制定注册时间处理程序中所使用的所有相同信息(注册事件的元素，事件类型，注册的处理程序函数，表示是否在捕获阶段或冒泡阶段注册的标志)
+
+```
+function removeHandlers(){
+    var div = document.getElementById("div2");
+    div.removeEventListener("click", someAction, false)
+}
+```
+
+若attachEvent()，则使用detachEvent()方法删除，类似removeEventListener，无捕获/冒泡标志
+
+若其他注册方法，`div.onclick = null;`
+
+### 事件接口
+
+- 常用事件属性
+
+通过声明一个函数参数，事件处理程序就可以访问事件对象。虽参数任意取，常用e
+
+```
+fucntion someAction(e){
+	// 事件类型
+    console.log(e.type);
+    // 触发事件的元素
+    console.log(e.target);
+    // 注册事件处理程序的元素
+    console.log(e.currentTarget);
+}
+```
+
+- 取消事件
+
+修改事件的处理方式，可在事件对象上调用如下方法
+
+```
+stopPropagation()	//停止事件传播
+stopImmediatePropagation()	// 停止传播，阻止当前元素上的任何其他处理程序执行
+preventDefault()	//禁用默认动作
+```
 
 
 

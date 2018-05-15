@@ -15,7 +15,7 @@ jQuery的版本分为1.x系列和2.x、3.x系列，1.x系列兼容低版本的�
 
 ```javascript
 将获取元素的语句写到页面头部，会因为元素还没有加载而出错，jquery提供了ready方法解决这个问题，它的速度比原生的 window.onload 更快。
-
+// 使用了documnet对象
 $(document).ready(function(){     ......
 });
 //简写                             
@@ -88,11 +88,7 @@ $("#div1").toggleClass("anotherClass") //重复切换anotherClass样式
 ## 属性操作
 
 ```
-# html() 取出或设置html内容
-// 取出html内容
-var $htm = $('#div1').html();
-// 设置html内容
-$('#div1').html('<span>添加文字</span>');
+
 
 # prop() 取出或设置元素除了css之外的某个属性的值
 // 取出图片的地址
@@ -100,7 +96,71 @@ var $src = $('#img1').prop('src');
 // 设置图片的地址和alt属性
 $('#img1').prop({src: "test.jpg", alt: "Test Image" });
 ```
+## jQuery对象
+
+从jQuery选择器返回的对象都是jQuery对象，而不是原生DOM对象(HTMLElement)。
+
+JQuery对象封装了原生对象，并支持后面的方法。若需要使用原生对象，则调用jQuery对象上的get()方法
+
+所有的jQuery方法都返回支持元素集合的jQuery对象。及时first()方法也返回一个仅具有一个元素的集合的jQuery对象。
+
+```javascript
+//Get()方法返回来自jQuery对象的原生DOM独享，但需提供索引
+var body = $("body").get(0);
+```
+## DOM操作
+
+```javascript
+# html() 取出或设置html内容
+// 取出html内容
+var $htm = $('#div1').html();
+// 设置html内容
+$('#div1').html('<span>添加文字</span>');
+
+
+# 元素节点操作指的是改变html的标签结构，它有两种情况：
+1、移动现有标签的位置
+2、将新创建的标签插入到现有的标签中
+
+创建新标签
+var $div = $('<div>'); //创建一个空的div
+var $div2 = $('<div>这是一个div元素</div>');
+
+移动或者插入标签的
+父元素.append(子元素)：当前元素的内部后面放入另外一个元素
+子元素.appendTo(父元素)：当前元素放置到另一元素的内部的后面
+父元素.prepend(子元素):当前元素的内部的前面放入另外一个元素
+子元素.prependTo(父元素)：当前元素放置到另一元素的内部的前面
+后元素.after(前元素)：当前元素的后面放入另一个元素
+后元素.insertafter(前元素)：当前元素放置到另一元素的后面
+前元素.before(后元素)：当前元素的前面放入另一个元素
+前元素.insertbefore(后元素)：当前元素放置到另一元素的前面
+
+包装元素
+子元素.wrap(父元素):插入一个元素作为选择器指定的元素的父对象
+子元素.wrapAll(父元素):将所有选定元素包到单个父元素中，若匹配元素间存在不匹配元素，则放到新元素后面
+元素.wrapInner(内容)：将内容包裹住元素
+<p class="myClass">Hello</p>
+$("p").wrapInner("<strong></strong>")
+
+删除元素
+元素.unwrap() // 删除选择器返回的元素的直接父元素，消除wrap()方法
+元素.remove() // 删除选择器返回的元素
+元素.detach() // 删除选择器返回的元素，返回被删除的元素集合，后期可重添加
+元素.empty() // 删除选择器返回的元素中所有的子元素
+
+替换元素
+旧元素.replaceWith(新元素) //删除选择器指定的元素，以参数传入的元素插入到被删元素位置，返回被删除元素集合
+新元素.replaceAll(旧元素) //选择器指定了要添加的元素，参数为要被替代的元素
+
+
+```
+
+
+
+
 ## 链式调用
+
 ```
 jquery对象的方法会在执行完后返回这个jquery对象，所有jquery对象的方法可以连起来写.
 $('#div1') // id为div1的元素
@@ -203,7 +263,8 @@ $(function(){
     $ali = $('#list li');
     $ali.click(function() {        		$(this).css({background:'red'});
     });
-})		
+})	
+
 # 委托写法
 $(function(){
     $list = $('#list');
@@ -212,30 +273,7 @@ $(function(){
 })
 ```
 
-## 节点操作
 
-```
-元素节点操作指的是改变html的标签结构，它有两种情况：
-1、移动现有标签的位置
-2、将新创建的标签插入到现有的标签中
-
-创建新标签
-var $div = $('<div>'); //创建一个空的div
-var $div2 = $('<div>这是一个div元素</div>');
-
-移动或者插入标签的
-父元素.append(子元素)：当前元素的内部后面放入另外一个元素
-子元素.appendTo(父元素)：当前元素放置到另一元素的内部的后面
-父元素.prepend(子元素):当前元素的内部的前面放入另外一个元素
-子元素.prepend(父元素)：当前元素放置到另一元素的内部的前面
-元素.after(元素)：当前元素的后面放入另一个元素
-元素.insertafter(元素)：当前元素放置到另一元素的后面
-元素.before(元素)：当前元素的前面放入另一个元素
-元素.insertbefore(元素)：当前元素放置到另一元素的前面
-
-删除元素
-元素.remove()
-```
 
 ## 表单验证（正则）
 
