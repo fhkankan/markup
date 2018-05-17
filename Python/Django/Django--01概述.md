@@ -112,7 +112,7 @@ django-admin startproject 项目名  # 创建项目
 cd 项目名  # 进入项目根目录
 mkdir apps  # 创建apps根目录
 cd apps  # 进入apps根目录
-python manage.py startapp 应用名  # 创建app
+python ../manage.py startapp 应用名  # 创建app
 
 
 # pycharm
