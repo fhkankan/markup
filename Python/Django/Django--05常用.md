@@ -48,6 +48,139 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 	</body>
 	</html>
 
+## 会话状态保存
+
+- 浏览器请求服务器是无状态的： 无状态指一次用户请求时，浏览器、服务器无法知道之前这个用户做过什么，每次请求都是一次新的请求。无状态的应用层面的原因是：浏览器和服务器之间的通信都遵守HTTP协议。根本原因是：浏览器与服务器是使用Socket套接字进行通信的，服务器将请求结果返回给浏览器之后，会关闭当前的Socket连接，而且服务器也会在处理页面完毕之后销毁页面对象。
+
+- 但是： 有时需要保存用户浏览的状态，比如： 用户是否登录过，浏览过哪些商品等
+- 解决：cookie和session
+
+### Cookie
+
+#### 介绍
+
+- **Cookie是由服务器生成的，存储在浏览器端的少量数据(键值对)**
+- 服务器生成Cookie后，会在响应请求时发送Cookie数据给浏览器，浏览器接收到后会自动保存
+- **浏览器再次请求服务器时，会自动上传该服务器生成的所有的Cookie**
+- **Cookie是有过期时间的，默认关闭浏览器之后Cookie就会过期** 
+- 每个域名下保存的Cookie的个数是有限制的，不同浏览器保存的个数不一样；
+- 每个Cookie保存的数据大小是有限制的，不同的浏览器保存的数据大小不一样；
+- Cookie是基于域名安全的： 
+  - Cookie的存储是以域名的方式进行区分的； 
+  - 每个网站只能读取自己生成的Cookie，而无法读取其它网站生成的Cookie； 
+  - 浏览器请求某个网站时，会自动携带该网站所有的Cookie数据给服务器，但不会携带其它网站生成的Cookie数据。
+
+#### 操作
+
+```python
+# 读取数据
+request.COOKIE['键名']
+或者：
+request.COOKIES.get('键名')
+
+# 保存数据
+response.set_cookie('键名', count，max_age, expires)
+
+- max_age是一个整数，表示在指定秒数后过期
+- expires是一个datetime或timedelta对象，会话将在这个指定的日期/时间过期
+- max_age与expires二选一
+- 如果不指定过期时间，在关闭浏览器时cookie会过期
+
+# 删除数据
+response.delete_cookie(key)
+- 删除指定的key的Cookie，如果key不存在则什么也不发生。
+```
+
+### Session
+
+#### 介绍
+
+- 一些重要敏感的数据（银行卡账号，余额，验证码...），应该存储在服务器端，而不是存储在浏览器，**这种在服务器端进行状态数据保存的方案就是Session**
+- **Session的使用依赖于Cookie**，如果浏览器不能保存Cookie，那么Session则失效了
+- django项目有session模块，默认开启session功能，会自动存储session数据到数据库表中
+- Session也是有过期时间的，如果不指定，默认两周就会过期
+
+#### 启动
+
+```
+在django项目中，session功能默认是开启的；要禁用session功能，则可禁用session中间件：
+
+```
+
+#### 存储
+
+Session数据可以存储在数据库、内存、Redis等，可以通过在项目的setting.py中设置SESSION_ENGINE项，指定Session数据存储的方式。
+
+```python
+# 存储在数据库中，如下设置可以写，也可以不写，这是默认存储方式。
+SESSION_ENGINE='django.contrib.sessions.backends.db'
+
+# 存储在缓存中：存储在本机内存中，如果丢失则不能找回，比数据库的方式读写更快。
+SESSION_ENGINE='django.contrib.sessions.backends.cache'
+
+# 混合存储：优先从本机内存中存取，如果没有则从数据库中存取。
+SESSION_ENGINE='django.contrib.sessions.backends.cached_db'
+
+# 注意：如果存储在数据库中，需要在项INSTALLED_APPS中安装Session应用。
+INSTALLED_APPS = (
+	'django.contrib.sessions',
+)
+```
+
+eg：存储的redis中
+
+```python
+# 安装
+pip install django-redis
+
+# 配置更改
+# Cache
+# http://django-redis-chs.readthedocs.io/zh_CN/latest/#cache-backend
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://10.211.55.5:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
+
+# Session
+# http://django-redis-chs.readthedocs.io/zh_CN/latest/#session-backend
+
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_CACHE_ALIAS = "default"
+```
+
+#### 操作
+
+```python
+# 写session数据（键值对）
+request.session['键']=值
+
+# 读取session数据
+request.session.get('键',默认值)
+
+# 清除session数据（清空值）
+request.session.clear()
+
+# 清除session数据(在存储中删除session的整条数据)
+request.session.flush()
+
+# 删除会话中的指定键及值，在存储中只删除某个键及对应的值。
+del request.session['键']
+
+# 设置会话的超时时间，如果没有指定过期时间则两个星期后过期
+request.session.set_expiry(value)
+  - 如果value是一个整数，会话将在value秒没有活动后过期。
+  - 如果value为0，那么用户会话的Cookie将在用户的浏览器关闭时过期。
+  - 如果value为None，那么会话永不过期。
+```
+
+
+
 ## 中间件
 
 MIDDLEWARE: 中间件
@@ -265,6 +398,100 @@ MIDDLEWARE_CLASSES = (
 
 小结：某个中间件处理异常的方法返回HttpResponse对象后，其它中间件的处理异常的方法就不会执行了。
 
+## 表单使用
+
+Django提供对表单处理的支持，可以简化并自动化大部分的表单处理工作。
+
+### 定义表单类
+
+表单系统的核心部分是Django 的Form类。 Django 的数据库模型描述一个对象的逻辑结构、行为以及展现给我们的方式，与此类似，Form类描述一个表单并决定它如何工作和展现。
+
+假如我们想在网页中创建一个表单，用来获取用户想保存的图书信息，可能类似的html 表单如下：
+
+```
+<form action="" method="post">
+    <input type="text" name="title">
+    <input type="date" name="pub_date">
+    <input type="submit">
+</form>
+```
+
+我们可以据此来创建一个Form类来描述这个表单。
+
+新建一个**forms.py**文件，编写Form类。
+
+```
+from django import forms
+
+class BookForm(forms.Form):
+    title = forms.CharField(label="书名", required=True, max_length=50)
+    pub_date = forms.DateField(label='出版日期', required=True)
+```
+
+注：[表单字段类型参考资料连接](https://yiyibooks.cn/xx/Django_1.11.6/ref/forms/fields.html)
+
+### 视图中使用表单类
+
+```
+from django.shortcuts import render
+from django.views.generic import View
+from django.http import HttpResponse
+
+from .forms import BookForm
+
+class BookView(View):
+    def get(self, request):
+        form = BookForm()
+        return render(request, 'book.html', {'form': form})
+
+    def post(self, request):
+        form = BookForm(request.POST)
+        if form.is_valid():  # 验证表单数据
+            print(form.cleaned_data)  # 获取验证后的表单数据
+            return HttpResponse("OK")
+        else:
+            return render(request, 'book.html', {'form': form})
+```
+
+- form.is_valid() 验证表单数据的合法性
+- form.cleaned_data 验证通过的表单数据
+
+### 模板中使用表单类
+
+```
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>书籍</title>
+</head>
+<body>
+    <form action="" method="post">
+        {% csrf_token %}
+        {{ form }}
+        <input type="submit">
+    </form>
+</body>
+</html>
+```
+
+- csrf_token 用于添加CSRF防护的字段
+- form 快速渲染表单字段的方法
+
+### 模型类表单
+
+如果表单中的数据与模型类对应，可以通过继承**forms.ModelForm**更快速的创建表单。
+
+```
+class BookForm(forms.ModelForm):
+    class Meta:
+        model = BookInfo
+        fields = ('btitle', 'bpub_date')
+```
+
+- model 指明从属于哪个模型类
+- fields 指明向表单中添加模型类的哪个字段
+
 ## Admin站点
 
 内容发布的部分由网站的管理员负责查看、添加、修改、删除数据，开发这些重复的功能是一件单调乏味、缺乏创造力的工作，为此，Django能够根据定义的模型类自动地生成管理模块，在Django项目中默认启用Admin管理站点。 
@@ -298,12 +525,17 @@ class Area(models.Model):
 
 - admin后台管理操作
 
-```
-1. 创建后台管理器账号
-python manage.py createsuperuser
-按提示填写用户名、邮箱、密码，确认密码：
+```python
+# 管理页面本地化
+# 在settings.py中设置语言和时区
+LANGUAGE_CODE = 'zh-hans' # 使用中国语言
+TIME_ZONE = 'Asia/Shanghai' # 使用中国上海时间
 
-2.注册模型类： 要在后台要能看到模型类表，需要在admin.py中注册模型类
+# 创建后台管理器账号
+# 按提示填写用户名、邮箱、密码，确认密码：
+python manage.py createsuperuser
+
+# 注册模型类： 要在后台要能看到模型类表，需要在admin.py中注册模型类
 from django.contrib import admin
 from models import *
 admin.site.register(Area)
@@ -325,16 +557,13 @@ class AreaAdmin(admin.ModelAdmin):
 
 管理类有两种使用方式：
 
-- 注册参数
-- 装饰器
-
-注册参数：打开booktest/admin.py文件，注册模型类代码如下：
+- 注册参数：打开booktest/admin.py文件，注册模型类代码如下：
 
 ```
 admin.site.register(AreaInfo,AreaAdmin)
 ```
 
-装饰器：打开booktest/admin.py文件，在管理类上注册模型类，代码如下：
+- 装饰器：打开booktest/admin.py文件，在管理类上注册模型类，代码如下：
 
 ```
 @admin.register(AreaInfo)
@@ -361,9 +590,9 @@ admin.site.register(AreaInfo, AreaAdmin)
 
 接下来介绍如何控制列表页、增加修改页展示效果
 
-1. **每页显示多少条**
+- 每页显示多少条
 
-  打开booktest/admin.py文件，修改AreaAdmin类如下：
+打开booktest/admin.py文件，修改AreaAdmin类如下：
 
 
 ```
@@ -371,7 +600,7 @@ class AreaAdmin(admin.ModelAdmin):
     list_per_page = 10  # 默认为100条
 ```
 
-2. **设置操作选项的位置**
+- 设置操作选项的位置
 
 ```
 # app01/admin.py
@@ -381,11 +610,14 @@ class AreaAdmin(admin.ModelAdmin):
     actions_on_top = True
 	# 显示底部的选项
 	actions_on_bottom = True
+
 ```
 
-3. **列表中的列操作**
+- 列表中的列操作
 
-- 定义列表中要显示哪些字段
+> 定义列表中要显示哪些字段
+
+点击列头可以进行升序或降序排列
 
 ```
 # app01/admin.py
@@ -394,9 +626,9 @@ class AreaAdmin(ModelAdmin):
     list_display = ['id', 'title']
 ```
 
-**点击列头可以进行升序或降序排列**
+> 模型类中定义的方法也可以作为列显示
 
-- **模型类中定义的方法也可以作为列显示**（通过此方式可访问关联对象的属性）
+无法直接访问关联对象的属性或方法，可以在模型类中封装方法，访问关联对象的成员
 
 ```
 # models.py
@@ -419,9 +651,9 @@ class AreaAdmin(ModelAdmin):
 	list_display = ['id', 'title', 'parent_area']
 ```
 
-- 修改显示的列的名字
+> 修改显示的列的名字
 
-   列标题默认为属性或方法的名称，可以通过属性设置。对于模型属性，通过`verbose_name`设置，对于方法，通过`short_description`设置，如下：
+列标题默认为属性或方法的名称，可以通过属性设置。对于模型属性，通过`verbose_name`设置，对于方法，通过`short_description`设置，如下：
 
 ```
 # models.py
@@ -442,7 +674,7 @@ class Area(models.Model):
     parent_area.short_description = '父级区域'
 ```
 
-- 设置方法列排序
+> 设置方法列排序
 
 **方法列默认不能排序**，如果需要排序，需要为方法指定排序依据：
 
@@ -463,7 +695,7 @@ class Area(models.Model):
     ...
 ```
 
-4. 右侧栏过滤器
+- 右侧栏过滤器
 
 使用`list_filter`指定过滤，只能接收字段，会将对应字段的值列出来，用于快速过滤。**一般用于有重复的字段。**
 
@@ -475,7 +707,7 @@ class AreaAdmin(ModelAdmin):
     list_filter = ['title']
 ```
 
-5. 搜索框
+- 搜索框
 
 使用`search_fields`属性, 对指定字段的值进行搜索，支持模糊查询
 
@@ -489,7 +721,7 @@ class AreaAdmin(ModelAdmin):
 
 ```
 
-6.  中文标题
+- 中文标题
 
 打开booktest/models.py文件，修改模型类，为属性指定verbose_name参数，即第一个参数。
 
@@ -501,7 +733,7 @@ class AreaInfo(models.Model):
 
 ### 编辑页选项
 
-1. 显示字段顺序
+- 显示字段顺序
 
 ```
 # admin.py
@@ -511,7 +743,7 @@ class AreaAdmin(ModelAdmin):
     fields = ['parent', 'title']
 ```
 
-2. 修改对象显示的字符串： 重写\__str\__方法
+- 修改对象显示的字符串： 重写\__str\__方法
 
 ```
 # models.py
@@ -523,7 +755,7 @@ class Area(models.Model):
         return self.title
 ```
 
-3. 字段分组显示
+- 字段分组显示
 
 ```
 # 格式如下：
@@ -544,14 +776,17 @@ class AreaAdmin(ModelAdmin):
     )
 ```
 
-4. 编辑关联对象
+- 编辑关联对象
 
-- 在一对多的关系中，可以在一端的编辑页面中编辑多端的对象，嵌入多端对象的方式包括表格、块两种
-- 类型InlineModelAdmin：表示在模型的编辑页面嵌入关联模型的编辑
-- 子类TabularInline：以表格的形式嵌入
-- 子类StackedInline：以块的形式嵌入
+在一对多的关系中，可以在一端的编辑页面中编辑多端的对象，嵌入多端对象的方式包括表格、块两种
 
-  在app01/admin.py文件中添加如下代码：
+​	类型InlineModelAdmin：表示在模型的编辑页面嵌入关联模型的编辑
+
+​	子类TabularInline：以表格的形式嵌入
+
+​	子类StackedInline：以块的形式嵌入
+
+在app01/admin.py文件中添加如下代码：
 
 ```
 class AreaStackedInline(admin.StackedInline):
@@ -574,13 +809,24 @@ class AreaAdmin(admin.ModelAdmin):
     inlines = [AreaTabularInline]
 ```
 
-
-5. 修改预留新增选项
+- 修改预留新增选项
 
 ```
 class AreaTabularInline(TabularInline):
     ...
     extra = 2      # 额外预留新增选项默认为3个
+```
+
+### 调整站点信息
+
+Admin站点的名称信息也是可以自定义的。
+
+```python
+from django.contrib import admin
+
+admin.site.site_header = '区域选择'  # 设置网站页头
+admin.site.site_title = '传智书城MIS'	# 设置页面标题
+admin.site.index_title = '欢迎使用传智书城MIS'	# 设置首页标语
 ```
 
 ### 重写模板
@@ -630,24 +876,31 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'static/media')
 
 ### 模型类定义
 
-1. 模型类定义
+模型类定义
+
 ```
 # models.py
 class PicInfo(Model):
     """上传图片"""
 
-    # 上传图片保存的路径(注意：相对于上面MEDIA_ROOT指定的static/media目录)
+    # upload_to指明该字段的图片保存在MEDIA_ROOT目录中的哪个子目录
     pic_path = models.ImageField(upload_to='app01')
 
     # 自定义模型管理器
     objects = PicInfoManager()
 ```
 
-2. 生成迁移文件，生成表。
+生成迁移文件，生成表。
+
+```
+python manage.py makemigrations
+python manage.py migrate
+```
 
 ### admin管理后台上传
 
-1. 注册模型类，以便在后台中显示出来： 
+注册模型类，以便在后台中显示出来： 
+
 ```
 # app01.admin.py
 from django.contrib import admin
@@ -655,8 +908,9 @@ from app01.models import PicInfo
 admin.site.register(PicInfo)
 ```
 
-2. 使用创建的用户名和密码
-3. 登录进入后台，新增一条记录，进行图片上传：
+使用创建的用户名和密码
+
+登录进入后台，新增一条记录，进行图片上传
 
 ### 案例：自定义界面上传图片
 
@@ -714,10 +968,6 @@ Django中的分页操作：
   - 方法has_previous()： 如果有上一页返回True
   - 属性previous_page_number： 上一页页码
   - 方法len()： 返回当前页面对象的个数
-
-### 示例
-
-
 
 
 ## 案例-省市选择

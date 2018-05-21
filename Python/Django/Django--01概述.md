@@ -1,8 +1,11 @@
 # Django
 
-- [维基百科](https://en.wikipedia.org/wiki/Django_web_framework)
-- [官方文档](https://docs.djangoproject.com/en/1.11/)  
-- [Django中文文档](http://python.usyiyi.cn/translate/django_182/index.html)
+- [官方网站](https://www.djangoproject.com/)
+- [Github源码](https://github.com/django/django)
+- [1.11版英文文档](https://docs.djangoproject.com/en/1.11/)
+- [1.11版中文文档](https://yiyibooks.cn/xx/Django_1.11.6/index.html)
+- [Django Book 教程](http://djangobook.com/)
+- [Tange With Django 教程](http://www.tangowithdjango.com/book17/)
 
 
 ## MVC模式
@@ -36,18 +39,14 @@
   - 中间件支持，能对请求处理的各个阶段进行处理
   - 内置的分发系统允许应用程序中的组件采用预定义的信号进行相互间的通信
   - 一个序列化系统，能够生成或读取采用XML或JSON表示的Django模型实例
-  - 一个用于扩展末班引擎的能力的系统
+  - 一个用于扩展模板引擎的能力的系统
+  - Admin管理站点
 
 # Django项目
 
-## 虚拟环境
+## 环境搭建
 
 ```shell
-# 安装python包的命令： 
-sudo pip3 install 包
-# 包的安装路径：
-/usr/local/lib/python3.5/dist-packages
-
 # 安装虚拟环境管理工具  	
 sudo pip install virtualenv
 # 安装虚拟环境管理扩展包  	 
@@ -66,43 +65,33 @@ mkvirtualenv 虚拟环境名
 # 创建python3虚拟环境：
 mkvirtualenv -p python3 虚拟环境名
 
-# 进入虚拟环境工作：
-workon 虚拟环境名
+# 安装django
+pip install django==1.11.11
 
-# 查看机器上有哪些虚拟环境：
-workon
+# 虚拟环境
+mkvirtualenv  # 创建虚拟环境
+rmvirtualenv  # 删除虚拟环境
+workon  # 进入虚拟环境、查看所有虚拟环境
+deactivate  # 退出虚拟环境
 
-# 退出虚拟环境：
-deactivate 
-
-# 删除虚拟环境：
-rmvirtualenv 虚拟环境名
+# pip
+pip install  # 安装依赖包
+pip uninstall  # 卸载依赖包
+pip list  # 查看已安装的依赖包
+pip freeze  # 冻结当前环境的依赖包
 
 # 虚拟环境下安装包：
 pip install 包名
 注意：不能使用sudo pip install 包名这个命令， 会把包安装到真实的主机环境上而不是安装到虚拟环境中。
-# 查看虚拟环境中安装了哪些python包：
-pip list
 ```
 
 
 问题： 不同项目依赖不同版本的包的问题
 
-使用虚拟环境
-
-- 可以在一台机器上创建多个相互独立的python虚拟环境,
-- 在不同的python虚拟环境上，安装各自需要的不同的模块（**不需要root权限**）
-- 让不同的python项目，使用不同的python虚拟环境
-- python虚拟环境是相互独立的，彼此之间不会有影响，也不会影响ubuntu系统上的python真实环境
-
 
 ## 项目创建
 
-Django项目结构（项目和应用）： 
-
-- 在Django中： **一个Django项目（project），包含了多个应用(app)，一个应用代表一个功能模块**，一个应用就是一个Python包
-
-**创建项目与应用：**
+### 创建项目与应用
 
 ```python
 # 命令行
@@ -119,7 +108,28 @@ python ../manage.py startapp 应用名  # 创建app
 新建Django项目，选择虚环境的解释器，创建项目名和应用名
 ```
 
-**添加文件与配置**
+### 项目目录
+
+```python
+# 项目目录如下：
+与项目同名的目录: 包含项目的配置文件
+__init__.py: 空文件，说明app01是一个python包（模块）
+settings.py: 项目的全局配置文件
+urls.py: 项目的url配置文件
+wsgi.py: web服务器和django框架交互的接口，
+manage.py: 项目的管理文件，项目运行的入口，指定配置文件路径
+
+# 应用目录如下：
+__init__.py: 空文件，表示是一个python包
+admin.py 文件跟网站的后台管理站点配置相关。
+apps.py 文件用于配置当前子应用的相关信息。
+migrations 目录用于存放数据库迁移历史文件。
+models.py 文件用户保存数据库模型类。
+tests.py 文件用于开发测试用例，编写单元测试。
+views.py 文件用于编写Web应用视图。
+```
+
+### 项目配置
 
 ```python
 # 添加文件：
@@ -136,9 +146,8 @@ utils/__init__.py
 
 
 # 配置settings.py文件信息
-# 本地化
-LANGUAGE_CODE='zh-hans'
-TIME_ZONE='Asia/Shanghai'
+# 当前工程的根目录，Django会依此来定位工程内的相关文件，我们也可以使用该参数来构造文件路径
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # app
 import sys
 sys.path.insert(1, os.path.join(BASE_DIR,'apps'))
@@ -147,32 +156,31 @@ INSTALLED_APPS={
   # 'apps.users',可引起用django自带的认证系统出错
   'users',
 }
-# static
+# static，仅在debug下提供
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+STATIC_URL = '/static/'
 # templates
 TEMPLATES={
 'DIRS': 
 [os.path.join(BASE_DIR, 'templates')]
 }
-```
 
-**项目目录 ** ：
+# 本地化
+LANGUAGE_CODE='zh-hans'
+TIME_ZONE='Asia/Shanghai'
 
-```python
-# 项目目录如下：
-与项目同名的目录: 包含项目的配置文件
-__init__.py: 空文件，说明app01是一个python包（模块）
-settings.py: 项目的全局配置文件
-urls.py: 项目的url配置文件
-wsgi.py: web服务器和django框架交互的接口，
-manage.py: 项目的管理文件，项目运行的入口，指定配置文件路径
+# Debug，项目上线后应设为False
+DEBUG = True
 
-# 应用目录如下：
-__init__.py: 空文件，表示是一个python包
-models.py: 编写和数据库相关的代码
-views.py: 接收请求，进行处理，和M和T进行交互，返回应答
-tests.py: 编写测试代码的文件
-admin.py: Django后台管理页面相关的文件
+# 配置app.py信息
+from django.apps import AppConfig
+
+class UsersConfig(AppConfig):
+    # 自动生成，应设置入settings.py的INSTALLED_APPS
+    name = 'users'
+    # 可手动设置应用的直观可读名字，会在admin管理站点显示
+    verbose_name = "用户管理"
+
 ```
 
 ## 项目运行
@@ -185,13 +193,19 @@ admin.py: Django后台管理页面相关的文件
 python manage.py runserver  # 启动默认服务器 
 python manage.py runserver 8080  # 指定端口号 
 python manage.py runserver 192.168.210.137:8001  # 指定ip和端口号
-    
-    
-注意：增加、修改、删除python文件，服务器会自动重启，ctr+c停止服务器
+       
+# 注意
+增加、修改、删除python文件，服务器会自动重启，ctr+c停止服务器
 
 
 # pycharm
 点击工具栏或右键
+```
+
+对项目中静态文件访问
+
+```
+
 ```
 
 # Django的MVT
@@ -484,6 +498,24 @@ http://127.0.0.1:8000/admin
 
 作用： 处理用户请求，调用M和T，响应请求
 
+### 视图函数
+
+一旦正则表达式匹配，Django会调用给定的视图，这是一个Python函数。 每个视图将得到一个request对象 —— 它包含了request 的metadata(元数据) —— 和正则表达式所捕获到的值
+
+每个视图只负责两件事中的一件：返回一个包含请求的页面内容的 HttpResponse对象， 或抛出一个异常如Http404。
+
+```python
+# 在 应用/views.py 下，定义视图函数，
+from django.http import HttpResponse
+  
+# 函数试图，必须有一个参数request
+def index(request):
+"""进入首页的视图函数"""
+   	......
+  # 处理完请求，返回字符串内容给浏览器显示
+  return HttpResponse("Hello Python")
+```
+
 ### 配置url
 
 将URLs映射作为简单的正则表达式映射到Python的回调函数（视图）。 正则表达式通过圆括号来“捕获”URLs中的值。 当一个用户请求一个页面时，Django将按照顺序去匹配每一个模式，并停在第一个匹配请求的URL上。 （如果没有匹配到， Django将调用一个特殊的404视图。） 
@@ -514,58 +546,6 @@ urlpatterns = [
     # 类视图引用，使用as_view方法，将类视图转换为函数
     url(r'^register$', views.RegisterView.as_view(), name='register'),
 ]
-```
-
-### url匹配
-
-- url匹配流程
-
-```
-1)浏览器发出请求
-2)去除域名、端口号、参数、/，剩余部分与项目中的url匹配
-3)去除在项目中url匹配成功的部分，剩下部分与应用里面的url匹配
-4)若匹配成功，则调用对应的视图函数，若失败，则返回相应信息
-5)返回界面内容并显示
-```
-
-
-- url配置规则 （针对应用下的url配置）
-
-这些正则表达式是第一次加载URLconf模块时被编译。 它们超级快
-
-```
-1. 正则表达式 应使用 ^ 和 $ 严格匹配请求url的开头和结尾，以便匹配唯一的字符串
-2. 正则表达式 应以 / 结尾，以便匹配用户以 / 结尾的url请求地址。
-了解：django中的 APPEND_SLASH参数：默认会让浏览器在请求的url末尾添加 /，所以浏览器请求时url末尾不添加 / 也没问题
-```
-
-
-- url匹配小结：
-
-```
-域名、端口、参数不参与匹配
-先到项目下的urls.py进行匹配，再到应用的urls.py匹配
-自上而下的匹配
-匹配成功的url部分会去掉，剩下的部分继续作匹配
-匹配不成功提示404错误
-```
-### 视图函数
-一旦正则表达式匹配，Django会调用给定的视图，这是一个Python函数。 每个视图将得到一个request对象 —— 它包含了request 的metadata(元数据) —— 和正则表达式所捕获到的值
-
-每个视图只负责两件事中的一件：返回一个包含请求的页面内容的 HttpResponse对象， 或抛出一个异常如Http404。
-
-```python
-# 在 应用/views.py 下，定义视图函数，
-from django.http import HttpResponse
-  
-# 函数试图，必须有一个参数request
-def index(request):
-"""进入首页的视图函数"""
-   	......
-  # 处理完请求，返回字符串内容给浏览器显示
-  return HttpResponse("Hello Python")
-
-
 ```
 
 ## 模板

@@ -8,68 +8,7 @@
 - 每一个请求的url地址，都对应着一个视图，由视图处理请求后，再返回html页面内容给浏览器显示。
 ```
 
-## 创建示例项目
-
-- 创建项目test
-
-```
-django-admin startproject test
-```
-
-- 进入项目目录，创建应用booktest
-
-```
-cd test
-python manage.py startapp booktest
-```
-
-- 在test3/settings.py中INSTALLED_APPS项安装应用
-
-```
-INSTALLED_APPS = (
-	'django.contrib.admin',
-	'django.contrib.auth',
-	'django.contrib.contenttypes',
-	'django.contrib.sessions',
-	'django.contrib.messages',
-	'django.contrib.staticfiles',
-	'booktest',
-)
-```
-
-- 在test/settings.py中DATABASES项配置使用MySQL数据库test2，数据库在第二部分已经创建。
-
-```
-DATABASES = {
-    'default':{
-        'ENGINE':'django.db.backends.mysql',
-        'NAME':'test',
-        'HOST':'localhost',
-        'PORT':'3306',
-        'USER':'root',
-        'PASSWORD':'mysql',
-    }
-}
-```
-
-- 在test3/settings.py中TEMPLATES项配置模板查找路径
-
-```
-TEMPLATES=[
-{
-'DIRS': 
-[os.path.join(BASE_DIR, 'templates')]
-},
-]
-```
-
-- 创建模板目录结构
-
-```
-test/templates/booktest
-```
-
-## 使用视图的过程
+## 使用过程
 
 - 在"应用/views.py"中定义视图
 
@@ -152,6 +91,47 @@ url(正则,include('应用.urls'))
 url(正则,'视图函数名称')
 ```
 
+### 命名
+
+- 在使用include函数定义路由时，可以使用namespace参数定义路由的命名空间，如
+
+```python
+url(r'^users/', include('users.urls', namespace='users')),
+```
+
+命名空间表示，凡是users.urls中定义的路由，均属于namespace指明的users名下。
+
+**命名空间的作用：避免不同应用中的路由使用了相同的名字发生冲突，使用命名空间区别开。**
+
+- 在定义普通路由时，可以使用name参数指明路由的名字，如
+
+```python
+urlpatterns = [
+    url(r'^index/$', views.index, name='index'),
+    url(r'^say', views.say, name='say'),
+]
+```
+
+### 反解析
+
+使用reverse函数，可以根据路由名称，返回具体的路径，如：
+
+```python
+from django.core.urlresolvers import reverse  # 注意导包路径
+
+def index(request):
+    return HttpResponse("hello the world!")
+
+def say(request):
+    url = reverse('users:index')  # 返回 /users/index/
+    print(url)
+    return HttpResponse('say')
+```
+
+对于未指明namespace的，reverse(路由name)
+
+对于指明namespace的，reverse(命名空间namespace:路由name)
+
 ### 匹配
 
 ```python
@@ -173,7 +153,16 @@ url(正则,'视图函数名称')
 匹配不成功提示404错误
 ```
 
-## 捕获URL中的值
+## 请求Request
+
+利用HTTP协议向服务器传参有几种途径？
+
+- 提取URL的特定部分，如/weather/beijing/2018，可以在服务器端的路由中用正则表达式截取；
+- 查询字符串（query string)，形如key1=value1&key2=value2；
+- 请求体（body）中发送的数据，比如表单数据、json、xml；
+- 在http报文的头（header）中。
+
+### URL路径参数
 
 ```
 把url中的需要获取的值部分，设置为正则表达式的一个组。 django在进行url匹配时，就会自动把匹配成功的内容，作为参数传递给视图函数。
@@ -205,29 +194,130 @@ def show_news2(request, category, page_no):
 	return HttpResponse("新闻界面：%s %s" % (category, page_no))
 ```
 
-## 错误视图
+### QueryDict对象
+
+定义在django.http.QueryDict
+
+HttpRequest对象的属性GET、POST都是QueryDict类型的对象
+
+与python字典不同，QueryDict类型的对象用来处理同一个键带有多个值的情况
+
+- 方法get()：根据键获取值
+
+  如果一个键同时拥有多个值将获取最后一个值
+
+  如果键不存在则返回None值，可以设置默认值进行后续处理
+
+  ```
+  dict.get('键',默认值)
+  可简写为
+  dict['键']
+  ```
+
+- 方法getlist()：根据键获取值，值以列表返回，可以获取指定键的所有值
+
+  如果键不存在则返回空列表[]，可以设置默认值进行后续处理
+
+  ```
+  dict.getlist('键',默认值)
+  ```
+
+### Query String
+
+获取请求路径中的查询字符串参数（形如?k1=v1&k2=v2），可以通过request.GET属性获取，返回QueryDict对象。
 
 ```
-Django内置了处理HTTP错误的视图（在django.views.defaults包下），主要错误及视图包括：
+# /qs/?a=1&b=2&a=3
 
-404错误：
-找不到界面，url匹配失败后，django会调用内置的page_not_found 视图,调用404.html
-500错误：
-服务器内部错误，若是在执行视图函数时出现运行时错误，Django会默认会调用server_error 视图,调用500.html
-403误误：
-权限拒绝，permission_denied视图，调用403.html
+def qs(request):
+    a = request.GET.get('a')
+    b = request.GET.get('b')
+    alist = request.GET.getlist('a')
+    print(a)  # 3
+    print(b)  # 2
+    print(alist)  # ['1', '3']
+    return HttpResponse('OK')
+```
 
-自定义显示的界面：
-在项目文件夹下的templates创建相应的html文件，可优先被调用
+**重要：查询字符串不区分请求方式，即假使客户端进行POST方式的请求，依然可以通过request.GET获取请求中的查询字符串数据。**
 
-# 产看返回的错误日志：
-查看 Exception Type 以及 Exception Value
-查看 Traceback中的出错行
+### 请求体
 
-# 关闭调试模式
-DEBUG = False
-# 表示允许所有的
-ALLOWED_HOSTS = ['*']
+请求体数据格式不固定，可以是表单类型字符串，可以是JSON字符串，可以是XML字符串，应区别对待。
+
+可以发送请求体数据的请求方式有**POST**、**PUT**、**PATCH**、**DELETE**。
+
+**Django默认开启了CSRF防护**，会对上述请求方式进行CSRF防护验证，在测试时可以关闭CSRF防护机制，方法为在settings.py文件中注释掉CSRF中间件
+
+- 表单类型
+
+前端发送的表单类型的请求体数据，可以通过request.POST属性获取，返回QueryDict对象。
+
+```
+def get_body(request):
+    a = request.POST.get('a')
+    b = request.POST.get('b')
+    alist = request.POST.getlist('a')
+    print(a)
+    print(b)
+    print(alist)
+    return HttpResponse('OK')
+```
+
+**重要：只要请求体的数据是表单类型，无论是哪种请求方式（POST、PUT、PATCH、DELETE），都是使用request.POST来获取请求体的表单数据。**
+
+- 非表单
+
+非表单类型的请求体数据，Django无法自动解析，可以通过**request.body**属性获取最原始的请求体数据，自己按照请求体格式（JSON、XML等）进行解析。**request.body返回bytes类型。**
+
+例如要获取请求体中的如下JSON数据
+
+```
+{"a": 1, "b": 2}
+```
+
+可以进行如下方法操作：
+
+```
+import json
+
+def get_body_json(request):
+    json_str = request.body
+    json_str = json_str.decode()  # python3.6 无需执行此步
+    req_data = json.loads(json_str)
+    print(req_data['a'])
+    print(req_data['b'])
+    return HttpResponse('OK')
+```
+
+### 请求头
+
+可以通过**request.META**属性获取请求头headers中的数据，**request.META为字典类型**。
+
+常见的请求头如：
+
+- `CONTENT_LENGTH` – The length of the request body (as a string).
+- `CONTENT_TYPE` – The MIME type of the request body.
+- `HTTP_ACCEPT` – Acceptable content types for the response.
+- `HTTP_ACCEPT_ENCODING` – Acceptable encodings for the response.
+- `HTTP_ACCEPT_LANGUAGE` – Acceptable languages for the response.
+- `HTTP_HOST` – The HTTP Host header sent by the client.
+- `HTTP_REFERER` – The referring page, if any.
+- `HTTP_USER_AGENT` – The client’s user-agent string.
+- `QUERY_STRING` – The query string, as a single (unparsed) string.
+- `REMOTE_ADDR` – The IP address of the client.
+- `REMOTE_HOST` – The hostname of the client.
+- `REMOTE_USER` – The user authenticated by the Web server, if any.
+- `REQUEST_METHOD` – A string such as `"GET"` or `"POST"`.
+- `SERVER_NAME` – The hostname of the server.
+- `SERVER_PORT` – The port of the server (as a string).
+
+具体使用如:
+
+```
+def get_headers(request):
+    print(request.META['CONTENT_TYPE'])
+    return HttpResponse('OK')
 ```
 
 ## HttpRequest对象
@@ -249,7 +339,7 @@ ALLOWED_HOSTS = ['*']
 
 [官方文档：request和reponse对象](http://python.usyiyi.cn/documents/django_182/ref/request-response.html)
 
-- path/encoding
+### path/encoding
 
 1）打开booktest/views.py文件，代码如下：
 
@@ -274,7 +364,7 @@ def index(request):
 </html>
 ```
 
-- method
+### method
 
 1）打开booktest/views.py文件，编写视图method_show，代码如下：
 
@@ -307,27 +397,6 @@ url(r'^method_show/$', views.method_show),
 <br/>
 </body>
 </html>
-```
-
-### QueryDict对象
-
-- 定义在django.http.QueryDict
-- HttpRequest对象的 **属性 GET、POST 都是QueryDict类型的对象**
-- 与python字典不同，**使用QueryDict类型的对象，同一个键可以有多个值**
-- get()方法：根据键获取值，如果一个键同时拥有多个值将获取最后一个值，键不存在则返回None，也可以指定默认值：
-
-```
-dict.get('键',默认值)
-	可简写为
-	dict['键']
-```
-
-注意：通过 dict['键'] 访问，如果键不存在会报错
-
-- 方法getlist()：根据键获取值，值以列表返回，可以获取指定键的所有值，如果键不存在则返回空列表[]，可以设置默认值进行后续处理
-
-```
-dict.getlist('键',默认值)
 ```
 
 
@@ -434,6 +503,19 @@ GET属性是一个QueryDict类型的对象，键和值都是字符串类型。
 
 ## HttpResponse对象
 
+可以使用**django.http.HttpResponse**来构造响应对象。
+
+```
+HttpResponse(content=响应体, content_type=响应体数据类型, status=状态码)
+```
+
+响应头可以直接将HttpResponse对象当做字典进行响应头键值对的设置：
+
+```
+response = HttpResponse()
+response['Itcast'] = 'Python'  # 自定义响应头Itcast, 值为Python
+```
+
 #### 属性
 
 - content：表示返回的内容。
@@ -447,16 +529,12 @@ GET属性是一个QueryDict类型的对象，键和值都是字符串类型。
 
 - set_cookie：设置Cookie信息。
 
-  ```
+  ```python
   set_cookie(key, value='', max_age=None, expires=None)
+  # max_age是一个整数，表示在指定秒数后过期。
+  # expires是一个datetime或timedelta对象，会话将在这个指定的日期/时间过期。
+  # 如果不指定过期时间，在关闭浏览器时cookie会过期
   ```
-
-- cookie是网站以键值对格式存储在浏览器中的一段纯文本信息，用于实现用户跟踪。
-
-  - max_age是一个整数，表示在指定秒数后过期。
-  - expires是一个datetime或timedelta对象，会话将在这个指定的日期/时间过期。
-  - max_age与expires二选一。
-  - 如果不指定过期时间，在关闭浏览器时cookie会过期。
 
 - delete_cookie(key)：删除指定的key的Cookie，如果key不存在则什么也不发生。
 
@@ -586,9 +664,10 @@ def red1(request):
 JsonReponse： 给客户端请求返回json格式的数据
 
 应用场景：网页的局部刷新(ajax技术)
-类JsonResponse继承自HttpResponse，被定义在django.http模块中
-接收字典作为参数
-JsonResponse对象的 content-type 为 application/json
+
+作用：
+帮助我们将数据转换为json字符串
+设置响应头Content-Type为 application/json
 ```
 
 - 示例
@@ -661,109 +740,293 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 4. 在html界面中，使用ajax发请求，获取服务器的json数据并显示
 ```
 
-## 会话状态保存
-
-- 浏览器请求服务器是无状态的： 无状态指一次用户请求时，浏览器、服务器无法知道之前这个用户做过什么，每次请求都是一次新的请求。无状态的应用层面的原因是：浏览器和服务器之间的通信都遵守HTTP协议。根本原因是：浏览器与服务器是使用Socket套接字进行通信的，服务器将请求结果返回给浏览器之后，会关闭当前的Socket连接，而且服务器也会在处理页面完毕之后销毁页面对象。
-
-
-- 但是： 有时需要保存用户浏览的状态，比如： 用户是否登录过，浏览过哪些商品等
-
-- 解决：cookie和session
-
-### Cookie
-
-#### 介绍
-
-- **Cookie是由服务器生成的，存储在浏览器端的少量数据(键值对)**
-- 服务器生成Cookie后，会在响应请求时发送Cookie数据给浏览器，浏览器接收到后会自动保存
-- **浏览器再次请求服务器时，会自动上传该服务器生成的所有的Cookie**
-- **Cookie是有过期时间的，默认关闭浏览器之后Cookie就会过期** 
-- 每个域名下保存的Cookie的个数是有限制的，不同浏览器保存的个数不一样；
-- 每个Cookie保存的数据大小是有限制的，不同的浏览器保存的数据大小不一样；
-
-- Cookie是基于域名安全的： 
-  - Cookie的存储是以域名的方式进行区分的； 
-  - 每个网站只能读取自己生成的Cookie，而无法读取其它网站生成的Cookie； 
-  - 浏览器请求某个网站时，会自动携带该网站所有的Cookie数据给服务器，但不会携带其它网站生成的Cookie数据。
-
-
-#### 操作
-
-```python
-# 读取数据
-request.COOKIE['键名']
-或者：
-request.COOKIES.get('键名')
-
-# 保存数据
-response.set_cookie('键名', count，max_age, expires)
-
-- max_age是一个整数，表示在指定秒数后过期
-- expires是一个datetime或timedelta对象，会话将在这个指定的日期/时间过期
-- max_age与expires二选一
-- 如果不指定过期时间，在关闭浏览器时cookie会过期
-```
-
-### Session
-
-#### 介绍
-
-- 一些重要敏感的数据（银行卡账号，余额，验证码...），应该存储在服务器端，而不是存储在浏览器，**这种在服务器端进行状态数据保存的方案就是Session**
-
-- **Session的使用依赖于Cookie**，如果浏览器不能保存Cookie，那么Session则失效了
-- django项目有session模块，默认开启session功能，会自动存储session数据到数据库表中
-
-- Session也是有过期时间的，如果不指定，默认两周就会过期
-
-
-#### 启动
+## 错误视图
 
 ```
-在django项目中，session功能默认是开启的；要禁用session功能，则可禁用session中间件：
+Django提供了一系列HttpResponse的子类，可以快速设置状态码
+HttpResponseRedirect 301
+HttpResponsePermanentRedirect 302
+HttpResponseNotModified 304
+HttpResponseBadRequest 400
+HttpResponseNotFound 404
+HttpResponseForbidden 403
+HttpResponseNotAllowed 405
+HttpResponseGone 410
+HttpResponseServerError 500
+
+
+Django内置了处理HTTP错误的视图（在django.views.defaults包下），主要错误及视图包括：
+
+404错误：
+找不到界面，url匹配失败后，django会调用内置的page_not_found 视图,调用404.html
+500错误：
+服务器内部错误，若是在执行视图函数时出现运行时错误，Django会默认会调用server_error 视图,调用500.html
+403误误：
+权限拒绝，permission_denied视图，调用403.html
+
+自定义显示的界面：
+在项目文件夹下的templates创建相应的html文件，可优先被调用
+
+# 产看返回的错误日志：
+查看 Exception Type 以及 Exception Value
+查看 Traceback中的出错行
+
+# 关闭调试模式
+DEBUG = False
+# 表示允许所有的
+ALLOWED_HOSTS = ['*']
 ```
 
-#### 存储
+## 类视图
 
-Session数据可以存储在数据库、内存、Redis等，可以通过在项目的setting.py中设置SESSION_ENGINE项，指定Session数据存储的方式。
+以函数的方式定义的视图称为**函数视图**，函数视图便于理解。但是遇到一个视图对应的路径提供了多种不同HTTP请求方式的支持时，便需要在一个函数中编写不同的业务逻辑，代码可读性与复用性都不佳。
 
-```python
-# 存储在数据库中，如下设置可以写，也可以不写，这是默认存储方式。
-SESSION_ENGINE='django.contrib.sessions.backends.db'
+```
+ def register(request):
+    """处理注册"""
 
-# 存储在缓存中：存储在本机内存中，如果丢失则不能找回，比数据库的方式读写更快。
-SESSION_ENGINE='django.contrib.sessions.backends.cache'
-
-# 混合存储：优先从本机内存中存取，如果没有则从数据库中存取。
-SESSION_ENGINE='django.contrib.sessions.backends.cached_db'
-
-# 注意：如果存储在数据库中，需要在项INSTALLED_APPS中安装Session应用。
-INSTALLED_APPS = (
-	'django.contrib.sessions',
-)
+    # 获取请求方法，判断是GET/POST请求
+    if request.method == 'GET':
+        # 处理GET请求，返回注册页面
+        return render(request, 'register.html')
+    else:
+        # 处理POST请求，实现注册逻辑
+        return HttpResponse('这里实现注册逻辑')
 ```
 
-#### 操作
+在Django中也可以使用类来定义一个视图，称为**类视图**。
 
-```python
-# 保存session数据（键值对）
-request.session['键']=值
+使用类视图可以将视图对应的不同请求方式以类中的不同方法来区别定义。如下所示
 
-#- 读取session数据
-request.session.get('键',默认值)
+```
+from django.views.generic import View
 
-# 清除session数据（清空值）
-request.session.clear()
+class RegisterView(View):
+    """类视图：处理注册"""
 
-# 清除session数据(在存储中删除session的整条数据)
-request.session.flush()
+    def get(self, request):
+        """处理GET请求，返回注册页面"""
+        return render(request, 'register.html')
 
-# 删除会话中的指定键及值，在存储中只删除某个键及对应的值。
-del request.session['键']
-
-# 设置会话的超时时间，如果没有指定过期时间则两个星期后过期
-request.session.set_expiry(value)
-  - 如果value是一个整数，会话将在value秒没有活动后过期。
-  - 如果value为0，那么用户会话的Cookie将在用户的浏览器关闭时过期。
-  - 如果value为None，那么会话永不过期。
+    def post(self, request):
+        """处理POST请求，实现注册逻辑"""
+        return HttpResponse('这里实现注册逻辑')
 ```
 
+类视图的好处：
+
+- **代码可读性好**
+- **类视图相对于函数视图有更高的复用性**， 如果其他地方需要用到某个类视图的某个特定逻辑，直接继承该类视图即可
+
+### 类视图使用
+
+定义类视图需要继承自Django提供的父类**View**，可使用`from django.views.generic import View`或者`from django.views.generic.base import View` 导入，定义方式如上所示。
+
+**配置路由时，使用类视图的as_view()方法来添加**。
+
+```
+urlpatterns = [
+    # 视图函数：注册
+    # url(r'^register/$', views.register, name='register'),
+    # 类视图：注册
+    url(r'^register/$', views.RegisterView.as_view(), name='register'),
+]
+```
+
+### 类视图原理
+
+```
+    @classonlymethod
+    def as_view(cls, **initkwargs):
+        """
+        Main entry point for a request-response process.
+        """
+        ...省略代码...
+
+        def view(request, *args, **kwargs):
+            self = cls(**initkwargs)
+            if hasattr(self, 'get') and not hasattr(self, 'head'):
+                self.head = self.get
+            self.request = request
+            self.args = args
+            self.kwargs = kwargs
+            # 调用dispatch方法，按照不同请求方式调用不同请求方法
+            return self.dispatch(request, *args, **kwargs)
+
+        ...省略代码...
+
+        # 返回真正的函数视图
+        return view
+
+
+    def dispatch(self, request, *args, **kwargs):
+        # Try to dispatch to the right method; if a method doesn't exist,
+        # defer to the error handler. Also defer to the error handler if the
+        # request method isn't on the approved list.
+        if request.method.lower() in self.http_method_names:
+            handler = getattr(self, request.method.lower(), self.http_method_not_allowed)
+        else:
+            handler = self.http_method_not_allowed
+        return handler(request, *args, **kwargs)
+```
+
+### 类视图使用装饰器
+
+为类视图添加装饰器，可以使用三种方法。
+
+为了理解方便，我们先来定义一个**为函数视图准备的装饰器**（在设计装饰器时基本都以函数视图作为考虑的被装饰对象），及一个要被装饰的类视图。
+
+```
+def my_decorator(func):
+    def wrapper(request, *args, **kwargs):
+        print('自定义装饰器被调用了')
+        print('请求路径%s' % request.path)
+        return func(request, *args, **kwargs)
+    return wrapper
+
+class DemoView(View):
+    def get(self, request):
+        print('get方法')
+        return HttpResponse('ok')
+
+    def post(self, request):
+        print('post方法')
+        return HttpResponse('ok')
+```
+
+- 在URL配置中装饰
+
+```
+urlpatterns = [
+    url(r'^demo/$', my_decorate(DemoView.as_view()))
+]
+```
+
+此种方式最简单，但因装饰行为被放置到了url配置中，单看视图的时候无法知道此视图还被添加了装饰器，不利于代码的完整性，不建议使用。
+
+**此种方式会为类视图中的所有请求方法都加上装饰器行为**（因为是在视图入口处，分发请求方式前）。
+
+- 在类视图中装饰
+
+在类视图中使用为函数视图准备的装饰器时，不能直接添加装饰器，需要使用**method_decorator**将其转换为适用于类视图方法的装饰器。
+
+```
+from django.utils.decorators import method_decorator
+
+# 为全部请求方法添加装饰器
+class DemoView(View):
+
+    @method_decorator(my_decorator)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
+    def get(self, request):
+        print('get方法')
+        return HttpResponse('ok')
+
+    def post(self, request):
+        print('post方法')
+        return HttpResponse('ok')
+
+
+# 为特定请求方法添加装饰器
+class DemoView(View):
+
+    @method_decorator(my_decorator)
+    def get(self, request):
+        print('get方法')
+        return HttpResponse('ok')
+
+    def post(self, request):
+        print('post方法')
+        return HttpResponse('ok')
+```
+
+**method_decorator装饰器还支持使用name参数指明被装饰的方法**
+
+```
+# 为全部请求方法添加装饰器
+@method_decorator(my_decorator, name='dispatch')
+class DemoView(View):
+    def get(self, request):
+        print('get方法')
+        return HttpResponse('ok')
+
+    def post(self, request):
+        print('post方法')
+        return HttpResponse('ok')
+
+
+# 为特定请求方法添加装饰器
+@method_decorator(my_decorator, name='get')
+class DemoView(View):
+    def get(self, request):
+        print('get方法')
+        return HttpResponse('ok')
+
+    def post(self, request):
+        print('post方法')
+        return HttpResponse('ok')
+```
+
+为什么需要使用method_decorator???
+
+为函数视图准备的装饰器，其被调用时，第一个参数用于接收request对象
+
+```
+def my_decorate(func):
+    def wrapper(request, *args, **kwargs):  # 第一个参数request对象
+        ...代码省略...
+        return func(request, *args, **kwargs)
+    return wrapper
+```
+
+而类视图中请求方法被调用时，传入的第一个参数不是request对象，而是self 视图对象本身，第二个位置参数才是request对象
+
+```
+class DemoView(View):
+    def dispatch(self, request, *args, **kwargs):
+        ...代码省略...
+
+    def get(self, request):
+        ...代码省略...
+```
+
+所以如果直接将用于函数视图的装饰器装饰类视图方法，会导致参数传递出现问题。
+
+**method_decorator的作用是为函数视图装饰器补充第一个self参数，以适配类视图方法。**
+
+如果将装饰器本身改为可以适配类视图方法的，类似如下，则无需再使用method_decorator。
+
+```
+def my_decorator(func):
+    def wrapper(self, request, *args, **kwargs):  # 此处增加了self
+        print('自定义装饰器被调用了')
+        print('请求路径%s' % request.path)
+        return func(self, request, *args, **kwargs)  # 此处增加了self
+    return wrapper
+```
+
+- 构造Mixin扩展类
+
+使用面向对象多继承的特性。
+
+```
+class MyDecoratorMixin(object):
+    @classmethod
+    def as_view(cls, *args, **kwargs):
+        view = super().as_view(*args, **kwargs)
+        view = my_decorator(view)
+        return view
+
+class DemoView(MyDecoratorMixin, View):
+    def get(self, request):
+        print('get方法')
+        return HttpResponse('ok')
+
+    def post(self, request):
+        print('post方法')
+        return HttpResponse('ok')
+```
+
+**使用Mixin扩展类，也会为类视图的所有请求方法都添加装饰行为。**
