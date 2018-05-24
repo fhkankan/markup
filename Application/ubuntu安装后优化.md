@@ -43,7 +43,7 @@ sudo apt-get update
 
 ## 常规安装
 ```
-sudo apt-get install git vlc unrar gparted nginx bleachbit
+sudo apt-get install git vlc unrar gparted nginx bleachbit htop
 ```
 
 ## vim
@@ -107,7 +107,7 @@ sudo add-apt-repository ppa:fossfreedom/indicator-sysmonitor
 sudo apt-get update 
 sudo apt-get install indicator-sysmonitor
 ```
-##  wps
+## wps
 
 ```
 sudo apt-get install wps-office 

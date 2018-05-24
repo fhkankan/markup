@@ -43,7 +43,7 @@ meta
 <meta http-equiv="refresh" content="45">
 
 元数据，描述其他数据的数据
-每个meta远古三使用名称/值对结构提供了单个数据点
+每个meta使用名称/值对结构提供了单个数据点
 ```
 
 script
