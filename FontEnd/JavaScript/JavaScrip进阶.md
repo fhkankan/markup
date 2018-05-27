@@ -1,6 +1,6 @@
 [TOC]
 
-# JavaScript
+# JavaScript进阶
 
 ## 浏览器对象模型
 
@@ -721,13 +721,15 @@ p.setAttribute("style", "font-style:italic; font-size:xx-small;");
 
 ## 事件
 
+事件是一些可以通过脚本响应的页面动作。事件处理是一段JavaScript代码，总是与页面中的特定部分以及一定的时间相关联。当页面特定部分关联的时间发生时，事件处理器就会被调用。
+
 ### 事件注册
 
 ```
-// 方法一:内联注册
+// 方法一:内联注册,HTML中
 <div id="div2" onclick="someAction()">
 
-// 方法二：将事件处理程序分配给DOM元素的事件属性
+// 方法二：将事件处理程序分配给DOM元素的事件属性，JavaScript中
 var div = document.getElementById("div2");
 div.onclick = someAciton;
 
@@ -793,6 +795,37 @@ fucntion someAction(e){
 stopPropagation()	//停止事件传播
 stopImmediatePropagation()	// 停止传播，阻止当前元素上的任何其他处理程序执行
 preventDefault()	//禁用默认动作
+```
+
+### 事件对象
+
+在IE中，事件对象是window对象的一个属性event，且event对象只能在事件发生时被访问，所有事件处理完，该对象就消失了。而标准DOM中规定event必须作为唯一的参数传给时间处理函数，为兼容，常采用以下方法
+
+```
+function someHandle(event){
+    if(window.event){
+        event = window.event
+    }
+}
+```
+
+在IE中，事件的对象包含在event的srcElement属性中，而在标准的DOM浏览器中，对象包含在target属性中。为处理兼容性，采用如下方法
+
+```
+function handle(oEvent){
+    if(window.event)
+        oEvent = window.event;	//处理兼容性，获得事件对象
+    var oTarget;
+    if(oEvent.srcElement)		//处理兼容性，获得事件目标
+        oTarget = oEvent.target;
+    else
+    	oTarget = oEvent.target;
+    alert(oTarget.tagName)		//弹出目标的标记名称
+}
+window.onload = function(){
+    var oImg = documnet.getElementByTagName("img")[0];
+    oImg.onclick = handle;
+}
 ```
 
 

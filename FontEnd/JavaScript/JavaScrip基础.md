@@ -1,6 +1,6 @@
 [TOC]
 
-# JavaScript
+# JavaScript基础
 
 语言特定
 
@@ -289,9 +289,22 @@ new
 对象实例名称 = new 对象类型(参数)
 对象实例名称 = new 对象类型
 ```
+### 注释
 
-### 基本语句
-#### 条件语句
+```
+javascript语句开始可缩进也可不缩进，缩进是为了方便代码阅读，一条javascript语句应该以“;”结尾;
+
+// 单行注释
+/*  
+    多行注释
+    1、...
+    2、...
+*/
+```
+
+## 基本语句
+
+### 条件语句
 
 > if
 
@@ -334,7 +347,7 @@ switch(表达式){
 }
 ```
 
-#### 循环语句
+### 循环语句
 
 > while
 
@@ -359,7 +372,7 @@ do{
 for（var i=0;i<len;i++）{循环体}
 ```
 
-#### 跳转语句
+### 跳转语句
 
 > continue
 
@@ -375,7 +388,7 @@ for（var i=0;i<len;i++）{循环体}
 跳出循环
 ```
 
-#### 处理异常
+### 处理异常
 
 `try…catch…finally`
 
@@ -420,22 +433,11 @@ finally{
 }
 ```
 
-### 注释
 
-```
-javascript语句开始可缩进也可不缩进，缩进是为了方便代码阅读，一条javascript语句应该以“;”结尾;
 
-// 单行注释
-/*  
-    多行注释
-    1、...
-    2、...
-*/
-```
+## 函数
 
-### 函数
-
-#### 定义
+### 定义
 
 > function
 
@@ -461,7 +463,7 @@ var 变量名 = fucntion([参数1，参数2，...]){
 var 变量名 = new Function("参数1", "参数2", ... "函数体")
 ```
 
-#### 调用
+### 调用
 
 > 简单调用
 
@@ -481,14 +483,14 @@ var 变量名 = new Function("参数1", "参数2", ... "函数体")
 <a href="javascript: 函数名(参数)">
 ```
 
-#### 编译执行
+### 编译执行
 
 ```
 # 变量与函数预解析 
 JavaScript解析过程分为两个阶段，先是编译阶段，然后执行阶段，在编译阶段会将function定义的函数提前，并且将var定义的变量声明提前，将它赋值为undefined。
 ```
 
-#### 变量作用域
+### 变量作用域
 
 ```
 变量作用域指的是变量的作用范围，javascript中的变量分为全局变量和局部变量。
@@ -499,7 +501,35 @@ JavaScript解析过程分为两个阶段，先是编译阶段，然后执行阶�
 优先级：在函数内部若使用var新建与全局变量同名的变量，则在函数内部调用时，优先调用内部变量，不对外部变量产生影响
 ```
 
-#### 内置函数
+### 封闭函数
+
+```javascript
+封闭函数是javascript中匿名函数的另外一种写法，
+具有如下特性：
+1.脚本一旦解析，函数就开始就执行
+2.函数不用命名。
+
+封闭函数的作用 
+封闭函数可以创造一个独立的空间，在封闭函数内定义的变量和函数不会影响外部同名的函数和变量，可以避免命名冲突，在页面上引入多个js文件时，用这种方式添加js文件比较安全
+
+# 创建封闭函数：
+# 方法一：
+(function(){
+    alert('hello!');
+})();
+# 方法二
+;!function(){
+    alert('hello!');
+}()
+# 方法三
+;~function(){
+    alert('hello!');
+}()
+```
+
+
+
+### 内置函数
 
 | 函数                 | 用途       | 说明                                           |
 | -------------------- | ---------- | ---------------------------------------------- |
@@ -513,48 +543,150 @@ JavaScript解析过程分为两个阶段，先是编译阶段，然后执行阶�
 | encodeURL(url)       | 字符串处理 | 将URL字符串进行编码                            |
 | decodeURL(url)       | 字符串处理 | 对已编码的URL字符串进行解码                    |
 
+## 对象概述
 
+对象是一些属性和函数的集合
 
-
-
-- 对象
+### 属性
 
 ```
-# 创建
-方法一：对象字面量
+// 获取对象属性
+对象名.属性名
+// 设置对象属性
+对象名.属性名 = 值
+```
+
+### 方法
+
+```
+对象名.方法名(参数)
+```
+
+### 种类
+
+自定义对象
+
+```
+用户根据需要自己定义的新对象
+```
+
+内置对象
+
+```
+JavaScript中将一些常用的功能预先定义成对象，用户可以直接使用。
+```
+
+浏览器对象
+
+```
+浏览器根据系统当前配置和所载入的页面为JavaScript提供的一些对象，如document,window对象等。
+```
+
+### 上下文
+
+关键字this指的是单个对象。
+
+在一个函数中，this指向调用该函数的对象；在一个带有属性和方法的典型对象中，若函数使用了this，则this指向包含该函数的对象
+
+```javascript
+var myObject = {
+    color: "Red",
+    count: 5,
+    log: fucntion(){
+        console.log("Quantity:" + this.count + ", Color:" + this.color);
+    }
+};
+```
+
+call()函数允许调用一个函数并指定this值
+
+```javascript
+fucntion Vehicle(weight, cost){
+    this.weight = weight;
+    this.cost = cost;
+}
+
+function Truck(weight, cost, axles, length){
+    Vehicle.call(this, weight, cost)
+    this.axles = axles;
+    this.length = length;
+}
+
+var tonka = new Truck(5, 25, 3, 15);
+console.log(tonka);
+```
+
+### 命名空间
+
+```
+在JavaScript中，所有全局作用域的对象都需要一个唯一名称，以避免名称冲突。注意：运行在浏览器中的所有脚本都共享全局作用域。
+命名空间是一种以层次结构的方式组织代码的技术。一个对象的完全限定名称包括其在层次结构中定义的路径
+早JavaScript中以嵌套的对象实现命名空间的概念
+```
+
+eg
+
+```
+// global object
+var mySample = {};
+// Define the namespace hierarchy
+mySample.things = {};
+mySample.things.helpers = {};
+mySample.otherThings = {};
+// Add stuff to the namespace
+mySample.things.count = 0;
+mySample.things.helpers.logger = function(msg){
+    console.log(msg);
+}
+
+// 若代码被分割为多个文件，或需要在多个地方使用该代码，就需要确保对象不会被创建两次
+// 若未定义，创建对象返回False，or语句可以执行语句的后面部分，创建对象；若已被创建，则返回True，不执行后面部分
+this.mySample = this.mySample || {};
+```
+
+
+## 自定义对象
+
+### 创建
+
+- 对象字面量
+
+```
 var myObject = {
     color: "red",
     count: 5,
     log: function(){
-        alert("hi!")
+        alert(this.color)
     }
 }
-方法二：对象构造函数
-var redObject = new Object();
-redObject.color = "red";
-redObject.count = 5;
-redObject.log = function(){
-    alert("red!")
-}
-
-# 使用
-myObject.color
-redObject.count
 ```
-
-- 构造函数
+- 自定义构造函数
 
 ```
-# 自定义构造函数
-function Item(color, count){
-    this.color = color;
-    this.count = count;
-    this.log = function(){
-        alert("hello!")
-    }
+// 构造函数
+function Student(name,sex,age){
+    this.name = name;
+    this.sex = sex;
+    this.age = age;
+    this.showName = fucntion(){
+        alert(this.name)
+    };
 }
+// 创建对象
+var student1 = new Student("LiLei", "man", 24)
 
 注意：不能定义多个同名的构造函数。若定义了，则后面的函数会取代前面的函数。
+```
+- 内置对象
+
+```
+var student = new Object();
+student.name = "LiLei";
+student.sex = "man";
+student.age = 24;
+student.showName = fucntion(){
+        alert(student.name)
+    };
 ```
 
 - 原型
@@ -568,6 +700,101 @@ redObject.isAvailable = true;
 # 对所有使用Item构造函数的实例都增加属性,将属性添加到Item原型中
 Item.prototype.isAvailable = true;
 ```
+
+### 对象访问语句
+
+- for … in 
+
+用来遍历对象的每一个属性，每次都将属性名作为字符创保存在变量里
+
+```
+for (变量 in 对象){
+    语句
+}
+```
+
+- with
+
+用在访问一个对象的属性或方法时避免重复引用指定对象名
+
+```
+with(对象名){
+    语句
+}
+```
+
+##常用内部对象
+
+### Math
+
+
+
+### Date
+
+
+
+### Number
+
+
+
+### Array
+
+
+
+```
+数组里面的数据可以是不同类型的
+
+数组是一个属性集合，本身也有一个名称，可以作为对象或变量的一个成员，可以通过一个数字索引访问数组中的条目
+创建
+```
+
+- 创建数组
+
+```
+方法一：字面量
+//对象的实例创建
+var aList = new Array(1,2,3);
+//直接创建
+var aList2 = [1,2,3,'asd'];
+//多维数组 
+var aList = [[1,2,3],['a','b','c']];
+
+方法二： 空+push
+var colors= []
+colors.push("red")
+colors.push("green")
+```
+
+- 操作数组
+
+```
+1、获取数组的长度：aList.length;
+2、用下标操作数组的某个数据：aList[0];
+3、将数组成员通过一个分隔符合并成字符串:aList.join('-')
+4、从数组最后增加成员或删除成员：aList.push(5);aList.pop();
+5、将数组反转：aList.reverse();
+6、返回数组中元素第一次出现的索引值，若没有返回-1：aList.indexOf(值)
+7、在数组中增加或删除成员：aList.splice(2,1,7,8,9); //从02索引处，删除1个元素，然后在此位置增加'7,8,9'三个元素
+
+批量操作数组中的数据，需要用到循环语句
+遍历
+for(var i=0; i<colors.length; i++){
+    console.log(colors[i]);
+}
+```
+
+### String
+
+```
+1、合并操作：“ + ”
+2、将数字字符串转化为整数：parseInt(字符串) 
+3、将数字字符串转化为小数：parseFloat(字符串)
+4、把一个长字符串分隔成小字符串组成的数组：字符串.split('分割符')
+5、查找字符串是否含有某字符：字符串.indexOf('目的字符') 
+6、截取字符串：字符串.substring(start,end)（不包括end）
+7、字符串反转：字符串.split('').reverse().join('')
+```
+## 
 
 ## 继承
 
@@ -657,214 +884,7 @@ Item.prototype.add = function(n){this.count += n;};
 
 
 
-## 函数
 
-```javascript
-# 函数定义与执行
-<script type="text/javascript">
-    // 函数定义
-    function fnAlert(){
-        alert('hello!');
-    }
-    // 函数执行
-    fnAlert();
-</script>
-
-
-
-<script type="text/javascript">    
-    fnAlert();       // 弹出 hello！
-    alert(iNum);  // 弹出 undefined
-    function fnAlert(){
-        alert('hello!');
-    }
-    var iNum = 123;
-</script>
-
-# 函数传参
-<script type="text/javascript">
-    function fnAlert(a){
-        alert(a);
-    }
-    fnAlert(12345);
-</script>
-
-# 函数'return'关键字 
-1、返回函数中的值或者对象
-2、结束函数的运行
-```
-
-## 事件属性和匿名函数
-
-```
-事件属性 
-元素上除了有样式，id等属性外，还有事件属性，常用的事件属性有鼠标点击事件属性(onclick)，鼠标移入事件属性(mouseover),鼠标移出事件属性(mouseout),将函数名称赋值给元素事件属性，可以将事件和函数关联起来。
-
-匿名函数 
-定义的函数可以不给名称，这个叫做匿名函数，可以将匿名函数的定义直接赋值给元素的事件属性来完成事件和函数的关联，这样可以减少函数命名，并且简化代码。函数如果做公共函数，就可以写成匿名函数的形式。
-
-<script type="text/javascript">
-window.onload = function(){
-    var oBtn = document.getElementById('btn1');
-    /*
-    oBtn.onclick = myalert;
-    function myalert(){
-        alert('ok!');
-    }
-    */
-    // 直接将匿名函数赋值给绑定的事件
-    oBtn.onclick = function (){
-        alert('ok!');
-    }
-}
-</script>
-```
-
-## 封闭函数
-
-```javascript
-封闭函数是javascript中匿名函数的另外一种写法，
-具有如下特性：
-1.脚本一旦解析，函数就开始就执行
-2.函数不用命名。
-
-封闭函数的作用 
-封闭函数可以创造一个独立的空间，在封闭函数内定义的变量和函数不会影响外部同名的函数和变量，可以避免命名冲突，在页面上引入多个js文件时，用这种方式添加js文件比较安全
-
-# 创建封闭函数：
-# 方法一：
-(function(){
-    alert('hello!');
-})();
-# 方法二
-;!function(){
-    alert('hello!');
-}()
-# 方法三
-;~function(){
-    alert('hello!');
-}()
-```
-
-
-
-## 上下文
-
-关键字this指的是单个对象。
-
-在一个函数中，this指向调用该函数的对象；在一个带有属性和方法的典型对象中，若函数使用了this，则this指向包含该函数的对象
-
-```javascript
-var myObject = {
-    color: "Red",
-    count: 5,
-    log: fucntion(){
-        console.log("Quantity:" + this.count + ", Color:" + this.color);
-    }
-};
-```
-
-call()函数允许调用一个函数并指定this值
-
-```javascript
-fucntion Vehicle(weight, cost){
-    this.weight = weight;
-    this.cost = cost;
-}
-
-function Truck(weight, cost, axles, length){
-    Vehicle.call(this, weight, cost)
-    this.axles = axles;
-    this.length = length;
-}
-
-var tonka = new Truck(5, 25, 3, 15);
-console.log(tonka);
-```
-
-## 命名空间
-
-```
-在JavaScript中，所有全局作用域的对象都需要一个唯一名称，以避免名称冲突。注意：运行在浏览器中的所有脚本都共享全局作用域。
-命名空间是一种以层次结构的方式组织代码的技术。一个对象的完全限定名称包括其在层次结构中定义的路径
-早JavaScript中以嵌套的对象实现命名空间的概念
-```
-
-eg
-
-```
-// global object
-var mySample = {};
-// Define the namespace hierarchy
-mySample.things = {};
-mySample.things.helpers = {};
-mySample.otherThings = {};
-// Add stuff to the namespace
-mySample.things.count = 0;
-mySample.things.helpers.logger = function(msg){
-    console.log(msg);
-}
-
-// 若代码被分割为多个文件，或需要在多个地方使用该代码，就需要确保对象不会被创建两次
-// 若未定义，创建对象返回False，or语句可以执行语句的后面部分，创建对象；若已被创建，则返回True，不执行后面部分
-this.mySample = this.mySample || {};
-```
-
-## 数组及操作方法
-
-```
-数组里面的数据可以是不同类型的
-
-数组是一个属性集合，本身也有一个名称，可以作为对象或变量的一个成员，可以通过一个数字索引访问数组中的条目
-创建
-```
-
-- 创建数组
-
-```
-方法一：字面量
-//对象的实例创建
-var aList = new Array(1,2,3);
-//直接创建
-var aList2 = [1,2,3,'asd'];
-//多维数组 
-var aList = [[1,2,3],['a','b','c']];
-
-方法二： 空+push
-var colors= []
-colors.push("red")
-colors.push("green")
-```
-
-- 操作数组
-
-```
-1、获取数组的长度：aList.length;
-2、用下标操作数组的某个数据：aList[0];
-3、将数组成员通过一个分隔符合并成字符串:aList.join('-')
-4、从数组最后增加成员或删除成员：aList.push(5);aList.pop();
-5、将数组反转：aList.reverse();
-6、返回数组中元素第一次出现的索引值，若没有返回-1：aList.indexOf(值)
-7、在数组中增加或删除成员：aList.splice(2,1,7,8,9); //从02索引处，删除1个元素，然后在此位置增加'7,8,9'三个元素
-
-批量操作数组中的数据，需要用到循环语句
-遍历
-for(var i=0; i<colors.length; i++){
-    console.log(colors[i]);
-}
-```
-
-## 字符串处理方法
-
-```
-1、合并操作：“ + ”
-2、将数字字符串转化为整数：parseInt(字符串) 
-3、将数字字符串转化为小数：parseFloat(字符串)
-4、把一个长字符串分隔成小字符串组成的数组：字符串.split('分割符')
-5、查找字符串是否含有某字符：字符串.indexOf('目的字符') 
-6、截取字符串：字符串.substring(start,end)（不包括end）
-7、字符串反转：字符串.split('').reverse().join('')
-```
 
 
 
