@@ -152,8 +152,6 @@ $("p").wrapInner("<strong></strong>")
 替换元素
 旧元素.replaceWith(新元素) //删除选择器指定的元素，以参数传入的元素插入到被删元素位置，返回被删除元素集合
 新元素.replaceAll(旧元素) //选择器指定了要添加的元素，参数为要被替代的元素
-
-
 ```
 
 
@@ -222,7 +220,9 @@ show() 显示元素
 toggle() 切换元素的可见状态
 slideDown() 向下展开
 slideUp() 向上卷起
-slideToggle() 依次展开或卷起某个元素
+slideToggle() 
+# 允许渐变为给定的不透明度
+fadeTo(speed,opacity,callback) 
 ```
 
 ## 循环
