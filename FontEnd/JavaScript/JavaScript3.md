@@ -1,6 +1,6 @@
 [TOC]
 
-# JavaScript进阶
+# JavaScript3
 
 ## 浏览器对象模型
 
@@ -719,114 +719,7 @@ var p = document.querySelector("p");
 p.setAttribute("style", "font-style:italic; font-size:xx-small;");
 ```
 
-## 事件
 
-事件是一些可以通过脚本响应的页面动作。事件处理是一段JavaScript代码，总是与页面中的特定部分以及一定的时间相关联。当页面特定部分关联的时间发生时，事件处理器就会被调用。
-
-### 事件注册
-
-```
-// 方法一:内联注册,HTML中
-<div id="div2" onclick="someAction()">
-
-// 方法二：将事件处理程序分配给DOM元素的事件属性，JavaScript中
-var div = document.getElementById("div2");
-div.onclick = someAciton;
-
-// 方法三：早期版本用attachEvent()
-div.addEventListener("click", someAction);
-```
-
-方法一：违反了关注点分离，每个元素的每个事件只能注册单个事件处理程序
-
-方法二：每个元素的每个事件只能注册单个事件处理程序，若注册第二个，则覆盖
-
-方法三：允许为同一事件分配多个事件处理程序
-
-### 事件传播
-
-向下传播事件被称为捕获阶段，向上传播事件被称为冒泡阶段
-
-addEventListener()方法支持传入第三个参数，可用来指定是否要监听捕获事件或冒泡事，若为True,则监听捕获事件；False/忽略,则监听冒泡事件
-
-其他注册方法，只能用来注册冒泡事件
-
-若只是想知道某个按钮是否被单击，则是否监听捕获或冒泡事件并不重要。然而若有多个事件处理程序分配给了不同的元素，箭筒这两个事件就非常有用
-
-事件处理程序可以连续执行；在调用下一个处理程序之前，当前处理程序必须完成。如果在同一个元素上分配了多个事件处理程序，则按照事件注册顺序连续执行
-
-### 删除注册事件
-
-对于addEventListener()/attachEvent()，由于可将多个事件处理程序分配给单个元素，为了正确删除，需要制定注册时间处理程序中所使用的所有相同信息(注册事件的元素，事件类型，注册的处理程序函数，表示是否在捕获阶段或冒泡阶段注册的标志)
-
-```
-function removeHandlers(){
-    var div = document.getElementById("div2");
-    div.removeEventListener("click", someAction, false)
-}
-```
-
-若attachEvent()，则使用detachEvent()方法删除，类似removeEventListener，无捕获/冒泡标志
-
-若其他注册方法，`div.onclick = null;`
-
-### 事件接口
-
-- 常用事件属性
-
-通过声明一个函数参数，事件处理程序就可以访问事件对象。虽参数任意取，常用e
-
-```
-fucntion someAction(e){
-	// 事件类型
-    console.log(e.type);
-    // 触发事件的元素
-    console.log(e.target);
-    // 注册事件处理程序的元素
-    console.log(e.currentTarget);
-}
-```
-
-- 取消事件
-
-修改事件的处理方式，可在事件对象上调用如下方法
-
-```
-stopPropagation()	//停止事件传播
-stopImmediatePropagation()	// 停止传播，阻止当前元素上的任何其他处理程序执行
-preventDefault()	//禁用默认动作
-```
-
-### 事件对象
-
-在IE中，事件对象是window对象的一个属性event，且event对象只能在事件发生时被访问，所有事件处理完，该对象就消失了。而标准DOM中规定event必须作为唯一的参数传给时间处理函数，为兼容，常采用以下方法
-
-```
-function someHandle(event){
-    if(window.event){
-        event = window.event
-    }
-}
-```
-
-在IE中，事件的对象包含在event的srcElement属性中，而在标准的DOM浏览器中，对象包含在target属性中。为处理兼容性，采用如下方法
-
-```
-function handle(oEvent){
-    if(window.event)
-        oEvent = window.event;	//处理兼容性，获得事件对象
-    var oTarget;
-    if(oEvent.srcElement)		//处理兼容性，获得事件目标
-        oTarget = oEvent.target;
-    else
-    	oTarget = oEvent.target;
-    alert(oTarget.tagName)		//弹出目标的标记名称
-}
-window.onload = function(){
-    var oImg = documnet.getElementByTagName("img")[0];
-    oImg.onclick = handle;
-}
-```
 
 
 
