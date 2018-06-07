@@ -599,10 +599,6 @@ if __name__=="__main__":
         print e
 ```
 
-
-
-
-
 # MongoDB
 
 - 点击查看[官方文档](http://api.mongodb.org/python/current/tutorial.html)
