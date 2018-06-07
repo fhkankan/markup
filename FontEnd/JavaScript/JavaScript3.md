@@ -40,17 +40,20 @@ console.timeEnd("Stopwatch");
 
 > cookie
 
-```
+```javascript
+// cookie存储
 function storeCookie(key, values, duration){
     var expDate = new Date();
     expDate.setTime(expDate.getTime() + duration * 8640000);
     document.cookie = key + "=" + value + ";expires=" + expDate.toUTCString();
 }
 
+// cookie删除
 function removeCookie(key){
     storeCookie(key, "", 0);
 }
 
+// cookie获取
 fucntion getCookie(key){
     var cookies = document.cookie.split(";");
     for(var i=0; i<cookies.length; i++){
@@ -64,7 +67,7 @@ fucntion getCookie(key){
 
 > 储存
 
-`HTML5`两种新的存储机制：``localStorage`和`sessionStorage`
+`HTML5`两种新的存储机制：`localStorage`和`sessionStorage`
 
 都是window对象的属性，都返回Storage对象。浏览器关闭时`sessionSorage`就会被清除，`localStorage`则可以无限期保存
 
@@ -391,7 +394,161 @@ allow-scripts
 allow-top-navigation
 ```
 
-## DOM元素
+## 常用文档对象
+
+### Document对象
+
+代表浏览器窗口中的文档，该对象是window对象的子对象。由于window对象是DOM对象模型中默认对象，因此window对象中的方法和子对象不需要使用window来引用。通过Document对象可访问HTML文档中包含的任何HTML标记，并可动态地改变HTML标记中的内容。如表单、图像、表格和超链接等。
+
+- 属性
+
+| 属性             | 说明                                                         |
+| ---------------- | ------------------------------------------------------------ |
+| alInkColor       | 链接文字被单击时的颜色，对应于<body>标记中的alink属性        |
+| all[]            | 存储HTML标记的一个数组(该属性本身也是一个对象)               |
+| anchors[]        | 存储锚点的一个数组(该属性本身也是一个对象)                   |
+| bgColor          | 文档的背景颜色，对应于<body>标记中的bgcolor属性              |
+| cookie           | 表示cookie的值                                               |
+| fgColor          | 文档的文本颜色(不包含超链接的文字)，对应于<body>中的text属性值 |
+| forms[]          | 存储窗体对象的一个数组(该属性本身也是一个对象)               |
+| fileCreatedDate  | 创建文档的日期                                               |
+| fileModifiedDate | 文档最后修改的日期                                           |
+| fileSize         | 当前文件的大小                                               |
+| lastModified     | 文档最后修改的时间                                           |
+| images[]         | 存储图像对象的一个数组(该属性本身也是一个对象)               |
+| linkColor        | 未被访问的链接文字的颜色，对应<body>标记中的link属性         |
+| links[]          | 存储link对象的一个数组(该属性本身也是一个对象)               |
+| vlinkColor       | 表示已访问的链接文字的颜色，对应于<body>标记的vlink属性      |
+| title            | 当前文档标题对象                                             |
+| body             | 当前文档主体对象                                             |
+| readyState       | 获取某个对象的当前状态                                       |
+| URL              | 获取或设置URL                                                |
+
+- 方法
+
+| 方法           | 说明                                                     |
+| -------------- | -------------------------------------------------------- |
+| close          | 关闭文档的输出流                                         |
+| open           | 打开一个文档输出流并接受write和writeln方法的创建页面内容 |
+| write          | 向文档中写入HTML或JavaScript语句                         |
+| writeln        | 向文档中写入HTML或JavaScript语句，并以换行符结束         |
+| createElement  | 创建一个HTML标记                                         |
+| getElementById | 获取指定id的HTML标记                                     |
+
+eg
+
+```javascript
+// 链接文字颜色设置
+[color=]documnet.alincolor[=setColor]
+[color=]documnet.linColor[=setColor]
+[color=]documnet.vlincolor[=setColor]
+// 文档背景色和前景色设置
+[color=]documnet.bgColor[=setColor]
+[color=]documnet.fgColor[=setColor]
+// 获取并设置URL
+[url=]documnet.URL[=setUrl]
+// 在文档中输出数据
+document.write(text)
+document.writeln(text)
+// 动态添加一个HTML标记
+sElement = document.createElement(sName)
+// 获取文本框并修改其内容
+sElement = document.getElementById(id)
+```
+
+### 表单对象
+
+Document对象的forms属性可以返回一个数组，数组中的每个元素都是一个Form对象。可以实现输入文字、选择选项和提价数据等功能
+
+Form对象代表了HTML文档中的表单，由于表单是由表单元素组成的，故Form对象也包含多个子对象
+
+- 访问
+
+> 访问表单
+
+```
+// 方法一：
+document.forms[0]
+// 方法二：
+document.formname
+// 方法三：
+document.getElementById("formId")
+```
+
+> 访问表单元素
+
+```
+// 方法一：
+document.form1.elements[0]
+// 方法二：
+document.form1.text1
+// 方法三：
+document.getElementById("elementId")
+```
+
+- 属性
+
+| 属性     | 说明                                                 |
+| -------- | ---------------------------------------------------- |
+| name     | 返回或设置表单的名称                                 |
+| action   | 返回或设置表单提交的URL                              |
+| method   | 返回或设置表单提交的方式，可取值为get或post          |
+| encoding | 返回或设置表单信息提交的编码方式                     |
+| id       | 返回或设置表单的id                                   |
+| length   | 返回表单对象中元素的个数                             |
+| target   | 返回或设置提交表单时目标窗口的打开方式               |
+| elements | 返回表单对象中的元素构成的数组，数组中的元素也是对象 |
+
+- 方法
+
+| 方法     | 说明                                             |
+| -------- | ------------------------------------------------ |
+| reset()  | 将所有表单元素重置为初始值，相当于单击了重置按钮 |
+| submit() | 提交表单数据，相当于单击了提交按钮               |
+
+### 图像对象
+
+<img>标签，并将其中的src属性设置为图片的URL
+
+- 访问
+
+```
+// 方法一：
+document.images[0]
+// 方法二：
+document.images[imageName]
+// 方法三：
+document.getElementById("imageId")
+```
+
+- 属性
+
+| 属性   | 说明                                             |
+| ------ | ------------------------------------------------ |
+| border | 表示图片便捷宽度，以像素为单位                   |
+| height | 表示图像的高度                                   |
+| hspace | 表示图像与左边和右边的水平空间大小，以像素为单位 |
+| lowsrc | 低分辨率显示候补图像的URL                        |
+| name   | 图片名称                                         |
+| src    | 图像URL                                          |
+| vspace | 便是上下边界垂直空间的大小                       |
+| width  | 表示图片的宽度                                   |
+| alt    | 鼠标经过图片时显示的文字                         |
+
+## DOM对象
+
+文档对象模型(Document Object Model)
+
+```
+Document
+创建一个网页并将该网页加载至Web中，DOM就会根据这个网页创建一个文档对象
+Object
+文档对象就是文档中元素与内容的数据集合，与特定对象相关联的变量是属性，通过某个特定对象去带哦用的函数称为方法
+Model
+文档对象的模型为树状模型，网页中的各个元素与内容变现为一个个相互连接的节点
+```
+
+### DOM分层
 
 ```javascript
 <!DOCTYPE html>
@@ -403,6 +560,8 @@ allow-top-navigation
     <title>Document</title>
 </head>
 <body>
+        <h3>三号标题</h3>
+		<p>加粗内容</p>
 </body>
 </html>
 
@@ -421,6 +580,44 @@ function populateBody(){
 populateBody();
 </script>
 ```
+
+节点
+
+```
+根节点
+父节点
+子节点
+兄弟节点
+后代
+叶子节点
+```
+
+节点类型
+
+```
+元素节点
+文本节点
+属性节点
+```
+
+### 节点属性
+
+在文档中获取了一个元素之后，可以使用如下属性导航到相关联元素和属性
+
+| 属性            | 说明                                                         |
+| --------------- | ------------------------------------------------------------ |
+| nodename        | 节点名称                                                     |
+| nodevalue       | 节点的值，常应用于文本节点                                   |
+| nodeType        | 节点的类型                                                   |
+| parentNode      | 返回当前节点的直接父节点，若是根节点则为空                   |
+| childNodes      | HTMLCollection对象，包含了该节点所有的直接子节点列表         |
+| firstChild      | 返回当前节点的第一个子节点                                   |
+| lastChild       | 返回当前节点的最后一个子节点                                 |
+| previousSibling | 返回当前节点的前一个兄弟节点， 若是父节点的第一子节点，则属性为空 |
+| nextSibling     | 返回当前节点的后一个兄弟节点， 若是父节点的最后一子节点，则属性为空 |
+| attributes      | 元素的属性列表                                               |
+
+
 
 ### 查找元素
 
@@ -488,18 +685,9 @@ for (var i=0; i< attr.lenght; i++){
 }
 ```
 
-### 相关元素
 
-在文档中获取了一个元素之后，可以使用如下属性导航到相关联元素
 
-```
-parentNode		节点的直接父节点，若是根节点则为空
-children		HTMLCollection对象，包含了该节点所有的直接子节点
-firstChild		子节点集合中的第一个元素
-lastChild		子节点集合中的最后一个元素
-previousSibling	与当前节点有相同父节点，且在子节点集合汇总位于当前节点之前，若是父节点的第一子节点，则属性为空
-nextSibling		与当前节点有相同父节点，且在子节点集合汇总位于当前节点之后，若是父节点的最后一子节点，则属性为空
-```
+
 
 ## 动态样式设计
 

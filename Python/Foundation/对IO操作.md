@@ -175,6 +175,20 @@ f.isatty()
 # 如果文件连接到一个终端设备，返回True，否则返回False
 ```
 
+## 文件的删除
+
+```
+os.remove(path)
+# 删除路径为path的文件。如果path 是一个文件夹，将抛出OSError; 查看下面的rmdir()删除一个 directory。
+
+os.removedirs(path)
+# 递归删除目录
+```
+
+
+
+
+
 # 内存操作
 
 ## StringIO
