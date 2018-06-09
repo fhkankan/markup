@@ -186,24 +186,77 @@ dischargingTime	电池完全放完电所需要的秒数
 level			0~1之间的值，表示当前充电程度
 ```
 
-## 窗口对象
+## Window对象
 
-### 创建窗口
+Window对象代表的是打开的浏览器窗口，通过window对象可以打开与关闭窗口、控制窗口的大小和位置，由窗口弹出对话框，，控制窗口上是佛硻地址栏、工具栏和状态栏等栏目。对于窗口中的内容，还可以控制是否重载页面，返回上一个文档或前进到下一个文档。
+
+在框架方面，window对象可以处理框架与框架爱之间的关系，并通过这种关系在一个框架处理另一个框架汇中文档。window对象是所有其他对象的顶级对象，通过对window对象的子对象进行操作，可以实现更多的动态效果
+
+### 属性和方法
+
+- 属性
+
+| 属性          | 描述                                       | 属性   | 描述                                       |
+| ------------- | ------------------------------------------ | ------ | ------------------------------------------ |
+| document      | 对话框中显示的当前文档                     | top    | 最顶层的浏览器对话框                       |
+| frames        | 表示当前对话框中所有frame对象的集合        | parent | 包含当前对话框的父对话框                   |
+| location      | 指定当前文档的URL                          | opener | 打开当前对话框的父对话框                   |
+| name          | 对话框的名字                               | closed | 当前对话框是否关闭的逻辑值                 |
+| status        | 状态栏中的当前信息                         | self   | 当前对话框                                 |
+| defaultstatus | 状态栏中的当前信息                         | screen | 表示用户屏幕，提供屏幕尺寸、颜色深度等信息 |
+| navigator     | 表示浏览器对象，用于获得与浏览器相关的信息 |        |                                            |
+
+- 方法
+
+| 方法                       | 描述                                                         |
+| -------------------------- | ------------------------------------------------------------ |
+| alert()                    | 弹出一个警告对话框                                           |
+| confirm()                  | 在确认对话框中显示指定的字符串                               |
+| prompt()                   | 弹出一个提示对话框                                           |
+| open()                     | 打开浏览器对话框并且显示由URL或名字引用的文档，并设置创建对话框的属性 |
+| close()                    | 关闭被引用的对话框                                           |
+| focus()                    | 将被引用的对话框放在所有打开对话框的前面                     |
+| blur()                     | 将被引用的对话框放在所有打开对话框的后面                     |
+| scrollTo(x,y)              | 把对话框滚动到指定的坐标                                     |
+| scrollBy(offsetx, offsety) | 按照指定位移量滚动对话框                                     |
+| setTimeout(timer)          | 在指定的毫秒数过后，对传递的表达式求值                       |
+| setInterval(interval)      | 指定周期性执行代码                                           |
+| moveTo(x, y)               | 将对话框移动到指定坐标处                                     |
+| moveBy(offsetx,offsety)    | 将对话框移动到指定的位移量处                                 |
+| resizeTo(x,y)              | 设置对话框的大小                                             |
+| resizeBy(offsetx,offsety)  | 按照指定的位移量设置对话框的大小                             |
+| print()                    | 相当于浏览器工具栏中的"打印"按钮                             |
+| navigate(URL)              | 使用对话框显示URL自定的页面                                  |
+| status()                   | 状态条，位于对话框下部的信息条                               |
+| Defaulestatus()            | 状态条，位于对话框下部的信息条                               |
+
+- 使用
 
 ```
-// open函数参数1:页面路径，参数2：窗口名称，返回新窗口的window对象
-// 若使用相同的窗口名称，则在原来的窗口中使用新的URL替换内容
-window.name = "chapter1";
-var people = window.open("PopUp.html", "popup");
+// window对象可以直接调用其方法和属性
+window.属性名
+window.方法名(参数列表)
+
+// 特定窗口
+// self代表当前窗口，parent代表父级窗口
+parent.属性名
+parent.方法名(参数列表)
 ```
 
-- 配置参数
+### 窗口操作
 
-open函数接收第三个参数，此为窗口特性字符串
+- 打开窗口
 
 ```
-window.open("PopUp.html", "popup", "height=300,width=400,top=400,left=150, status");
+var windowvar = window.open(url, windowname[,location])
+```
 
+参数说明
+
+```
+url:目标窗口的URL,若为空字符串，则打开一个空白窗口，允许用write()方法创建动态HTML
+windowname:Window对象的名称。可最为属性值在<a><form>标记的target属性中出现
+location：打开窗口的参数,如下所示
 //位置和大小
 left, top, height, width, outerHeight, outerWidth
 //chrome(用户界面UI)特性(Boolean值)
@@ -218,35 +271,50 @@ fullscreen 以全屏模式显示新窗口
 resizable 使窗口能够缩放，默认值
 scrollbars 设置为no，禁用滚动条，默认情况下，当内容不适合所分配的空间时包含滚动条
 
+eg:
+window.open("PopUp.html", "popup", "height=300,width=400,top=400,left=150, status");
 ```
 
-- 操作窗口
-
-创建一个窗口后，可以使用window属性和方法来查看并调整其大小、位置和滚动属性
+- 关闭窗口
 
 ```
-// 属性
-innerHeight	可用于内容的空间高度
-innerWidth	可用于内容的空间宽度
-outerHeight	窗口总高度
-outerWidth	窗口总宽度
-screenX		设备左边缘与窗口左边缘之间的距离
-screenY		设备上边缘与窗口上边缘之间的距离
-scrollX		文档已经水平滚动的像素数
-scrollY		文档已经垂直滚动的像素数
+// 关闭当前窗口
+window.close()
+close()
+this.close()
 
-// 方法
-moveBy()	将窗口移动指定的像素数，可水平或垂直移动，若某方向无移动值为0，若为负值，则向上或向右移动
-moveto()	移动窗口，使其左上角位于指定的位置
-resizeBy()	按指定的数量增加窗口大小，可水平或垂直增加，负值为收缩大小。上左边缘保持不变
-resizeTo()	指定新窗口大小。上左边缘保持不变
-scrollBy()	滚动指定的像素；可指定水平或垂直的滚动值
-scrollByLines()	垂直滚动文档指定的行数
-scrollByPages()	垂直滚动文档指定的页数
-scrollTo()		滚动到指定的水平和垂直位置
-sizeToContent()	更改窗口大小以使用现有的内容
-focus()		使窗口保持聚焦
-blur()		从窗口删除焦点
+// 关闭其他窗口
+// windowname为之前打开窗口的句柄
+windowname.close()
+```
+
+- 控制窗口
+
+```
+// 移动窗口
+window.moveTo(x,y)  // (x,y)窗口相对左上角的坐标
+window.resizeTo(x,y)	// (x,y)窗口的水平和垂直宽度
+window.resizeBy()  //按指定的数量增加窗口大小，可水平或垂直增加，负值为收缩大小。上左边缘保持不变
+// 屏幕设置
+window.screen.width  // 屏幕宽度
+window.screen.height  // 屏幕高度
+window.screen.colorDepth  // 屏幕色深
+window.screen.availWidth  // 可用宽度
+window.screen.avaiHeight  // 可用高度
+// 窗口滚动
+window.scroll(x, y)  //滚动到指定的水平和垂直位置
+window.scrollTo(x, y)  //滚动到指定的水平和垂直位置
+window.scrollBy(x, y)  //滚动指定的像素；可指定水平或垂直的滚动值
+window.scrollByLines()	 //垂直滚动文档指定的行数
+window.scrollByPages()	 //垂直滚动文档指定的页数
+// 窗口历史
+window.history.length  // 历史列表的长度
+window.history.current  // 当前文档的URL
+window.history.next  // 历史列表的下一个URL
+window.history.prvious  // 历史列表的上一个URL
+window.history.back()  // 退回前一页
+window.history.forward()  // 重新进入下一页
+window.history.go([num])  // 进入指定的页面
 ```
 
 ### 模态对话框窗口
@@ -257,17 +325,15 @@ blur()		从窗口删除焦点
 
 - 标准的弹出对话框
 
-```
+```javascript
 // 警告框
-window.alter("alert box");
-// 确认框, 提示框
-if (windos.confirm("Is it OK to proceed?")){
-    var answer = window.prompt("How many pets do you have?", 0);
-    console.log("%i pets were entered.", answer);
-}
-else{
-    console.log("Confirmation failed");
-}
+window.alter(str); // str为子啊警告框汇总显示的提示字符串
+
+// 确认框
+windos.confirm(question) // question为在对话框中显示的纯文本
+
+// 提示框
+window.prompt(str1, str2) // str1为在对话框中要被显示的信息，若忽略则不显示，str2为对话框内输入框的值，若忽略则被设置为undefined
 ```
 
 - 自定义模态对话框
@@ -393,6 +459,23 @@ allow-same-origin
 allow-scripts
 allow-top-navigation
 ```
+
+### 窗口事件
+
+```
+window.通用事件名=要执行的js代码
+```
+
+| 事件     | 描述                                       |
+| -------- | ------------------------------------------ |
+| onfocus  | 当浏览器窗口获得焦点时激活                 |
+| onblur   | 浏览器串口失去焦点时激活                   |
+| onload   | 当文档完全载入时触发                       |
+| onunload | 但文档未载入时触发                         |
+| onresize | 当用户改变窗口大小时触发                   |
+| onerror  | 当出现JavaScript错误时触发一个错误处理事件 |
+
+
 
 ## 常用文档对象
 
@@ -535,7 +618,7 @@ document.getElementById("imageId")
 | width  | 表示图片的宽度                                   |
 | alt    | 鼠标经过图片时显示的文字                         |
 
-## DOM对象
+## DOM对象模型
 
 文档对象模型(Document Object Model)
 
@@ -617,13 +700,29 @@ populateBody();
 | nextSibling     | 返回当前节点的后一个兄弟节点， 若是父节点的最后一子节点，则属性为空 |
 | attributes      | 元素的属性列表                                               |
 
+eg
 
+```javascript
+// 访问指定的节点
+[sName=]obj.nodename
+[sType=]obj.nodeType  // 有element/attribute/text/comment/document/documenTypye
+[txt=]obj.nodeValue
+
+// 遍历文档树
+[pNode=]obj.parentNode
+[cNode=]obj.firstChild
+[cNode=]obj.lastChild
+[cNode=]obj.previousSibling
+[cNode=]obj.nextSibling
+```
 
 ### 查找元素
 
 ```javascript
-// 通过id定位元素，返回零个或一个元素，若无，返回null
+// 通过id属性定位元素，返回零个或一个元素，若无，返回null
 var element = document.getElementById(id);
+// 通过name属性定位元素，返回与元素类型相匹配的元素数组,若无，返回[]
+var elementArray = document.getElementsByName(name);
 // 返回与元素类型相匹配的元素数组,若无，返回[]
 var elementArray = document.getElementsByTagName(name);
 // 返回与class类型相匹配的元素数组,若无，返回[]
@@ -634,6 +733,8 @@ var elementArray = document.querySelectorAll(names)
 ```
 
 ### 创建元素
+
+创建单个元素
 
 ```javascript
 // 创建元素节点
@@ -654,17 +755,58 @@ p.textContent = "This ia a test"
 p.innerHTML = "This ia a test";
 ```
 
+创建多个元素
+
+```javascript
+// 使用循环语句
+function dc(){
+    var aText = ["a","b","c","d"]
+    for (var i=0; i<aText.length; i++)  //遍历节点
+    {	
+        var ce = document.createElement("p")  // 创建节点元素
+        var cText = document.cteateTextNode(aText[i])  // 创建节点文本
+        // 将新节点添加到页面上
+        ce.appendChild(cText);
+        document.body.appendChild(ce)
+    }
+}
+
+//解决appendChild()方法添加每次刷新页面造成浏览器缓慢
+function dc(){
+    var aText = ["a","b","c","d"]
+    var cdf = document.createDocumentFragment()  //创建文件碎片节点
+    for (var i=0; i<aText.length; i++)  //遍历节点
+    {	
+        var ce = document.createElement("p")  // 创建节点元素
+        var cText = document.cteateTextNode(aText[i])  // 创建节点文本
+        // 将新节点添加到页面上
+        ce.appendChild(cText);
+        cdf.appendChild(ce)
+    }
+    document.body.appendChild(cdf)
+}
+```
+
 ### 移动元素
 
 ```javascript
+// 添加
 // appendChild()添加子节点至父节点(若已有子节点，则位于同级节点尾部)
 var child = parentNode.appendChild(childNode);
 // insertBefore()添加子节点位于某个同级子节点前方,
-var child = parentNode.isertBefore(childNode, sibling);
+var child = parentNode.insertBefore(childNode, sibling);
+
+// 复制
+obj.cloneNode(true) // 深度复制，复制当前节点及其子节点
+obj.cloneNode(false) // 简单复制，只复制当前节点
+
+// 删除
 // removeChild()删除父节点中的子节点
 var removedElement = parentNode.removeChild(childNode);
 // 删除某一元素
 element.parentNode.removeChild(element)
+
+// 替换
 // replaceChild()用新元素替换已有的元素
 var removedElement = parentNode.replaceChild(newElement, existingElement);
 ```
@@ -685,9 +827,24 @@ for (var i=0; i< attr.lenght; i++){
 }
 ```
 
+## DHTML对象模型
 
+获取网页对象的另一种方法，可以不必了解文档对象模型的具体层次结果，而直接得到网页中所需的对象
 
-
+```
+innerHTMl
+// 被多数浏览器支持
+// 声明了元素含有的HTML文本，不包括元素本身的开始标记和结束标记，设置该属性可以为指定的HTML文本替换元素的内容
+innerText
+// 只被IE支持
+// 只能声明元素包含的文本内容，即使是HTML文本，也被认为是普通文本而原样输出
+outerHTMl
+// 只被IE支持
+// 替换整个目标节点的HTML文本，不仅仅更该了内容，还对元素本身进行了修改
+outerText
+// 只被IE支持
+// 替换整个目标节点的文本内容，不仅仅更该了内容，还对元素本身进行了修改
+```
 
 ## 动态样式设计
 

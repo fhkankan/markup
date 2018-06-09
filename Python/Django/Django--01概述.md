@@ -96,7 +96,7 @@ pip install 包名
 ```python
 # 命令行
 workon 虚环境名  # 进入项目虚环境
-cd 安装目录  # 进入项目放置目录
+cd 存放目录  # 进入项目放置目录
 django-admin startproject 项目名  # 创建项目
 cd 项目名  # 进入项目根目录
 mkdir apps  # 创建apps根目录

@@ -11,38 +11,83 @@ jQuery的版本分为1.x系列和2.x、3.x系列，1.x系列兼容低版本的�
 2、https://code.jquery.com/ 版本下载
 ```
 
-## 文档加载完再执行
-
-```javascript
-将获取元素的语句写到页面头部，会因为元素还没有加载而出错，jquery提供了ready方法解决这个问题，它的速度比原生的 window.onload 更快。
-// 使用了documnet对象
-$(document).ready(function(){     ......
-});
-//简写                             
-$(function(){
-......                               
-})
-```
-
 ## 选择元素
 
-### 选择器
+### 基本选择器
 
-```
+```javascript
 jquery选择器可以快速地选择元素，选择规则和css样式相同.
+// id
 $('#myId') //选择id为myId的网页元素
+// class
 $('.myClass') // 选择class为myClass的元素
+// element
 $('li') //选择所有的li元素
+// 复合
+$('selector1, selector2') // 将selector1和selector2匹配的元素合并返回
+// 通配符
+$('*') // 页面上所有元素
+```
+
+### 层级选择器
+
+```javascript
+// ancestor descendan
 $('#ul1 li span') //选择id为为ul1元素下的所有li下的span元素
-$('input[name=first]') // 选择name属性等于first的input元素
+// parent > child
+$("form > input") //父级为form，子级为input的元素
+// prev + next
+$("div + img") //div后的<img>元素
+// prev ~ siblings
+$("div ~ ul") // div同辈的ul元素
 ```
 
-### 选择集过滤
+### 过滤选择器
 
+简单过滤器
+
+```javascript
+$("tr:first") //匹配表格第一行
+$("tr:last") //匹配表格最后一行
+$("tr:even")  //匹配索引值为偶数的行
+$("tr:odd")  //匹配索引值为奇数的行
+$("div:eq(1)")  //匹配第二个div
+$("div:gt(1)")  //匹配第二个及以上的div
+$("div:lt(1)")  //匹配第二个及以下的div
+$(":header")  // 匹配全部的标题元素
+$("input:not(:checked)")  // 匹配没有被选中的input元素
+$(":animated")  //匹配所有正在执行的动画
 ```
-$('div').has('p'); // 选择包含p元素的div元素
-$('div').not('.myClass'); //选择class不等于myClass的div元素
-$('div').eq(5); //选择第6个div元素
+
+内容过滤器
+
+```javascript
+$("li:contians("DOM")")  //匹配含有“DOM”文本内容的li元素
+$("td:empty")  //匹配不包含子元素或者文本的单元格
+$("td:has(p)")  //匹配表格的单元格中含有p标记的单元格
+$("td:parent")  //匹配含有子元素或者文本的单元格
+```
+
+子元素过滤器
+
+```javascript
+$("ul li:first-child")  // 匹配ul元素中的第一个子元素li
+$("ul li:last-child")  // 匹配ul元素中的最后一个子元素li
+$("ul li:only-child")  // 匹配只含有一个li元素的ul元素中的li
+$("ul li:nth-child(index/even/odd/equation)")  //匹配ul中索引为第index个元素(从1开始)
+```
+
+### 属性选择器
+
+```javascript
+$("div[name]") //匹配含有name属性的div元素
+$('input[name='first']') // 选择name属性等于first的input元素
+$('input[name!='first']') // 选择name属性不是first的input元素
+$('input[name*='first']') // 选择name属性中含有first值的input元素
+$('input[name^='first']') // 选择name属性以first开头的input元素
+$('input[name$='first']') // 选择name属性以first结尾的input元素
+$('input[name*='first']') // 选择name属性中含有first值的input元素
+$('input[id][name='first']') // 选择具有id属性且name属性为first的input元素
 ```
 
 ### 选择集转移
@@ -66,96 +111,18 @@ length等于0，就是没选择到元素;
 length大于0，就是选择到了元素。
 ```
 
-## 操作样式
-
-```
-# 操作行间样式
-// 获取div的样式
-$("div").css("width");
-$("div").css("color");
-//设置div的样式
-$("div").css("width","30px");
-$("div").css({fontSize:"30px",color:"red"});
-
-注意：选择器获取的多个元素，获取信息获取的是第一个
-
-# 操作样式类名
-$("#div1").addClass("divClass2") //为id为div1的对象追加样式divClass2
-$("#div1").removeClass("divClass")  //移除id为div1的对象的class名为divClass的样式
-$("#div1").removeClass("divClass divClass2") //移除多个样式，中间空格
-$("#div1").toggleClass("anotherClass") //重复切换anotherClass样式
-```
-## 属性操作
-
-```
-
-
-# prop() 取出或设置元素除了css之外的某个属性的值
-// 取出图片的地址
-var $src = $('#img1').prop('src');
-// 设置图片的地址和alt属性
-$('#img1').prop({src: "test.jpg", alt: "Test Image" });
-```
 ## jQuery对象
 
 从jQuery选择器返回的对象都是jQuery对象，而不是原生DOM对象(HTMLElement)。
 
 JQuery对象封装了原生对象，并支持后面的方法。若需要使用原生对象，则调用jQuery对象上的get()方法
 
-所有的jQuery方法都返回支持元素集合的jQuery对象。及时first()方法也返回一个仅具有一个元素的集合的jQuery对象。
+所有的jQuery方法都返回支持元素集合的jQuery对象。即使first()方法也返回一个仅具有一个元素的集合的jQuery对象。
 
 ```javascript
 //Get()方法返回来自jQuery对象的原生DOM独享，但需提供索引
 var body = $("body").get(0);
 ```
-## DOM操作
-
-```javascript
-# html() 取出或设置html内容
-// 取出html内容
-var $htm = $('#div1').html();
-// 设置html内容
-$('#div1').html('<span>添加文字</span>');
-
-
-# 元素节点操作指的是改变html的标签结构，它有两种情况：
-1、移动现有标签的位置
-2、将新创建的标签插入到现有的标签中
-
-创建新标签
-var $div = $('<div>'); //创建一个空的div
-var $div2 = $('<div>这是一个div元素</div>');
-
-移动或者插入标签的
-父元素.append(子元素)：当前元素的内部后面放入另外一个元素
-子元素.appendTo(父元素)：当前元素放置到另一元素的内部的后面
-父元素.prepend(子元素):当前元素的内部的前面放入另外一个元素
-子元素.prependTo(父元素)：当前元素放置到另一元素的内部的前面
-后元素.after(前元素)：当前元素的后面放入另一个元素
-后元素.insertafter(前元素)：当前元素放置到另一元素的后面
-前元素.before(后元素)：当前元素的前面放入另一个元素
-前元素.insertbefore(后元素)：当前元素放置到另一元素的前面
-
-包装元素
-子元素.wrap(父元素):插入一个元素作为选择器指定的元素的父对象
-子元素.wrapAll(父元素):将所有选定元素包到单个父元素中，若匹配元素间存在不匹配元素，则放到新元素后面
-元素.wrapInner(内容)：将内容包裹住元素
-<p class="myClass">Hello</p>
-$("p").wrapInner("<strong></strong>")
-
-删除元素
-元素.unwrap() // 删除选择器返回的元素的直接父元素，消除wrap()方法
-元素.remove() // 删除选择器返回的元素
-元素.detach() // 删除选择器返回的元素，返回被删除的元素集合，后期可重添加
-元素.empty() // 删除选择器返回的元素中所有的子元素
-
-替换元素
-旧元素.replaceWith(新元素) //删除选择器指定的元素，以参数传入的元素插入到被删元素位置，返回被删除元素集合
-新元素.replaceAll(旧元素) //选择器指定了要添加的元素，参数为要被替代的元素
-```
-
-
-
 
 ## 链式调用
 
@@ -170,9 +137,281 @@ $('#div1') // id为div1的元素
 .slideUp('fast');  //高度实际高度变换到零来隐藏ul元素
 ```
 
-## 绑定事件
+## 控制页面
+
+### 元素内容和值
+
+```javascript
+// 获取或设置文本内容
+$("div").text([str])
+// 获取或设置html内容
+$("div").html([str])
+// 获取或设置元素值
+$("#username").val([val])
+
+eg
+// 取出html内容
+var $htm = $('#div1').html();
+// 设置html内容
+$('#div1').html('<span>添加文字</span>');
+```
+
+### DOM节点
+
+- 查找节点
+
+选择元素
+
+- 创建节点
+
+```javascript
+$(document).ready(function(){
+    // 方法一
+    var $p = $("<p></p>")
+    $p.html("<span>你好</span>")
+    $("body").append($p)
+    // 方法二
+    var $textP = $("<p><sapn>你好</span></p>")
+    $("body").append($textP)
+    // 方法三
+    $("body").append("<p><sapn>你好</span></p>")
+    alert($("p").text())
+})
+```
+
+- 插入节点
+
+````javascript
+// 内部插入
+父元素.append(子元素)  //当前元素的内部后面放入另外一个元素
+子元素.appendTo(父元素)  //当前元素放置到另一元素的内部的后面
+父元素.prepend(子元素) //当前元素的内部的前面放入另外一个元素
+子元素.prependTo(父元素) //当前元素放置到另一元素的内部的前面
+
+// 外部插入
+后元素.after(前元素)  //当前元素的后面放入另一个元素
+后元素.insertafter(前元素) //当前元素放置到另一元素的后面
+前元素.before(后元素) //当前元素的前面放入另一个元素
+前元素.insertbefore(后元素) //当前元素放置到另一元素的前面
+````
+
+- 包装节点
+
+```javascript
+子元素.wrap(父元素) //插入一个元素作为选择器指定的元素的父对象
+子元素.wrapAll(父元素)  //将所有选定元素包到单个父元素中，若匹配元素间存在不匹配元素，则放到新元素后面
+元素.wrapInner(内容)  //将内容包裹住元素
+eg:
+<p class="myClass">Hello</p>
+$("p").wrapInner("<strong></strong>")
+```
+
+- 删除节点
 
 ```
+元素.unwrap() // 删除选择器返回的元素的直接父元素，消除wrap()方法
+元素.remove() // 删除选择器返回的元素
+元素.detach() // 删除选择器返回的元素，返回被删除的元素集合，后期可重添加
+元素.empty() // 删除选择器返回的元素中所有的子元素,并不删除该元素
+```
+
+- 复制节点
+
+```
+clone() // 克隆匹配的DOM元素且选中这些克隆的副本
+clone(boolen) // 当boolen为true时，表示克隆匹配的元素及其所有的事件处理，且选中这些克隆的副本；当boolen为false时，表示不复制元素的事件处理
+```
+
+- 替换节点
+
+```
+新元素.replaceAll(旧元素)  //使用匹配的元素替换所有selector匹配的元素
+旧元素.replaceWith(新元素)  //将所有匹配的元素替换为指定的HTML或DOM元素
+```
+
+### 元素属性
+
+```javascript
+attr(name)  //获取匹配的第一个元素的属性值，无值时返回undefined
+attr(key, value)  //为所有匹配元素设置一个属性值
+attr(key, fn)  //为所有匹配元素设置一个函数返回的属性值
+attr(properties)  //为所有匹配元素以集合({key1:value1,key2:value2})形式同时设置多个属性
+removeAttr(name)  //为所有匹配元素删除一个属性
+
+eg:
+$("img").attr("src")
+$("img").attr("title", "你好")
+$("img").attr({src:"test.gif",title: "示例"})
+$("img").removeAttr("title")
+
+
+# prop() 取出或设置元素除了css之外的某个属性的值
+// 取出图片的地址
+var $src = $('#img1').prop('src');
+// 设置图片的地址和alt属性
+$('#img1').prop({src: "test.jpg", alt: "Test Image" });
+```
+
+### CSS样式
+
+```javascript
+# 操作CSS类
+addClass(class)  //为所有匹配元素添加指定的CSS类名
+removeClass(class) //从所有匹配元素汇总删除全部或者指定的CSS类
+toggleClass(class)  //如果存在(不存在)就删除(添加)一个CSS类
+toggleClass(class, switch)  //若switch为true，则添加CSS类，否则则删除
+eg:
+$("#div1").addClass("divClass2") //为id为div1的对象追加样式divClass2
+$("#div1").removeClass("divClass")  //移除id为div1的对象的class名为divClass的样式
+$("#div1").removeClass("divClass divClass2") //移除多个样式，中间空格
+$("#div1").toggleClass("anotherClass") //重复切换anotherClass样式
+
+# 操作CSS属性
+css(name)  //返回第一个匹配元素的样式属性
+css(name, value)  //为所有匹配元素的指定样式设置值
+css(properties)  //以{属性:值，属性:值}的形式为所有匹配的元素设置样式属性
+eg:
+// 获取div的样式
+$("div").css("width");
+//设置div的样式
+$("div").css("width","30px");
+$("div").css({fontSize:"30px",color:"red"});
+```
+## 动画效果
+
+- 基本动画效果
+
+```
+hide(speed, [callback])  // 隐藏
+show(speed, [callback])  // 显示
+toggle(speed, [callback]) //切换元素的可见状态
+```
+
+- 淡入淡出
+
+```
+fadeIn(speed, [callback])  //淡入,增大不透明度
+fadeOut(speed, [callback])  //淡出，减小不透明度
+fadeTo(speed, opacity, [callback])  // 将匹配元素的不透明度以渐进的方式调整到指定的参数
+fadeToggle(speed, [callback])  //切换淡入淡出
+```
+
+- 滑动效果
+
+```
+slideDown(speed, [callback])  //向下展开
+slideUp(speed, [callback])  //向上卷起
+slideToggle(speed, [callback])  // 通过高度变化动态切换元素的可见性
+```
+
+- 自定义动画
+
+```javascript
+//通过animate方法可以设置元素某属性值上的动画，可以设置一个或多个属性值，动画执行完成后会执行一个函数。
+animate(params, speed, swing,callback)
+// animate参数：
+参数一：要改变的样式属性值，写成字典的形式
+参数二：动画持续的时间，默认400，单位为毫秒，一般不写单位
+参数三：动画曲线，默认为‘swing’，缓冲运动，还可设置‘linear’，匀速运动
+参数四：动画回调函数，动画完成后执行的匿名函数
+
+eg:
+$('#div1').animate({
+    width:300,
+    height:300
+},1000,'swing',function(){
+    alert('done!');
+});
+
+// 停止动画
+stop(clearQueue, gotoEnd)
+// 参数
+clearQueue:表示是否清空尚未执行完的动画队列(true时表示清空)
+gotoEnd:表示是否让正在执行的动画直接到达动画结束时的状态(true时表示直接到达结束状态)
+```
+
+## 循环
+
+```javascript
+// 对jquery选择的对象集合分别进行操作，需要用到jquery循环操作，此时可以用对象上的each方法：
+$(function(){
+    $('.list li').each(function(){
+        $(this).html($this.index());
+    })
+})
+```
+
+## 事件处理
+
+### 页面加载响应事件
+
+若将获取元素的语句写到页面头部，会因为元素还没有加载而出错。
+
+jquery提供了ready方法解决这个问题，它的速度比原生的 window.onload 更快。
+
+```javascript
+// 使用了documnet对象
+$(document).ready(function(){
+    ...
+});
+//简写                             
+$(function(){
+    ...
+})
+```
+
+与window.onload()区别
+
+```
+1.在页面上可以无限制地使用$(document).ready()方法，各个方法不冲突，会按照在代码中的顺序执行，但是一个页面只能有一个window.onload()
+2.在一个文档完全下载到浏览器时才会响应window.onload()方法，但是只需DOM元素就绪后就可调用$(document).ready()方法。
+故$(document).ready()方法优于window.onload()
+```
+
+### 常用事件
+
+|        | 方法           | 说明                                                         |
+| ------ | -------------- | ------------------------------------------------------------ |
+| 焦点   | blur([fn])     | (在每一个匹配的元素绑定一个处理函数)，触发元素的失去焦点事件 |
+|        | focus([fn])    | (在每一个匹配的元素绑定一个处理函数)，触发元素的获得焦点事件 |
+|        | change(fn)     | (在每一个匹配的元素绑定一个处理函数)，触发元素的值改变事件   |
+| 点击   | click([fn])    | (在每一个匹配的元素绑定一个处理函数)，触发元素的单击事件     |
+|        | dbclick([fn])  | (在每一个匹配的元素绑定一个处理函数)，触发元素的双击事件     |
+| 错误   | error([fn])    | (在每一个匹配的元素绑定一个处理函数)，触发元素的错误事件     |
+| 按键   | keydown([fn])  | (在每一个匹配的元素绑定一个处理函数)，触发元素的按键按下事件 |
+|        | keyup([fn])    | (在每一个匹配的元素绑定一个处理函数)，触发元素的按键释放事件 |
+|        | keypress([fn]) | (在每一个匹配的元素绑定一个处理函数)，触发元素的敲击按键事件 |
+| 加载   | load(fn)       | (在每一个匹配的元素绑定一个处理函数)，触发元素的加载完毕事件 |
+| 卸载   | unload(fn)     | (在每一个匹配的元素绑定一个处理函数)，触发元素的卸载事件     |
+| 鼠标   | mousedown(fn)  | (在每一个匹配的元素绑定一个处理函数)，触发元素的鼠标单击事件 |
+|        | mousemove(fn)  | (在每一个匹配的元素绑定一个处理函数)，触发元素的鼠标移动事件 |
+|        | mouseout(fn)   | (在每一个匹配的元素绑定一个处理函数)，触发元素的鼠标离开事件 |
+|        | mouseover(fn)  | (在每一个匹配的元素绑定一个处理函数)，触发元素的鼠标移入事件 |
+|        | mouseup(fn))   | (在每一个匹配的元素绑定一个处理函数)，触发元素的鼠标单击释放事件 |
+| 窗口   | resize(fn)     | (在每一个匹配的元素绑定一个处理函数)，当文档串口改变大小触发 |
+| 滚动条 | scroll(fn)     | (在每一个匹配的元素绑定一个处理函数)，当滚动条变化时触发     |
+| 文本框 | select(fn)     | (在每一个匹配的元素绑定一个处理函数)，当文本框选中某段文本时触发 |
+| 表单   | submit(fn)     | (在每一个匹配的元素绑定一个处理函数)，当表单提交时触发       |
+
+### 绑定事件
+
+```javascript
+// 为元素绑定事件
+选择的元素.bind(type, [data], fn)
+// 参数
+type：事件类型
+data：可选参数，作为event.data属性值传递为时间对象的额外数据对象，常不用
+fn：绑定事件的处理程序
+
+// 移除绑定
+选择的元素.unbind([type], [data])
+// 参数
+type：事件类型
+data：要从每个匹配元素的事件中反绑定的事件处理函数
+
+// 一次性绑定
+选择的元素.one(type, [data], fn)
+
 # 给元素绑定click事件，可以用如下方法：
 $('#btn1').click(function(){
     // 内部的this指的是原生对象
@@ -182,59 +421,59 @@ $('#btn1').click(function(){
 # 获取元素的索引值 
 获得匹配元素相对于其同胞元素的索引位置，此时用index()
 
-# jquery事件
-blur() 				元素失去焦点
-focus() 			元素获得焦点
-click() 			鼠标单击
-mouseover() 		鼠标进入（进入子元素也触发）
-mouseout() 			鼠标离开（离开子元素也触发）
-mouseenter() 		鼠标进入（进入子元素不触发）
-mouseleave() 		鼠标离开（离开子元素不触发）
-hover() 			同时为mouseenter和mouseleave事件指定处理函数
-ready() 			DOM加载完成
-submit() 			用户递交表单
 ```
 
-## 动画与特殊效果
+### 模拟用户操作
 
-```
-通过animate方法可以设置元素某属性值上的动画，可以设置一个或多个属性值，动画执行完成后会执行一个函数。
-$('#div1').animate({
-    width:300,
-    height:300
-},1000,'swing',function(){
-    alert('done!');
-});
-animate参数：
-参数一：要改变的样式属性值，写成字典的形式
-参数二：动画持续的时间，默认400，单位为毫秒，一般不写单位
-参数三：动画曲线，默认为‘swing’，缓冲运动，还可设置‘linear’，匀速运动
-参数四：动画回调函数，动画完成后执行的匿名函数
+- 模拟用户的操作触发
 
-# 特殊效果是对常用的动画进行了函数的封装，参数取animate的后三个
-fadeIn() 淡入
-fadeOut() 淡出
-fadeToggle() 切换淡入淡出
-hide() 隐藏元素
-show() 显示元素
-toggle() 切换元素的可见状态
-slideDown() 向下展开
-slideUp() 向上卷起
-slideToggle() 
-# 允许渐变为给定的不透明度
-fadeTo(speed,opacity,callback) 
+```javascript
+triggerHandler()  // 不会导致浏览器同名的默认行为被执行
+trigger()  // 会导致浏览器同名默认行为被执行
+
+eg:
+$(document).ready(function(){
+    $("input:button").bind("click", function(event, msg1, msg2){
+        alert(msg1, msg2);
+    }).trigger("click", ["欢迎访问！"])
+})
 ```
 
-## 循环
+- 模拟悬停事件
 
-```
-对jquery选择的对象集合分别进行操作，需要用到jquery循环操作，此时可以用对象上的each方法：
-$(function(){
-    $('.list li').each(function(){
-        $(this).html($this.index());
+```javascript
+hover(over, out)
+// 参数
+over:当鼠标在移动到匹配元素上时触发的函数
+out:当鼠标在移出匹配元素上时触发的函数
+
+eg:
+$(document).ready(function(){
+    $("#pic").hover(function(){
+        $(this).attr("border", 1);  //为图片加边框
+    }, function(){
+        $(this).attr("border", 0);  //去除图片边框
     })
 })
 ```
+
+- 模拟鼠标连续单击
+
+```javascript
+// 属于jQuery中的click事件，若要删除可用unbind('click')
+toggle(odd, even)
+// 参数
+odd:奇次单击按钮时触发的函数
+even:偶次单击按钮时触发的函数
+
+eg:
+$("#tool").togle(
+	function(){$("#tip").css("display", "")},
+    function(){$("#tip").css("display", "none")}
+)
+```
+
+
 
 ## 事件冒泡
 
@@ -261,7 +500,8 @@ return false;
 # 一般写法：
 $(function(){
     $ali = $('#list li');
-    $ali.click(function() {        		$(this).css({background:'red'});
+    $ali.click(function(){
+    	$(this).css({background:'red'});
     });
 })	
 
@@ -499,10 +739,10 @@ $("button").click(function(){
 
 ajax只能请求同一个域下的数据或资源，有时候需要跨域请求数据，就需要用到jsonp技术，jsonp可以跨域请求数据，它的原理主要是利用了`<script>`标签可以跨域链接资源的特性。jsonp和ajax原理完全不一样，不过jquery将它们封装成同一个函数。
 
-```
+```javascript
 $.ajax({
     url:'js/data.js',
-    type:'get',
+    type:'get', // 只能是GET
     dataType:'jsonp',
     jsonpCallback:'fnBack'
 })
@@ -518,7 +758,7 @@ $.ajax({
 
 eg：获取360搜索关键词联想数据
 
-```
+```javascript
 $(function(){
     $('#txt01').keyup(function(){
         var sVal = $(this).val();

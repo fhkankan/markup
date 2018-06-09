@@ -502,23 +502,23 @@ arr.outLast();
 
 - 方法
 
-| 方法             | 说明                                                         | 语法                                          |
-| ---------------- | ------------------------------------------------------------ | --------------------------------------------- |
-| concat()         | 连接两个或更多的数组，并返回结果                             | arrayObject.concat(arrayX,...)                |
-| push()           | 向数组的末尾添加一个或多个元素，并返回新的长度               | arrayObject.push(newelement,...)              |
-| unshift()        | 向数组的开头添加一个或多个元素，并返回新的长度               | arrayObject.unshift(newelement,...)           |
-| pop()            | 删除并返回数组的最后一个元素                                 | arrayObject.pop()                             |
-| shift()          | 删除并返回数组的第一个元素                                   | arrayObject.shift()                           |
-| splice()         | 删除元素，并向数组添加新元素                                 | arrayObject.splice(start,length,element1,...) |
-| reverse()        | 颠倒数组中元素的顺序                                         | arrayObject.reverse()                         |
-| sort()           | 对数组元素进行排序                                           | arrayObject.sort(sortby)                      |
-| slice()          | 从某个已有的数组返回选定的元素                               | arrayObject.slice(start, end)                 |
-| toSource()       | 代表对象的源代码                                             |                                               |
-| toString()       | 把数组转换为字符串，并返回结果                               | arrayObject.toString()                        |
-| toLocaleString() | 把数组转换为本地字符串，并返回结果                           | arrayObject.toLocaleString()                  |
-| join()           | 把数组的所有元素放入一个字符串，元素通过指定的分隔符进行分隔 | toLocaleString.join(separator)                |
-| valueOf()        | 返回数组对象的原始值                                         |                                               |
-| indexOf()        | 返回数组中第一次出现值得索引，若无则返回-1                   | arrayObject.indexOf(值)                       |
+|        | 方法             | 说明                                                         | 语法                                          |
+| ------ | ---------------- | ------------------------------------------------------------ | --------------------------------------------- |
+| 增加   | concat()         | 连接两个或更多的数组，并返回结果                             | arrayObject.concat(arrayX,...)                |
+|        | push()           | 向数组的末尾添加一个或多个元素，并返回新的长度               | arrayObject.push(newelement,...)              |
+|        | unshift()        | 向数组的开头添加一个或多个元素，并返回新的长度               | arrayObject.unshift(newelement,...)           |
+| 删除   | pop()            | 删除并返回数组的最后一个元素                                 | arrayObject.pop()                             |
+|        | shift()          | 删除并返回数组的第一个元素                                   | arrayObject.shift()                           |
+|        | splice()         | 删除元素，并向数组添加新元素                                 | arrayObject.splice(start,length,element1,...) |
+| 排序   | reverse()        | 颠倒数组中元素的顺序                                         | arrayObject.reverse()                         |
+|        | sort()           | 对数组元素进行排序                                           | arrayObject.sort(sortby)                      |
+| 子元素 | slice()          | 从某个已有的数组返回选定的元素                               | arrayObject.slice(start, end)                 |
+| 转换   | toSource()       | 代表对象的源代码                                             |                                               |
+|        | toString()       | 把数组转换为字符串，并返回结果                               | arrayObject.toString()                        |
+|        | toLocaleString() | 把数组转换为本地字符串，并返回结果                           | arrayObject.toLocaleString()                  |
+|        | join()           | 把数组的所有元素放入一个字符串，元素通过指定的分隔符进行分隔 | arrayObject.join(separator)                   |
+| 搜索   | valueOf()        | 返回数组对象的原始值                                         |                                               |
+|        | indexOf()        | 返回数组中第一次出现值得索引，若无则返回-1                   | arrayObject.indexOf(值)                       |
 
 ### String
 
