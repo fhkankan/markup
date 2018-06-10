@@ -274,21 +274,28 @@ tail命令: 默认会显示文件的末尾，会自动刷新显示文件最新�
 | 模型类.objects.count()     | 数字                                    | 返回查询集中对象的数目                                       |
 
 
-### filter
+### 条件查询
 
 ```python
-filter方法用来实现条件查询，返回QuerySet对象，包含了所有满足条件的数据。
-
-通过方法参数，指定查询条件： 
-
+filter
+# 实现条件查询，返回QuerySet对象，包含了所有满足条件的数据。
+# 用法 
 模型类.objects.filter(模型类属性名__条件名 = 值)
 
+# 条件名
 判等： exact
 模糊查询： contains / endswith / startswith
 空查询： isnull
 范围查询: in
 比较查询: gt、lt、gte、lte
 日期查询： year， date类
+    
+exclude    
+# 返回不满足条件的数据
+# 用法
+模型类.objects.exclude(条件)
+
+注意：
 mysql：
 date函数： date('2017-1-1')
 year函数: year(hire_date)
@@ -296,12 +303,30 @@ python：
 date类: date(2017,1,1)
 ```
 
-### exclude
+eg
 
-```
-返回不满足条件的数据：   
-
-用法： 模型类.objects.exclude(条件)
+```python
+# 精确查询
+BookInfo.objects.filter(id_exact=1)
+// 精简写法
+BookInfo.objects.filter(id=1)
+BookInfo.objects.get(id=1)
+BookInfo.objects.exclude(id=1)
+BookInfo.objects.filter(id_isnull=True)
+# 模糊查询
+BookInfo.objects.filter(btitle_contains="天")
+BookInfo.objects.filter(btitle_startwith="天")
+BookInfo.objects.filter(btitle_endwith="传")
+# 范围
+BookInfo.objects.filter(id_in=[1,3])
+BookInfo.objects.filter(id_gt=1)
+BookInfo.objects.filter(id_gte=1)
+BookInfo.objects.filter(id_lt=1)
+BookInfo.objects.filter(id_lte=1)
+BookInfo.objects.filter(bpub_date_gt=date(1990,1,1))
+# 日期
+BookInfo.objects.filter(bpub_date_year='1990')
+BookInfo.objects.filter(bpub_date_month=11)
 ```
 
 
@@ -326,8 +351,14 @@ list = BookInfo.objects.filter(bread__gt=F('bcomment') * 2)
 
 需要先导入：
 from django.db.models import Q
+# 或
 list = BookInfo.objects.filter(Q(bread__gt=20) | Q(pk__lt=3))
+# 非
 list = BookInfo.objects.filter(~Q(pk=3))
+# 与
+BookInfo.objects.filter(bread_gt=20,id_lt=3)
+BookInfo.objects.filter(bread_gt=20).filter(id_lt=3)
+BookInfo.objects.filter(Q(bread_gt=20)&(id_lt=3))
 ```
 
 ### order_by
@@ -401,9 +432,7 @@ values()  # 返回所有查询对象指定属性的值(字典格式)
 values_list()  # 返回所有查询对象指定属性的值(元组格式)
 ```
 
-
-
-- 方法
+### 方法
 
 ```
 调用模型管理器的all, filter, exclude, order_by方法会产生一个QuerySet，可以在QuerySet上继续调用这些方法，比如：
@@ -414,12 +443,6 @@ b[0]
 取出QuerySet的第一条数据,
 不存在会抛出IndexError异常
 
-QuerySet可以作切片 操作, 切片操作会产生一个新的QuerySet，注意：下标不允许为负数。
-如果获取一个对象，直接使用[0]，等同于[0:1].get()，但是如果没有数据，[0]引发IndexError异常，[0:1].get()如果没有数据引发DoesNotExist异常。
-list=BookInfo.objects.all()[0:2]
-
-
-
 # QuerySet的方法
 QuerySet的get()方法
 取出QuerySet的唯一一条数据
@@ -427,12 +450,23 @@ QuerySet不存在数据，会抛出： DoesNotExist异常
 QuerySet存在多条数据，会抛出：MultiObjectsReturned异常
 ```
 
-- 特性
+### 特性
 
 ```
 惰性查询：创建查询集不会访问数据库，直到调用数据时，才会访问数据库，调用数据的情况包括迭代、序列化、与if合用。
 
 缓存：第一次遍历使用了QuerySet中的所有的对象（比如通过 列表生成式 遍历了所有对象），则django会把数据缓存起来， 第2次再使用同一个QuerySet时，将会使用缓存。注意：使用索引或切片引用查询集数据，将不会缓存，每次都会查询数据库。
+```
+
+### 限制
+
+```
+对QuerySet可以取下标或作切片操作,
+切片操作会产生一个新的QuerySet，不会立即执行查询
+注意：下标不允许为负数。
+
+如果获取一个对象，直接使用[0]，等同于[0:1].get()，但是如果没有数据，[0]引发IndexError异常，[0:1].get()如果没有数据引发DoesNotExist异常。
+list=BookInfo.objects.all()[0:2]
 ```
 
 ## 增删改
@@ -505,6 +539,24 @@ class HeroInfo(models.Model):
 
  
 # 多对多
+# 方式一：手工指定
+class NewsType(models.model):
+    ntid = models.AutoField(promary_key=True)
+    news_id = models.ForeignKey("NewsInfo")
+    type_id = models.ForeignKey("TypeInfo")
+    
+class TypeInfo(models.Model):
+    tid = models.AutoField(promary_key=True)
+  	tname = models.CharField(max_length=20) 
+
+class NewsInfo(models.Model):
+    nid = models.AutoField(promary_key=True)
+  	ntitle = models.CharField(max_length=60)
+  	ncontent = models.TextField()
+  	npub_date = models.DateTimeField(auto_now_add=True)
+    # 指定第三张表
+  	t2n= models.ManyToManyField('TypeInfo', through="NewsType") 
+# 方式二：使用Django
 class TypeInfo(models.Model):
   tname = models.CharField(max_length=20) #新闻类别
 

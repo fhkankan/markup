@@ -848,35 +848,39 @@ admin.site.index_title = '欢迎使用传智书城MIS'	# 设置首页标语
 <h1>自定义的修改界面</h1>
 ```
 
-## 上传图片
+## 上传文件
 
-- 在python中进行图片操作，需要安装包PIL
+### 基础知识
+
+```
+1. 安装相关的第三方模块
+2. 图片上传先关模型类配置
+3. 数据迁移操作
+4. 上传目录配置
+```
+
+在Django中上传图片包括两种方式：
+
+```
+在管理页面admin中上传图片
+自定义form表单中上传图片
+```
+
+上传图片后，将图片存储在服务器磁盘中，然后将图片的路径存储在数据库表中
+
+### 基本环境配置
+
+- 安装相关第三方模块
+
+在python中进行图片操作，需要安装包PIL
 
 ```
 pip install Pillow==3.4.1
 ```
 
-- 在Django中上传图片包括两种方式：
+- 模型类配置
 
-  - 在管理页面admin中上传图片
-  - 自定义form表单中上传图片
-- 上传图片后，将图片存储在服务器磁盘中，然后将图片的路径存储在数据库表中
-
-### 定义上传目录
-
-1. 在static下创建上传图片保存的目录： `media/app01`
-
-2. 设置上传文件的保存目录
-
-
-```
-# setting.py
-MEDIA_ROOT = os.path.join(BASE_DIR, 'static/media')
-```
-
-### 模型类定义
-
-模型类定义
+创建包含图片的模型类，将模型类的属性定义为models.ImageField类型
 
 ```
 # models.py
@@ -890,14 +894,27 @@ class PicInfo(Model):
     objects = PicInfoManager()
 ```
 
-生成迁移文件，生成表。
+- 生成迁移
 
 ```
 python manage.py makemigrations
 python manage.py migrate
 ```
 
-### admin管理后台上传
+- 上传目录配置
+
+```
+# setting.py
+MEDIA_ROOT = os.path.join(BASE_DIR, 'static/media')
+```
+
+在static下创建上传图片保存的目录
+
+````
+media/app01
+````
+
+### 管理后台上传
 
 注册模型类，以便在后台中显示出来： 
 
@@ -912,31 +929,113 @@ admin.site.register(PicInfo)
 
 登录进入后台，新增一条记录，进行图片上传
 
-### 案例：自定义界面上传图片
+### 自定义表单上传
 
-- 需求： 自定义界面上传图片 
+点击`http://127.0.0.1:8000/upload/`进入上传界面
 
-- 实现步骤：
+- url
 
-  1. 在python中进行图片操作，需要安装包PIL
+```python
+# app01/urls.py
+urlpatterns = [
+    ...
+    url(r'^upload/$', views.upload),                # 进入图片上传界面
+    url(r'^do_upload/$', views.do_upload),          # 处理图片上传操作
+]
+```
 
-     pip install Pillow==3.4.1
+- 视图函数
 
-  2. 配置url
-  3. 定义视图函数
-  4. 创建显示的html界面
-  5. 服务器提供上传服务： 要定义上传请求的url地址，和处理上传操作的视图函数
-  6. 客户端发请求实现图片上传： 在html界面，提交表单到对应的url地址，实现图片上传功能
+```python
+# views.py
+def upload(request):
+    """进入上传文件界面"""
+    return render(request, 'app01/02.upload.html')
+
+# views.py
+def do_upload(request):
+    """处理文件上传操作"""
+    # 获取上传的文件对象
+    pic_file = request.FILES.get('pic')
+    # 定义文件的保存路径
+    file_path = '%s/app01/%s' % (settings.MEDIA_ROOT, pic_file.name)
+    # 保存上传的文件内容到磁盘中(with as 会自动关闭文件)
+    with open(file_path, 'wb') as file:
+        for data in pic_file.chunks():
+                file.write(data)
+    # 保存上传的文件路径到数据库中
+    pic_info = PicInfo()
+    pic_info.pic_path = 'app01/%s' % pic_file.name
+    pic_info.save()
+    # 响应浏览器内容
+    return HttpResponse('文件上传成功')
+```
+
+- html
+
+```html
+# templates/app01/02.upload.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>上传图片</title>
+</head>
+<body>
+<form method="post" enctype="multipart/form-data" action="/do_upload/">
+    {% csrf_token %}
+    选择文件：<input type="file" name="pic"/><br/>
+    <input type="submit" value="上传">
+</form>
+</body>
+</html>
+```
+
+### 显示用户上传的图片
+
+url
+
+```python
+urlpatterns = [
+    ...     
+    url(r'^show_image/$', views.show_image),   # 进入显示图片界面
+]
+```
+
+view
+
+```python
+def show_image(request):
+    """进入显示图片界面"""
+
+    # 从数据库中查询出所有的图片
+    pics = PicInfo.objects.all()
+    data = {'pics': pics}
+    return render(request, 'app01/03.show_image.html', data)
+```
+
+html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>使用上传的图片</title>
+</head>
+
+<body>
+显示用户上传的图片：<br/>
+
+{% for pic in pics %}
+    <img src="/static/media/{{ pic.pic_path }}"> <br/>
+{% endfor %}
+
+</body>
+</html>
+```
 
 
-### 案例：显示图片
-
-- 需求： 
-- 实现步骤：
-
-  1. 配置进入界面的url地址
-  2. 定义视图函数, 查询所有的图片
-  3. 显示html界面
 
 
 ## 分页功能
