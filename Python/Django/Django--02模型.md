@@ -238,22 +238,40 @@ save_on_top:
 python manage.py makemigrations
 python manage.py migrate
 ```
+## 查看ORM语句
 
+```
+方法一：
+ret = BookInfo.objects.all()
+print(ret.query)
+
+
+方法二：
+可以通过查看mysql的日志文件，了解Django ORM 生成出来的sql语句。
+
+1、打开mysqld.cnf文件，打开68 69两行的注释：
+sudo vi /etc/mysql/mysql.conf.d/mysqld.cnf
+2、重启mysql服务
+sudo service mysql restart
+3、查看mysql日志文件的内容
+sudo tail -f /var/log/mysql/mysql.log
+tail命令: 默认会显示文件的末尾，会自动刷新显示文件最新内容。退出可按ctrl+c
+```
 ## 字段查询
 
-- 每个模型类默认都有一个叫 **objects** 的类属性，它由django自动生成，类型为： `django.db.models.manager.Manager`，可以把它叫 **模型管理器**;
+每个模型类默认都有一个叫 **objects** 的类属性，它由django自动生成，类型为： `django.db.models.manager.Manager`，可以把它叫 **模型管理器**;
 
-- **objects模型管理器**中提供了一些查询数据的方法： 
+**objects模型管理器**中提供了一些查询数据的方法： 
 
-  | objects管理器中的方法      | 返回类型                                | 作用                                                         |
-  | -------------------------- | --------------------------------------- | ------------------------------------------------------------ |
-  | 模型类.objects.get()       | 模型对象                                | **返回一个对象，且只能有一个**: <br>如果查到多条数据，则报：MultipleObjectsReturned <br>如果查询不到数据，则报：DoesNotExist |
-  | 模型类.objects.filter()    | QuerySet                                | 返回满足条件的对象                                           |
-  | 模型类.objects.all()       | QuerySet                                | 返回所有的对象                                               |
-  | 模型类.objects.exclude()   | QuerySet                                | 返回不满条件的对象                                           |
-  | 模型类.objects.order_by()  | QuerySet                                | 对查询结果集进行排序                                         |
-  | 模型类.objects.aggregate() | 字典，例如：<br>{'salary__avg': 9500.0} | 进行聚合操作</br>Sum, Count, Max, Min, Avg                   |
-  | 模型类.objects.count()     | 数字                                    | 返回查询集中对象的数目                                       |
+| objects管理器中的方法      | 返回类型                                | 作用                                                         |
+| -------------------------- | --------------------------------------- | ------------------------------------------------------------ |
+| 模型类.objects.get()       | 模型对象                                | **返回一个对象，且只能有一个**: <br>如果查到多条数据，则报：MultipleObjectsReturned <br>如果查询不到数据，则报：DoesNotExist |
+| 模型类.objects.filter()    | QuerySet                                | 返回满足条件的对象                                           |
+| 模型类.objects.all()       | QuerySet                                | 返回所有的对象                                               |
+| 模型类.objects.exclude()   | QuerySet                                | 返回不满条件的对象                                           |
+| 模型类.objects.order_by()  | QuerySet                                | 对查询结果集进行排序                                         |
+| 模型类.objects.aggregate() | 字典，例如：<br>{'salary__avg': 9500.0} | 进行聚合操作</br>Sum, Count, Max, Min, Avg                   |
+| 模型类.objects.count()     | 数字                                    | 返回查询集中对象的数目                                       |
 
 
 ### filter
@@ -349,7 +367,9 @@ list = BookInfo.objects.aggregate(Sum('bread'))
 
 查询集表示从数据库中获取的对象集合，在管理器上调用某些过滤器方法会返回查询集，查询集可以含有零个、一个或多个过滤器。过滤器基于所给的参数限制查询的结果，从Sql的角度，查询集和select语句等价，过滤器像where和limit子句。
 
-- 返回查询集的过滤器
+### 过滤器
+
+- 获取多对象的过滤器
 
 ```
 all()：返回所有数据。
@@ -358,7 +378,7 @@ exclude()：返回满足条件之外的数据，相当于sql语句中where部分
 order_by()：对结果进行排序。
 ```
 
-- 返回单个值的过滤器
+- 获取单对象的过滤器
 
 ```
 get()：返回单个满足条件的对象
@@ -368,11 +388,20 @@ count()：返回当前查询结果的总条数。
 aggregate()：聚合，返回一个字典。
 ```
 
-- 判断一个查询集中是否有数据
+- 判断是空对象过滤器
 
 ```
 exists()：判断查询集中是否有数据，如果有则返回True，没有则返回False。
 ```
+
+- 获取具体对象属性值的过滤器
+
+```
+values()  # 返回所有查询对象指定属性的值(字典格式)
+values_list()  # 返回所有查询对象指定属性的值(元组格式)
+```
+
+
 
 - 方法
 
@@ -406,23 +435,33 @@ QuerySet存在多条数据，会抛出：MultiObjectsReturned异常
 缓存：第一次遍历使用了QuerySet中的所有的对象（比如通过 列表生成式 遍历了所有对象），则django会把数据缓存起来， 第2次再使用同一个QuerySet时，将会使用缓存。注意：使用索引或切片引用查询集数据，将不会缓存，每次都会查询数据库。
 ```
 
-## 查看ORM语句
-
-```
-可以通过查看mysql的日志文件，了解Django ORM 生成出来的sql语句。
-
-1、打开mysqld.cnf文件，打开68 69两行的注释：
-sudo vi /etc/mysql/mysql.conf.d/mysqld.cnf
-2、重启mysql服务
-sudo service mysql restart
-3、查看mysql日志文件的内容
-sudo tail -f /var/log/mysql/mysql.log
-tail命令: 默认会显示文件的末尾，会自动刷新显示文件最新内容。退出可按ctrl+c
-```
-
 ## 增删改
 
-```
+```python
+# 调用Django羡慕python命令解释器
+python manage.py shell
+from book_app.models import *
+
+# 增
+# 方法一
+book1 = BookInfo(btitle="倚天屠龙记", bpub_date="1990-08-23")
+book1.save()
+# 方法二
+BookInfo.objects.create(btitle="倚天屠龙记", bpub_date="1990-08-23")
+
+# 删
+book1.delete()
+
+# 改
+# 方法一
+book = BookInfo.objects.get(id=1)
+book.btitle = "射雕英雄传"
+book.save()
+# 方法二
+BookInfo.objects.filter(id=1).update(btitle = "射雕英雄传")
+
+
+
 调用一个模型类对象的save方法， 就可以实现数据新增或修改，id在表中存在为修改，否则为新增。
 
 调用一个模型类对象的delete方法，就可以实现数据删除，会根据id删除
