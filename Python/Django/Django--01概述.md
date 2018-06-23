@@ -169,8 +169,9 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 # 本地化
-LANGUAGE_CODE='zh-hans'
+LANGUAGE_CODE='zh-hans'  # 1.8以前是zh-cn,之后是zh-hans
 TIME_ZONE='Asia/Shanghai'
+USE_TZ = False  # 本地时间，默认true是utc时间
 
 # Debug，项目上线后应设为False
 DEBUG = True

@@ -22,11 +22,20 @@ pymsql.install_as_mysqldb()
 # 官方的库，安装后，ORM自动识别为mysqldb,直接使用
 ```
 
+- mysql-client，支持python2和python3
+
+```
+替代mysql-python,
+```
+
+
+
 **安装驱动**
 
 ```
 pip install PyMySQL
 pip install MySQL-Python
+pip install mysqlclient
 ```
 
 ## 数据库交互

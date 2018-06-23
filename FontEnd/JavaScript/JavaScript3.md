@@ -475,8 +475,6 @@ window.通用事件名=要执行的js代码
 | onresize | 当用户改变窗口大小时触发                   |
 | onerror  | 当出现JavaScript错误时触发一个错误处理事件 |
 
-
-
 ## 常用文档对象
 
 ### Document对象

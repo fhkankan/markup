@@ -124,7 +124,7 @@ django会为表创建自动增长的主键列，每个模型只能有一个主�
 
 在设置外键时，需要通过**on_delete**选项指明主表删除数据时，对于外键引用表数据如何处理，在django.db.models中包含了可选常量：
 
-- **CASCADE** 级联，删除主表数据时连通一起删除外键表中数据
+- **CASCADE** 级联，删除主表数据时连同一起删除外键表中数据
 
 - **PROTECT** 保护，通过抛出**ProtectedError**异常，来阻止删除主表中被外键应用的数据
 
@@ -312,21 +312,21 @@ BookInfo.objects.filter(id_exact=1)
 BookInfo.objects.filter(id=1)
 BookInfo.objects.get(id=1)
 BookInfo.objects.exclude(id=1)
-BookInfo.objects.filter(id_isnull=True)
+BookInfo.objects.filter(id__isnull=True)
 # 模糊查询
-BookInfo.objects.filter(btitle_contains="天")
-BookInfo.objects.filter(btitle_startwith="天")
-BookInfo.objects.filter(btitle_endwith="传")
-# 范围
-BookInfo.objects.filter(id_in=[1,3])
-BookInfo.objects.filter(id_gt=1)
-BookInfo.objects.filter(id_gte=1)
-BookInfo.objects.filter(id_lt=1)
-BookInfo.objects.filter(id_lte=1)
-BookInfo.objects.filter(bpub_date_gt=date(1990,1,1))
+BookInfo.objects.filter(btitle__contains="天")
+BookInfo.objects.filter(btitle__startwith="天")
+BookInfo.objects.filter(btitle__endwith="传")
+# 范
+BookInfo.objects.filter(id__in=[1,3])
+BookInfo.objects.filter(id__gt=1)
+BookInfo.objects.filter(id__gte=1)
+BookInfo.objects.filter(id__lt=1)
+BookInfo.objects.filter(id__lte=1)
+BookInfo.objects.filter(bpub_date__gt=date(1990,1,1))
 # 日期
-BookInfo.objects.filter(bpub_date_year='1990')
-BookInfo.objects.filter(bpub_date_month=11)
+BookInfo.objects.filter(bpub_date__year='1990')
+BookInfo.objects.filter(bpub_date__month=11)
 ```
 
 

@@ -58,31 +58,19 @@ net start mysql
 
 ```
 新版本的mysql，root用户的密码不能为空，这时，我们的root是没有密码的，因此我们需要设置。
-
 win+R，输入services.msc，打开服务，找到MySQL服务，关闭它。
-
 进入mysql安装目录的bin文件夹，然后打开cmd，输入命令：
 mysqld --defaults-file="D:\Program Files\Mysql\mysql-5.7.20-winx64\my.ini" --console --skip-grant-tables
-
 这是打开mysql的安全模式。（这个cmd别关）
-
 另外进入mysql安装目录的bin文件夹,再打开一个cmd，输入命令：
 mysql -u root -p
-
 此时cmd显示Enter password：
-
 直接敲Enter键，成功进入mysql
-
 输入sql语句如下：
-
 use mysql;　　显示Database changed
-
 update user set authentication_string=password("mysql") where user="root";　　显示：Query OK,1 rows affected(0.01 sec) Rows matched:1 Changed:1 Warnings:1
-
 flush privileges;　　显示：Query OK,0 rows affected (0.00 sec)
-
 quit
-
 完成，这样就把root用户的密码设置为mysql了。 
 ```
 

@@ -1,5 +1,127 @@
 # datetime
 
+datetime是date和time的结合体，包括date和time的所有信息
+
+最大最小年份
+
+```
+datetime.MINYEAR是1
+datetime.MAXYEAR是9999
+```
+
+datetime定义了5个类
+
+```
+datetime.date	# 日期的类
+datetime.time  # 时间的类
+datetime.datetime  # 日期时间
+datetime.timedelta  # 时间间隔
+datetime.tzinfo  # 与时区有关的相关信息
+```
+
+引用
+
+```
+import datetime
+```
+
+## datetime.date
+
+表示一个日期，由年、月、日组成 
+
+- 构造函数
+
+```python
+date(year,month,day)
+# 接收年、月、日三个参数，返回一个date对象
+```
+
+- 属性
+
+```python
+year,month,day
+# 返回date对象的年、月、日
+```
+
+- 方法
+
+```python
+timetuple()
+# 返回一个time的时间格式对象，等价time.localtime()
+
+today()
+# 返回当前日期date对象。等价于 fromtimestamp(time.time())
+
+toordinal()
+# 返回公元公历开始到现在的天数。公元1年1月1日为1
+
+weekday()
+# 返回星期几。0(星期一)到9(星期日)
+```
+
+## datetime.time
+
+表示时间，由时、分、秒及微秒组成 
+
+- 构造函数
+
+```python
+class datetime.time(hour[,minute[,second[,microsecond[,tzinfo]]]])
+# hour的范围[0,24),minute的范围[0,60),second的范围[0,60),microsecond的范围[0,1000000)
+```
+
+- 属性
+
+```python
+hour,minute,second,microsecond
+# time对象的小时，分钟，秒，毫秒数
+```
+
+- 方法
+
+```python
+dst()
+# 返回时区信息的描述。如果实例是没有txinfo参数测返回空
+
+isoformat()
+# 返回HH:MM:SS[.mmmmmm][+HH:MM]格式字符串
+```
+
+## datetime.datetime
+
+- 构造函数
+
+```
+datetime(year,month,day[,hour[,minute[,second[,microsecond[,tzinfo]]]]])
+```
+
+- 方法
+
+```python
+today()
+# 返回一个表示当前本地时间的datetime对象
+now([tz])
+# 返回当前日期和时间的datetime对象,tz指定时区
+utcnow()
+# 返回当前utc时间的datetime对象
+fromtimestamp(timestamp[,tz])
+# 根据时间戳数值，返回一个datetime对象,tz指定时区
+utcfromtimestamp(timestamp)
+# 根据时间戳数值，返回一个datetime对象
+strptime(date_string, format)
+# 将格式字符串转换为datetime对象
+strftime(format)
+# 将格式字符串转换为datetime对象
+combine()
+# 根据给定date,time对象合并后，返回一个对应值的datetime对象
+ctime()
+# 返回ctime格式的字符串
+date()
+# 返回具有相同year、month、day的date对象
+```
+
+# 示例
+
 ## 获取当前的日期和时间
 
 ```

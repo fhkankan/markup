@@ -189,9 +189,9 @@ $(document).ready(function(){
 子元素.prependTo(父元素) //当前元素放置到另一元素的内部的前面
 
 // 外部插入
-后元素.after(前元素)  //当前元素的后面放入另一个元素
+前元素.after(后元素)  //当前元素的后面放入另一个元素
 后元素.insertafter(前元素) //当前元素放置到另一元素的后面
-前元素.before(后元素) //当前元素的前面放入另一个元素
+后元素.before(前元素) //当前元素的前面放入另一个元素
 前元素.insertbefore(后元素) //当前元素放置到另一元素的前面
 ````
 
@@ -691,8 +691,13 @@ $.ajax({
 - load
 
 ```javascript
-# 从服务器加载数据，并把返回的数据放入被选元素中。
-$(selector).load(URL,data,callback)
+# 从服务器加载数据，并把返回的数据放入被选元素中
+$(selector).load(URL[,data][,callback])
+# 参数
+URl:string,请求HTML页面的URL地址
+data:Objec,发送至服务器的key/value数据,无参是get，有参转为post
+callback:Function,请求完成时的回调函数，无论请求成功或失败
+
 # eg
 $("button").click(function(){
   $("#div1").load("demo_test.txt",function(responseTxt,statusTxt,xhr){
@@ -708,7 +713,13 @@ $("button").click(function(){
 
 ```javascript
 # 通过 HTTP GET 请求从服务器上请求数据。
-$.get(URL,callback)
+$.get(URL[,data][,callback][,type])
+# 参数
+URL:string,请求的HTML页面的URL地址
+data:object,发送至服务器的key/value数据会作为QueryString附加到请求URL中
+callback:Function,载入成功时回调函数(只有当Response的返回状态是success才调用该方法)自动将请求结果和状态传递给该方法
+type:string,服务器端返回内容的样式，包括xml、html、script、json、text和_default
+
 # eg
 $("button").click(function(){
   $.get("demo_test.asp",function(data,status){
