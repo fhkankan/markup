@@ -61,7 +61,7 @@ with request.urlopen(req) as f:
 ...
 ```
 
-### Post
+## Post
 
 如果要以POST发送一个请求，只需要把参数`data`以bytes形式传入。
 
@@ -113,7 +113,7 @@ Data: {"retcode":20000000,"msg":"","data":{...,"uid":"1658384301"}}
 Data: {"retcode":50011015,"msg":"\u7528\u6237\u540d\u6216\u5bc6\u7801\u9519\u8bef","data":{"username":"example@python.org","errline":536}}
 ```
 
-### Handler
+## Handler
 
 如果还需要更复杂的控制，比如通过一个Proxy去访问网站，我们需要利用`ProxyHandler`来处理，示例代码如下：
 
