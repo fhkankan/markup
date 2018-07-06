@@ -82,8 +82,6 @@ brew services start mongodb
 redis-server /usr/local/etc/mongodb.conf
 ```
 
-
-
 ## 客户端
 
 - 客户端命令为 **mongo**，可以通过help查看所有参数。

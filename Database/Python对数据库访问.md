@@ -1,14 +1,18 @@
 # MySQL
 
-##数据库驱动
+## 与python交互
 
+### 数据库驱动
+
+```
 数据库驱动是用于连接 MySQL 服务器，可以执行sql语句的发送，执行结果的获取
 
 ORM是将模型类的操作转换为sql语句，将数据库执行的结果转换为模型类对象
 
 在mysql数据库的使用中，若使用ORM，ORM只识别mysqldb作为数据库驱动名
+```
 
-- PyMySQL是个人维护的第三方库，支持python2.x和python3.x.
+> PyMySQL是个人维护的第三方库，支持python2.x和python3.x.
 
 ```
 # 在ORM（Django,sqlalchemy,flask-sqlalchemy）中使用时需执行如下语句
@@ -16,21 +20,19 @@ import pymysql
 pymsql.install_as_mysqldb()
 ```
 
-- MySQL-Python是mysql官方维护的库，只支持python2
+> MySQL-Python是mysql官方维护的库，只支持python2
 
 ```
 # 官方的库，安装后，ORM自动识别为mysqldb,直接使用
 ```
 
-- mysql-client，支持python2和python3
+> mysql-client，支持python2和python3
 
 ```
 替代mysql-python,
 ```
 
-
-
-**安装驱动**
+安装驱动
 
 ```
 pip install PyMySQL
@@ -38,7 +40,7 @@ pip install MySQL-Python
 pip install mysqlclient
 ```
 
-## 数据库交互
+### 数据库交互
 
 - 引入模块
 
@@ -51,9 +53,8 @@ from pymysql import *
 
 用于建立与数据库的连接
 
-创建对象：调用connect()方法
-
 ```
+# 创建对象
 conn=connect(参数列表)
 
 参数host：连接的mysql主机，如果本机是'localhost'
@@ -67,44 +68,47 @@ conn=connect(参数列表)
 对象的方法
 
 ```
-close()			关闭连接
-
-commit()		提交
-
-cursor()		返回Cursor对象，用于执行sql语句并获得结果
+# 关闭连接
+close()			
+# 提交
+commit()		
+# 返回Cursor对象，用于执行sql语句并获得结果
+cursor()		
 ```
 
 - Cursor对象
 
 用于执行sql语句，使用频度最高的语句为select、insert、update、delete
 
-获取Cursor对象：调用Connection对象的cursor()方法
-
 ```
+# 获取Cursor对象
 cs1=conn.cursor()
 ```
 
 对象方法
 
 ```
-close()关闭
-
-execute(operation [, parameters ])执行语句，返回受影响的行数，主要用于执行insert、update、delete语句，也可以执行create、alter、drop等语句
-
-fetchone()执行查询语句时，获取查询结果集的第一个行数据，返回一个元组
-
-fetchall()执行查询时，获取结果集的所有行，一行构成一个元组，再将这些元组装入一个元组返回
+close()
+# 关闭
+execute(operation [, parameters ])
+# 执行语句，返回受影响的行数，主要用于执行insert、update、delete语句，也可以执行create、alter、drop等语句
+fetchone()
+# 执行查询语句时，获取查询结果集的第一个行数据，返回一个元组
+fetchall()
+# 执行查询时，获取结果集的所有行，一行构成一个元组，再将这些元组装入一个元组返回
 ```
 
 对象的属性
 
 ```
-rowcount只读属性，表示最近一次execute()执行后受影响的行数
+rowcount
+# 只读属性，表示最近一次execute()执行后受影响的行数
 
-connection获得当前连接对象
+connection
+# 获得当前连接对象
 ```
 
-## 参数化
+### 参数化
 
 - sql语句的参数化，可以有效防止sql注入
 - 注意：此处不同于python的字符串格式化，全部使用%s占位
@@ -154,11 +158,9 @@ if __name__ == '__main__':
     main()
 ```
 
+### 综合实例
 
-
-##实例
-
-### 数据库连接
+数据库连接
 
 ```
 import pymysql
@@ -181,7 +183,7 @@ print ("Database version : %s " % data)
 db.close()
 ```
 
-###创建数据库表
+创建数据库表
 
 ```
 import pymysql
@@ -209,7 +211,7 @@ cursor.execute(sql)
 db.close()
 ```
 
-### 数据库插入
+数据库插入
 
 ```
 import pymysql
@@ -237,7 +239,7 @@ except:
 db.close()
 ```
 
-###数据库查询
+数据库查询
 
 - **etchone():** 该方法获取下一个查询结果集。结果集是一个对象
 - **fetchall():** 接收全部的返回结果行.
@@ -276,7 +278,7 @@ except:
 db.close()
 ```
 
-### 数据库更新
+数据库更新
 
 ```
 import pymysql
@@ -302,7 +304,7 @@ except:
 db.close()
 ```
 
-### 删除操作
+删除操作
 
 ```
 import pymysql
@@ -326,6 +328,54 @@ except:
  
 # 关闭连接
 db.close()
+```
+
+## 与Django框架交互
+
+在框架中，使用默认的ORM
+
+### 配置
+
+```
+1、手动生成mysql数据库
+mysql –uroot –p 
+show databases;
+create database db_django01 charset=utf8;
+
+2、在Django中配置mysql
+1)、修改setting.py中的DATABASES
+	# Project01/setting.py
+DATABASES = {
+    'default': {
+        # 'ENGINE': 'django.db.backends.sqlite3',
+        # 'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+
+        # 配置mysql数据库
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': "db_django01",
+        'USER': "root",
+        'PASSWORD': "mysql",
+        'HOST': "localhost",
+        'PORT': 3306,
+    }
+}
+
+2)、在python虚拟环境下安装mysqlPython包:
+pip install mysql-python 	# python2
+pip install pymysql			# python3
+
+3)、导入mysql包
+在项目或应用的__init__.py中，
+import pymysql
+pymysql.install_as_MySQLdb()
+
+4)、重新生成数据库表
+删除掉应用名/migrations目录下所有的迁移文件
+重新执行：
+python manage.py makemigrations
+python manage.py migrate
+
+5)确认是否已经生成了对应的数据库表
 ```
 
 # Redis
@@ -614,10 +664,11 @@ if __name__=="__main__":
 - 安装python包
 
 ```
-sudo pip install pymongo
+pip install mongoengine
+pip install pymongo
 ```
 
-- 操作
+## 与python操作
 
 ```
 from pymongo import *
@@ -649,7 +700,7 @@ delete_many：删除多条文档对象
 # 结合for...in...遍历cursor对象
 ```
 
-## 增加
+### 增加
 
 - 创建mongodb_insert1.py文件，增加一条文档对象
 
@@ -694,7 +745,7 @@ except Exception,e:
     print e
 ```
 
-## 查询
+### 查询
 
 - 创建mongodb_find1.py文件，查询一条文档对象
 
@@ -729,7 +780,7 @@ except Exception,e:
     print e
 ```
 
-## 修改
+### 修改
 
 - 创建mongodb_update1.py文件，修改一条文档对象
 
@@ -763,7 +814,7 @@ except Exception,e:
     print e
 ```
 
-## 删除
+### 删除
 
 - 创建mongodb_delete1.py文件，删除一条文档对象
 
@@ -797,3 +848,50 @@ try:
 except Exception,e:
     print e
 ```
+
+## 与Django框架交互
+
+### 配置
+
+方法一：
+
+```
+# settings.py
+DBNAME = 'mymongo'
+
+# models.py文件
+from mongoengine import *
+from .settings import DBNAME
+connect(DBNAME)
+class Post(Document):
+	...
+```
+
+方法二
+
+```
+# settings.py
+INSTALLED_APPS =[
+    'mongoengine',
+]
+MONGODB_DATABSES = {
+    "default":{
+        "name": "test",
+        "host": '127.0.0.1',
+        "tz_aware": True,  # 时区
+    }
+}
+DATABASES= {
+    'default':{
+        'ENGINE': 'django.db.backends.dumpy'
+    }
+}
+from mongine import connect
+connect('test', host='127.0.0.1')
+
+# modules.py
+from mongoengine import Document
+class Peom(Document):
+	...
+```
+
