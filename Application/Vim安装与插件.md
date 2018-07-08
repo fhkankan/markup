@@ -504,8 +504,6 @@ let g:indentLine_setConceal = 0
 let g:indentLine_enabled = 0
 ```
 
-
-
 ## Autoformat
 
 一键格式化代码
