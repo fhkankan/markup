@@ -139,5 +139,22 @@ wb.save('E:\\Code\\Python\\mini.xls')
 print '创建excel文件完成！'
 ```
 
+## 合并单元格
+
+处理excel表格的时候经常遇到合并单元格的情况，使用xlrd中的merged_cells的方法可以获取当前文档中的所有合并单元格的位置信息。
+
+```
+import xlrd
+
+xls = xlrd.open_workbook('test.xls')
+# 读取excel并读取第一页的内容
+sh = xls.sheet_by_index(0)
+# merged_cells返回的是一个列表，每一个元素是合并单元格的位置信息的数组，数组包含四个元素（起始行，结束行，起始列，结束列）
+or crange in sh.merged_cells:
+    rs, re, cs, ce = crange
+# 计算合并的单元格
+(rs, cs) : (re - rs, ce - cs) 
+```
+
 
 

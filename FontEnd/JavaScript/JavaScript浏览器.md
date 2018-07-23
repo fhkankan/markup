@@ -1062,6 +1062,240 @@ var p = document.querySelector("p");
 p.setAttribute("style", "font-style:italic; font-size:xx-small;");
 ```
 
+## 事件
+
+### 事件概述
+
+事件是一些可以通过脚本响应的页面动作。事件处理是一段JavaScript代码，总是与页面中的特定部分以及一定的事件相关联。当页面特定部分关联的时间发生时，事件处理器就会被调用。
+
+### 事件注册
+
+```
+// 方法一:内联注册,HTML中
+<div id="div2" onclick="someAction()">
+
+// 方法二：将事件处理程序分配给DOM元素的事件属性，JavaScript中
+var div = document.getElementById("div2");
+div.onclick = someAciton;
+
+// 方法三：早期版本用attachEvent()
+div.addEventListener("click", someAction);
+
+```
+
+方法一：违反了关注点分离，每个元素的每个事件只能注册单个事件处理程序
+
+方法二：每个元素的每个事件只能注册单个事件处理程序，若注册第二个，则覆盖
+
+方法三：允许为同一事件分配多个事件处理程序
+
+### 事件传播
+
+向下传播事件被称为捕获阶段，向上传播事件被称为冒泡阶段
+
+addEventListener()方法支持传入第三个参数，可用来指定是否要监听捕获事件或冒泡事，若为True,则监听捕获事件；False/忽略,则监听冒泡事件
+
+其他注册方法，只能用来注册冒泡事件
+
+若只是想知道某个按钮是否被单击，则是否监听捕获或冒泡事件并不重要。然而若有多个事件处理程序分配给了不同的元素，箭筒这两个事件就非常有用
+
+事件处理程序可以连续执行；在调用下一个处理程序之前，当前处理程序必须完成。如果在同一个元素上分配了多个事件处理程序，则按照事件注册顺序连续执行
+
+### 删除注册事件
+
+对于addEventListener()/attachEvent()，由于可将多个事件处理程序分配给单个元素，为了正确删除，需要制定注册时间处理程序中所使用的所有相同信息(注册事件的元素，事件类型，注册的处理程序函数，表示是否在捕获阶段或冒泡阶段注册的标志)
+
+```
+function removeHandlers(){
+    var div = document.getElementById("div2");
+    div.removeEventListener("click", someAction, false)
+}
+
+```
+
+若attachEvent()，则使用detachEvent()方法删除，类似removeEventListener，无捕获/冒泡标志
+
+若其他注册方法，`div.onclick = null;`
+
+### 事件接口
+
+- 常用事件属性
+
+通过声明一个函数参数，事件处理程序就可以访问事件对象。虽参数任意取，常用e
+
+```
+fucntion someAction(e){
+	// 事件类型
+    console.log(e.type);
+    // 触发事件的元素
+    console.log(e.target);
+    // 注册事件处理程序的元素
+    console.log(e.currentTarget);
+}
+
+```
+
+- 取消事件
+
+修改事件的处理方式，可在事件对象上调用如下方法
+
+```
+stopPropagation()	//停止事件传播
+stopImmediatePropagation()	// 停止传播，阻止当前元素上的任何其他处理程序执行
+preventDefault()	//禁用默认动作
+
+```
+
+### 事件对象
+
+在IE中，事件对象是window对象的一个属性event，且event对象只能在事件发生时被访问，所有事件处理完，该对象就消失了。而标准DOM中规定event必须作为唯一的参数传给时间处理函数，为兼容，常采用以下方法
+
+```
+function someHandle(event){
+    if(window.event){
+        event = window.event
+    }
+}
+
+```
+
+在IE中，事件的对象包含在event的srcElement属性中，而在标准的DOM浏览器中，对象包含在target属性中。为处理兼容性，采用如下方法
+
+```
+function handle(oEvent){
+    if(window.event)
+        oEvent = window.event;	//处理兼容性，获得事件对象
+    var oTarget;
+    if(oEvent.srcElement)		//处理兼容性，获得事件目标
+        oTarget = oEvent.target;
+    else
+    	oTarget = oEvent.target;
+    alert(oTarget.tagName)		//弹出目标的标记名称
+}
+window.onload = function(){
+    var oImg = documnet.getElementByTagName("img")[0];
+    oImg.onclick = handle;
+}
+
+```
+
+### JS常用事件
+
+| 分类     | 事件               | 说明                                                         |
+| -------- | ------------------ | ------------------------------------------------------------ |
+| 鼠标事件 | onclick            | 鼠标单击触发                                                 |
+|          | ondbclick          | 鼠标双击触发                                                 |
+|          | onmousedown        | 按下鼠标触发                                                 |
+|          | onmouseup          | 鼠标按下松开后触发                                           |
+|          | onmouseover        | 鼠标移动到某对象范围的上方时触发                             |
+|          | onmousemove        | 鼠标移动时触发                                               |
+|          | onmouseout         | 鼠标离开某对象范围时触发                                     |
+| 键盘事件 | onkeypress         | 键盘上某键被按下且释放时触发                                 |
+|          | onkeydown          | 键盘上某键被按下时触发                                       |
+|          | onkeyup            | 键盘上某键被按下后松开时触发                                 |
+| 页面相关 | onabort            | 图片在下载时被用户中断时触发                                 |
+|          | onbeforeunload     | 当前页面的内容将要被改变时触发                               |
+|          | onerror            | 出现错误时触发                                               |
+|          | onload             | 页面内容完成时触发(页面加载)                                 |
+|          | onresize           | 当浏览器的窗口大小被改变时触发                               |
+|          | onunload           | 当前页面将被改变时触发                                       |
+| 表单相关 | onblur             | 当前元素失去焦点时触发                                       |
+|          | onchange           | 当前元素失去焦点且元素的内容发生改变时触发                   |
+|          | onfocus            | 当某个元素获得焦点时触发                                     |
+|          | onreset            | 当表单中RESET的属性被激活时触发                              |
+|          | onsubmit           | 一个表单被提交时触发                                         |
+| 滚动字幕 | onbounce           | 当Marquee内的内容移动至Marquee显示范围之外时触发             |
+|          | onfinish           | 当Marquee元素完成需要显示的内容后触发                        |
+|          | onstart            | 当Marquee元素开始显示内容时触发                              |
+| 编辑事件 | onbeforecopy       | 当页面当前被选择内容将要复制到浏览者系统剪贴板时触发         |
+|          | onbeforecut        | 当页面中的部分或全部内容被剪切到浏览者系统剪贴板时触发       |
+|          | onbeforeeditfocus  | 当前元素将要进入编辑状态时触发                               |
+|          | onbeforepaste      | 将内容要从浏览者的系统剪贴板中粘贴到页面上时触发             |
+|          | onbeforeupdate     | 当浏览者粘贴系统剪贴板中内容时通知目标对象                   |
+|          | oncontextmenu      | 当浏览者按下鼠标右键出现菜单时或者通过键盘的按键触发页面菜单时触发 |
+|          | oncopy             | 当页面当前的被选择内容被复制后触发事件                       |
+|          | concut             | 当页面当前的被选择内容被剪切后触发事件                       |
+|          | ondrag             | 当某个对象被拖动时触发(活动事件)                             |
+|          | ondragend          | 当鼠标拖动结束时触发                                         |
+|          | ondragenter        | 当对象被鼠标拖动进入其容器范围内时触发                       |
+|          | ondragleave        | 当对象被鼠标拖动离开其容器范围内时触发                       |
+|          | ondragover         | 当被拖动的对象在另一对象容器范围内拖动时触发                 |
+|          | ondragstart        | 当某对象将被拖动时触发                                       |
+|          | ondrop             | 在一个拖动过程中，释放鼠标键时触发                           |
+|          | onlosecapture      | 当元素失去鼠标移动所形成的选择焦点时触发                     |
+|          | onpaste            | 当内容被粘贴时触发此事件                                     |
+|          | onselect           | 当文本内容被选择时触发                                       |
+|          | onselectstart      | 当文本内容的选择将开始发生时触发                             |
+| 数据绑定 | onafterupdate      | 当数据完成由数据源到对象的传送时触发                         |
+|          | oncellchange       | 当数据来源发生变化时触发                                     |
+|          | ondataavailable    | 当数据接收完成时触发                                         |
+|          | ondatasetchanged   | 数据在数据发生变化时触发                                     |
+|          | ondatasetcomplete  | 当数据源的全部有效数据读取完毕时触发                         |
+|          | onerrorupdate      | 当使用onBeforeUpdate时间触发取消了数据传送时，代替onAfterUpdate事件 |
+|          | onrowwnter         | 当前数据源的数据发生变化并且有新的有效数据时触发             |
+|          | onrowexit          | 当前数据源的数据将要发生变化时触发                           |
+|          | onrowsdelete       | 当前数据记录将被删除时触发                                   |
+|          | onrowsinserted     | 当前数据源将要插入新数据记录时触发                           |
+| 外部事件 | onafterprint       | 当文档被打印后触发                                           |
+|          | onbeforeprint      | 当文档即将被打印时触发                                       |
+|          | onfilterchange     | 当某个对象的滤镜效果发生变化时触发                           |
+|          | onhelp             | 当浏览者按下F1或浏览器的帮助菜单时触发                       |
+|          | onpropertychange   | 当对象的属性之一发生变化时触发                               |
+|          | onreadystatechange | 当对象的初始化属性值发生变化时触发                           |
+
+### 键盘的键码值
+
+```
+# 字幕和数字键
+a(A)~z(Z)		65~90
+0~9				48~57
+
+# 数字键盘上
+0~9				96~105
+*				106
++				107
+Enter			108
+-				109
+.				110
+/				111
+F1~F12			112~123
+
+# 控制键
+Back Space		8
+Tab				9
+Clear			12
+Enter			13
+Shift			16
+Control			17
+Alt				18
+Cape Lock		20
+Esc				27
+Spacebar		32
+Page Up			33
+Page Down		34
+End				35
+Home			36
+Left Arrow		37
+Up Arrow		38
+Right Arror		39
+Down Arror		40
+Insert			45
+Delete			46
+Num Lock		144
+;:				186
+=+				187
+,<				188
+-_				189
+.>				190
+/?				191
+`~				192
+[{				219
+\|				220
+]}				221
+'"				222
+
+```
+
 
 
 

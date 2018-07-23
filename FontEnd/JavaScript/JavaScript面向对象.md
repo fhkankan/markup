@@ -1,6 +1,6 @@
 [TOC]
 
-# JavaScript2
+# JavaScript面向对象
 
 ## 对象概述
 
@@ -41,38 +41,94 @@ JavaScript中将一些常用的功能预先定义成对象，用户可以直接�
 浏览器根据系统当前配置和所载入的页面为JavaScript提供的一些对象，如document,window对象等。
 ```
 
-### 上下文
-
-关键字this指的是单个对象。
+### this关键字
 
 在一个函数中，this指向调用该函数的对象；在一个带有属性和方法的典型对象中，若函数使用了this，则this指向包含该函数的对象
 
-```javascript
-var myObject = {
-    color: "Red",
-    count: 5,
-    log: fucntion(){
-        console.log("Quantity:" + this.count + ", Color:" + this.color);
-    }
-};
+> 绑定的一般方式
+
+由方法如何被调用所决定的，而非函数定义所决定
+
+```
+const o = {
+    name: "LiLei",
+    speak(){
+        return 'My name is ${this.name}!';
+    },
+}
+o.speak();//"My name is LiLei!"
+
+// 改变调用
+const speak = o.speak;
+speak();//"My name is !",this绑定到了undefied
+
 ```
 
-call()函数允许调用一个函数并指定this值
+在嵌套函数中使用经常出错。
 
-```javascript
-fucntion Vehicle(weight, cost){
-    this.weight = weight;
-    this.cost = cost;
+```
+const o = {
+	name: "LiLei",
+	speak:function(){
+       function hello(){
+           return this.name
+       };
+       return hello()
+	},
+};
+o.speak(); //""
+
+//解决方法是给this赋另一个变量
+const o = {
+	name: "LiLei",
+	speak:function(){
+       const self = this;
+       function hello(){
+           return self.name
+       };
+       return hello()
+	},
+};
+o.speak(); //LiLei
+
+//ES6中使用箭头函数也可以解决
+const o = {
+	name: "LiLei",
+	speak:function(){
+       const hello = () => {
+           return this.name
+       };
+       return hello()
+	},
+};
+o.speak(); //LiLei
+
+```
+
+> 指定绑定值
+
+```
+const bruce = {name: "Bruce"}
+const alice = {name: "Alice"}
+function update(birthYear){
+    this.birthYear = birthYear
 }
+```
 
-function Truck(weight, cost, axles, length){
-    Vehicle.call(this, weight, cost)
-    this.axles = axles;
-    this.length = length;
-}
+call
 
-var tonka = new Truck(5, 25, 3, 15);
-console.log(tonka);
+```
+update.call(bruce, 1949)//bruce是{name: "Bruce", birthYear: 1949}
+update.call(alice, 1969)//alice是{name: "Alice", birthYear: 1969}
+```
+
+apply
+
+适用于将数组作为参数
+
+```
+update.apply(bruce,[1949])//bruce是{name: "Bruce", birthYear: 1949}
+update.apply(alice,[1969])//alice是{name: "Alice", birthYear: 1969}
 ```
 
 ### 命名空间
@@ -509,16 +565,34 @@ arr.outLast();
 |        | unshift()        | 向数组的开头添加一个或多个元素，并返回新的长度               | arrayObject.unshift(newelement,...)           |
 | 删除   | pop()            | 删除并返回数组的最后一个元素                                 | arrayObject.pop()                             |
 |        | shift()          | 删除并返回数组的第一个元素                                   | arrayObject.shift()                           |
-|        | splice()         | 删除元素，并向数组添加新元素                                 | arrayObject.splice(start,length,element1,...) |
+| 删增   | splice()         | 在任意位置删除元素，并向数组添加新元素                       | arrayObject.splice(start,length,element1,...) |
 | 排序   | reverse()        | 颠倒数组中元素的顺序                                         | arrayObject.reverse()                         |
 |        | sort()           | 对数组元素进行排序                                           | arrayObject.sort(sortby)                      |
 | 子元素 | slice()          | 从某个已有的数组返回选定的元素                               | arrayObject.slice(start, end)                 |
 | 转换   | toSource()       | 代表对象的源代码                                             |                                               |
 |        | toString()       | 把数组转换为字符串，并返回结果                               | arrayObject.toString()                        |
 |        | toLocaleString() | 把数组转换为本地字符串，并返回结果                           | arrayObject.toLocaleString()                  |
-|        | join()           | 把数组的所有元素放入一个字符串，元素通过指定的分隔符进行分隔 | arrayObject.join(separator)                   |
+|        | join()           | 把数组的所有元素放入一个字符串，元素通过指定的分隔符进行分隔，返回数组的拷贝 | arrayObject.join(separator)                   |
 | 搜索   | valueOf()        | 返回数组对象的原始值                                         |                                               |
-|        | indexOf()        | 返回数组中第一次出现值得索引，若无则返回-1                   | arrayObject.indexOf(值)                       |
+|        | indexOf()        | 返回数组中第一次出现值得索引，若无则返回-1                   | arrayObject.indexOf(值,[startIndex])          |
+
+ES6新增内容
+
+|          | 方法             | 说明                                                         | 语法                                                         |
+| -------- | ---------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| 分割替换 | copyWith()       | 对数组内分割和替换                                           | arrayObject.copyWith<br>(targetIndex,startCopyIndex,endCopyIndex) |
+| 填充     | fill()           | 指定值填充                                                   | arrayObject.fill(element,startIndex,endIndex)                |
+| 查找     | lastIndexOf()    | 从数组末尾开始查找，返回完全匹配的第一个元素的下标           | arrayObject.lastIndexOf(值,[startIndex])                     |
+|          | findIndex()      | 从数组开始，可以查找数组元素是否符合函数,返回下标，无则返回-1 | const arr=[{id:5,name:"Lilei"},{id:7,name:"Alice"}]<br>arr.findIndex(o=>o.id==5) |
+|          | findeLastIndex() | 从数组末尾开始，可以查找数组元素是否符合函数，返回下标,无则返回-1 | arr.findeLastIndex(o=>o.id==7)                               |
+|          | find()           | 从数组开始，可以查找数组元素是否符合函数，返回数组元素,无则返回null | arr.find(o=>o.id==6)                                         |
+|          | some()           | 元素是否存在，存在则true,否则false                           | const arr=[5,6,7]<br>arr.some(x=>x%2==0)                     |
+|          | every()          | 所有元素都符合条件，true,否则false                           | arr.every(x=>x%2!=0)                                         |
+| 转化     | map()            | 转换数组中的所有元素，返回数组的拷贝                         | const items=["a","b"]<br>const numbers=[1,2]<br>const arr=items.map((x,i)=>({name:x,price:numbers[i]})) |
+|          | filter()         | 根据给定条件查找数组元素，返回数组的拷贝                     | cosnt arr=[1,2,3,4]<br>const items=arr.filter(x=>x%2==0)     |
+|          | reduce()         | 把整个数组转化为另一种数组类型，返回数组的拷贝               | const arr=[5,6,7]<br>const sum = arr.reduce((a,x)=>a+=x,0)<br>//a的初始值指定为0,可缺省，默认为0 |
+
+
 
 ### String
 
@@ -580,227 +654,444 @@ str.getLength;
 3、将数字字符串转化为小数：parseFloat(字符串)
 4、字符串反转：字符串.split('').reverse().join('')
 ```
-## 事件概述
+### Maps
 
-事件是一些可以通过脚本响应的页面动作。事件处理是一段JavaScript代码，总是与页面中的特定部分以及一定的事件相关联。当页面特定部分关联的时间发生时，事件处理器就会被调用。
-
-### 事件注册
+ES6之前，若要把键和值映射起来，需要用对象，但存在如下问题
 
 ```
-// 方法一:内联注册,HTML中
-<div id="div2" onclick="someAction()">
-
-// 方法二：将事件处理程序分配给DOM元素的事件属性，JavaScript中
-var div = document.getElementById("div2");
-div.onclick = someAciton;
-
-// 方法三：早期版本用attachEvent()
-div.addEventListener("click", someAction);
+对象原型中可能存在不需要的映射
+不清楚对象中有多少映射
+由于键必须是字符串或符号，无法把对象映射到值
+对象不能保证自身属性的顺序
 ```
 
-方法一：违反了关注点分离，每个元素的每个事件只能注册单个事件处理程序
-
-方法二：每个元素的每个事件只能注册单个事件处理程序，若注册第二个，则覆盖
-
-方法三：允许为同一事件分配多个事件处理程序
-
-### 事件传播
-
-向下传播事件被称为捕获阶段，向上传播事件被称为冒泡阶段
-
-addEventListener()方法支持传入第三个参数，可用来指定是否要监听捕获事件或冒泡事，若为True,则监听捕获事件；False/忽略,则监听冒泡事件
-
-其他注册方法，只能用来注册冒泡事件
-
-若只是想知道某个按钮是否被单击，则是否监听捕获或冒泡事件并不重要。然而若有多个事件处理程序分配给了不同的元素，箭筒这两个事件就非常有用
-
-事件处理程序可以连续执行；在调用下一个处理程序之前，当前处理程序必须完成。如果在同一个元素上分配了多个事件处理程序，则按照事件注册顺序连续执行
-
-### 删除注册事件
-
-对于addEventListener()/attachEvent()，由于可将多个事件处理程序分配给单个元素，为了正确删除，需要制定注册时间处理程序中所使用的所有相同信息(注册事件的元素，事件类型，注册的处理程序函数，表示是否在捕获阶段或冒泡阶段注册的标志)
+ES6之后，Maps对象接解决了这些问题
 
 ```
-function removeHandlers(){
-    var div = document.getElementById("div2");
-    div.removeEventListener("click", someAction, false)
+// 将user对象映射到role
+const u1 = {name:"a"};
+const u2 = {name:"b"};
+// 映射方法一
+const userRoles = new Map();
+userRoles.set(u1, "User");
+userRoles.set(u2, "Admin")
+// 映射方法二
+const userRoles = new Map(
+	[
+        [u1, "User"],
+        [u2, "Admin"],
+	]
+)
+```
+
+使用
+
+```
+//设定角色
+userRoles.set(u1,"Admin")
+// 获取角色
+userRoles.get(u1)
+// 判断是否包含key
+userRoles.has(u4)
+// map中元素个数
+userRoles.size;
+// 删除某个
+userRoles.delete(u1);
+// 删除所有
+userRoles.clear()
+// 遍历
+userRoles.keys() //所有键
+userRoles.values() //所有值
+userRoles.entries()//以数组形式或额所有键值对
+```
+
+### Weak maps
+
+与maps本质上相同,除了
+
+```
+key必须是对象
+WeakMap中的key可以被垃圾回收
+WeakMap不能迭代或者清空
+```
+
+常用来存放私有key
+
+```
+// 创建
+const SecretHolder = (fucntion(){
+    const secrets = new WeakMap();
+    return class {
+    	// 赋值
+        setSecret(secret){
+            secrets.set(this, secret);
+        }
+        // 取值
+        getSecret(){
+            return secrets.get(this);
+        }
+    }
+})();
+
+// 使用
+cosnt a = new SecretHolder();
+cosnt b = new SecretHolder();
+a.setSecret('secret A')
+b.setSecret('secret B')
+a.getSecret();
+b.getSecret();
+```
+
+### Sets
+
+ES6之后增加了集合,存放不重复的数据
+
+```
+// 创建
+cosnt roles = new Set();
+// 添加，当重复时，不操作
+roles.add("User")
+// 个数
+roles.size;
+// 删除某个值
+roles.delete("Admin")
+```
+
+## 类
+
+### 创建类
+
+ES5创建类
+
+```
+// 构造函数
+function Car(make, model){
+    this.make = make;
+    this.model = model;
+    this._userGears = ['P','N','R','D'];
+    this._userGear = this._userGears[0];
 }
 ```
 
-若attachEvent()，则使用detachEvent()方法删除，类似removeEventListener，无捕获/冒泡标志
-
-若其他注册方法，`div.onclick = null;`
-
-### 事件接口
-
-- 常用事件属性
-
-通过声明一个函数参数，事件处理程序就可以访问事件对象。虽参数任意取，常用e
+ES6引入创建类的语法
 
 ```
-fucntion someAction(e){
-	// 事件类型
-    console.log(e.type);
-    // 触发事件的元素
-    console.log(e.target);
-    // 注册事件处理程序的元素
-    console.log(e.currentTarget);
+// 创建类
+class Car{
+	// 构造器
+    constructor(make, model){
+		this.make = make;//车牌号
+		this.model = model;//型号
+		this.userGears = ['P','N','R','D'];//档位
+		this.userGear = this.userGears[0];//当前档位
+	}
+	// 方法
+	shift(gear){
+        if(this.userGears.isindexOf(gear)<0)
+        	throw new Error('Invalid gear:${gear}');
+        this.userGear = gear;
+	}
+}
+
+// 创建类的实例
+const car1 = new Car("Tesla", "Model S");
+const car2 = new Car("Mazda", "3i");
+// 调用方法
+car1.shift('D');//this跟car1绑定
+car1.shift('R');//this跟car2绑定
+// 调用属性
+car1.userGear
+car2.userGear
+```
+
+**注意**
+
+ES5和ES6对类的实现底层相同，都是需要创建一个函数充当类的构造方法。
+
+```
+class Es6Car()
+fucntion ES5Car()
+>typeOf Es6Car //function
+>typeOf Es5Car //function
+```
+
+### 动态属性
+
+Car中的shift函数能防止选择一个无效档位。但是可以直接赋值car1.userGear ="X"
+
+动态属性可以具有属性的语义，但同时可以向方法一样被调用
+
+```
+class Car{
+	// 构造器
+    constructor(make, model){
+		this.make = make;//车牌号
+		this.model = model;//型号
+		this._userGears = ['P','N','R','D'];//档位
+		this._userGear = this._userGears[0];//当前档位
+	}
+	get userGear(){ return this._userGear; }
+	set userGear(value){
+        if(this._userGears.indexOf(value) < 0){
+        	throw new Error('Invalid gear: $(value));
+			};
+		this._userGear = value;
+	}
+	// 方法
+	shift(gear){ this.userGear = gear; }
 }
 ```
 
-- 取消事件
+以上只是采用了约定俗成的做法，告诉哪些代码访问了被保护的属性，并没有屏蔽直接car1._userGear = "X"
 
-修改事件的处理方式，可在事件对象上调用如下方法
-
-```
-stopPropagation()	//停止事件传播
-stopImmediatePropagation()	// 停止传播，阻止当前元素上的任何其他处理程序执行
-preventDefault()	//禁用默认动作
-```
-
-### 事件对象
-
-在IE中，事件对象是window对象的一个属性event，且event对象只能在事件发生时被访问，所有事件处理完，该对象就消失了。而标准DOM中规定event必须作为唯一的参数传给时间处理函数，为兼容，常采用以下方法
+若要强制私有化，则使用WeakMap实例
 
 ```
-function someHandle(event){
-    if(window.event){
-        event = window.event
+const Car = (
+	function(){
+		// 使用即时调用函数表达式将WeakMap()隐藏至闭包中，阻止外界访问。
+		// 这个WeakMap可以安全地存储任何不想被Car类外部访问的属性
+        const carProps = new WeakMap();
+        class Car{
+			// 构造器
+    		constructor(make, model){
+				this.make = make;//车牌号
+				this.model = model;//型号
+				this._userGears = ['P','N','R','D'];//档位
+				carProps.set(this, {userGear:this._userGears[0]});//当前档位
+			}
+			get userGear(){ return carProps.get(this).userGear;}
+			set userGear(value){
+        		if(this._userGears.indexOf(value) < 0){
+        			throw new Error('Invalid gear: $(value));
+				};
+				carProps.get(this).userGear = value;
+				}
+			// 方法
+			shift(gear){ this.userGear = gear; }
+		}
+	return Car;
+	}
+)();
+```
+
+### 原型
+
+在类的实例中，当引用一个方法时，实际上是在引用原型方法
+
+```
+使用#描述原型方法。Car.prototype.shift 可表示为Car#shift
+```
+
+每个函数都有一个叫做prototype的特殊属性。一般的函数不需要使用原型。
+
+当使用关键字new创建一个新的实例时，新创建的对象可以访问其构造器的原型对象。对象实例会将它存储在自己的`__proto__`属性中
+
+当试图访问对象的某个属性或方法时，若它不存在于当前对象中，js会检查它是否在对象原型中。因为同一个类的所有实例共用同一个原型，若原型中存在某个属性或方法，则该类的所有实例都可以访问这个属性或方法。
+
+在实例中定义的方法或属性会覆盖掉原型中的定义。JS的检查顺序是先实例后原型，若原型中有，则不再检查原型
+
+### 静态方法
+
+实例方法只针对每个具体的实例才有用。
+
+静态方法(类方法)，不与实例绑定。在静态方法中，this绑定类本身，但通常使用类名代替this
+
+惊天方法通常用来执行一些与类相关的任务，而非具体的实例相关
+
+```
+calss Car{
+	// 静态方法
+    static getNextVin(){
+        return Car.nextVin++;// 也可this.nextVin++
+    }
+    // 构造器
+    constructor(make, model){
+        this.make = make;
+        this.model = model;
+        this.vin = Car.getNextVin();//车辆识别码
+    }
+    static areSimilar(car1, car2){
+        return car1.make===car2.make && car1.model===car2.model;
+    }
+    static areSame(car1, car2){
+        return car1.vin===car2.vin;
+    }
+}
+Car.nextVin = 0;
+
+cosnt car1 = new Car("Tesla", "S");
+cosnt car2 = new Car("Mazda", "3");
+cosnt car3 = new Car("Mazda", "3");
+
+car1.vin; //0
+car2.vin; //1
+car3.vin; //2
+
+Car.areSimilar(car1, car2); // false
+Car.areSimilar(car2, car3); // true
+Car.areSame(car2, car3); // false
+Car.areSame(car2, car2); // true
+```
+
+### 对象属性
+
+- 枚举
+
+```
+class Super{
+    constructot(){
+        this.name = 'Super';
+        this.isSuper = true;
+    }
+}
+// 合法，但不建议
+Super.prototype.sneaky = 'not recomended!'
+class Sub extends Super{
+    constructor(){
+        super();
+        this.name = 'Sub';
+        this.isSub = true;
+    }
+}
+const obj = new Sub();
+
+for(let p in obj){
+    console.log('${p}:${obj[p]}'+
+    	(obj.hasOwnProperty(p) ? '' : '(inherited)')
+    );
+}
+```
+
+运行之后
+
+```
+name:Sub
+isSuper:true
+isSub:true
+sneaky: not recomended! (inherited)
+```
+
+name, isSuper,isSub都被定义在实例中，而不在原型链中。sneaky被手动添加到父类的原型中
+
+Objects.key只包含了原型中定义的属性
+
+- 字符串表示
+
+由于每个对象都继承于Object,有共用方法toString()，默认返回`[object][object]`
+
+调试时，添加一个英语返回对象的描述信息的toString()很有用
+
+```
+class Car{
+    toString(){
+        return '${this.make} ${this.model} ${this.vin}';
     }
 }
 ```
 
-在IE中，事件的对象包含在event的srcElement属性中，而在标准的DOM浏览器中，对象包含在target属性中。为处理兼容性，采用如下方法
+
+
+
+
+## 继承
+
+- 使用原型
+
+`javaScript`通过一种被称为原型继承的方法提供对继承的支持。这意味着一个原型可以拥有`prototype`属性，也可以拥有一个原型。称为原型链
+
+创建一个继承自Item的新对象`SpecialItem`：
+
+创建``SpecialItem()``构造函数
 
 ```
-function handle(oEvent){
-    if(window.event)
-        oEvent = window.event;	//处理兼容性，获得事件对象
-    var oTarget;
-    if(oEvent.srcElement)		//处理兼容性，获得事件目标
-        oTarget = oEvent.target;
-    else
-    	oTarget = oEvent.target;
-    alert(oTarget.tagName)		//弹出目标的标记名称
+function SpecialItem(name){
+    this.name = name;
+    this.deacribe = function(){
+        console.log(this.name + ": color=" + this.color);
+    }
 }
-window.onload = function(){
-    var oImg = documnet.getElementByTagName("img")[0];
-    oImg.onclick = handle;
+```
+
+为构建继承关系，设置prototype属性
+
+```
+SpecialItem.prototype = new Item();
+```
+
+指定其他属性
+
+```
+function SpecialItem(name, color, count){
+	Item.call(this, color, count);
+    this.name = name;
+    this.deacribe = function(){
+        console.log(this.name + ": color=" + this.color);
+    }
 }
 ```
-### JS常用事件
 
-| 分类     | 事件               | 说明                                                         |
-| -------- | ------------------ | ------------------------------------------------------------ |
-| 鼠标事件 | onclick            | 鼠标单击触发                                                 |
-|          | ondbclick          | 鼠标双击触发                                                 |
-|          | onmousedown        | 按下鼠标触发                                                 |
-|          | onmouseup          | 鼠标按下松开后触发                                           |
-|          | onmouseover        | 鼠标移动到某对象范围的上方时触发                             |
-|          | onmousemove        | 鼠标移动时触发                                               |
-|          | onmouseout         | 鼠标离开某对象范围时触发                                     |
-| 键盘事件 | onkeypress         | 键盘上某键被按下且释放时触发                                 |
-|          | onkeydown          | 键盘上某键被按下时触发                                       |
-|          | onkeyup            | 键盘上某键被按下后松开时触发                                 |
-| 页面相关 | onabort            | 图片在下载时被用户中断时触发                                 |
-|          | onbeforeunload     | 当前页面的内容将要被改变时触发                               |
-|          | onerror            | 出现错误时触发                                               |
-|          | onload             | 页面内容完成时触发(页面加载)                                 |
-|          | onresize           | 当浏览器的窗口大小被改变时触发                               |
-|          | onunload           | 当前页面将被改变时触发                                       |
-| 表单相关 | onblur             | 当前元素失去焦点时触发                                       |
-|          | onchange           | 当前元素失去焦点且元素的内容发生改变时触发                   |
-|          | onfocus            | 当某个元素获得焦点时触发                                     |
-|          | onreset            | 当表单中RESET的属性被激活时触发                              |
-|          | onsubmit           | 一个表单被提交时触发                                         |
-| 滚动字幕 | onbounce           | 当Marquee内的内容移动至Marquee显示范围之外时触发             |
-|          | onfinish           | 当Marquee元素完成需要显示的内容后触发                        |
-|          | onstart            | 当Marquee元素开始显示内容时触发                              |
-| 编辑事件 | onbeforecopy       | 当页面当前被选择内容将要复制到浏览者系统剪贴板时触发         |
-|          | onbeforecut        | 当页面中的部分或全部内容被剪切到浏览者系统剪贴板时触发       |
-|          | onbeforeeditfocus  | 当前元素将要进入编辑状态时触发                               |
-|          | onbeforepaste      | 将内容要从浏览者的系统剪贴板中粘贴到页面上时触发             |
-|          | onbeforeupdate     | 当浏览者粘贴系统剪贴板中内容时通知目标对象                   |
-|          | oncontextmenu      | 当浏览者按下鼠标右键出现菜单时或者通过键盘的按键触发页面菜单时触发 |
-|          | oncopy             | 当页面当前的被选择内容被复制后触发事件                       |
-|          | concut             | 当页面当前的被选择内容被剪切后触发事件                       |
-|          | ondrag             | 当某个对象被拖动时触发(活动事件)                             |
-|          | ondragend          | 当鼠标拖动结束时触发                                         |
-|          | ondragenter        | 当对象被鼠标拖动进入其容器范围内时触发                       |
-|          | ondragleave        | 当对象被鼠标拖动离开其容器范围内时触发                       |
-|          | ondragover         | 当被拖动的对象在另一对象容器范围内拖动时触发                 |
-|          | ondragstart        | 当某对象将被拖动时触发                                       |
-|          | ondrop             | 在一个拖动过程中，释放鼠标键时触发                           |
-|          | onlosecapture      | 当元素失去鼠标移动所形成的选择焦点时触发                     |
-|          | onpaste            | 当内容被粘贴时触发此事件                                     |
-|          | onselect           | 当文本内容被选择时触发                                       |
-|          | onselectstart      | 当文本内容的选择将开始发生时触发                             |
-| 数据绑定 | onafterupdate      | 当数据完成由数据源到对象的传送时触发                         |
-|          | oncellchange       | 当数据来源发生变化时触发                                     |
-|          | ondataavailable    | 当数据接收完成时触发                                         |
-|          | ondatasetchanged   | 数据在数据发生变化时触发                                     |
-|          | ondatasetcomplete  | 当数据源的全部有效数据读取完毕时触发                         |
-|          | onerrorupdate      | 当使用onBeforeUpdate时间触发取消了数据传送时，代替onAfterUpdate事件 |
-|          | onrowwnter         | 当前数据源的数据发生变化并且有新的有效数据时触发             |
-|          | onrowexit          | 当前数据源的数据将要发生变化时触发                           |
-|          | onrowsdelete       | 当前数据记录将被删除时触发                                   |
-|          | onrowsinserted     | 当前数据源将要插入新数据记录时触发                           |
-| 外部事件 | onafterprint       | 当文档被打印后触发                                           |
-|          | onbeforeprint      | 当文档即将被打印时触发                                       |
-|          | onfilterchange     | 当某个对象的滤镜效果发生变化时触发                           |
-|          | onhelp             | 当浏览者按下F1或浏览器的帮助菜单时触发                       |
-|          | onpropertychange   | 当对象的属性之一发生变化时触发                               |
-|          | onreadystatechange | 当对象的初始化属性值发生变化时触发                           |
-
-### 键盘的键码值
+创建对象
 
 ```
-# 字幕和数字键
-a(A)~z(Z)		65~90
-0~9				48~57
-
-# 数字键盘上
-0~9				96~105
-*				106
-+				107
-Enter			108
--				109
-.				110
-/				111
-F1~F12			112~123
-
-# 控制键
-Back Space		8
-Tab				9
-Clear			12
-Enter			13
-Shift			16
-Control			17
-Alt				18
-Cape Lock		20
-Esc				27
-Spacebar		32
-Page Up			33
-Page Down		34
-End				35
-Home			36
-Left Arrow		37
-Up Arrow		38
-Right Arror		39
-Down Arror		40
-Insert			45
-Delete			46
-Num Lock		144
-;:				186
-=+				187
-,<				188
--_				189
-.>				190
-/?				191
-`~				192
-[{				219
-\|				220
-]}				221
-'"				222
+var special = new SpecialItem("Widget", "Purple", 4);
+special.log();
+special.describe();
+special.log(special);
 ```
+
+- 使用Create
+
+更改2构建继承关系
+
+```
+SpecialItem.prototype = Object.create(Item.prototype);
+SpecialItem.prototype.constructor = SpecialIem;
+```
+
+- 使用类关键字
+
+```
+class Item{
+    constructor(color, count){
+        this.color = color;
+        this.count = count;
+        this.log = function(){
+            console.log(this.name + ": color=" + this.color);
+        };
+    }
+}
+
+// extends 表示左边继承右边
+class SpecialItem extends Item{
+    constructor(name, color, count){
+    	// 调用父类构造器
+        super(color, count);
+        this.name = name;
+        this.describe = function(){
+            console.log(this.name + ": color=" + this.color);
+        }
+    }
+}
+
+```
+
+为了保证两种方法解决方案的一致性，增加
+
+```
+Item.prototype.isAvailable = true;
+Item.prototype.add = function(n){this.count += n;};
+```
+
+## 多态
+
+一个实例不仅仅是它自身类的实例，也是它的任何父类的实例。在JS中，所编写的代码是“鸭子”类型。
+
+js中的所有对象都是基类Object的实例。
+
+```
+// 使用instanceof运算符判断对象是否属于某个给定类。
+```
+
+
 
