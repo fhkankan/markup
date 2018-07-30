@@ -990,38 +990,410 @@ class Car{
 }
 ```
 
-
-
-
-
 ## 继承
 
-- 使用原型
+父类
+
+```
+// 定义一个动物类
+function Animal (name) {
+  // 属性
+  this.name = name || 'Animal';
+  // 实例方法
+  this.sleep = function(){
+    console.log(this.name + '正在睡觉！');
+  }
+}
+// 原型方法
+Animal.prototype.eat = function(food) {
+  console.log(this.name + '正在吃：' + food);
+};
+```
+
+### 原型链继承
+
+**核心：** 将父类的实例作为子类的原型
+
+```
+function Cat(){ 
+}
+Cat.prototype = new Animal();
+Cat.prototype.name = 'cat';
+
+//　Test Code
+var cat = new Cat();
+console.log(cat.name);
+console.log(cat.eat('fish'));
+console.log(cat.sleep());
+console.log(cat instanceof Animal); //true 
+console.log(cat instanceof Cat); //true
+```
+
+优缺点
+
+```
+特点：
+非常纯粹的继承关系，实例是子类的实例，也是父类的实例
+父类新增原型方法/原型属性，子类都能访问到
+简单，易于实现
+
+缺点：
+要想为子类新增属性和方法，必须要在new Animal()这样的语句之后执行，不能放到构造器中
+无法实现多继承
+来自原型对象的引用属性是所有实例共享的（详细请看附录代码： 示例1）
+创建子类实例时，无法向父类构造函数传参
+
+推荐指数：★★（3、4两大致命缺陷）
+```
+
+### 构造继承
+
+**核心：**使用父类的构造函数来增强子类实例，等于是复制父类的实例属性给子类（没用到原型）
+
+ ```
+function Cat(name){
+  Animal.call(this);
+  this.name = name || 'Tom';
+}
+
+// Test Code
+var cat = new Cat();
+console.log(cat.name);
+console.log(cat.sleep());
+console.log(cat instanceof Animal); // false
+console.log(cat instanceof Cat); // true
+ ```
+
+优缺点
+
+```
+特点：
+解决了1中，子类实例共享父类引用属性的问题
+创建子类实例时，可以向父类传递参数
+可以实现多继承（call多个父类对象）
+
+缺点：
+实例并不是父类的实例，只是子类的实例
+只能继承父类的实例属性和方法，不能继承原型属性/方法
+无法实现函数复用，每个子类都有父类实例函数的副本，影响性能
+
+推荐指数：★★（缺点3）
+```
+
+### 实例继承
+
+**核心：**为父类实例添加新特性，作为子类实例返回
+
+```
+function Cat(name){
+  var instance = new Animal();
+  instance.name = name || 'Tom';
+  return instance;
+}
+
+// Test Code
+var cat = new Cat();
+console.log(cat.name);
+console.log(cat.sleep());
+console.log(cat instanceof Animal); // true
+console.log(cat instanceof Cat); // false
+```
+
+优缺点
+
+```
+特点：
+不限制调用方式，不管是new 子类()还是子类(),返回的对象具有相同的效果
+
+缺点：
+实例是父类的实例，不是子类的实例
+不支持多继承
+
+推荐指数：★★
+```
+
+### 拷贝继承
+
+```
+function Cat(name){
+  var animal = new Animal();
+  for(var p in animal){
+    Cat.prototype[p] = animal[p];
+  }
+  Cat.prototype.name = name || 'Tom';
+}
+
+// Test Code
+var cat = new Cat();
+console.log(cat.name);
+console.log(cat.sleep());
+console.log(cat instanceof Animal); // false
+console.log(cat instanceof Cat); // true
+```
+
+优缺点
+
+```
+特点：
+支持多继承
+
+缺点：
+效率较低，内存占用高（因为要拷贝父类的属性）
+无法获取父类不可枚举的方法（不可枚举方法，不能使用for in 访问到）
+
+推荐指数：★（缺点1)
+```
+
+### 组合继承
+
+**核心：**通过调用父类构造，继承父类的属性并保留传参的优点，然后通过将父类实例作为子类原型，实现函数复用
+
+```
+function Cat(name){
+  Animal.call(this);
+  this.name = name || 'Tom';
+}
+Cat.prototype = new Animal();
+
+// 感谢 @学无止境c 的提醒，组合继承也是需要修复构造函数指向的。
+
+Cat.prototype.constructor = Cat;
+
+// Test Code
+var cat = new Cat();
+console.log(cat.name);
+console.log(cat.sleep());
+console.log(cat instanceof Animal); // true
+console.log(cat instanceof Cat); // true
+```
+
+优缺点
+
+```
+特点：
+弥补了方式2的缺陷，可以继承实例属性/方法，也可以继承原型属性/方法
+既是子类的实例，也是父类的实例
+不存在引用属性共享问题
+可传参
+函数可复用
+
+缺点：
+调用了两次父类构造函数，生成了两份实例（子类实例将子类原型上的那份屏蔽了）
+
+推荐指数：★★★★（仅仅多消耗了一点内存
+```
+
+### 寄生组合继承
+
+**核心：**通过寄生方式，砍掉父类的实例属性，这样，在调用两次父类的构造的时候，就不会初始化两次实例方法/属性，避免的组合继承的缺点
+
+```
+function Cat(name){
+  Animal.call(this);
+  this.name = name || 'Tom';
+}
+(function(){
+  // 创建一个没有实例方法的类
+  var Super = function(){};
+  Super.prototype = Animal.prototype;
+  //将实例作为子类的原型
+  Cat.prototype = new Super();
+})();
+
+// Test Code
+var cat = new Cat();
+console.log(cat.name);
+console.log(cat.sleep());
+console.log(cat instanceof Animal); // true
+console.log(cat instanceof Cat); //true
+
+感谢 @bluedrink 提醒，该实现没有修复constructor。
+
+Cat.prototype.constructor = Cat; // 需要修复下构造函数
+```
+
+优缺点
+
+```
+特点：
+堪称完美
+
+缺点：
+实现较为复杂
+
+推荐指数：★★★★（实现复杂，扣掉一颗星）
+```
+
+
+
+
+
+### 原型链
+
+基本思想是利用原型让一个引用类型继承另一个引用类型的属性和方法。 
+
+```
+function SuperType(){
+    this.property=true;
+}
+SuperType.prototype.getSuperValue=function(){
+    return this.property;
+};
+function SubType(){
+    this.subproperty=false;
+}
+//继承了SuperType
+SubType.prototype=new SuperType();
+SubType.prototype.getSubValue=function(){
+    return this.subproperty;
+};
+var instance=new SubType();
+alert(instance.getSuperValue); //true
+```
+
+### 构造函数
+
+基本思想是在子类型构造函数的内部调用超类型构造函数。函数只不过是在特定环境中执行代码的对象，因此通过使用apply()和call()方法也可以在（将来）新创建的对象上执行构造函数，如下所示：
+
+```
+function SuperType(){
+    this.colors=["red","blue","green"];
+}
+function SubType(){
+    //继承了SuperType
+    SuperType.call(this);
+}
+
+var instance1=new SubType();
+instance1.colors.push("black");
+alert(instance1.colors); //"red,blue,green,black"
+
+var instance2=new SubType();
+alert(instance2.colors); //"red,blue,green"
+```
+
+### 组合继承
+
+组合继承，有时候也叫伪经典继承，指的是将原型链和借用构造函数的技术组合到一起，从而发挥二者之长的一种继承模式。其背后的思路是使用原型链实现对原型属性和方法的继承，而通过借用构造函数来实现对实例属性的继承。这样，既通过在原型上定义方法实现了函数复用，又能够保证每个实例都有它自己的属性。
+
+```
+function SuperType(name){
+    this.name=name;
+    this.colors=["red","blue","green"];
+}
+SuperType.prototype.sayName=function(){
+    alert(this.name);
+};
+function SubType(name,age){
+    //继承属性
+    SuperType.call(this,name);
+    this.age=age;
+}
+//继承方法
+SubType.prototype=new SuperType();
+SubType.prototype.constructor=SubType;
+SubType.prototype.sayAge=function(){
+    alert(this.age);
+};
+var instance1=new SubType("Nicholas",29);
+instance1.colors.push("black");
+alert(instance1.colors); //"red,blue,green,black"
+instance1.sayName(); //"Nicholas";
+instance1.sayAge(); //29
+
+var instance2=new SubType("Greg",27);
+alert(instance2.colors); //"red,blue,green"
+instance2.sayName(); //"Greg";
+instance2.sayAge(); //27
+```
+
+### 原型式
+
+借助原型可以基于已有的对象创建新对象，同时还不必因此创建自定义类型。（可以在不必预先定义构造函数的情况下实现继承，其本质是执行对给定对象的浅复制。而复制得到的副本还可以得到进一步改造。）
+
+```
+var person={
+    name:"Nicholas",
+    friends:["Shelby","Court","Van"]
+};
+var anotherPerson=object(person);
+anotherPerson.name="Greg";
+anotherPerson.friends.push("Rob");
+
+var yetAnotherPerson=object(person);
+yetAnotherPerson.name="Linda";
+yetAnotherPerson.friends.push("Barbie");
+
+alert(person.friends); //"Shelby,Court,Van,Rob,Barbie"
+```
+
+### 寄生式
+
+寄生式继承的思路与寄生构造函数和工厂模式类似，即创建一个仅用于封装继承过程的函数，该函数在内部以某种方式来增强对象，最后再像真的是它做了所有工作一样返回对象。（为了解决组合继承模式由于多次调用超类型构造函数而导致的低效率问题，可以将这个模式与组合继承一起使用。）
+
+```
+function creatAnother(original){
+    var clone=object(original); //通过调用函数创建一个个新对象
+    clone.sayHi=function(){ //以某种方式来增强这个对象
+        alert("hi");
+    };
+    return clone; //返回这个对象
+}
+```
+
+在这个例子中，creatAnother()函数接收了一个参数，也就是将要作为新对象基础的对象。然后，把这个对象（original）传递给object()函数，将返回的结果赋值给clone。再为clone对象添加一个新方法sayHi()，最后返回clone对象。可以像下面这样来使用creatAnother()函数：
+
+```
+var person={
+    name:"Nicholas",
+    friends:["Shelby","Court","Van"]
+};
+var anotherPerson=creatAnother(person);
+anotherPerson.sayHi(); //"hi"
+```
+
+使用寄生式继承来为对象添加函数，会由于不能做到函数复用而降低效率；这一点与构造函数模式类似。
+
+### 寄生组合式
+
+即通过借用构造函数来继承属性，通过原型链的混成形式来继承方法。其背后的基本思路是：不必为了指定子类型的原型而调用超类型的构造函数，我们所需要的无非就是超类型原型的一个副本而已。本质上，就是使用寄生式继承来继承超类型的原型，然后再将结果指定给子类型的原型。（集寄生式继承和组合继承的优点于一身，是实现基于类型继承的最有效方式。）寄生组合式继承的基本模式如下所示：
+
+```
+function inheritPrototype(subType,superType){
+    var prototype=Object(superType.prototype); //创建对象
+    prototype.constructor=subType; //增强对象
+    subType.prototype=prototype; //指定对象
+}
+```
+
+
+
+- 原型
 
 `javaScript`通过一种被称为原型继承的方法提供对继承的支持。这意味着一个原型可以拥有`prototype`属性，也可以拥有一个原型。称为原型链
 
-创建一个继承自Item的新对象`SpecialItem`：
-
-创建``SpecialItem()``构造函数
-
 ```
+// Item()类
+function Item(){
+    this.color = color;
+    this.count = count;
+    this.log = function(){
+    console.log(this.name + ": color=" + this.color);
+        };
+}
+
+// 创建SpecialItem()构造函数
 function SpecialItem(name){
     this.name = name;
     this.deacribe = function(){
         console.log(this.name + ": color=" + this.color);
     }
 }
-```
 
-为构建继承关系，设置prototype属性
-
-```
+// 为构建继承关系，设置prototype属性
 SpecialItem.prototype = new Item();
-```
 
-指定其他属性
-
-```
+// 指定其他属性
 function SpecialItem(name, color, count){
 	Item.call(this, color, count);
     this.name = name;
