@@ -614,6 +614,8 @@ for(变量 of 对象)
 
 ### 异常处理
 
+`try...catch`块只在同一个函数的作用域内才有效
+
 `try…catch…finally`
 
 ```
@@ -716,8 +718,6 @@ f(5) //"5-default-3"
 f(5,6,7)//"5-6-7"
 ```
 
-
-
 ### 调用
 
 > 函数提升
@@ -791,7 +791,7 @@ JavaScript解析过程分为两个阶段，先是编译阶段，然后执行阶�
 1.脚本一旦解析，函数就开始就执行
 2.函数不用命名。
 
-封闭函数的作用 
+封闭函数的作用
 封闭函数可以创造一个独立的空间，在封闭函数内定义的变量和函数不会影响外部同名的函数和变量，可以避免命名冲突，在页面上引入多个js文件时，用这种方式添加js文件比较安全
 
 # 创建封闭函数：
@@ -845,13 +845,504 @@ ES5的语法允许存在隐式全局变量。若忘记使用var声明某个变�
 
 ## 迭代器
 
+ES6引入了迭代器和生成器
+
+```
+# 数组就是迭代器
+const book = [
+    "红楼梦",
+    "三国演义",
+    "水浒传",
+    "西游记"
+]
+
+# 取值
+const it = book.values();
+it.next() // {value: "红楼梦", done: false}
+it.next() // {value: "三国演义", done: false}
+it.next() // {value: "水浒传", done: false}
+it.next() // {value: "西游记", done: false}
+it.next() // {value: undefined, done: true}
+```
+
+迭代协议
+
+```
+若一个类提供了一个符号方法Symbol.iterator,这个方法返回一个具有迭代行为的对象，那么这个类就是可迭代的。
+```
+
+斐波那契额数列
+
+```
+class FibonacciSeauence{
+    [Symbol.iterator](){
+		let a = 0, b = 1;
+		return {
+            next(){
+                let rval = {value:b,done:false};
+                b += a;
+                a = rval.value;
+                return rval;
+            }
+		}
+	}
+}
+```
+
+求第十个
+
+```
+const fib = new FibonacciSeauence();
+let i = 0;
+for(let n of fib ){
+    console.log(n);
+    if(++i > 9)
+    	break;
+}
+```
+
 ## 生成器
+
+ES6出现生成器。
+
+生成器提供了两种能力：
+
+```
+控制函数执行的能力，使函数能够分步执行；
+与执行函数对话的能力
+```
+
+生成器与一般函数的不同处
+
+```
+1.函数可以通过使用域(yield),在其运行的任意时刻将控制权交还给调用方；
+2.调用生成器时候，它并不是立即执行。而是会回到迭代器中。函数会在调用迭代器的next方法时执行。
+```
+
+在JavaScript中，生成器需要在function关键字后面加一个通配符(*)来指明
+
+```
+// 彩虹色彩的生成器
+function* rainbow(){
+    yield 'red;
+    yield 'orange';
+    yield 'yellow';
+    yield 'green';
+    yield 'blue';
+    yield 'indigo';
+    yield 'violet';
+}
+// 调用
+const it = rainbow();
+it.next(); // {value: "red", done: false}
+it.next(); // {value: "orange", done: false}
+it.next(); // {value: "yellow", done: false}
+it.next(); // {value: "green", done: false}
+it.next(); // {value: "blue", done: false}
+it.next(); // {value: "indigo", done: false}
+it.next(); // {value: "violet", done: false}
+it.next(); // {value: "undefined", done: true}
+// 循环遍历
+for (let color of rainbow()){
+    console.log(color)
+}
+```
+
+- 双向交流
+
+生成器与其调用者进行双向交流，是通过yield表达式实现。
+
+```
+function* interrogate(){
+    const name = yield "what is your name?";
+    const color = yield "what is your favorite color?";
+    return "${name}'s favorite color is $(color)";
+} 
+
+// 调用
+const it = interrogate();
+it.next() // {value: "what is your name?", done: false}
+it.next() // {value: "what is your favorite color?", done: false}
+it.next() // {value: "what is your favorite color?", done: false}
+it.next() // {value: undefined, done: true}
+// 或
+const it = interrogate();
+it.next(); // {value: "what is your name?", done: false}
+it.next('Li'); // {value: "what is your favorite color?", done: false}
+it.next('green'); // {value: "Li's favorite color is green", done: true}
+```
+
+- 返回值
+
+yield表达式本身不能让生成器结束，即使是生成器的最后一个语句。在生成器的任何位置调用return都会使done得值变为true，而value值则是任何被返回的值
+
+```
+function* abc(){
+    yield 'a';
+    yield 'b';
+    return 'c';
+}
+
+const it = abc();
+it.next(); // {value: 'a', done:false}
+it.next(); // {value: 'b', done:false}
+it.next(); // {value: 'c', done:true}
+
+// 使用for...of中，c不会出现
+// 使用生成器时，不在意done为true时的值
+for (let l of abc()){
+	console.log(l)
+}
+
+// 生成器中的return常常无返回值
+```
 
 ## 异步
 
+### 回调
+
+回调就是写一个函数，然后在未来的某个时刻调用它。通常，会把这些回调函数提供给别的函数，或者将它们的属性，一般来说，回调时匿名函数
+
+错误优先回调是个好习惯
+
+- 计时器
+
+```
+var timeoutID;
+// 创建计时器
+function delayedAlert() {
+  timeoutID = window.setTimeout(slowAlert, 2000);
+}
+// 延时执行函数
+function slowAlert() {
+  alert('That was really slow!');
+}
+//清除计时器
+function clearAlert() {
+  window.clearTimeout(timeoutID);
+}
+```
+
+循环执行函数
+
+```
+cosnt start = new Date();
+let i = 0;
+const intervalId = setInterval(function(){
+    let now = new Date();
+    if(now.getMinutes() !== start.getMinutes() || ++i>10)	{
+       return clearInterval(intervalId) 
+    }
+})
+```
+
+setTimeout,setInterval,clearTimeout,clearInterval都是定义在全局对象中(浏览器是window，node中是global)
+
+- scope和异步执行
+
+每当一个函数被调用，都创建了一个闭包：所有在函数内部创建的变量(包括形参)只在有被访问的时候才存在
+
+```
+function countdown(){
+    let i;// i在for循环外部，计时器执行了6次-1
+    console.log("Countdown:");
+    for(i=5; i>=0; i--){
+        setTimeout(function(){
+            console.log(i===0?"GO!":i);
+        }, (5-i)*1000)
+    }
+}
+countdown();
+
+function countdown(){
+    console.log("Countdown:");
+    for(let i=5; i>=0; i--){
+        setTimeout(function(){
+            console.log(i===0?"GO!":i);
+        }, (5-i)*1000)
+    }
+}
+countdown();
+```
+
+### promise
+
+promise是对象，可以被到处传递，若在异步进程中，需要把结果在别的地方被处理，可以直接把promise传递给它们
+
+- 创建
+
+```
+function countdown(seconds){
+	// 创建带有函数的promise实例，包含resolve和reject的回调
+    return new Promise(function(resolve, reject){
+        for (let i = seconds; i>=0; i--){
+            setTimeout(fucntion(){
+                if(i>0){
+                    cosnole.log(i + '...');
+                }
+                else{
+                    resolve(console.log("GO!"));
+                }
+            }, (seconds-i)*1000)
+        }
+    });
+}
+```
+
+- 使用promise
+
+```
+countdown(5).then(
+	// 满足的回调
+	function(){
+        console.log("countdown completed successfully");
+	},
+	// 错误的回调
+	function(err){
+		console.log("countdown experienced an error: " + err.message);
+	}
+)
+
+//catch，把两个处理器分开
+const p = countdown(5);
+p.then(function(){
+    console.log("countdown completed successfully");
+})
+p.catch(function(err){
+    console.log("countdown experienced an error: " + err.message);
+})
+```
+
+- 事件
+
+```
+const EventEmitter = require('events').EventEmitter;
+
+class Countdown extends EventEmitter{
+    constructor(seconds, superstitious){
+        super();
+        this.seconds = seconds;
+        this.superstitious = !!superstitious
+    }
+    go(){
+		const countdown = this;
+		const timeoutIds = [];
+		return new Promise(function(resolve, reject){
+            for(let i=countdown.seconds; i>=0; i--){
+                timeoutIds.push(setTimeout(function(){
+				if(countdown.superstitious && i === 13){
+                    // 清除所有pending的timeouts
+                    timeoutIds.forEach(clearTimeout);
+                    return reject(new Error('DEFINITELY NOT COUNTING THAT'));
+				}
+				countdown.emit('tick', i);
+				if(i === 0)resolve();
+				},(countdown.seconds-i)*1000));
+            }
+		});
+	}
+}
+```
+
+- promise链
+
+```
+funciton launch(){
+    return new Promise(function(resolve,reject){
+        console.log("Lift off!");
+        setTimeout(function(){
+            resolve("In orbit!");
+        }, 2*1000)
+    })
+}
+```
+
+链式调用
+
+```
+const c = new Countdown(5)
+	.on('tick', i => console.log(i + '...'));
+	
+c.go()
+	.then(launch)
+	.then(function(msg){
+        console.log(msg);
+	})
+	.catch(function(err){
+        console.error("Houston, we have a problem...")
+	})
+```
+
+- 避免不被处理的promise
+
+promise可以简化异步代码，同时确保回调函数不会被多次调用，但却不能避免那些应为promise没有被处理而产生的问题。
+
+处理方式：给promise设定一个特定的超时。若没有在一段合理的时间内被处理，就自动被拒绝。
+
+未被处理
+
+```
+funciton launch(){
+    return new Promise(function(resolve,reject){
+    	if(Math.random()<0.5) return; // rocket failure
+        console.log("Lift off!");
+        setTimeout(function(){
+            resolve("In orbit!");
+        }, 2*1000)
+    })
+}
+```
+
+添加超时
+
+```
+function addTimeout(fn, timeout){
+    if(timeout == undefined){
+        timeout = 1000;// 默认超时
+    }
+    return function(...args){
+        return new Promise(function(resolve, reject){
+            const tid = setTimeout(reject, timeout,
+            new Error("promise timed out"));
+        fn(...args)
+        	.then(function(...args){
+                clearTimeout(tid);
+                resolve(...args);
+        	})
+        	.catch(function(...args){
+                clearTimeout(tid);
+                reject(...args);
+        	});
+        });
+    }
+}
+```
+
+使用
+
+```
+c.go()
+	.then(addTImeout(launch, 4*1000))
+	.then(function(msg){
+        console.log(msg);
+	})
+	.catch(function(err){
+        console.error("Houston, we have a problem:" + err.message)
+	})
+```
 
 
 
+### 生成器
+
+生成器可以实现代码简洁，功能异步.
+
+1.找一个能将Node中错误优先的回调转换成promise的方法。会把它封装成一个叫做nfcall的函数(Node函数调用)
+
+```
+// 以Q promise库中的nfcall函数命名，若需要这个功能，应该使用Q这个库。
+function nfcall(f, ...args){
+    return new Promise(function(resolve, reject){
+        f.call(null, ...args, function(err, ...args){
+            if(err) return reject(err);
+            resolve(args.length<2?args[0]:args);
+        })
+    })
+}
+```
+
+2.将任何Node格式的方法转化为接受一个回调的promise。同时也需要setTimeout，可以接收一个回调。由于早于Node，不适用错误有限。这里创建ptimeout
+
+```
+function ptimeout(delay){
+    return new Promise(function(resolve, reject){
+        setTimeout(resolve, delay)
+    })
+}
+```
+
+3.生成运行器
+
+生成器并不天生异步，但由于生成器允许函数和其调用方对话，所以可以创建一个用来管理对话的函数，同时这个函数需要知道如何处理异步调用
+
+```
+function grun(g){
+    const it = g();
+    (function iterate(val){
+        const x = it.next(val);
+        if(!x.done){
+            if(x.value instanceof Promise){
+                x.value.then(iterate).catch(err => it.throw(err));
+            }
+            else{
+                setTimeout(iterate, 0, x.value)
+            }
+        }
+    })();
+}
+```
+
+4.实现
+
+```
+function* theFutureIsNow(){
+    const dataA = yield nfcall(fs.readFile, 'a.txt');
+    const dataB = yield nfcall(fs.readFile, 'b.txt');
+    const dataC = yield nfcall(fs.readFile, 'c.txt');
+    yield ptimeout(60*1000);
+    yield nfcall(fs.writeFile, 'd.txt', dataA+dataB+dataC)
+}
+```
+
+5.运行
+
+```
+grun(theFutureIsNow);
+```
+
+6.并行
+
+```
+function* theFutureIsNow(){
+	// 会在数组中所有promise都被解决后才被调用，可能会同时执行异步代码
+	// Promise.all返回的promise中会提供一个包含了所有被满足的promise值的数组，顺序跟数组中原来的promise顺序保持一致。
+    const data = yield Promise.all([
+        nfcall(fs.readFile, 'a.txt'),
+    	nfcall(fs.readFile, 'b.txt'),
+    	nfcall(fs.readFile, 'c.txt'),
+    ]) 
+    yield ptimeout(60*1000);
+    yield nfcall(fs.writeFile, 'd.txt', dataA+dataB+dataC)
+}
+```
+
+7.异常处理
+
+```
+function* theFutureIsNow(){
+	let data;
+	try{
+        data = yield Promise.all([
+        nfcall(fs.readFile, 'a.txt'),
+    	nfcall(fs.readFile, 'b.txt'),
+    	nfcall(fs.readFile, 'c.txt'),
+    	]) 
+	}
+	catch(err){
+		console.error("Unable to read one or more input files: " + err.message);
+		throw err;
+	}
+    yield ptimeout(60*1000);
+    try{
+       yield nfcall(fs.writeFile, 'd.txt', dataA+dataB+dataC) 
+    }
+    catch(err){
+        console.error("Unable to read one or more output file: " + err.message);
+		throw err;
+    }
+    
+}
+```
 
 
 

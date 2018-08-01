@@ -992,6 +992,10 @@ class Car{
 
 ## 继承
 
+ES5的继承，实质是先创造子类的实例对象`this`，然后再将父类的方法添加到`this`上面（`Parent.apply(this)`）。
+
+ES6的继承机制完全不同，实质是先创造父类的实例对象`this`（所以必须先调用`super`方法），然后再用子类的构造函数修改`this`
+
 父类
 
 ```
@@ -1263,12 +1267,6 @@ Jacky.books.push('<<Book C>>', '<<Book D>>');
 console.log(Jacky.getName(), Jacky.getBooks()); // Jacky <<Book C>>, <<Book D>>
 ```
 
-
-
-
-
-
-
 - 类构造继承
 
 ```
@@ -1314,9 +1312,11 @@ Author.prototype = (function() {
 })();
 ```
 
-
-
 - 使用类关键字
+
+对于ES5来说，原生构造函数无法继承，由于建立子类实例对象this后，无法获得父类实例对象，故无法继承。
+
+但是ES6是先创建父类实例对象this，再用子类的构造函数修饰this，使得父类的所有行为都可以继承
 
 ```
 class Item{

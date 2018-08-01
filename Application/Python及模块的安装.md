@@ -127,6 +127,18 @@ linux:
 修改 ~/.pip/pip.conf (没有就创建一个)， 内容如下：
 [global]
 index-url = https://pypi.tuna.tsinghua.edu.cn/simple
+[install]
+trusted-host=pypi.tuna.tsinghua.edu.cn
+
+[global]
+index-url = http://mirrors.aliyun.com/pypi/simple/
+[install]
+trusted-host=mirrors.aliyun.com
+
+[global]
+index-url = http://pypi.douban.com/simple
+[install]
+trusted-host=pypi.douban.com
 
 windows: 
 直接在user目录中创建一个pip目录，如：C:\Users\xx\pip，新建文件pip.ini，内容如下
@@ -282,9 +294,9 @@ pip3 install virtualenvwrapper-win
 ```python
 # Linux
 1、创建目录用来存放虚拟环境
-mkdir $HOME/.virtualenvs
+mkdir $HOME/.envs
 2、编辑主目录下面的.bashrc文件，添加下面两行。
-export WORKON_HOME=$HOME/.virtualenvs
+export WORKON_HOME=$HOME/.envs
 source /usr/local/bin/virtualenvwrapper.sh
 3、使用以下命令使配置立即生效
 source .bashrc

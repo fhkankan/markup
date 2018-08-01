@@ -59,3 +59,22 @@ defaults write com.apple.finder AppleShowAllFiles FALSE
 killall Finder
 ```
 
+## zsh
+
+切换zsh
+
+```
+# 查看支持的shell
+cat /etc/shells
+# 切换为zsh
+chsh -s /bin/zsh
+# 复原
+chsh -s /bin/bash
+```
+
+安装oh my zsh
+
+```
+curl -L https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh | sh
+```
+

@@ -382,7 +382,7 @@ windows:
 3、安装vundle
 
 ```
-# 在Vim/vimfiles路径下新建文件夹bundle，然后在此文件夹下克隆github上的vundel项目：
+# 在Vim/vimfiles路径下新建文件夹bundle，然后在此文件夹下克隆github上的vundle项目：
 git clone https://github.com/VundleVim/Vundle.vim.git Vundle.vim
 
 # 完成后会在bundle文件夹下看到Vundle.vim文件夹下的内容。

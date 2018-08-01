@@ -640,8 +640,6 @@ background-color 设置背景颜色
 background:url(bgimage.gif) left center no-repeat #00FF00
 ```
 
-
-
 ## 注释与颜色
 
 - 注释
