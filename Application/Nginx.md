@@ -216,9 +216,9 @@ server{
 | use                | 用于指示使用什么样的连接方式。会覆盖编译时的默认配置。若配置此指令，需要一个events区段。 |
 | worker_connections | 配置一个工作进程能够接受并发连接的最大数。这个连接包括客户连接和向上游服务器的连接，但并不限于此。对于反向代理服务器尤为重要，为达到这个并发性连接数量，需要在操作系统层面进行一些额外调整。 |
 
-### Http的server
+### Http的server部分
 
-> 客户端指令
+#### 客户端指令
 
 | http客户端指令               | 说明                                                         |
 | ---------------------------- | ------------------------------------------------------------ |
@@ -238,7 +238,7 @@ server{
 | msize_padding                | 为了填充响应的大小至512字节，对于MSIE客户端，大于400的状态码会被添加注释以便满足512字节，通过启用该命令可以阻止这种行为 |
 | msize_refresh                | 对于MSIE客户端，该指令可启用发送一个refresh头，而不是redirect |
 
-###文件I/O指令
+#### 文件I/O指令
 
 用于控制Nginx如何投递静态文件以及如何管理文件描述符
 
@@ -256,7 +256,7 @@ server{
 | sendfile                 | 使用sendfile(2)直接复制数据从一个到另一个文件描述符          |
 | sendfile_max_chunk       | 设置在一个sendfile(2)中复制最大数据的大小，阻止worker“贪婪”  |
 
-### Hash指令
+#### Hash指令
 
 控制Nginx分配给某些变量多大的静态内存。在启动和重新配置时，会计算需要的最小值。在Nginx发出警告时，只需要调整一个`*_hash_max_size`指令的参数值就可以达到效果。`*_hash_bucket_size`变量被设置了默认值，以便满足多处理器缓存行降低检索需要的检索查找。
 
@@ -269,7 +269,7 @@ server{
 | variables_hash_bucket_size    | 指定用于存储保留变量桶大小            |
 | variables_hash_max_size       | 指定存储保留变量最大散列值得大小      |
 
-### socket指令
+#### socket指令
 
 描述了如何设置创建TCP套接字的变量选项
 
@@ -296,7 +296,7 @@ listen port;
 listen unix:path;
 ```
 
-listen指令的参数
+#### listen指令
 
 | Listen指令的参数 | 说明                                                 | 注解                                                         |
 | ---------------- | ---------------------------------------------------- | ------------------------------------------------------------ |
@@ -467,6 +467,86 @@ server {
 > 多个上游服务器
 
 ```
+upstream app {
+    server 127.0.0.1:9000;
+    server 127.0.0.1:9001;
+    server 127.0.0.1:9002;
+}
+server {
+    location / {
+        proxy_pass http://app;
+    }
+}
+```
+
+> Memcached上游服务器
+
+与上游服务器通过HTTP进行通信时，使用proxy_pass指令。
+
+在保持活动链接部分，Nginx能够将请求代理到不同类型的上游服务器，有相应的*_pass指令。
+
+在Nginx中，memcached模块(默认开启)负责与memcached守护进程通信。因此，客户端和memcached守护进程间没有直接通信，在这种情况下，Nginx不是充当反向代理。memcached模块使得Nginx使用memecached协议回话。因此，key的查询能够在请求传递到应用程序服务器之前完成
 
 ```
+upstream memcaches{
+	server 10.0.100.10:11211;
+	server 10.0.100.20:11211;
+}
+server{
+	location / {
+		// memcached_pass使用$memcached_key实现key的查找。
+		set $memcached_key "$uri?$args";
+		memcached_pass memcaches;
+		// 若无响应值，则将请求传递到localhost
+		error_page 404 = @appserver;
+	}
+	location @appserver{
+        proxy_pass http://127.0.0.1:8080;
+	}
+}
+```
+
+> FastCGI上游服务器
+
+使用FastCGI服务器在Nginx服务器后运行PHP应用程序。fastcgi模块默认被编译，通过fastcgi_pass指令可激活该模块，之后Nginx可使用FastCGI协议同一个或者多个上游服务器进行会话
+
+```
+location /{
+    fastcgi_pass fastcgis;
+}
+
+upstream fastcgis {
+    server 10.0.200.10:9000;
+    server 10.0.200.20:9000;
+    server 10.0.200.30:9000;
+}
+```
+
+> SCGI上游服务器
+
+通过内建的scgi模块使用SCGI协议通信，通过scgi_pass指令与上游服务器通信。
+
+> uWSGI上游服务器
+
+Nginx通过uwsgi模块提供基于Python的上游服务器的链接，使用uwsgi_pass指令指定上游服务器。
+
+## HTTP服务器
+
+### 系统架构
+
+Nginx包含一个单一的master进程和多个worker进程。所有的进程都是单线程，并且设计为同时处理成千上万个连接。worker进程是处理连接的地方。Nginx使用了操作系统事件机制来快速响应这些请求。
+
+master进程负责读取配置文件，处理套接字、派生worker进程、打开日志文件和编译嵌入式的Per脚本。master进程是一个可以通过处理信号响应来管理请求的进程。
+
+worker进程运行在一个忙碌的事件循环处理中，用来处理进入的连接。每个Nginx模块被构筑在worker中，因此任何请求处理、过滤、处理代理的连接和更多的操作都在worker进程中完成。由于这种worker模型，操作系统可以单独处理每一个进程，并且调度处理程序最佳地运行在每一个处理器内核上。若有任何阻塞worker进程的进程，如磁盘I/O,则需配置的worker进程要多于CPU内核数，以便处理负载。
+
+还有少数辅助程序的Nginx的master进程用于处理专门的任务。在这些进程中有cache loader 和cache manager进程。cache loader进程负责worker进程使用缓存的元数据准备。cache manager进程负责检查缓存条目及有效期
+
+Nginx建立在一个模块化的方式之上。master进程提供了每个模块可以执行其功能的基础，每一个协议和处理程序作为自己的模块执行，各个模块连接在一起成为一个管道来处理连接和请求。在处理完成一个请求之后，交给一系列过滤器，在这些过滤器中响应会被处理。这些过滤器有的处理子请求，与的还Nginx的强大功能之一。
+
+子请求是Nginx根据客户端发送的不同URL返回的不同结果。这依赖于配置，可能会多重嵌套和调用其他的子请求。过滤器能够从多个子请求收集响应，并将它们组合成一个响应发送给客户端。然后，最终确定响应并将其发送到客户端。在这种方式下，可以让多个模块发挥作用。
+
+### 核心模块
+
+#### server指令
 

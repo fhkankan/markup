@@ -689,6 +689,21 @@ var 变量名 = new Function("参数1", "参数2", ... "函数体")
 
 ### 特殊参数
 
+ES5中默认参数
+
+```
+function defaultValue (val, defaultVal) {
+  return val === undefined ? defaultVal : val
+}
+
+function doSomething (name, age) {
+  name = defaultValue(name, 'default name')
+  age  = defaultValue(age , 18)
+
+  console.log(name, age)
+}
+```
+
 ES6中，新增了可变参数和默认参数
 
 > 可变参数

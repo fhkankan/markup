@@ -1225,6 +1225,8 @@ console.log(cat instanceof Cat); //true
 推荐指数：★★★★（实现复杂，扣掉一颗星）
 ```
 
+### 实际使用
+
 
 - 原型
 
@@ -1286,8 +1288,14 @@ function Author(name, books) {
 }
 
 //继承父类对应的方法
-Author.prototype = new Person(); //Author.prototype.constructor === Person
-Author.prototype.constructor = Author; //修正修改原型链时造成的constructor丢失
+function inherit(subClass, superClass){
+    function F() {}  
+    F.prototype = superClass.prototype;  
+    subClass.prototype = new F();  
+    subClass.prototype.constructor = subClass.constructor; //修正修改原型链时造成的constructor丢失
+}
+inherit(Author, Person)
+
 Author.prototype.getBooks = function() {
     return this.books;
 };
@@ -1300,16 +1308,6 @@ console.log(smith.getName()); //Smith
 console.log(jacky.getName()); //Jacky
 console.log(jacky.getBooks().join(', ')); //BookA, BookB
 console.log(smith.getBooks().join(', ')); //Uncaught TypeError: smith.getBooks is not a function
-```
-
-Author.prototype = new Person()可优化为
-
-```
-Author.prototype = (function() {
-    function F() {}
-    F.prototype = Person.prototype;
-    return new F();
-})();
 ```
 
 - 使用类关键字
