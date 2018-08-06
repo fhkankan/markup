@@ -550,3 +550,132 @@ Nginx建立在一个模块化的方式之上。master进程提供了每个模块
 
 #### server指令
 
+指令server开始了一个新的上下文，在Nginx中，默认服务器是指特定配置文件中监听同一IP地址、同一端口作为另一个服务器中的第一个服务器。默认服务器可以通过为listen指令配置default_server参数来实现
+
+默认服务器定义一组通用指令，监听在相同IP地址和端口的随后的服务器将会重复利用这些指令
+
+```
+server {
+    listen 127.0.0.1:80;
+    server_name default.example.com;
+    server_name_in_redirect on;
+}
+server {
+	liaten 127.0.0.1:80;
+	server_name www.example.com;
+}
+```
+
+服务器指令
+
+| HTTP Server指令         | 说明                                                         |
+| ----------------------- | ------------------------------------------------------------ |
+| Port_in_redirect        | 确定Nginx是否对端口指定重定向                                |
+| server                  | 该指令创建一个新的配置区段，定义一个虚拟主机。listen指令指定IP地址和端口号，server_name指令列举用于匹配的Host头值 |
+| server_name             | 配置用于响应请求的虚拟主机名称                               |
+| Server_name_in_redirect | 在该context中，对任何由Nginx发布的重定向，该指令都使用server_name指令中的第一个值来激活 |
+| Server_tokens           | 在错误信息中，该指令禁止发送Nginx的版本号和server响应头(默认值为on) |
+
+#### 日志
+
+配置文件的灭一个级别都可以有访问日志，在每一个级别上可以指定多个访问日志，每个日志用一个不同的log_format指令。log_format指令允许你明确指定记录要记在的内容，该指令需要在http部分内定义。
+
+```
+http{
+    log_format vhost '$host $remote_addr - $remote_user [$time_local]'
+    '"$request" $status $body_bytes_sent'
+    '"$http_referer" "$http_user_agent"';
+    
+    log_format downloads '$time_iso8601 $host $remote_addr'
+    '"$request" $status $body_bytes_sent $request_tiem';
+    
+    open_log_file_cache max=1000 inactive=60s;
+    access_log logs/access.log;
+   
+    server{
+        server_name ~^(www\.)?(.+)$;
+        access_log logs/combined.log vhost;
+        access_log logs/$2/accesslog;
+        location /downloads{
+            access_log logs/downloads.log downloads;
+        }
+    }
+}
+```
+
+日志指令
+
+| HTTP日志指令        | 说明                                                         |
+| ------------------- | ------------------------------------------------------------ |
+| Access_log          | 描述在哪里、怎么样写入访问日志。第一个参数是日志文件被存储位置的路径。在构建的路中可使用变量，特殊值off可以禁止记录访问日志。第二个可选参数用于指定log_format指令设定的日志格式。若未配置第二个参数，则试用预定义的combined格式。若写缓存用于记录日志，第三个可选参数则知名了写缓存的大小。若使用写缓存，则这个大小不能超过写文件系统的原子磁盘大小。若第三个参数是gzip，那么缓冲日志将会被动态压缩，在构建Nginx二进制时需要提供zlib库。最后一个采纳数时flush，表明在将缓冲日志数据冲洗到磁盘之前，它们能够在内存中停留的最大时间 |
+| log_format          | 指定出现在日志文件的字段和采用的格式。日志中指定日志变量参考下表 |
+| Log_not_found       | 禁止在错误日志中报告404错误(默认on)                          |
+| log_subrequest      | 在访问日志中启用记录子请求(默认off)                          |
+| Open_log_file_cache | 存储access_logs在路径中使用到的打开的变量文件描述符的缓存。用到如下参数：max:指定文件描述符在缓存中的最大数量<br>inactive:在文件描述符被关闭前，使用该参数表明Nginx将会等待一个时间间隔用于写入该日志<br>min_uses:使用该参数表明文件描述符被使用的次数，在inactive时间内达到指定的次数，该文件描述符将会被保持打开<br>valid:使用该参数表明Nginx将经常检查次文件描述符是否仍有同名文件匹配<br>off:该参数禁止缓存 |
+
+当指定了gzip后，则不可选用log_format参数
+
+```
+# 日志条目使用gzip压缩为4级，缓存默认64kb，至少每分钟都将缓存刷新到磁盘
+access_log /var/log/nginx/access.log.gz combined gzip=4 flush=1m;
+```
+
+日志格式变量名称
+
+| 日子格式变量名称     | 值                                                           |
+| -------------------- | ------------------------------------------------------------ |
+| $body_bytes_sent     | 指定发送到客户端的字节数，不包括响应头                       |
+| $bytes_sent          | 指定发送到客户端的字节数                                     |
+| $connection          | 指定一个串号，用于标识一个唯一的连接                         |
+| $connection_requests | 指定通过一个特定连接的请求数                                 |
+| $msec                | 指定以秒为单位的时间，毫秒级别                               |
+| $pipe *              | 指示请求是否是管道(p)                                        |
+| $request_length *    | 指定请求的长度，包括HTTP方法、URI、HTTP协议、头和请求体      |
+| $request_time        | 指定请你去的处理时间，毫秒级，从客户端接收到第一个字节到客户端接收完最后一个字节 |
+| $status              | 指定响应状态                                                 |
+| $time_iso8601 *      | 指定本地时间，ISO8601格式                                    |
+| $time_local *        | 指定本地时间普通日志格式(%d/%b/%y:%H:%M:%S %z)               |
+
+#### 查找文件
+
+Nginx为了响应一个请求，将请求传递给一个内容处理程序，有配置文件的location指令决定处理
+
+无条件内容处理程序首先被尝试:perl,proxy_pass,flv,mp4等,若这些处理程序不匹配，则按顺序传递给下列操作:random index,index,autoindex,gzip_static,static。
+
+处理以斜线结束请求的是indx处理程序。若gzip没有被激活，则static模块就会处理该请求.
+
+这些模块如何在问价那系统上找到适当的文件或目录则由某些指令组合来决定。
+
+root指令最好定义在一个默认的server指令内，或者至少在一个特定的location指令之外定义，以便它的有效接线为整个server
+
+```
+server{
+	// 任何被访问的文件都会在/home/customer/html目录中找到
+    root /home/customer/html;
+    location /{
+    	// 若只输入了域名部分，则提供index.html,无则index.htm
+        index index.html index.htm;
+        // 尝试查找其他文件，无则返回通用文件
+        try_files $uri/ backups$uri /generic-not-found.html;
+        // 检查被投递问价你的路径，如有包含链接的文件，则返回错误
+        disable_symlinks if_not_owner from=$document_root;
+    }
+    // 若输入了/downloads，则得到一个HTML格式的目录列表
+    location /downloads{
+        autoindex on;
+    }
+    // 若是文件不存在，则返回404
+}
+```
+
+http文件路径指令
+
+| HTTP文件路径指令 | 说明                                                         |
+| ---------------- | ------------------------------------------------------------ |
+| disable_symlinks | 确定在将一个文件提交给客户端之前，检查其是否是一个符号链接。可设定如下参数:<br>off:禁止检查符号链接(默认)<br>on:若路径中的任何一部分是一个链接，则拒绝访问<br>if_not_owner:若路径中的任何一部分是一个链接,而且链接有不同文件宿主,则拒绝访问from=part:如指定了部分路径，则这部分之前对符号链接不做检查，而之后的部分就会按照on或if_not_owner参数检查 |
+| root             | 设置文档的根目录。URI将会附加在该指令的值后，可在文件系统中找到具体的文件 |
+| try_files        | 对于给定的参数测试文件的存在性，若前面的文件都没有找到，则最后的条目将作为备用，所以确保最后一个路径或者命名的location存在，或者通过`=<status code>`设置一个返回状态代码 |
+
+#### 域名解析
+
+如果在upstream或`*_pass`指令中使用了逻辑名字而不是IP地址，则Nginx将会默认使用操作系统的解析器来获取IP地址。这种情况只会在upstream第一次被请求时发生。若在`*_pass`指令中使用了变量，则根本不会发生解析。
