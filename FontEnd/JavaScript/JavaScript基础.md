@@ -702,6 +702,20 @@ function doSomething (name, age) {
 
   console.log(name, age)
 }
+
+// 参数较多的情况，使用Jquery扩展
+function example(settings){ 
+  var defaultSetting={ 
+    name:'小红', 
+    age:'30', 
+    sex:'女', 
+    phone:'100866', 
+    QQ:'100866', 
+    birthday:'1949.10.01' 
+  }; 
+  $.extend(defaultSetting,settings); 
+  console.log(JSON.stringify(defaultSetting))
+  }
 ```
 
 ES6中，新增了可变参数和默认参数
@@ -837,6 +851,16 @@ JavaScript解析过程分为两个阶段，先是编译阶段，然后执行阶�
 | unescape(string)     | 字符串处理 | 将编码后的字符串进行解码                       |
 | encodeURL(url)       | 字符串处理 | 将URL字符串进行编码                            |
 | decodeURL(url)       | 字符串处理 | 对已编码的URL字符串进行解码                    |
+
+### 对json的处理
+
+| 对比 | JSON.stringify()                                             | JSON.parse()                                                 |
+| ---- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| 定义 | json对象-》字符串                                            | 字符串-》json对象                                            |
+| 语法 | `JSON.stringify(value[,replacer][,space])`                   | `JSON.parse(text[,reviver])`                                 |
+| 用例 | `JSON.stringify([{name:"1",sex:"female"},{name:'2',sex:"male"}],["name"],4)` | ` var data = '[{"name":"1","sex":1,"age":1},{"name":"2","sex":0,"age":2},{"name":"3","sex":1,"age":3}]'; JSON.parse(data);` |
+
+
 
 ### 严格模式
 
