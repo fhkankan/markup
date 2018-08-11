@@ -679,3 +679,264 @@ http文件路径指令
 #### 域名解析
 
 如果在upstream或`*_pass`指令中使用了逻辑名字而不是IP地址，则Nginx将会默认使用操作系统的解析器来获取IP地址。这种情况只会在upstream第一次被请求时发生。若在`*_pass`指令中使用了变量，则根本不会发生解析。
+
+域名解析指令
+
+| 域名解析指令 | 说明                                                         |
+| ------------ | ------------------------------------------------------------ |
+| resolver     | 该指令配置一个或多个域名服务器，用于解析上游服务器，将上游服务器的名字解析为IP地址。有一个可选的valid参数，它将会覆盖掉域名记录中的TTL |
+
+为了使得Nginx能够重新解析IP地址，可以将逻辑名放在变量中。当Nginx解析到这个变量后，会让DNS查找并获取该IP地址。需要配置resolver
+
+```
+server {
+    resolver 192.168.100.2;
+    location /{
+        set $backend upstream.example.com;
+        proxy_pass http://$backend;
+    }
+}
+```
+
+#### 客户端交互
+
+Nginx与客户端交互的方式有多种，这些方式可以从连接本身(IP地址、超时、存活时间等)到内容协商头的属性。
+
+| HTTP客户端交互指令     | 说明                                                         |
+| ---------------------- | ------------------------------------------------------------ |
+| Default_type           | 设置响应的默认MIME类型。若文件的MIME类型不能被types指令指定的类型正确地匹配，那么将会适应该指令指定的类型。 |
+| Error_page             | 定义一个用于访问的URI，在遇到设置的错误代码时将会由该URI提供访问。使用=号参数可以改变响应代码。如果=号的参数为空，那么响应代码来自于后面的URI，在这种情况下必须由某种上游服务器提供 |
+| etag                   | 对于静态资源，该指令禁止自动产生ETag响应头(默认值为on)       |
+| If_modified_since      | 通过比较if-modified-since请求头的值，该指令控制如何修改响应时间<br>off:该参数忽略if-modeified-since头<br>exact:该参数精确匹配<br>before:该参数修改响应时间小于或者等于if-modified-since头的值 |
+| ignore_invalid_headers | 该指令禁止忽略无效名字的头(默认on).一个有效的名字是由ASCII字母、数字、连字符号，可能还会由下划线(underscores_in_headers指令控制)组成 |
+| merge_slashes          | 该指令禁止移除多个斜线。默认值为on，这意味着Nginx将会压缩两个或者多个字符为一个 |
+| Recursive_error_pages  | 该指令启用error_pages指令(默认off)实现多个重定向             |
+| types                  | 设置MIME类型到文件扩展名的映射。Nginx在conf/mime.types文件中包含了大多数MIME类型的映射。大多数情况下适应include载入该文件就足够了 |
+| Underscores_in_heades  | 该指令在客户请求头中启用适应下划线字符。如果保留了默认值off，那么评估这样的头将服从ignore_invalid_headers指令的值 |
+
+err_page指令是Nginx中最灵活的指令，当有任何条件的错误出现时，我们都可以提供任何页面。这个页面可以是在本机上，也可以是由应用程序服务器提供的动态页面，甚至是一个完全不同站点上的页面
+
+```
+http{
+    errpage 500 501 502 503 504 share/examples/nginx/50x.html;
+    server{
+        server_name www.example.com;
+        root /home/customer/html;
+        error_page 404 /404.html;
+        location / {
+			error_page 500 501 502 503 504 = @error_handler;
+		}
+		location /microsite{
+			error_page 404  http://microsite.example.com/404.html;
+		}
+		location @error_handler{
+			default_type text/html;
+			proxy_pass http://127.0.0.1:8080;
+		}
+    }
+}
+```
+
+#### 防止滥用
+
+防止同一个IP地址每秒到服务器请求的连接数过多。
+
+| HTTP limit指令       | 说明                                                         |
+| -------------------- | ------------------------------------------------------------ |
+| limit_conn           | 指定一个共享内存区域(limit_conn_zone配置),并且指定每个键-值对的最大连接数 |
+| limit_conn_log_level | 由于配置了limit_conn指令，在Nginx限制连接且达到连接限制时，此时将会产生错误日志，该指令用于设置日志的错误级别 |
+| limit_conn_zone      | 该指令一个key，限制在limit_conn指令中作为第一个参数。第二个参数zone，表明用于存储key的共享内存区名字、当前每个key的连接数量以及zone的大小(name:size) |
+| Limit_rate           | 该指令限制客户端下载内容的速率(单位为字节/秒)。速率限制在连接级别，这意味着一个单一的客户端可以打开多个连接增加其吞吐量 |
+| limit_rate_after     | 在完成设定的字节数之后，该指令启用limit_rate限制             |
+| limit_req            | 在共享内存(同limit_req_zone一起配置)中，对特定key设置并发请求能力的限制。并发数量可以通过第二个参数指定。若要求在两个请求之间没有延时，那么需要配置第三个参数nodelay |
+| Limit_req_log_level  | 在Nginx使用limit_req指令限制请求数量后，通过该指令指定在什么级别下报告之日记录。在河里延时(delay)记录级别要小于指示(indicated)级别 |
+| limit_req_zone       | 该指令指定key，限制在limit_req指令中作为第一个参数。第二个参数zone，表明用于存储key的共享内存名字、当前每个key的请求数量，以及zone的大小(name:size)。第三个参数rate，表明配置在限制之前，每秒(r/s)请求数，或者每分钟请求数(r/m) |
+| Max_ranges           | 该指令设置在byte-range请求中最大的请求数量。设置为0，禁用对byte-rang的支持 |
+
+限制每一个唯一IP地址访问限制在10个连接。需要注意的是，在代理上网的后面可能会有多个用户，都是从同一IP地址来的，所以日志中会记录有503(service unavaliable)错误代码，表示限制已经生效
+
+```
+http{
+    limit_conn_zone $binary_romote_addr zone=connections:10m;
+    limit_conn_log_level notice;
+    server{
+        limit_conn connections 10;
+    }
+}
+```
+
+基于速率的访问限制原理不同，在限制每个单元时间内一个用户可以请求多个页面时，Nginx将会在第一个页面请求后插入一个延时，直到这段时间过去。Nginx提供了可以通过nodealy参数消除这种延时方法
+
+```
+http{
+    limit_req_zone $binary_remote_addr zone=requests:10m rate=1r/s;
+    limit_req_log_level warn;
+    server{
+        limit_req zone=requests burst=10 nodelay;
+    }
+}
+```
+
+限制每个客户端的宽带。这种方法可以确保一些客户端不会把所有可用的宽带占完。警告：尽管limit_rate指令是连接基础，一个允许打开多个连接的哭护短仍然可以绕开这个限制。
+
+```
+location /downloads{
+    limit_rate 500k;
+}
+```
+
+允许小文件自由下载，对于大文件则试用这种限制
+
+```
+location /downloads{
+    limit_rate_after 1m;
+    limit_rate 50k;
+}
+```
+
+#### 约束访问
+
+限制访问整个网站或它的某些部分。有两种形式：对一组特定的IP地址限制，或者对一组特定用户限制。
+
+| HTTP access模块指令  | 说明                                                         |
+| -------------------- | ------------------------------------------------------------ |
+| allow                | 允许从这个IP地址、网络或者值为all的访问                      |
+| Auth_basic           | 启用基于HTTP基本认证。以字符串作为域的名字。如果设置为off，那么表示auth_basic不再继承上级的设置 |
+| auth_basic_user_file | 指定一个文件的位置，该文件的格式为username:password:comment，用于用户认证。password部分需要使用密码算法加密处理。comment部分可选 |
+| deny                 | 禁止从IP地址、网络或者值为all的访问                          |
+| satisfy              | 若勤勉的指令使用了all或者any，那么允许访问。默认值为all，表示用户必须来自一个特定的网络地址，并且输入正确的密码 |
+
+约束客户端访问来自于某一个特定的IP地址
+
+```
+# 仅允许本地访问/stats URI
+location /stats{
+    allow 127.0.0.1;
+    deny all;
+}
+```
+
+为了约束认证用户访问，可对`auth_basic`和`auth_basic_user_file`进行配置
+
+```
+# 任何想哟啊访问restricted.example.com的用户都需要提供匹配conf目录下htpasswd文件中的条目，conf目录依赖于Nginx的root目录。在htpasswd文件中的条目可以使用任何有效的使用标准UNIX crypt()函数产生的工具。
+server{
+	server_name restricted.example.com;
+	auth_basic "restricted";
+	auth_basic_user_file conf/htpasswd;
+}
+```
+
+若没有设置从特定IP地址来的用户，在使用用户名和密码的处理方案中仅需要输入用户名和密码，Nginx有个satisfy指令，这里使用了any参数，是一种非此即彼的方案
+
+```
+server{
+    server_name intranet.example.com;
+    location /{
+		auth_basic "intranet: please login";
+		# select a user/password combo from this file
+		auth_basic-user_file conf/htpasswd-intranet;
+		# unless coming from one of these networks
+		allow 192.168.40.0/24;
+		allow 192.168.50.0/24;
+		# deny access if these conditions aren't met
+		deny all;
+		# if either condition is met, allow access
+		satisy any;
+	}
+}
+```
+
+若需要为来自特定IP地址的用户配置并提供认证，那么在默认情况下使用all参数。因此，会忽略satisfy指令本身，并且仅包括allow,deny,auth_basic和auth_basic_user_file
+
+```
+server{
+    server_name stage.example.com;
+    location /{
+		auth_basic "staging server";
+		# select a user/password combo from this file
+		auth_basic-user_file conf/htpasswd-stage;
+		# unless coming from one of these networks
+		allow 192.168.40.0/24;
+		allow 192.168.50.0/24;
+		# deny access if these conditions aren't met
+		deny all;
+	}
+}
+```
+
+#### 流媒体文件
+
+Nginx能够提供一定的视频媒体类型。flv和mp4模块包含在基本的发布中，它们能够提供伪流媒体(pseudo-streaming)。这意味着Nginx将会在特定的location中搜索视频文件，通过start请求参数来指明
+
+为了使用伪流媒体功能，需要在编译时添加响应的模块:`--with-http_flv_module`用于Flash视频(flv)文件，`--with-http_mp4_module`用于H.264/AAC文件。
+
+| HTTP 流指令         | 说明                            |
+| ------------------- | ------------------------------- |
+| flv                 | 在location中激活flv模块         |
+| mp4                 | 在location中激活mp4模块         |
+| Mp4_buffer_size     | 设置投递MP4文件的初始缓冲大小   |
+| Mp4_max_buffer_size | 设置处理MP4元数据使用的最大缓冲 |
+
+激活flv
+
+```
+location /videos {
+	flv;
+}
+```
+
+激活MP4
+
+```
+location /videos{
+	mp4;
+	mp4_buffer_size 1m;
+	mp4_max_buffer_size 20m;
+}
+```
+
+#### 预定义变量
+
+基于变量值使得构建Nginx配置变得容易，不仅能够使用set或map指令自己设置指令，也可以使用Nginx内部使用预定义变量。为了快速优化变量，并且该缓存变量的值也将在整个请求内有效。可以在if生命中使用它们作为一个key，或者将它们传递到代理服务器。
+
+| HTTP变量名称                                                 | 值                                                           |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| $arg_name                                                    | 指定在请求中的name参数                                       |
+| $args                                                        | 指定所有请求参数                                             |
+| $binary_remote_addr                                          | 指定客户端IP地址的二进制格式                                 |
+| $content_length                                              | 指定请求头Content-Length的值                                 |
+| $content_type                                                | 指定请求头Content-Type的值                                   |
+| $cookie_name                                                 | 指定cookie标签名字                                           |
+| $document_root                                               | 指定当前请求中指令root或者alias的值                          |
+| $document_uri                                                | 指定$uri的别名                                               |
+| $host                                                        | 若当前有Host，该变来个则指定请求头host的值，若无这个头，则该值等于匹配该请求的server_name的值 |
+| $hostname                                                    | 指定运行Nginx主机的主机名                                    |
+| $http_name                                                   | 指定请求头name值，若这个头有破折号，会被转换为下划线，大写字母转为小写字母 |
+| $https                                                       | 若连接是通过SSL的，则这个变量的值是on，否则为空字符串        |
+| $is_args                                                     | 若请求有参数，则变量的值为?,否则为空字符串                   |
+| $limit_rate                                                  | 指定指令limit_rate的值，若无设置，允许速率限制使用这个变量   |
+| $nginx_version                                               | 指定允许的Nginx二进制版本                                    |
+| $pid                                                         | 指定worker进程的ID                                           |
+| $query_string                                                | 指定$args的别名                                              |
+| $realpath_root                                               | 指定当前请求中指令root和alias的值，用所有的符号链接解决问题  |
+| $remote_addr                                                 | 指定客户端的IP                                               |
+| $remote_port                                                 | 指定客户端的端口                                             |
+| $remote_user                                                 | 使用http基本认证是，变量用于设置用户名                       |
+| $request                                                     | 指定从客户端收到的完整请求，包括HTTP请求方法、URI、HTTP协议、头、请求体 |
+| $request_body                                                | 指定请求体，在location中由`*_pass`指令处理                   |
+| $request_body_file                                           | 指定临时文件的路径，在临时文件中存储请求体。对于这个被保存的文件，client_body_in_file_only指令需要被设置为on |
+| $request_completion                                          | 若请求完成，该变量值为OK，否则为空字符串                     |
+| $request_filename                                            | 该变量指定当前请求文件的路径及文件名，基于root或者alias指令的值加上URI |
+| $request_method                                              | 指定当前请求使用的HTTP方法                                   |
+| $request_uri                                                 | 指定完整请求的URI，从客户端来的请求，包括参数                |
+| $scheme                                                      | 指定当前请求的协议，不是HTTP，就是HTTPS                      |
+| $sent_http_name                                              | 指定响应头名字的值，若这个头有破折号，那么他们将会被转换为下划线，大写字母被转换为小写 |
+| $server_addr                                                 | 指定接受请求服务器的地址值                                   |
+| $server_name                                                 | 指定接受请求的虚拟主机server_name的值                        |
+| $server_port                                                 | 指定接受请求的服务器端口                                     |
+| $server_protocol                                             | 指定在当前请求中使用的HTTP协议                               |
+| $status                                                      | 指定响应状态                                                 |
+| $tcpinfo_rtt<br>$tcpinfo_rttvar<br>$tcpinfo_snd_cwnd<br>$tcpinfo_rcv_space | 若系统支持TCP_INFO套接字选项，这些变量将会被相关的信息填充   |
+| $uri                                                         | 指定当前请求的变转化URI                                      |
+
