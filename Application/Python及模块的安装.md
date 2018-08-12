@@ -19,7 +19,19 @@ sudo apt-get update
 sudo apt-get install python3.6
 ```
 
-##OS x
+修改python指向
+
+```
+# 进入python命令所在目录
+cd /usr/bin
+# 产看安装的python版本信息
+ls -l python*
+# 更改软连接指向
+sudo rm python
+ln -s python3 python
+```
+
+## OS x
 
 已默认安装，检查安装版本
 

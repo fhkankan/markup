@@ -1,4 +1,4 @@
-# JSON
+# JSON数据格式
 
 son是 JavaScript Object Notation 的首字母缩写，单词的意思是javascript对象表示法，这里说的json指的是类似于javascript对象的一种数据格式，它基于ECMAScript的一个子集。
 
@@ -47,7 +47,7 @@ Python3 中可以使用 json 模块来对 JSON 数据进行编解码，它包含
 
 在json的编解码过程中，python 的原始类型与json类型会相互转换，具体的转化对照如下：
 
-##转换表
+## 转换表
 
 Python 编码为 JSON 类型转换对应表：
 
@@ -74,9 +74,16 @@ JSON 解码为 Python 类型转换对应表：
 | false         | False  |
 | null          | None   |
 
-##实例
+## 编码
 
-Python 数据结构 ---> JSON字符串：
+```
+encoding(编码): 把一个python对象编码转换成JSON字符串
+decoding(解码): 把JSON格式字符串编码转换成Python对象
+```
+
+## 字符串与数据结构
+
+> Json.dumps()
 
 ```
 #!/usr/bin/python3
@@ -95,16 +102,26 @@ print ("Python 原始数据：", repr(data))
 print ("JSON 对象：", json_str)
 ```
 
-执行以上代码输出结果为：
+格式化数据
 
 ```
-Python 原始数据： {'url': 'http://www.runoob.com', 'no': 1, 'name': 'Runoob'}
-JSON 对象： {"url": "http://www.runoob.com", "no": 1, "name": "Runoob"}
+data = {'a':1,'b':2}
+encode_json = json.dumps(data, indent=4)
+print(encode_json)
 ```
 
-通过输出的结果可以看出，简单类型通过编码后跟其原始的repr()输出结果非常相似。
+压缩数据
 
-JSON字符串  --->  Python数据结构：
+```
+import json
+data = {'a':1,'b':2}
+print(len(repr(data)))
+print(len(json.dumps(data, indent=4)))
+# 压缩数据
+print(len(json.dumps(data, separators=(',',':))))
+```
+
+> Json.loads()
 
 ```
 #!/usr/bin/python3
@@ -128,14 +145,7 @@ print ("data2['name']: ", data2['name'])
 print ("data2['url']: ", data2['url'])
 ```
 
-执行以上代码输出结果为：
-
-```
-Python 原始数据： {'name': 'Runoob', 'no': 1, 'url': 'http://www.runoob.com'}
-JSON 对象： {"name": "Runoob", "no": 1, "url": "http://www.runoob.com"}
-data2['name']:  Runoob
-data2['url']:  http://www.runoob.com
-```
+## 文件
 
 如果你要处理的是文件而不是字符串，你可以使用 **json.dump()** 和 **json.load()** 来编码和解码JSON数据。例如：
 

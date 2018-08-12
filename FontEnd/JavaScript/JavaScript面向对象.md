@@ -592,8 +592,6 @@ ES6新增内容
 |          | filter()         | 根据给定条件查找数组元素，返回数组的拷贝                     | cosnt arr=[1,2,3,4]<br>const items=arr.filter(x=>x%2==0)     |
 |          | reduce()         | 把整个数组转化为另一种数组类型，返回数组的拷贝               | const arr=[5,6,7]<br>const sum = arr.reduce((a,x)=>a+=x,0)<br>//a的初始值指定为0,可缺省，默认为0 |
 
-
-
 ### String
 
 用于操作和处理字符串，可以获取字符串的长度、提取子字符串、将字符串转换大小写等

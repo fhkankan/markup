@@ -58,7 +58,7 @@ with open('路径', 'r') as f:
 | a+   | 打开一个文件用于读写。如果该文件已存在，文件指针将会放在文件的结尾。文件打开时会是追加模式。如果该文件不存在，创建新文件用于读写。 |
 | ab+  | 以二进制格式打开一个文件用于追加。如果该文件已存在，文件指针将会放在文件的结尾。如果该文件不存在，创建新文件用于读写。 |
 
-##二进制文件的读写
+## 二进制文件的读写
 
 ```
 # utf-8中3~4个字节代表每个字符
@@ -276,7 +276,7 @@ b'\xe4\xb8\xad\xe6\x96\x87'
 
 反过来，把变量内容从序列化的对象重新读到内存里称之为反序列化，即unpickling。
 
-##内置序列化
+## Pickle
 
 Python提供了`pickle`模块来实现序列化
 
@@ -314,7 +314,7 @@ d
 | true/false      | True/False |
 | null            | None       |
 
-### 字典dict
+> 字典dict
 
 ```
 # 把Python对象变成一个JSON，json.dumps()/json.dump(),前者把Python中的字典序列化为str，后者把JSON写入一个file-like Object
@@ -330,7 +330,7 @@ d
 
 ```
 
-### 类class
+> 类class
 
 ```
 # 类
@@ -363,6 +363,74 @@ def dict2student(d):
 
 # 把任意class的实例变为dict
 print(json.dumps(s, default=lambda obj: obj.__dict__))
+```
+
+## struct
+
+python中的struct模块对python基本数据类型与用Python字符串格式表示的C语言struct类型进行转换
+
+struct模块的函数
 
 ```
+- pack(fmt, v1, v2, ...)  按照给定的格式(fmt)把数据封装成字符串(实际是类似于C结构体的字节流)
+- unpack(fmt, string)  按照给定的格式(fmt)解析字节流string,返回解析出来的tuple
+- calcsize(fmt)  计算给定的格式(fmt)占用多少字节的内存
+```
+
+Python3 format对照表
+
+```
+Format	Ctype	PythonType	seandardSize
+x	pad byte 	no value
+c	char		bytes of lenght 1	1
+b	signed char	 int				1
+B	unsigned char int				1
+?	_Bool		 bool				1
+h	short		int					2
+H	unsigned short	int				2
+i	int			int					4
+I	unsigned int	int				4
+l	long		int					4
+L	undigned long	int				4
+q	long long	int					8
+Q	undigned long long	int			8
+n	ssize_t			int
+N	size_t			int
+e	(7)				float			2
+f	float			float			4
+d	double			float			8
+s	char[]			bytes
+P	char[]			bytes
+p	void*			int
+```
+
+## Base64
+
+某些系统中只能使用ASCII字符，Base64就是用来将非ASCII字符的数据转换为ASCII字符的一种方法，特别适合在HTTP和MIME协议下快速传输数据
+
+> `b64encode,b64decode`
+
+```
+import base64
+str = "abcd"
+# 编码
+en = base64.b64encode(str.encode())
+# 解码
+de = base64.b64decode(en).decode()
+```
+
+> `urlsafe_b64encode,urlsafe_b64decode`
+
+对于标准Base64编码后可能有(+)(/),这两种字符不能再URL中使用，需要转换为(-)(_)
+
+```
+import base64
+
+# 编码
+en = base64.urlsafe_b64encode(byt.encode())
+# 解码
+de = base64.urlsafe_b64decode(en).decode()
+```
+
+
 

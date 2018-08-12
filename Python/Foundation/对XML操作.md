@@ -14,13 +14,19 @@ XML是一套定义语义标记的规则，这些标记将文档分成许多部�
 
 python有三种方法解析XML，SAX，DOM，以及ElementTree:
 
+```
 - SAX (simple API for XML )
-
 python 标准库包含SAX解析器，SAX用事件驱动模型，通过在解析XML的过程中触发一个个的事件并调用用户定义的回调函数来处理XML文件。
+是流模式，边读边解析，占用内存小，解析快，但是需要自己处理事件
 
 - DOM(Document Object Model)
-
 将XML数据在内存中解析成一个树，通过对树的操作来操作XML。
+会把整个XML读入内存并解析为树，占用内存大且解析慢。优点是可以任意遍历树的节点
+
+- ElementTree
+提供了轻量级python式API，相对于DOM来说，快了很多，性能与SAX差不多
+
+```
 
 XML实例文件movies.xml内容如下:
 
@@ -78,7 +84,7 @@ SAX是一种基于事件驱动的API。
 
 在python中使用sax方式处理xml要先引入xml.sax中的parse函数，还有xml.sax.handler中的ContentHandler。
 
-###方法
+> 方法
 
 ContentHandler
 
@@ -137,7 +143,7 @@ contenthandler - 必须是一个ContentHandler的对象
 errorhandler - 如果指定该参数，errorhandler必须是一个SAX ErrorHandler对象
 ```
 
-### 实例
+> 实例
 
 ```
 #!/usr/bin/python3
@@ -207,7 +213,7 @@ if ( __name__ == "__main__"):
    parser.parse("movies.xml")
 ```
 
-## xml.dom
+## DOM
 
 文件对象模型（Document Object Model，简称DOM），是W3C组织推荐的处理可扩展置标语言的标准编程接口。
 
@@ -245,6 +251,119 @@ for movie in movies:
    description = movie.getElementsByTagName('description')[0]
    print ("Description: %s" % description.childNodes[0].data)
 ```
+
+## ET
+
+> 解析
+
+```
+<? xml version="1.0" encoding="utf-8"?>
+<zoo>
+	<animal id='1'>
+		<name>dog</name>
+		<age>2</age>
+	</animal>
+	<animal id='2'>
+		<name>tiget</name>
+		<age>3</age>
+	</animal>
+</zoo>
+```
+
+解析代码
+
+```
+# 导入模块
+import xml.etree.ElementTree as ET
+
+# 加载文件
+root = ET.parse('zoo.xml')
+# 获取指定节点
+animal_node = root.getiterator("animal")
+# 获取子节点
+for node in animal_node:
+	animal_node_child = node.getchildren()[0]
+	print(animal_node_child.tag + ':' + animal_node_child.text)
+```
+
+element对象的属性
+
+```
+element.tag 	标签
+element.attrib	属性
+element.text	值
+```
+
+查找方法
+
+```
+# find用于查找指定的第一个节点
+zoo_find = root.find('animal')
+# findall用于查找指定的所有节点
+zoo = root.findall('animal')
+```
+
+> 创建
+
+```
+import xml.etree.ElementTree as ET
+
+# 创建根节点
+root = ET.Element('root')
+# 创建子节点，添加属性
+sub1 = ET.SubElement(root, 'sub1')
+sub1.attrib = {"attribute":"sub1 attribute"}
+# 创建子节点，添加数据
+sub2 = ET.SubElement(root, 'sub2')
+sub2.text = "new xml"
+# 创建子节点，添加数据
+sub3 = ET.SubElement(root, 'sub3')
+sub3.text = "new xml"
+# 创建对象，写入文件
+tree = ET.elementTree(root)
+tree.write("new.xml")
+```
+
+> 修改
+
+```
+ElementTree.write("xmlfile")  更新xml文件
+Element.append()	为当前的element对象添加子元素(element)
+Element.set(key, value)	为当前element的key属性设置value值
+Element.remove(element)	删除为element的节点
+```
+
+实例
+
+```
+import xml.etree.ElementTree as ET
+
+# 读取文件
+tree = ET.parse("new.xml")
+root = tree.getroot()
+# 创建新节点，添加属性和数据，并将其设置为root的子节点
+sub_new = ET.Element("sub_new")
+sub_new.attrib = {"name":"a", "age":30}
+sub_new.text = "new element"
+root.append(sub_new)
+# 修改sub1的属性
+sub1 = root.find("sub1")
+sub1.set("attribute","new attribute")
+# 修改sub2的数据
+sub2 = root.find("sub2")
+sub2.text = "new value"
+# 删除sub3
+sub3 = root.find("sub3")
+sub3.remove(sub3)
+# 写入文件
+tree.write("new.xml")
+```
+
+
+
+
+
+
 
 
 
