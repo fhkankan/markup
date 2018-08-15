@@ -1046,6 +1046,8 @@ for (let l of abc()){
 
 - 计时器
 
+延时执行一次
+
 ```
 var timeoutID;
 // 创建计时器

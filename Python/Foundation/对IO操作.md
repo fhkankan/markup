@@ -425,11 +425,12 @@ de = base64.b64decode(en).decode()
 
 ```
 import base64
-
+str = "abcd++//"
+en = base64.b64decode(str.encode())
 # 编码
-en = base64.urlsafe_b64encode(byt.encode())
+en_url = base64.urlsafe_b64encode(en)  # b'abcd--__'
 # 解码
-de = base64.urlsafe_b64decode(en).decode()
+de_url = base64.urlsafe_b64decode(en_url)  # b'i\xb7\x1d\xfb\xef\xff'
 ```
 
 
