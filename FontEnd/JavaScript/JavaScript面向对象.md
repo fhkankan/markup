@@ -652,6 +652,67 @@ str.getLength;
 3、将数字字符串转化为小数：parseFloat(字符串)
 4、字符串反转：字符串.split('').reverse().join('')
 ```
+### JSON
+
+json对象
+
+````
+{
+    a:1,
+    b:2
+}
+````
+
+json对象属性
+
+```
+# 判断是否有xxx这个key
+jsonObj.hasOwnProperty('xxx')
+```
+
+将json对象转换成json字符串
+
+```
+JSON.stringify(object [, replacer] [, space])
+
+// 参数：
+object  必须；通常为对象或数组。
+replacer 可选，用于转换结果的函数或者数组。
+space 可选。向返回值 JSON 文本添加缩进、空格和换行符以使其更易于读取。 
+//返回值：
+一个包含JSON文本的字符串。
+```
+
+将json字符串转换成json对象
+
+```
+JSON. parse(text[,reviver])
+
+// 参数
+text  必须；一个有效的json字符串
+reviver  可选
+// 返回值
+一个对象或数组
+```
+
+`eval()`
+
+只能在非严格模式中进行使用，在use strict中是不允许使用的
+
+```
+eval(string)
+
+// 参数
+string  必须，需要计算的字符串，其中含有要计算的javascript表达式或要执行的语句。
+// 返回值
+如果s不是字符串，则直接返回s。否则执行s语句。如果s语句执行结果是一个值，则返回此值，否则返回undefined。 需要特别注意的是对象声明语法“{}”并不能返回一个值，需要用括号括起来才会返回值
+
+
+// json字符串转换为对象
+textObjString = '{a:1,b:2}'
+textObj = eval('('+ textObjString +')')
+```
+
 ### Maps
 
 ES6之前，若要把键和值映射起来，需要用对象，但存在如下问题
