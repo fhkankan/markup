@@ -43,14 +43,12 @@ while True:
 
 在“发出IO请求”到收到“IO完成”的这段时间里，同步IO模型下，主线程只能挂起，但异步IO模型下，主线程并没有休息，而是在消息循环中继续处理其他消息。这样，在异步IO模型下，一个线程就可以同时处理多个IO请求，并且没有切换线程的操作。对于大多数IO密集型的应用程序，使用异步IO将大大提升系统的多任务处理能力。
 
-
-
 # 协程
 
 ```
 协程，又称微线程，纤程。英文名Coroutine。
 
-协程是python个中另外一种实现多任务的方式，只不过比线程更小占用更小执行单元（理解为需要的资源）。 为啥说它是一个执行单元，因为它自带CPU上下文。这样只要在合适的时机， 我们可以把一个协程 切换到另一个协程。 只要这个过程中保存或恢复 CPU上下文那么程序还是可以运行的。
+协程是python个中另外一种实现多任务的方式，只不过比线程更小占用更小执行单元（理解为需要的资源）。类似CPU中断，可由用户调度，可在一个子程序内中断去执行其他的子程序。 为啥说它是一个执行单元，因为它自带CPU上下文。这样只要在合适的时机，我们可以把一个协程切换到另一个协程。只要这个过程中保存或恢复 CPU上下文那么程序还是可以运行的。
 
 通俗的理解：在一个线程中的某个函数，可以在任何地方保存当前函数的一些临时变量等信息，然后切换到另外一个函数中执行，注意不是通过调用函数的方式做到的，并且切换的次数以及什么时候再切换到原来的函数都由开发者自己确定
 ```
@@ -66,7 +64,11 @@ while True:
 
 协程切换任务资源很小，效率高
 多进程、多线程根据cpu核数不一样可能是并行的，但是协程是在一个线程中 所以是并发
+
+由于协程在一个线程内执行，因此对于多核CPU平台，当并发量很大时，可以使用多进程+协程的方式。
 ```
+
+## yield
 
 Python对协程的支持是通过generator实现的。
 
@@ -74,13 +76,11 @@ Python对协程的支持是通过generator实现的。
 
 但是Python的`yield`不但可以返回一个值，它还可以接收调用者发出的参数。
 
-#yield
-
 传统的生产者-消费者模型是一个线程写消息，一个线程取消息，通过锁机制控制队列和等待，但一不小心就可能死锁。
 
 如果改用协程，生产者生产消息后，直接通过`yield`跳转到消费者开始执行，待消费者执行完毕后，切换回生产者继续生产，效率极高：
 
-```
+```python
 def consumer():
     r = ''
     while True:
@@ -91,11 +91,13 @@ def consumer():
         r = '200 OK'
 
 def produce(c):
+    # 启动生成器
     c.send(None)
     n = 0
     while n < 5:
         n = n + 1
         print('[PRODUCER] Producing %s...' % n)
+        # 切换到consumer()函数执行
         r = c.send(n)
         print('[PRODUCER] Consumer return: %s' % r)
     c.close()
@@ -114,17 +116,17 @@ produce(c)
 
 整个流程无锁，由一个线程执行，`produce`和`consumer`协作完成任务，所以称为“协程”，而非线程的抢占式多任务。
 
-#greenlet
+## greenlet
 
 为了更好使用协程来完成多任务，python中的greenlet模块对其封装，从而使得切换任务变的更加简单
 
-**安装**
+- 安装
 
 ```
 sudo pip3 install greenlet
 ```
 
-**使用**
+- 使用
 
 ```
 #coding=utf-8
@@ -134,13 +136,13 @@ import time
 
 def test1():
     while True:
-        print "---A--"
+        print ("---A--")
         gr2.switch()
         time.sleep(0.5)
 
 def test2():
     while True:
-        print "---B--"
+        print ("---B--")
         gr1.switch()
         time.sleep(0.5)
 
@@ -151,7 +153,7 @@ gr2 = greenlet(test2)
 gr1.switch()
 ```
 
-#gevent
+## gevent
 
 python还有一个比greenlet更强大的并且能够自动切换任务的模块`gevent`
 
@@ -278,15 +280,52 @@ gevent.joinall([
 
 # asyncio
 
-Python 3.4版本引入的标准库，直接内置了对异步IO的支持。
+Python 3.4版本引入的标准库asyncio，以生成器对象为基础，直接内置了对异步IO的支持。Python 3.5又提供了语法`async`和`await`层面的支持，可以让coroutine的代码更简洁易读。
+
+> 相关概念
+
+| 概念        | 说明                                                         |
+| ----------- | ------------------------------------------------------------ |
+| event_loop  | 事件循环，程序开启一个无限循环，开发者把一些函数注册到事件循环中，当满足事件发生的条件时，调用相应的协程函数 |
+| coroutine   | 协程对象，指一个使用async关键字定义的函数，它的调用不会立即执行函数，而是返回一个协程对象。协程对象需要注册到事件循环中，由事件循环调用 |
+| task        | 任务，一个协程对象就是一个原生可以挂起的函数，任务则是对协程进一步的封装，其中包含任务的各种状态 |
+| future      | 代表将来执行或没有执行任务的结果，与task没有本质的区别       |
+| async/await | python3.5用于定义协程的关键字，async定义一个协程，await用于挂起阻塞的异步调用接口 |
+
+> python3.4与python3.5区别
+
+```
+用asyncio提供的@asyncio.coroutine可以把一个generator标记为coroutine类型，然后在coroutine内部用yield from调用另一个coroutine实现异步操作。
+
+请注意，async和await是针对coroutine的新语法，要使用新的语法，只需要做两步简单的替换：
+
+1. @asyncio.coroutine <==> async；
+2. yield from <==> await。
+
+
+# python3.4
+@asyncio.coroutine
+def hello():
+   print("Hello world!")
+   r = yield from asyncio.sleep(1)
+   print("Hello again!")
+
+# python3.5
+async def hello():
+    print("Hello world!")
+    r = await asyncio.sleep(1)
+    print("Hello again!")
+```
 
 `asyncio`的编程模型就是一个消息循环。我们从`asyncio`模块中直接获取一个`EventLoop`的引用，然后把需要执行的协程扔到`EventLoop`中执行，就实现了异步IO。
 
 异步操作需要在`coroutine`中通过`yield from`完成；多个`coroutine`可以封装成一组Task然后并发执行。
 
+> Demo1
+
 用`asyncio`实现`Hello world`代码如下：
 
-```
+```python
 import asyncio
 
 @asyncio.coroutine
@@ -300,18 +339,25 @@ def hello():
 loop = asyncio.get_event_loop()
 # 执行coroutine
 loop.run_until_complete(hello())
+# 关闭
 loop.close()
 ```
 
-`@asyncio.coroutine`把一个generator标记为coroutine类型，然后，我们就把这个`coroutine`扔到`EventLoop`中执行。
+实现过程
 
-`hello()`会首先打印出`Hello world!`，然后，`yield from`语法可以让我们方便地调用另一个`generator`。由于`asyncio.sleep()`也是一个`coroutine`，所以线程不会等待`asyncio.sleep()`，而是直接中断并执行下一个消息循环。当`asyncio.sleep()`返回时，线程就可以从`yield from`拿到返回值（此处是`None`），然后接着执行下一行语句。
+```
+@asyncio.coroutine把一个generator标记为coroutine类型，然后，我们就把这个coroutine扔到EventLoop中执行。
 
-把`asyncio.sleep(1)`看成是一个耗时1秒的IO操作，在此期间，主线程并未等待，而是去执行`EventLoop`中其他可以执行的`coroutine`了，因此可以实现并发执行。
+hello()会首先打印出Hello world!，然后，yield from语法可以让我们方便地调用另一个generator。由于asyncio.sleep()也是一个coroutine，所以线程不会等待asyncio.sleep()，而是直接中断并执行下一个消息循环。当asyncio.sleep()返回时，线程就可以从yield from拿到返回值（此处是None），然后接着执行下一行语句。
+
+把asyncio.sleep(1)看成是一个耗时1秒的IO操作，在此期间，主线程并未等待，而是去执行EventLoop中其他可以执行的coroutine了，因此可以实现并发执行。
+```
+
+> Demo2
 
 我们用Task封装两个`coroutine`试试：
 
-```
+```python
 import threading
 import asyncio
 
@@ -339,11 +385,13 @@ Hello again! (<_MainThread(MainThread, started 140735195337472)>)
 
 由打印的当前线程名称可以看出，两个`coroutine`是由同一个线程并发执行的。
 
+> Demo3
+
 如果把`asyncio.sleep()`换成真正的IO操作，则多个`coroutine`就可以由一个线程并发执行。
 
 我们用`asyncio`的异步网络连接来获取sina、sohu和163的网站首页：
 
-```
+```python
 import asyncio
 
 @asyncio.coroutine
@@ -391,37 +439,51 @@ www.163.com header > Server: Cdn Cache Server V2.0
 
 可见3个连接由一个线程通过`coroutine`并发完成。
 
-# async/await
+> Demo4
 
-用`asyncio`提供的`@asyncio.coroutine`可以把一个generator标记为coroutine类型，然后在coroutine内部用`yield from`调用另一个coroutine实现异步操作。
+```python
+import asyncio, time
 
-为了简化并更好地标识异步IO，从Python 3.5开始引入了新的语法`async`和`await`，可以让coroutine的代码更简洁易读。
 
-请注意，`async`和`await`是针对coroutine的新语法，要使用新的语法，只需要做两步简单的替换：
+now = lambda: time.time()
+async def func(x):
+    print('Waiting for %d s' % x)
+    await asyncio.sleep(x)
+    return  'Done after {}s'.format(x)
 
-1. 把`@asyncio.coroutine`替换为`async`；
-2. 把`yield from`替换为`await`。
+start = now()
 
-让我们对比一下上一节的代码：
+coro1 = func(1)
+coro2 = func(2)
+coro3 = func(3)
+
+tasks = [
+    asyncio.ensure_future(coro1),
+    asyncio.ensure_future(coro2),
+    asyncio.ensure_future(coro3)
+]
+
+loop = asyncio.get_event_loop()
+loop.run_until_complete(asyncio.wait(tasks))
+
+for task in tasks:
+    print('Task return:', task.result())
+
+print('Program consumes: %fs' % (now()-start))
+```
+
+执行过程
 
 ```
-@asyncio.coroutine
-def hello():
-    print("Hello world!")
-    r = yield from asyncio.sleep(1)
-    print("Hello again!")
+导入asyncio和time模块，定义一个计时的lambda表达式
+通过async关键字定义一个协程函数func()，分别定义3个协程
+在func()内部使用sleep模拟IO的耗时操作，遇到耗时操作，await将协程的控制权让出
+定义一个tasks列表，列表中分别通过ensure_future()创建3个tasks
+协程不能直接运行，需将其加入事件循环中，get_event_loop()用于创建一个事件循环
+通过run_until_complete()将tasks列表加入事件循环中
+通过tasks的result方法获取协程运行状态
+最后计算整个程序的运行耗时
 ```
-
-用新语法重新编写如下：
-
-```
-async def hello():
-    print("Hello world!")
-    r = await asyncio.sleep(1)
-    print("Hello again!")
-```
-
-剩下的代码保持不变。
 
 # aiohttp
 
