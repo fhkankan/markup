@@ -18,6 +18,17 @@ print(res)
 
 python3.5
 
+基本写法
+
+```
+response = requests.get("http://www.baidu.com/")
+
+# 也可以这么写
+# response = requests.request("get", "http://www.baidu.com/")
+```
+
+复杂写法
+
 ```python
 from urllib import parse,request
 textmod={'user':'admin','password':'admin'}
@@ -55,6 +66,14 @@ print(res)
 ```
 
 python3.5
+
+基本写法
+
+```
+response = requests.post("http://www.baidu.com/", data = data)
+```
+
+复杂写法
 
 ```python
 from urllib import parse,request

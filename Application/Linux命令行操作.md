@@ -47,8 +47,19 @@ ctr+h
 ctr+e
 # 跳转到命令行首部
 ctr+a
+```
+
+windows下
 
 ```
+ctrl + win + 向左    	窗口显示左半屏
+ctrl + win + 向右    	窗口显示右半屏
+ctrl + win + 向上    	窗口最大化
+ctrl + win + T       	在当前窗口打开一个终端
+ctrl + win + n		   	打开一个新的终端窗口
+```
+
+
 
 # 快捷命令
 

@@ -12,9 +12,9 @@ IO编程中，Stream（流）是一个很重要的概念，可以把流想象成
 同步和异步的区别就在于是否等待IO执行的结果,使用异步IO来编写程序性能会远远高于同步IO，但是异步IO的缺点是编程模型复杂。
 ```
 
-# 文件操作
+# 读写文本数据
 
-##文件的打开
+## 文件的打开
 
 ```python
 #文件格式：文本文件、二进制文件
@@ -80,7 +80,7 @@ with open('路径', 'r') as f:
 
 ## 读写关定
 
-### 读取
+> 读取
 
 ```
 f.read([size])
@@ -99,7 +99,7 @@ f.readlines([sizeint])
 # 文件读取到末尾，会返回空字符串，可做结束判定
 ```
 
-### 写入
+> 写入
 
 ```
 f.write(str)
@@ -111,7 +111,7 @@ f.writelines(sequence)
 # 写方法不能自动在字符串末尾添加换行符，需要自己添加'\n'
 ```
 
-### 关闭
+> 关闭
 
 ```
 f.close()
@@ -126,7 +126,7 @@ with open ('new.txt') as file_object:
     print(contents)
 ```
 
-### 定位
+> 定位
 
 ```
 f.tell()
@@ -142,7 +142,7 @@ seek(3,1):表示从文件当前位置向后偏移3个字符
 seek(-5,2):表示从文件的末尾向前偏移5个字符 
 ```
 
-### 其他操作
+> 其他操作
 
 ```
 f.next()
@@ -163,19 +163,19 @@ f.isatty()
 
 ## 对内容迭代
 
-- 按字节处理
+> 按字节处理
 
 ```
 read()方法对写入的文件的每个字符进行了循环，运行到文件末尾时，read()方法返回一个空字符串。
 ```
 
-- 按行操作
+> 按行操作
 
 ```
 readline()方法按行读取字符
 ```
 
-- 懒加载式
+> 懒加载式
 
 按read()和readlines()进行读取时，若不带参数则表示把文件中所有内容加载到内存中，有内存溢出风险。
 
@@ -187,7 +187,7 @@ for line in fileinput.input(path):
 	print('line is', line)
 ```
 
-- 文件迭代器
+> 文件迭代器
 
 从python2.2开始，文件对象是可迭代的。
 
@@ -198,20 +198,137 @@ for line in f_name:
 f_name.close()
 ```
 
-## 文件的重命名
+# 操作文件和目录
+
+python提供了os和shutill模块包含多个操作文件和目录的函数
+
+os可以执行简单的文件夹及文件操作，有些函数在os模块中，有些在os.path模块中
+
+shutill提供大量针对文件的高级操作，特别是针对文件的拷贝和删除，主要功能为目录和文件操作及压缩操作
+
+## 判断文件和目录
+
+| 函数               | 说明                   |
+| ------------------ | ---------------------- |
+| `os.path.isabs()`  | 判断是否为绝对路径     |
+| `os.path.exists()` | 判断文件或目录是否存在 |
+| `os.path.isdir()`  | 判断是否为目录         |
+| `os.path.isfile()` | 判断是否为文件         |
+
+## 目录操作
+
+| 函数            | 说明               |
+| --------------- | ------------------ |
+| `os.getcwd()`   | 获取当前的工作目录 |
+| `os.chdir()`    | 改变工作目录       |
+| `os.listdir()`  | 列出目录下的文件   |
+| `os.mkdir()`    | 创建单个目录       |
+| `os.makedirs()` | 创建多级目录       |
+
+## 重命名文件和目录
 
 ```
 os.rename(current_file_name, new_file_name)
 ```
 
-## 文件的删除
+## 复制与移动文件和目录
 
+| 函数                            | 说明                                          |
+| ------------------------------- | --------------------------------------------- |
+| `shutil.copyfile('old','new')`  | 复制文件                                      |
+| `shutil.copytree('old', 'new')` | 复制目录，new目录必须不存在                   |
+| `shutil.copy('old', 'new')`     | 复制文件到指定目录，new目录必须存在           |
+| `shutil.move('old', 'new')`     | 移动文件或目录到新的目录中，new目录可以不存在 |
+
+## 删除文件和目录
+
+| 函数              | 说明                         |
+| ----------------- | ---------------------------- |
+| `os.rmdir()`      | 删除空目录                   |
+| `os.remove()`     | 删除单一文件                 |
+| `os.removedirs()` | 递归删除目录及旗下的所有文件 |
+| `shutil.rmtree()` | 删除目录及其下的所有文件     |
+
+# 读写压缩文件
+
+python提供了多个模块对不同类型的压缩文件进行操作，如gzip,bz2,zipfile等
+
+## 将单个文件压缩
+
+```python
+import zipfile
+
+# 压缩文件名称，读写模式，压缩类型
+with zipfile.ZipFile('newZipFile','w',zipfile.ZIP_DEFILATED) as f:
+	f.write('oldFile1')
+	f.write('oldFile2)
 ```
-os.remove(path)
-# 删除路径为path的文件。如果path 是一个文件夹，将抛出OSError; 查看下面的rmdir()删除一个 directory。
 
-os.removedirs(path)
-# 递归删除目录
+## zip文件的读取和解压
+
+```python
+import zipfile
+
+with zipfile.ZipFile('zipFile','r') as f:
+    # 获取压缩文件中的目录和文件
+    f.namelist()
+    # 读取文件内容
+    f.read('fileName')
+    # 将压缩文件拷贝到其他目录进行解压缩
+    for file in f.namelist():
+        f.extract(file,'path')
+```
+
+## 将整个文件夹压缩
+
+```python
+import zipfile,os
+
+startdir = './dir_a'
+with zipfile.ZipFile('newZipFile','w',zipfile.ZIP_DEFILATED) as f:
+    # f.write(r'./dir_a')只能写入空目录
+    for dirpath, dirnames, filenames in os.walk(startdir):
+        for filename in filenames:
+            f.write(os.path.join(dirpath, filename))
+```
+
+# 内存映射
+
+内存映射就是把一个文件映射到内存中，并不是将文件都放入内存中，而只是加载。当程序访问文件的时候，访问到哪里，哪里的数据就被映射到内存中，不会占用太多内存，却有着内存级别的访问速度。
+
+python提供了mmap模块来实现内存映射文件
+
+准备工作
+
+````python
+# 创建文件
+size = 1000000
+with open('data','wb') as f:
+    f.seek(size-1)
+    f.write(b'\x00')
+# 确认文件内容
+$ od -x data
+````
+
+内存映射
+
+```python
+import os, mmap
+
+# 定义工具函数
+def memory_map(filename, access=mmap.ACCESS_WRITE):
+    size = os.path.getsize(filename)
+    fd = os.open(filename, os.O_RDWR)
+    return mmap.mmpa(fd, size, access=access)
+
+with memoery_map('data') as m:
+    print(len(m))
+    print(m[0:10])
+    print(m[0])
+    m[0:10] = b'Python-IoT'
+    
+with open('data', 'rb') as f:
+    print(f.read(10))
 ```
 
 # 内存操作
@@ -268,6 +385,43 @@ b'\xe4\xb8\xad\xe6\x96\x87'
 b'\xe4\xb8\xad\xe6\x96\x87'
 ```
 
+# 临时文件与目录
+
+若应用程序需要一个临时文件存储数据，但不需要同其他程序共享，则用tempfile模块提供的TemporaryFile方法创建临时文件，其他应用程序无法找到或打开这个文件，因为它并没有引用文件系统表
+
+- 匿名临时文件
+
+```python
+import tempfile
+
+# 普通文本模式w+t，二进制w+b
+with tempfile.TemporaryFile('w+t') as f:
+    f.write('Python')
+    f.write('IoT')
+    f.seek(0)
+    f.read()
+```
+
+- 有名临时文件
+
+若临时文件会被多个进程或主机使用，建立一个有名字的文件比较合适
+
+```python
+from tempfile import NamedTemporaryFile
+
+with NamedTemporaryFile('w+t') as f:
+    print('filename is:', f.name)
+```
+
+- 创建临时目录
+
+```python
+from tempfile import TemporaryDirectory
+
+with TemporaryDirectory() as dirname:
+    print('dirname is:', dirname)
+```
+
 # 序列化
 
 把变量从内存中变成可存储或传输的过程称之为序列化，在Python中叫pickling，在其他语言中也被称之为serialization，marshalling，flattening等等。
@@ -280,7 +434,7 @@ b'\xe4\xb8\xad\xe6\x96\x87'
 
 Python提供了`pickle`模块来实现序列化
 
-```
+```python
 # pickle.dumps()把一个python对象序列化,之后把bytes写入文件。
 import pickle
 d = dict(name='Bob', age=20, score=88)
