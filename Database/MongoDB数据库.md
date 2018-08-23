@@ -191,7 +191,7 @@ mongod  hard  nproc  32000
 
 意思是我们在用root权限做这些事，理论上是不安全的。我们可以通过附加`--auth`参数，来使用用户认证来处理这个情况，这个后面会讲到。
 
-###三种启动方式：
+### 三种启动方式：
 
 - 命令行方式直接启动
 
@@ -336,7 +336,7 @@ bye
 python@ubuntu:~$
 ```
 
-###mongod部分参数说明
+### mongod部分参数说明
 
 在源代码中，mongod的参数分为一般参数，windows参数，replication参数，replica set参数以及隐含参数。下面列举的是一般参数。
 
@@ -368,7 +368,7 @@ repairpath：执行repair时的临时目录。如果没有开启journal，异常
 
 ```
 
-###MongoDB 统计信息
+### MongoDB 统计信息
 
 要获得关于MongoDB的服务器统计，需要在MongoDB客户端键入命令`db.stats()`。这将显示数据库名称，收集和数据库中的文档信息
 
