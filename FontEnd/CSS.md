@@ -627,18 +627,17 @@ outline: 1px solid black
 
 ### 背景
 
-background属性是css中应用比较多，且比较重要的一个属性，它是负责给盒子设置背景图片和背景颜色的，background是一个复合属性，它可以分解成如下几个设置项：
+background属性是css中应用比较多，且比较重要的一个属性，它是负责给盒子设置背景图片和背景颜色的，它可以分解成如下几个设置项
 
-```
-background 设置元素背景色或者背景图片，如:background:gold; 
-可分解为：
-background-image 设置背景图片地址
-background-position 设置背景图片的位置		left right center top bottom center 1px
-background-repeat 设置背景图片如何重复平铺
-background-color 设置背景颜色
-合并为：
-background:url(bgimage.gif) left center no-repeat #00FF00
-```
+`background:url(bgimage.gif) left center no-repeat #00FF00`。
+
+| 属性                | 说明                                                         |
+| ------------------- | ------------------------------------------------------------ |
+| background-image    | 设置背景图片地址，需要用url()函数提供图片链接                |
+| background-position | 使用图片作为背景图，当图片大于背景时，优先显示图片的哪一块。left right center top bottom center |
+| background-repeat   | 当图片不足以覆盖DOM元素时，是否重复平铺                      |
+| background-color    | 设置背景颜色，RGB,十六进制、颜色名均可                       |
+| background-size     | 使用图片作为背景图，背景图片的大小                           |
 
 ## 注释与颜色
 

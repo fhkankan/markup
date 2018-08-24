@@ -11,6 +11,25 @@ jQuery的版本分为1.x系列和2.x、3.x系列，1.x系列兼容低版本的�
 2、https://code.jquery.com/ 版本下载
 ```
 
+三种写法
+
+```javascript
+// 写法一：
+jQuery(document).ready(function($){
+    // JQuery代码
+})
+// 写法二
+$(document).ready(function){
+    // JQuery代码
+}
+// 写法三
+$(function(){
+   //QJQuery代码
+})
+```
+
+
+
 ## 选择元素
 
 ### 基本选择器
@@ -409,18 +428,25 @@ fn：绑定事件的处理程序
 type：事件类型
 data：要从每个匹配元素的事件中反绑定的事件处理函数
 
-// 一次性绑定
-选择的元素.one(type, [data], fn)
-
-# 给元素绑定click事件，可以用如下方法：
+// 给元素绑定click事件，可以用如下方法：
 $('#btn1').click(function(){
     // 内部的this指的是原生对象
     // 使用jquery对象用 $(this)
 })
 
-# 获取元素的索引值 
+// 获取元素的索引值 
 获得匹配元素相对于其同胞元素的索引位置，此时用index()
 
+```
+
+避免重复触发
+
+```javascript
+// 为元素绑定一个一次性的事件处理函数，这个事件的处理函数智慧被执行一次
+选择的元素.one(type, [data], fn)
+
+// 为元素绑定一个事件处理函数，再次给该元素添加相同事件时不会累加绑定
+选择的元素.off(type).on(type, fn)
 ```
 
 ### 模拟用户操作
