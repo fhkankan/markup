@@ -1066,7 +1066,7 @@ function clearAlert() {
 
 循环执行函数
 
-```
+```javascript
 cosnt start = new Date();
 let i = 0;
 const intervalId = setInterval(function(){

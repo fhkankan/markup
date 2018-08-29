@@ -1,5 +1,38 @@
 # Python
 
+| 模块名         | 是否标准库 | 说明                                                         |
+| -------------- | ---------- | ------------------------------------------------------------ |
+| atexit         | 是         | 允许注册在程序退出时调用的函数                               |
+| argparse       | 是         | 提供解析命令行参数的函数                                     |
+| bisect         | 是         | 可为排序列表提供二分查找算法                                 |
+| calendar       | 是         | 提供一组与日期相关的函数                                     |
+| codecs         | 是         | 提供编解码数据的函数                                         |
+| collections    | 是         | 提供一组有用的数据结构                                       |
+| copy           | 是         | 提供复制数据的函数                                           |
+| csv            | 是         | 提供用于读写CSV文件的函数                                    |
+| datetime       | 是         | 处理日期和事件                                               |
+| fnmatch        | 是         | 用于匹配Unix风格文件名模式的函数                             |
+| concurrent     | 是         | 提供异步计算(python内置)                                     |
+| glob           | 是         | 用于匹配Unix风格路径模式的函数                               |
+| io             | 是         | 用于处理I/O流的函数，在python3中，还包含StringIO(python2中有同名的模块),可以像处理文件一样处理字符串 |
+| json           | 是         | 用来读写JSON格式数据的函数                                   |
+| logging        | 是         | 提供对python内置的日志功能的访问                             |
+| multiprocessig | 是         | 可以在应用程序中运行多个子进程，而且提供API让这些子进程看上去像线程一样 |
+| operator       | 是         | 提供实现基本的python运算符功能的函数，可以使用这些函数而不是自己写lambda表达式 |
+| os             | 是         | 提供对基本的操作系统函数的访问                               |
+| random         | 是         | 提供生成伪随机数的函数                                       |
+| re             |            | 提供正则表达式功能                                           |
+| sched          |            | 提供一个无需多线程的事件调度器                               |
+| select         |            | 提供对函数select()和poll()的访问，用于创建事件循环           |
+| shutil         |            | 提供对高级文件处理函数的访问                                 |
+| signal         |            | 提供用于处理POSIX信号的函数                                  |
+| tempfile       |            | 提供用于创建临时文件和目录的函数                             |
+| threading      |            | 提供对处理高级线程功能的访问                                 |
+| urllib         |            | (python2中的urllib2和urlparse)提供处理和解析url的函数        |
+| uuid           |            | 可以生成全局唯一的标识符                                     |
+
+
+
 ## 时间
 
 ```
@@ -8,11 +41,13 @@ calendar	日历
 date	    日期与时间
 datetime	日期和时间
 ```
-##集合类
+## 集合类
+
 ```
 collections
 ```
-##迭代操作
+## 迭代操作
+
 ```
 itertool
 ```
@@ -20,7 +55,8 @@ itertool
 ```
 struct
 ```
-##上下文管理
+## 上下文管理
+
 ```
 contextlib
 ```
@@ -32,6 +68,7 @@ sys			控制shell程序
 os			与操作系统相关的函数
 copy		复制
 keyword		关键字
+shutil		提供对高级文件处理函数的访问
 ```
 
 ## 测试
@@ -40,12 +77,14 @@ keyword		关键字
 pdb			调试模块
 doctest		文档测试
 ```
-##摘要算法
+## 摘要算法
+
 ```
 hashlib     摘要算法
 hmac        hmac算法
 ```
-##操作URl
+## 操作URl
+
 ```
 urlib
 urlib2(python2)
@@ -144,7 +183,7 @@ Jython
 JPype
 ```
 
-##字符串编码
+## 字符串编码
 
 ```
 chardet
@@ -163,6 +202,7 @@ mayavi2
 ```
 PyWavelets
 scipy.signal
+signal
 ```
 
 ## 云系统支持
@@ -194,19 +234,19 @@ Cython
 PyCUDA
 ```
 
-##获取系统信息
+## 获取系统信息
 
 ```
-psutil
+
 ```
 
-
-##PDF
+## PDF
 
 ```
 pypdf2
 ```
-##打包
+## 打包
+
 ```
 pyinstaller
 ```
