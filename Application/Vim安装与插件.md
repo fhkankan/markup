@@ -307,6 +307,15 @@ sudo apt-get install ctags
 
 windows:
 直接解压放于安装位置，在path中设置环境变量
+
+mac：
+Macos自带了Ctags但是和这里要用的不是一个版本，默认的Ctags只支持少有的几种语言，我们需要安装的是Exuberant Ctags
+# 安装ctags-exuberant
+brew install ctags-exuberant
+# 创建软链接
+ln -s /usr/local/Cellar/ctags/5.8_1/bin/ctags /usr/local/bin/ctags
+# which ctags 显示/usr/local/bin/ctags则说明默认ctags是我们所安装的那个版本
+which ctags 
 ```
 
 3. 使用
@@ -830,7 +839,7 @@ Press - to add/reset a file's changes, or p to add/reset --patch
 Git!		# open the output of a command in a temp file.
 ```
 
-##vim-commentary
+## vim-commentary
 
 快速注释
 
@@ -854,6 +863,283 @@ gcap 				# 普通模式下，注释整块
 
 gcgc 				# 对相邻的注释行取消注释
 ```
+
+## emmet-vim
+
+安装
+
+```
+Plugin 'mattn/emmet-vim'
+```
+
+使用
+
+```
+1. Expand an Abbreviation
+
+  Type the abbreviation as 'div>p#foo$*3>a' and type '<c-y>,'.
+  ---------------------
+  <div>
+      <p id="foo1">
+          <a href=""></a>
+      </p>
+      <p id="foo2">
+          <a href=""></a>
+      </p>
+      <p id="foo3">
+          <a href=""></a>
+      </p>
+  </div>
+  ---------------------
+
+2. Wrap with an Abbreviation
+
+  Write as below.
+  ---------------------
+  test1
+  test2
+  test3
+  ---------------------
+  Then do visual select(line wise) and type '<c-y>,'.
+  Once you get to the 'Tag:' prompt, type 'ul>li*'.
+  ---------------------
+  <ul>
+      <li>test1</li>
+      <li>test2</li>
+      <li>test3</li>
+  </ul>
+  ---------------------
+
+  If you type a tag, such as 'blockquote', then you'll see the following:
+  ---------------------
+  <blockquote>
+      test1
+      test2
+      test3
+  </blockquote>
+  ---------------------
+
+3. Balance a Tag Inward
+
+  type '<c-y>d' in insert mode.
+
+4. Balance a Tag Outward
+
+  type '<c-y>D' in insert mode.
+
+5. Go to the Next Edit Point
+
+  type '<c-y>n' in insert mode.
+
+6. Go to the Previous Edit Point
+
+  type '<c-y>N' in insert mode.
+
+7. Update an <img>’s Size
+
+  Move cursor to the img tag.
+  ---------------------
+  <img src="foo.png" />
+  ---------------------
+  Type '<c-y>i' on img tag
+  ---------------------
+  <img src="foo.png" width="32" height="48" />
+  ---------------------
+
+8. Merge Lines
+
+  select the lines, which include '<li>'
+  ---------------------
+  <ul>
+  	<li class="list1"></li>
+  	<li class="list2"></li>
+  	<li class="list3"></li>
+  </ul>
+  ---------------------
+  and then type '<c-y>m'
+  ---------------------
+  <ul>
+  	<li class="list1"></li><li class="list2"></li><li class="list3"></li>
+  </ul>
+  ---------------------
+
+9. Remove a Tag
+
+  Move cursor in block
+  ---------------------
+  <div class="foo">
+  	<a>cursor is here</a>
+  </div>
+  ---------------------
+  Type '<c-y>k' in insert mode.
+  ---------------------
+  <div class="foo">
+
+  </div>
+  ---------------------
+
+  And type '<c-y>k' in there again.
+  ---------------------
+
+  ---------------------
+
+10. Split/Join Tag
+
+  Move the cursor inside block
+  ---------------------
+  <div class="foo">
+  	cursor is here
+  </div>
+  ---------------------
+  Type '<c-y>j' in insert mode.
+  ---------------------
+  <div class="foo"/>
+  ---------------------
+
+  And then type '<c-y>j' in there again.
+  ---------------------
+  <div class="foo">
+  </div>
+  ---------------------
+
+11. Toggle Comment
+
+  Move cursor inside the block
+  ---------------------
+  <div>
+  	hello world
+  </div>
+  ---------------------
+  Type '<c-y>/' in insert mode.
+  ---------------------
+  <!-- <div>
+  	hello world
+  </div> -->
+  ---------------------
+  Type '<c-y>/' in there again.
+  ---------------------
+  <div>
+  	hello world
+  </div>
+  ---------------------
+
+12. Make an anchor from a URL
+
+  Move cursor to URL
+  ---------------------
+  http://www.google.com/
+  ---------------------
+  Type '<c-y>a'
+  ---------------------
+  <a href="http://www.google.com/">Google</a>
+  ---------------------
+
+13. Make some quoted text from a URL
+
+  Move cursor to the URL
+  ---------------------
+  http://github.com/
+  ---------------------
+  Type '<c-y>A'
+  ---------------------
+  <blockquote class="quote">
+  	<a href="http://github.com/">Secure source code hosting and collaborative development - GitHub</a><br />
+  	<p>How does it work? Get up and running in seconds by forking a project, pushing an existing repository...</p>
+  	<cite>http://github.com/</cite>
+  </blockquote>
+  ---------------------
+
+14. Installing emmet.vim for the language you are using:
+
+  # cd ~/.vim
+  # unzip emmet-vim.zip
+
+  Or if you are using pathogen.vim:
+
+  # cd ~/.vim/bundle # or make directory
+  # unzip /path/to/emmet-vim.zip
+
+  Or if you get the sources from the repository:
+
+  # cd ~/.vim/bundle # or make directory
+  # git clone http://github.com/mattn/emmet-vim.git
+
+15. Enable emmet.vim for the language you using.
+
+  You can customize the behavior of the languages you are using.
+
+  ---------------------
+  # cat >> ~/.vimrc
+  let g:user_emmet_settings = {
+  \  'php' : {
+  \    'extends' : 'html',
+  \    'filters' : 'c',
+  \  },
+  \  'xml' : {
+  \    'extends' : 'html',
+  \  },
+  \  'haml' : {
+  \    'extends' : 'html',
+  \  },
+  \}
+  ---------------------
+```
+
+
+
+## vim-multiple-cursors
+
+安装
+
+```
+Plugin terryma/vim-multiple-cursors
+```
+
+使用
+
+```
+# normal mode / visual mode
+start: <C-n> start multicursor and add a virtual cursor + selection on the match
+next: <C-n> add a new virtual cursor + selection on the next match
+skip: <C-x> skip the next match
+prev: <C-p> remove current virtual cursor + selection and go back on previous match
+select all: <A-n> start muticursor and directly select all matches
+You can now change the virtual cursors + selection with visual mode commands.
+For instance: c, s, I, A work without any issues.
+You could also go to normal mode by pressing v and use normal commands there.
+
+At any time, you can press <Esc> to exit back to regular Vim.
+
+NOTE: start with g<C-n> to match without boundaries (behaves like g* instead of *)
+
+# visual mode when multiple lines are selected
+start: <C-n> add virtual cursors on each line
+You can now change the virtual cursors with normal mode commands.
+For instance: ciw.
+
+# command
+The command MultipleCursorsFind accepts a range and a pattern (regexp), it creates a visual cursor at the end of each match.
+If no range is passed in, then it defaults to the entire buffer.
+
+# Mapping
+If you don't like the plugin taking over your key bindings, you can turn it off and reassign them the way you want:
+
+let g:multi_cursor_use_default_mapping=0
+
+" Default mapping
+let g:multi_cursor_start_word_key      = '<C-n>'
+let g:multi_cursor_select_all_word_key = '<A-n>'
+let g:multi_cursor_start_key           = 'g<C-n>'
+let g:multi_cursor_select_all_key      = 'g<A-n>'
+let g:multi_cursor_next_key            = '<C-n>'
+let g:multi_cursor_prev_key            = '<C-p>'
+let g:multi_cursor_skip_key            = '<C-x>'
+let g:multi_cursor_quit_key            = '<Esc>'
+```
+
+
+
+
 
 ## markdown-preview.vim
 
