@@ -52,7 +52,7 @@ weakref模块中的getweakrefcount(obj)和getweakrefs(obj)分别返回弱引用�
 
 弱引用对于创建对象(这些对象很费资源)的缓存是有用的。
 
-##创建代理对象
+## 创建代理对象
 
 代理对象是弱引用对象，它们的行为就像它们所引用的对象，这就便于你不必首先调用弱引用来访问背后的对象。通过weakref模块的proxy(obj[,callback])函数来创建代理对象。使用代理对象就如同使用对象本身一样：
 
@@ -77,7 +77,7 @@ p.test()
 
 callback参数的作用和ref函数中callback一样。在Python删除了一个引用的对象之后，使用代理将会导致一个weakref.ReferenceError错误。
 
-##循环引用
+## 循环引用
 
 前面说过，使用弱引用，可以解决循环引用不能被垃圾回收的问题。
 首先我们看下常规的循环引用，先创建一个简单的Graph类，然后创建三个Graph实例：
@@ -278,7 +278,7 @@ breaking the cycle and cleaning up garbage
 
 因此我们我们在实际工作中如果需要用到循环引用的话，尽量采用弱引用来实现。
 
-##缓存对象
+## 缓存对象
 
 `ref`和`proxy`都只可用与维护单个对象的弱引用，如果想同时创建多个对象的弱引用咋办？这时可以使用`WeakKeyDictionary`和`WeakValueDictionary`来实现。
 

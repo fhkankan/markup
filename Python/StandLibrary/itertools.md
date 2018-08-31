@@ -1,10 +1,23 @@
-#itertool
+# itertool
 
 Python的内建模块`itertools`提供了非常有用的用于操作迭代对象的函数。
 
-##无限迭代
+| 函数                             | 说明                                                         |
+| -------------------------------- | ------------------------------------------------------------ |
+| `chain(*iterables)`              | 依次迭代多个iterables但并不会构造包含所有元素的中间列表      |
+| `combinations(iterable, r)`      | 从给定的iterable中生成所有长度为r的组合                      |
+| `compress(data, selectors)`      | 对data应用来自selectors的布尔掩码并从data中返回selectors中对应为真的元素 |
+| `count(start, step)`             | 创建一个无限的值的序列，从start开始，步长为step              |
+| `cycle(iterable)`                | 重复地遍历iterable中的值                                     |
+| `dropwhile(predicate, iterable)` | 过滤iterable中的元素，丢弃符合predicate描述的那些元素        |
+| `groupby(iterable, keyfunc)`     | 根据keyfunc函数返回的结果对元素进行分组并返回一个迭代器      |
+| `permutations(iterable[, r])`    | 返回iterable中r个元素的所有组合                              |
+| `product(*iterables)`            | 返回iterablesde笛卡尔积的可迭代对象，但不使用嵌套的for循环   |
+| `takewhile(predicate, iterable)` | 返回满足predicate条件的iterable中的元素                      |
 
-count()
+
+
+## count()
 
 ```
 >>> import itertools
@@ -20,7 +33,7 @@ count()
 
 因为`count()`会创建一个无限的迭代器，所以上述代码会打印出自然数序列，根本停不下来，只能按`Ctrl+C`退出。
 
-cycle()
+## cycle()
 
 会把传入的一个序列无限重复下去：
 
@@ -39,7 +52,7 @@ cycle()
 ...
 ```
 
-repeat()
+## repeat()
 
 负责把一个元素无限重复下去，不过如果提供第二个参数就可以限定重复次数：
 
@@ -64,9 +77,7 @@ A
 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 ```
 
-`itertools`提供的几个迭代器操作函数更加有用：
-
-##chain()
+## chain()
 
 `chain()`可以把一组迭代对象串联起来，形成一个更大的迭代器：
 
@@ -76,7 +87,7 @@ A
 # 迭代效果：'A' 'B' 'C' 'X' 'Y' 'Z'
 ```
 
-##groupby()
+## groupby()
 
 `groupby()`把迭代器中相邻的重复元素挑出来放在一起：
 

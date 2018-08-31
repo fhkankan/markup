@@ -1,8 +1,8 @@
-#collections
+# collections
 
 collections是Python内建的一个集合模块，提供了许多有用的集合类。
 
-##namedtuple
+## namedtuple
 
 我们知道`tuple`可以表示不变集合，例如，一个点的二维坐标就可以表示成：
 
@@ -44,7 +44,7 @@ True
 Circle = namedtuple('Circle', ['x', 'y', 'r'])
 ```
 
-##deque
+## deque
 
 使用`list`存储数据时，按索引访问元素很快，但是插入和删除元素就很慢了，因为`list`是线性存储，数据量大的时候，插入和删除效率很低。
 
@@ -61,11 +61,11 @@ deque(['y', 'a', 'b', 'c', 'x'])
 
 `deque`除了实现list的`append()`和`pop()`外，还支持`appendleft()`和`popleft()`，这样就可以非常高效地往头部添加或删除元素。
 
-##defaultdict
+## defaultdict
 
 使用`dict`时，如果引用的Key不存在，就会抛出`KeyError`。如果希望key不存在时，返回一个默认值，就可以用`defaultdict`：
 
-```
+```python
 >>> from collections import defaultdict
 >>> dd = defaultdict(lambda: 'N/A')
 >>> dd['key1'] = 'abc'
@@ -79,7 +79,17 @@ deque(['y', 'a', 'b', 'c', 'x'])
 
 除了在Key不存在时返回默认值，`defaultdict`的其他行为跟`dict`是完全一样的。
 
-##OrderedDict
+```python
+import collections
+ 
+def add_animal_in_family(species, animal, family):
+    species[family].add(animal)
+    
+species = collections.defaultdict(set)
+add_animal_in_family(species, 'cat', 'felidea') 
+```
+
+## OrderedDict
 
 使用`dict`时，Key是无序的。在对`dict`做迭代时，我们无法确定Key的顺序。
 
@@ -130,7 +140,7 @@ class LastUpdatedOrderedDict(OrderedDict):
         OrderedDict.__setitem__(self, key, value)
 ```
 
-##Counter
+## Counter
 
 `Counter`是一个简单的计数器，例如，统计字符出现的个数：
 

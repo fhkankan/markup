@@ -2,7 +2,7 @@
 
 **密码登录**
 
-```
+```bash
 # 在客户端登录到远端计算机
 ssh user_name@远端计算机IP
 # 输入密码
@@ -11,12 +11,10 @@ ssh user_name@远端计算机IP
 
 **无密码登录**
 
-```
+```bash
 # 首先使用生成密钥
 ssh-keygen -t rsa
-
 # 将id_rsa.pub中的内容复制到远端计算机的.ssh/authorized_keys文件中，
-
 # 无密码访问远端计算机了
 ssh-copy-id user@host
 ```
@@ -163,11 +161,9 @@ tar -cj /backup | cstream -t 777k | ssh host ‘tar -xj -C /backup’
 echo w00t, i’m 733+ | cstream -b1 -t2
 ```
 
+# 文件处理
 
-
-#文件处理
-
-##对比
+## 对比
 
 **比较远程和本地文件 **
 
@@ -175,8 +171,31 @@ echo w00t, i’m 733+ | cstream -b1 -t2
 ssh user@host cat /path/to/remotefile | diff /path/to/localfile –
 ```
 
-##复制
+## 复制
+**复制文档**
 
+```bash
+# 同cp命令一样，复制目录时可以加上-r选项。
+scp 文件 账户@远端计算机IP:目录名	# 从本地到服务器
+scp 账户@远端计算机IP:文件 本地目录	# 从服务器到本地
+
+# 继续SCP大文件
+rsync –partial –progress –rsh=ssh $file_source $user@$host:$destination_file
+它可以恢复失败的rsync命令，当你通过VPN传输大文件，如备份的数据库时这个命令非常有用，需要在两边的主机上安装rsync。
+
+rsync –partial –progress –rsh=ssh $file_source $user@$host:$destination_file local -> remote
+或
+rsync –partial –progress –rsh=ssh $user@$host:$remote_file $destination_file remote -> local
+```
+**上传下载 **
+
+```bash
+# 上传文件到远端计算机命令：
+put 本地文件 远端计算机目录
+
+# 下载文件到本地计算机命令：
+get 远端文件 本地目录
+```
 **通过SSH将MySQL数据库复制到新服务器**
 
 ```
@@ -201,35 +220,7 @@ ssh-keygen; ssh-copy-id user@host; ssh user@host
 这个命令组合允许你无密码SSH登录，注意，如果在本地机器的~/.ssh目录下已经有一个SSH密钥对，ssh-keygen命令生成的新密钥可能会覆盖它们，ssh-copy-id将密钥复制到远程主机，并追加到远程账号的~/.ssh/authorized_keys文件中，使用SSH连接时，如果你没有使用密钥口令，调用ssh user@host后不久就会显示远程shell。
 ```
 
-**上传下载 **
 
-```
-# 上传文件到远端计算机命令：
-
-put 本地文件 远端计算机目录
-
-# 下载文件到本地计算机命令：
-
-get 远端文件 本地目录
-```
-
-**复制**
-
-```
-# 同cp命令一样，复制目录时可以加上-r选项。
-scp 文件 账户@远端计算机IP:目录名
-
-scp 账户 @远端计算机IP:文件 本地目录
-
-# 继续SCP大文件
-rsync –partial –progress –rsh=ssh $file_source $user@$host:$destination_file
-它可以恢复失败的rsync命令，当你通过VPN传输大文件，如备份的数据库时这个命令非常有用，需要在两边的主机上安装rsync。
-
-rsync –partial –progress –rsh=ssh $file_source $user@$host:$destination_file local -> remote
-或
-
-rsync –partial –progress –rsh=ssh $user@$host:$remote_file $destination_file remote -> local
-```
 
 **将标准输入（stdin）复制到你的X11缓冲区**
 
@@ -248,11 +239,9 @@ ssh-keygen -R <the_offending_host>
 
 # 删除文本文件中的一行，修复“SSH主机密钥更改”的警告
 sed -i 8d ~/.ssh/known_hosts
-
-
 ```
 
-#远端挂载
+# 远端挂载
 
 从<http://fuse.sourceforge.net/sshfs.html>下载sshfs，它允许你跨网络安全挂载一个目录。
 
