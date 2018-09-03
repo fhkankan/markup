@@ -1,15 +1,22 @@
-# matplotlib
+# Matplotlib
 
 Matplotlib 是一个 Python 的 2D绘图库，通过 Matplotlib，开发者可以仅需要几行代码，便可以生成绘图，直方图，功率谱，条形图，错误图，散点图等。
 
-<http://matplotlib.org>
-
 - 用于创建出版质量图表的绘图工具库
 - 目的是为Python构建一个Matlab式的绘图接口
-- `import matplotlib.pyplot as plt`
 - pyploy模块包含了常用的matplotlib API函数，承担了大部分的绘图任务。
 
+**参考学习**
+
+<http://matplotlib.org>
+
 <http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.plot>
+
+> 引用
+
+```
+import matplotlib.pyplot as plt
+```
 
 ## 配置参数
 

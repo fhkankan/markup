@@ -10,7 +10,15 @@ Pandas是一个强大的分析结构化数据的工具集，基于NumPy构建，
 - 应用于数据挖掘，数据分析
 - 提供数据清洗功能
 
+**参考学习**
+
 <http://pandas.pydata.org>
+
+> 引用
+
+```python
+import pandas as pd
+```
 
 ## 数据结构
 

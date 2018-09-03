@@ -1,12 +1,3 @@
-#Scipy
-
-Scipy ：基于Numpy提供了一个在Python中做科学计算的工具集，专为科学和工程设计的Python工具包。主要应用于统计优化、线性代数模块、傅里叶变换、信号和图像处理、常微分方程求解、积分方程、稀疏矩阵等，在数学系或者工程系相对用的多一些，和数据处理的关系不大，我们知道即可，这里不做讲解。
-
-- 在NumPy库的基础上增加了众多的数学、科学及工程常用的库函数
-- 线性代数、常微分方程求解、信号处理、图像处理
-- 一般的数据处理numpy已经够用
-- `import scipy as sp`
-
 # Numpy
 
 Numpy：提供了一个在Python中做科学计算的基础库，重在数值计算，主要用于多维数组（矩阵）处理的库。用来存储和处理大型矩阵，比Python自身的嵌套列表结构要高效的多。本身是由C语言开发，是个很基础的扩展，Python其余的科学计算扩展大部分都是以此为基础。
@@ -15,7 +6,6 @@ Numpy：提供了一个在Python中做科学计算的基础库，重在数值计
 - ndarray对象，表示多维数组（矩阵），具有矢量运算能力
 - 矩阵运算，无需循环，可完成类似Matlab中的矢量运算
 - 线性代数、随机数生成
-- `import numpy as np`
 
 **参考学习资料**：
 
@@ -23,7 +13,15 @@ Python、NumPy和SciPy介绍：<http://cs231n.github.io/python-numpy-tutorial>
 
 NumPy和SciPy快速入门：<https://docs.scipy.org/doc/numpy-dev/user/quickstart.html>
 
-##ndarry创建
+> 引用
+
+```
+import numpy as np
+```
+
+
+
+## ndarry创建
 
 ```
 NumPy数组是一个多维的数组对象（矩阵），称为ndarray，具有高效的算术运算能力和复杂的广播能力，并具有执行速度快和节省空间的特点。
