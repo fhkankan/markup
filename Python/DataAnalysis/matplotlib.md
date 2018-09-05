@@ -22,7 +22,7 @@ import matplotlib.pyplot as plt
 
 - 代码中
 
-```
+```python
 # 方法一：使用参数字典rcParams
 import matplotlib as mp1
 mp1.rcParams['lines.linewidth'] = 2
@@ -32,7 +32,7 @@ mp1.rcParams['lines.color'] = 'r'
 import matplotlib as mp1
 mp1.rc('lines', linewidth=2, color='r')
 
-# 重置参数
+# 重置动态修改后的配置参数
 matplotlib.rcdefaults()
 ```
 
@@ -51,7 +51,7 @@ matplotlib.rcdefaults()
 python -c 'import matplotlib as mpl; print mpl.get_configdir()'
 ```
 
-- 配置项
+- 配置文件中的配置项
 
 ```
 axes: 设置坐标轴边界和表面的颜色、坐标刻度值大小和网格的显示

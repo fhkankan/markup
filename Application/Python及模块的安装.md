@@ -135,7 +135,7 @@ eg: pip install scrapy -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 
 2.永久修改： 
-linux: 
+linux/mac: 
 修改 ~/.pip/pip.conf (没有就创建一个)， 内容如下：
 [global]
 index-url = https://pypi.tuna.tsinghua.edu.cn/simple
@@ -143,12 +143,12 @@ index-url = https://pypi.tuna.tsinghua.edu.cn/simple
 trusted-host=pypi.tuna.tsinghua.edu.cn
 
 [global]
-index-url = http://mirrors.aliyun.com/pypi/simple/
+index-url = https://mirrors.aliyun.com/pypi/simple/
 [install]
 trusted-host=mirrors.aliyun.com
 
 [global]
-index-url = http://pypi.douban.com/simple
+index-url = https://pypi.douban.com/simple
 [install]
 trusted-host=pypi.douban.com
 
@@ -585,7 +585,7 @@ conda remove --name your_env_name package_name
 
 
 
-​    
+    
 
    
 

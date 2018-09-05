@@ -35,6 +35,8 @@ sheet1_name = book.sheet_names()[0]
 print(sheet1_name)
 # 通过sheet名字获得sheet对象
 sheet1 = book.sheet_by_name(sheet1_name)
+# 获取所有工作表
+sheets = book.sheets()
 
 # 获取总行数
 nrows = sheet1.nrows
