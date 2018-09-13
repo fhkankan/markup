@@ -2,7 +2,7 @@
 
 ## 安装
 
-mac
+> mac
 
 ```
 brew install nginx
@@ -25,7 +25,15 @@ sudo launchctl load -w /Library/LaunchDaemons/homebrew.mxcl.nginx.plist
 /usr/local/var/www  # 服务器默认路径
 ```
 
+> ubuntu
+
+```
+sudo apt-get install nginx
+```
+
 ## 使用
+
+> Mac
 
 服务启动
 
@@ -44,6 +52,14 @@ sudo nginx -s reload
 ```
 sudo nginx -s stop
 sudo nginx -s quit
+```
+
+> ubuntu
+
+操作
+
+```
+nginx {start|stop|restart|reload|force-reload|status|configtest|rotate|upgrade}
 ```
 
 浏览器访问

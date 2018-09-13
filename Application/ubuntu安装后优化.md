@@ -126,15 +126,34 @@ sudo fc-cache
 
 ## pycharm
 ```
-sudo snap install [pycharm-professional|pycharm-community] --classic
+sudo add-apt-repository ppa:mystic-mirage/pycharm
+sudo apt update
+sudo apt install pycharm-community
 ```
+## visualStudioCode
+
+```
+# 下载visualStudioCode
+sudo dpkg -i codexxxx
+```
+
 ## mysql
+
 ```
 sudo apt-get install mysql-server
 sudo apt-get install libmysqld-dev 
 sudo apt-get install libmysqlclient-dev 
 ```
+## nginx
+
+```
+sudo apt-get install nginx
+```
+
+
+
 ## redis
+
 ```
 sudo apt-get install software-properties-common
 sudo apt-add-repository ppa:chris-lea/redis-server

@@ -972,14 +972,9 @@ sudo apt-get clean && sudo apt-get autoclean--->清理无用的包
 第一种：使用Ubuntu软件中心安装，即直接双击软件包就可以了；
 第二种：使用dpkg命令方法安装：sudo dpkg -i package.deb；
 第三种：使用apt命令方法安装：sudo apt-get install package.deb；
+第四中：使用gbebi:sudo apt-get install gdebi,sudo gbedi package.deb
 
-# 安装源码包
-tar -zvxf 源码压缩包  # 解压源码包
-cd 目录中  # 进入安装包目录
-./configure  # 执行安装前的配置
-make  # 编译
-make test  # 测试
-make install  # 安装
+
 
 # 安装二进制包(.bin)
 chmod u+x 软件名  # 添加可执行权限
@@ -988,6 +983,44 @@ chmod u+x 软件名  # 添加可执行权限
 安装python第三方库
 pip install  libname
 python setup.py install
+```
+
+> deb包
+
+```bash
+# 方法一
+安装deb软件包 dpkg -i xxx.deb
+删除软件包 dpkg -r xxx.deb
+连同配置文件一起删除 dpkg -r --purge xxx.deb
+查看软件包信息 dpkg -info xxx.deb
+查看文件拷贝详情 dpkg -L xxx.deb
+查看系统中已安装软件包信息 dpkg -l
+重新配置软件包 dpkg-reconfigure xxx
+
+# 方法二
+
+安装gbebi: sudo apt-get install gdebi
+安装软件 sudo gbedi package.deb
+```
+
+> 源码
+
+```
+# 安装源码包
+tar -zvxf 源码压缩包  # 解压源码包
+cd 目录中  # 进入安装包目录
+./configure  # 执行安装前的配置
+make  # 编译
+make test  # 测试
+make install  # 安装
+
+# 卸载源代码编译的的软件：
+cd 源代码目录
+make clean
+./configure
+（make）
+make uninstall
+rm -rf 目录
 ```
 
 

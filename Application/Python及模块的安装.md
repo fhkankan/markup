@@ -84,7 +84,7 @@ python3 --version
 
 - 安装
 
-Linux/OSX
+Linux
 
 ```
 # 检查
@@ -98,6 +98,12 @@ pip3 install --upgrade pip
 
 # 注意：若出现pip: unsupported locale setting
 export LC_ALL=C
+```
+
+mac
+
+```
+brew install pip
 ```
 
 Windows
