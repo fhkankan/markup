@@ -23,3 +23,20 @@ sys.stdout
 
 sys.exit()
 # 退出shell程序
+
+sys._getframe(0)
+# 获取当前栈信息
+
+sys._getframe(0).f_code.co_filename
+# 当前文件名
+
+sys._getframe(0).f_code.co_name
+# 当前函数名
+
+sys._getframe(0).f_lineno
+# 当前行号
+
+sys._getframe().f_code.co_filename.split('/')[-1].split('.')[0]
+# 获取文件名
+
+

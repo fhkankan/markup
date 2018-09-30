@@ -87,7 +87,7 @@ os.walk(top[, topdown=True[, onerror=None[, followlinks=False]]])
 # 输出在文件夹中的文件名通过在树中游走，向上或者向下。默认遍历所有目录树，返回一个可迭代的生成器，使用for循环可以进行处理
 import os
 o = os.walk('d:\new\')
-print(f for f in o)
+print([root, dirs, files] for root, dirs, files in o)
 
 os.stat(path)
 # 获取path指定的路径的信息，功能等同于C API中的stat()系统调用。
