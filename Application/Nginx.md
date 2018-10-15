@@ -31,6 +31,43 @@ sudo launchctl load -w /Library/LaunchDaemons/homebrew.mxcl.nginx.plist
 sudo apt-get install nginx
 ```
 
+重要文件位置
+
+```
+/etc/nginx	# 配置文件
+/usr/sbin/nginx	# 程序文件
+/var/log/nginx # 日志文件
+/etc/nginx/sites-available	# 虚拟主机位置
+/var/www/nginx-default		# 默认虚拟主机目录
+/etc/init.d/nginx	# 启动脚本
+```
+
+> docker
+
+```
+docker run \
+  --name myNginx \
+  -d -p 90:80 \
+  -v /usr/docker/myNginx/html:/usr/share/nginx/html \
+  -v /etc/docker/myNginx/nginx.conf:/etc/nginx/nginx.conf \
+  -v /etc/docker/myNginx/conf.d:/etc/nginx/conf.d \
+  nginx
+```
+
+注意
+
+```
+/usr/docker/myNginx/html			# 挂载项目文件
+
+/etc/docker/myNginx/nginx.conf		# 挂载的主配置文件"nginx.conf"，注意"nginx.conf"文件内有一行"include /etc/nginx/conf.d/*.conf;"，这个include指向了子配置文件的路径，此处注意include后所跟的路径一定不要出错。
+
+/etc/docker/myNginx/conf.d			# 子配置文件的路径也挂载了出来，注意要与（2）中include指向路径一致
+
+nginx.conf是挂载了一个文件（docker是不推荐这样用的），conf.d挂载的是一个目录
+```
+
+
+
 ## 使用
 
 > Mac

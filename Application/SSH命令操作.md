@@ -176,8 +176,8 @@ ssh user@host cat /path/to/remotefile | diff /path/to/localfile –
 
 ```bash
 # 同cp命令一样，复制目录时可以加上-r选项。
-scp 文件 账户@远端计算机IP:目录名	# 从本地到服务器
-scp 账户@远端计算机IP:文件 本地目录	# 从服务器到本地
+scp -r 文件 账户@远端计算机IP:目录名	# 从本地到服务器
+scp -r 账户@远端计算机IP:文件 本地目录	# 从服务器到本地
 
 # 继续SCP大文件
 rsync –partial –progress –rsh=ssh $file_source $user@$host:$destination_file

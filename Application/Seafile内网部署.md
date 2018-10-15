@@ -1,5 +1,9 @@
+[TOC]
+
 # Seafile内网部署(ubuntu)
+
 ## 参考文档
+
 <https://manual-cn.seafile.com/deploy/deploy_with_docker.html>
 
 ## Docker部署
@@ -62,10 +66,52 @@ docker exec -it seafile bash
 
 https://manual.seafile.com/deploy/deploy/deploy/only_office.md#deploy-onlyoffice-documentserver-docker-image
 
+### 部署ood
+
 下载运行onlyoffice/documentserver
 
 ```
-docker run -dit -p 88:80 --restart always --name oods onlyoffice/documentserver
+docker run -dit -p 70:80 -p 7443:443 --restart always --name oods onlyoffice/documentserver
+```
+
+验证服务部署是否ok
+
+```
+在浏览器中输入
+http//{ip地址}:70
+或
+https://{域名}:7443
+```
+
+### 配置seafile
+
+```
+# 查看docker容器信息
+sudo docker ps -a
+# 进入seafile的docker容器中
+sudo docker exec -it 容器id /bin/bash
+# 进入配置信息
+cd config
+# 删除编译文件
+rm -rf seahub_settings.pyc
+# 添加如下的信息
+vim seahub_settings.py
+# 退出
+exit
+# 重启seafile容器
+sduo docker stop 容器id
+sduo docker start 容器id
+```
+
+在seahub_settings.py中添加
+
+```
+# Enable Only Office
+ENABLE_ONLYOFFICE = True
+VERIFY_ONLYOFFICE_CERTIFICATE = False
+ONLYOFFICE_APIJS_URL = 'http{s}://{your OnlyOffice server's domain or IP}/web-apps/apps/api/documents/api.js'
+ONLYOFFICE_FILE_EXTENSION = ('doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'odt', 'fodt', 'odp', 'fodp', 'ods', 'fods')
+ONLYOFFICE_EDIT_FILE_EXTENSION = ('docx', 'pptx', 'xlsx')
 ```
 
 
