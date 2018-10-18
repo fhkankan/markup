@@ -675,7 +675,7 @@ function 函数名([参数1，参数2，...]){
 > 匿名函数
 
 ```
-var 变量名 = fucntion([参数1，参数2，...]){
+var 变量名 = function([参数1，参数2，...]){
     语句
     [return 返回值]
 }
@@ -689,18 +689,13 @@ var 变量名 = new Function("参数1", "参数2", ... "函数体")
 
 ### 特殊参数
 
-ES5中默认参数
+ES5中
+
+> 默认参数
 
 ```
 function defaultValue (val, defaultVal) {
   return val === undefined ? defaultVal : val
-}
-
-function doSomething (name, age) {
-  name = defaultValue(name, 'default name')
-  age  = defaultValue(age , 18)
-
-  console.log(name, age)
 }
 
 // 参数较多的情况，使用Jquery扩展
@@ -718,13 +713,82 @@ function example(settings){
   }
 ```
 
+> 选项对象(关键字参数)
+
+```javascript
+function Alert(parent,message,opts){
+    // 使用||提供一个默认空选项对象
+    opts=opts||{};
+    // 由于0是一个有效值但不是默认值，所以需要测试数值参数是否为undefined
+    // 基于空字符串是无效的、应该被默认值取代的假设，这里使用逻辑或来应对字符串参数
+    this.width=opts.width===undefined?320:opts.width;
+    this.height=opts.height===undefined?240:opts.height;
+    this.x=opts.x===undefined?(parent.width)/2-(this.width/2):opts.x;
+    this.y=opts.y===undefined?(parent.height)/2-(this.height/2):opts.y;
+    this.title=opts.title||'Alert';
+    this.titleColor=opts.titleColor||'gray';
+    this.bgColor=opts.bgColor||'white';
+    this.textColor=opts.textColor||'black';
+    this.icon=opts.icon||'info';
+    // 使用双重否定模式将其参数强制转换为一个布尔值
+    this.modal=!!opts.modal;
+    this.message=message;
+}
+
+
+// 许多库使用extend函数，使用其中的extend函数简化
+function Alert(parent,message,opts){
+    opts=extend({width:320,height:240},opts);
+    opts=extend({
+        x:(parent.width)/2-(opts.width/2):opts.x,
+        y:(parent.height)/2-(opts.height/2):opts.y,
+        title:'Alert',
+        titleColor:'gray',
+        bgColor:'white',
+        textColor:'black',
+        icon:'info',
+        modal:false
+    },opts);
+    this.width=opts.width;
+    this.height=opts.height;
+    this.x=opts.x;
+    this.y=opts.y;
+    this.title=opts.title;
+    this.titleColor=opts.titleColor;
+    this.bgColor=opts.bgColor;
+    this.textColor=opts.textColor;
+    this.icon=opts.icon;
+    this.modal=opts.modal;
+    this.message=message;
+}
+
+
+// 进一步简化
+function Alert(parent,message,opts){
+    opts=extend({width:320,height:240});
+    opts=extend({
+        x:(parent.width)/2-(opts.width/2):opts.x,
+        y:(parent.height)/2-(opts.height/2):opts.y,
+        title:'Alert',
+        titleColor:'gray',
+        bgColor:'white',
+        textColor:'black',
+        icon:'info',
+        modal:false
+    },opts);
+    extend(this,opts);
+}
+```
+
+
+
 ES6中，新增了可变参数和默认参数
 
 > 可变参数
 
 ```
 // 使用展开操作符(...)，是最后一个参数
-fucntion addPrefix(prefix, ...words){
+function addPrefix(prefix, ...words){
     const prefixedWords = [];
     for(let i=0; i<words.length; i++){
 		prefixedWords[i] = prefix + words[i];
@@ -738,14 +802,26 @@ addPrefix("con", "verse", "vex")//["converse","convex"]
 > 默认参数
 
 ```
-fucntion f(a,b="default",c=3){
-    return '${a}-${b}-${c}'
+function f(a,b="default",c=3){
+    return `${a}-${b}-${c}`
 }
 
 f()//"undefined-default-3"
 f(5) //"5-default-3"
 f(5,6,7)//"5-6-7"
 ```
+
+> 可选参数
+
+```
+function f({a,b=2,c}){
+    console.log(a,b,c)
+}
+
+f({a:5,c:6}) // 5 2 6
+```
+
+
 
 ### 调用
 

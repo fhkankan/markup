@@ -1286,6 +1286,8 @@ console.log(cat instanceof Cat); //true
 
 ### 实际使用
 
+> ES5
+
 
 - 原型
 
@@ -1368,6 +1370,8 @@ console.log(jacky.getName()); //Jacky
 console.log(jacky.getBooks().join(', ')); //BookA, BookB
 console.log(smith.getBooks().join(', ')); //Uncaught TypeError: smith.getBooks is not a function
 ```
+
+> ES6
 
 - 使用类关键字
 
