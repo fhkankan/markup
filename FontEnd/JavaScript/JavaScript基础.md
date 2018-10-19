@@ -691,6 +691,35 @@ var 变量名 = new Function("参数1", "参数2", ... "函数体")
 
 ES5中
 
+> 可变参数
+
+```
+// 可变参数
+function f(){
+                var arg = Array.prototype.slice.call(arguments);
+                var sum = 0;
+                arg.forEach(function(item){
+                    sum +=item;
+                })
+                return sum;
+            }
+
+            console.log('f(1,2,3,4)=',f(1,2,3,4));
+            
+// 位置参数+可变参数
+
+function test(a,param) 
+   { 
+    var defaultSetting = {};
+    var arg = Array.prototype.slice.call(arguments,1);
+    arg.forEach(function(item){
+        $.extend(defaultSetting,item)
+    })
+    $.extend(this, defaultSetting);
+      this.des = a
+   } 
+```
+
 > 默认参数
 
 ```
@@ -1464,6 +1493,20 @@ function* theFutureIsNow(){
 
 
 
+
+
+
+```
+function a(){
+    var params = Array.prototype.slice.call(arguments);
+    var defaultSettings = {
+        text : ''
+    }
+    var paramsSettings = $.extend(defaultSettings,params)
+    $.extend(this, paramsSettings)
+}
+
+```
 
 
 
