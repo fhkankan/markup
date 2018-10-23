@@ -211,3 +211,73 @@ main函数工作流程：
 --->for循环确定启动的线程数---->实例化PrintLove类--->启动线程并设置为守护
 --->等待queue中的消息处理完毕后执行join。即退出主程序。
 
+### 异步回调
+
+```python
+#!/usr/bin/env python
+# -*- coding: UTF-8 -*-
+
+import logging
+import Queue
+import threading
+import time
+
+def func_a(a, b):
+    return a + b
+
+def func_b():
+    pass
+
+def func_c(a, b, c):
+    return a, b, c
+
+# 异步任务队列
+_task_queue = Queue.Queue()
+
+def async_call(function, callback, *args, **kwargs):
+    _task_queue.put({
+        'function': function,
+        'callback': callback,
+        'args': args,
+        'kwargs': kwargs
+    })
+
+def _task_queue_consumer():
+    """
+    异步任务队列消费者
+    """
+    while True:
+        try:
+            task = _task_queue.get()
+            function = task.get('function')
+            callback = task.get('callback')
+            args = task.get('args')
+            kwargs = task.get('kwargs')
+            try:
+                if callback:
+                    callback(function(*args, **kwargs))
+            except Exception as ex:
+                if callback:
+                    callback(ex)
+            finally:
+                _task_queue.task_done()
+        except Exception as ex:
+            logging.warning(ex)
+
+def handle_result(result):
+    time.sleep(5)
+    print(type(result), result)
+
+if __name__ == '__main__':
+    t = threading.Thread(target=_task_queue_consumer)
+    t.daemon = True
+    t.start()
+
+    async_call(func_a, handle_result, 1, 2)
+    async_call(func_b, handle_result)
+    async_call(func_c, handle_result, 1, 2, 3)
+    async_call(func_c, handle_result, 1, 2, 3, 4)
+
+    _task_queue.join()
+```
+
