@@ -208,7 +208,7 @@ timestamp的值与时区毫无关系，因为timestamp一旦确定，其UTC时�
 Mon, May 05 16:28
 ```
 
-##datetime加减
+## datetime加减
 
 对日期和时间进行加减实际上就是把datetime往后或往前计算，得到新的datetime。加减可以直接用`+`和`-`运算符，不过需要导入`timedelta`这个类：
 

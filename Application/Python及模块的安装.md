@@ -1,3 +1,5 @@
+[TOC]
+
 # Python安装
 
 ## Linux
@@ -591,7 +593,7 @@ conda remove --name your_env_name package_name
 
 
 
-    
+​    
 
    
 
