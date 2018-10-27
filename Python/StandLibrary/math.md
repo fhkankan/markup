@@ -1,15 +1,18 @@
-import math
+# math
 
-# 实现对浮点数的数学运算
-# 一般是c语言中同名函数的简单封装
+实现对浮点数的数学运算
+一般是c语言中同名函数的简单封装
 
-
+## 属性
+```
 math.e
 # 自然常数
 
 math.pi
 # 圆周率pi
-
+```
+## 方法
+```
 math.ceil(x)
 # 返回数字的上入整数，如math.ceil(4.1) 返回 5
 
@@ -58,39 +61,38 @@ math.log10(x)
 math.hypot(x)
 # 返回以x和y为直角边的斜边长
 # 返回欧几里德范数 sqrt(x*x + y*y)
+```
 
 
-
-"""
-三角函数
-"""
-# math.degrees(x)
+> 三角函数
+```
+math.degrees(x)
 # 将弧度转换为角度,如degrees(math.pi/2) ， 返回90.0
 
-# math.radians(x)
+math.radians(x)
 # 将角度转换为弧度
 
-# sin(x)
+sin(x)
 # 返回的x弧度的正弦值
 
-# cos(x)
+cos(x)
 # 返回x的弧度的余弦值
 
-# tan(x)
+tan(x)
 # 返回x弧度的正切值
 
-# asin(x)
+asin(x)
 # 返回x的反正弦弧度值
 
-# acos(x)
+acos(x)
 # 返回x的反余弦弧度值
 
-# atan(x)
+atan(x)
 # 返回x的反正切弧度值
 
-# atan2(y, x)
+atan2(y, x)
 # 返回给定的 X 及 Y 坐标值的反正切值
-
+```
 
 
 

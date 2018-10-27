@@ -1,4 +1,5 @@
-# 一个文本中
+一个文本中
+```
 def sum(a, b):
     """
     >>> sum(1,4)
@@ -12,8 +13,9 @@ def sum(a, b):
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
-    
-# 测试代码单列
+```
+测试代码单列
+```
 //sum.py
 def sum(a,b):
     return a+b  111
@@ -28,3 +30,4 @@ def sum(a,b):
 //test.py
 import doctest
 doctest.testfile('testsum.txt')
+```

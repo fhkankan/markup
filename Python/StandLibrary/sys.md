@@ -1,5 +1,6 @@
-# 控制shell程序
-
+# sys
+控制shell程序
+```
 sys.vesion
 # 获取解释器的版本信息
 
@@ -38,5 +39,5 @@ sys._getframe(0).f_lineno
 
 sys._getframe().f_code.co_filename.split('/')[-1].split('.')[0]
 # 获取文件名
-
+```
 

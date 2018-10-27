@@ -1,42 +1,38 @@
-import os
+# os
 
-"""
-文件重命名
-"""
+
+## 文件重命名
+```
 os.rename(src,dst)
 # 重命名文件或目录，从 src 到 dst
 
 os.renames(old,new)
 # 递归地对目录进行更名，也可以对文件进行更名。
+```
 
-
-"""
-删除文件
-"""
+## 删除文件
+```
 os.remove(path)
 # 删除路径为path的文件。如果path 是一个文件夹，将抛出OSError; 查看下面的rmdir()删除一个 directory。
 
 os.removedirs(path)
 # 递归删除目录
-
-"""
-创建文件夹
-"""
+```
+## 创建文件夹
+```
 os.mkdir(path[,mode])
 # 以数字mode的mode创建一个名为path的文件夹.默认的 mode 是 0777 (八进制)。
 
 os.makedirs(path)
 # 创建path中所有必须文件夹 
-
-"""
-删除文件夹
-"""
+```
+## 删除文件夹
+```
 os.rmdir(path)
 # 删除path指定的空目录，如果目录非空，则抛出一个OSError异常。
-
-"""
-当前工作目录
-"""
+```
+## 当前工作目录
+```
 os.getcwd()
 # 返回当前工作目录
 
@@ -49,10 +45,9 @@ os.chdir(path)
 
 os.chroot(path)
 # 改变当前进程的根目录
-
-"""
-os.path
-"""
+```
+## 路径
+```
 # 路径和文件名
 os.path.dirname(path)
 # 返回path参数中的路径名称字符串
@@ -75,10 +70,9 @@ os.path.isdir(path)
 
 os.path.getsize(path)
 # 产看文件的大小
-
-"""
-获取信息
-"""
+```
+## 获取信息
+```
 os.listdir(path)
 #返回path指定的文件夹包含的文件或文件夹的名字的列表 
 # ./当前路径(相对路径)
@@ -100,10 +94,9 @@ os.pathconf(path,name)
 
 os.utime(path, times)
 # 返回指定的path文件的访问和修改的时间
-
-"""
-文件权限
-"""
+```
+## 文件权限
+```
 os.access(path,mode)
 # 检验权限模式
 
@@ -112,10 +105,9 @@ os.chmod(path,mode)
 
 os.chown(path,uid,gid)
 # 更改文件所有者
-
-"""
-创建
-"""
+```
+## 创建
+```
 os.stat_float_times([newvalue])
 # 决定stat_result是否以float对象显示时间戳
 
@@ -154,10 +146,9 @@ os.tmpfile()
 
 os.unlink(path)
 # 删除文件路径
-
-"""
-设备相关
-"""
+```
+## 设备相关
+```
 os.major(device)
 # 从原始的设备号中提取设备major号码 (使用stat中的st_dev或者st_rdev field)。
 
@@ -166,10 +157,9 @@ os.makedev(major,minor)
 
 os.minor(device)
 # 从原始的设备号中提取设备minor号码 (使用stat中的st_dev或者st_rdev field )
-
-"""
-连接对象
-"""
+```
+## 连接对象
+```
 os.symlink(src,dst)
 # 创建一个软链接
 
@@ -193,10 +183,9 @@ os.lchown(path,uid,gid)
 
 os.lseek(fd,pos,how)
 # 设置文件描述符fd当前位置为pos, how方式修改: SEEK_SET 或者 0 设置从文件开始的计算的pos; SEEK_CUR或者 1 则从当前位置计算; os.SEEK_END或者2则从文件尾部开始. 在unix，Windows中有效
-
-"""
-文件描述符
-"""
+```
+## 文件描述符
+```
 os.read(fd,n)
 # 从文件描述符fd中读取最多 n 个字节，返回包含读取字节的字符串，文件描述符 fd对应文件已达到结尾, 返回一个空字符串。
 
@@ -256,7 +245,7 @@ os.tcsetpgrp(fd, pg)
 
 os.ttyname(fd)
 # 返回一个字符串，它表示与文件描述符fd 关联的终端设备。如果fd 没有与终端设备关联，则引发一个异常
-
+```
 
 apue
 
