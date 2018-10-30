@@ -204,8 +204,8 @@ timestamp的值与时区毫无关系，因为timestamp一旦确定，其UTC时�
 ```
 >>> from datetime import datetime
 >>> now = datetime.now()
->>> print(now.strftime('%a, %b %d %H:%M'))
-Mon, May 05 16:28
+>>> print(now.strftime('%a, %b %m %d %H:%M'))
+Mon, May 05 05 16:28
 ```
 
 ## datetime加减
