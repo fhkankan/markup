@@ -1,4 +1,4 @@
-# datetime
+datetime
 
 datetime是date和time的结合体，包括date和time的所有信息
 
@@ -167,6 +167,9 @@ timestamp的值与时区毫无关系，因为timestamp一旦确定，其UTC时�
 >>> dt = datetime(2015, 4, 19, 12, 20) # 用指定日期时间创建datetime
 >>> dt.timestamp() # 把datetime转换为timestamp
 1429417200.0
+
+
+time.mktime(dateTime.timetuple())
 ```
 
 ## timestamp--->datetime
@@ -204,9 +207,22 @@ timestamp的值与时区毫无关系，因为timestamp一旦确定，其UTC时�
 ```
 >>> from datetime import datetime
 >>> now = datetime.now()
->>> print(now.strftime('%a, %b %m %d %H:%M'))
-Mon, May 05 05 16:28
+>>> print(now.strftime('%a, %b, %Y %m %d %H:%M:%S'))
 ```
+
+## str ---> timestamp
+
+```
+time.mktime(string_toDatetime(strTime).timetuple()
+```
+
+ ## timestamp --->str
+
+```
+time.strftime("%Y-%m-%d-%H", tiem.localtime(stamp))
+```
+
+
 
 ## datetime加减
 
