@@ -160,15 +160,31 @@ cat 模板文件名 | docker import - [自定义镜像名]
 
 容器类似一个操作系统，这个操作系统启动了某些服务，这里的容器指运行起来的一个Docker镜像
 
-> 查看、启动
+> 查看
 
 ```
 # 查看容器详情
-docker ps
+docker ps [OPTIONS]
+
+OPTIONS说明：
+-a :显示所有的容器，包括未运行的。
+-f :根据条件过滤显示的内容。
+--format :指定返回值的模板文件。
+-l :显示最近创建的容器。
+-n :列出最近创建的n个容器。
+--no-trunc :不截断输出。
+-q :静默模式，只显示容器编号。
+-s :显示总的文件大小。
+
 # 查看容器ip
 docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' container_id
+```
 
-# 启动
+
+>
+> 启动
+
+```
 # 方式一：基于镜像创建新容器并启动
 docker run <参数，可选> [docker_image] [执行的命令]
 eg:docker run nginx /bin/echo "hello docker"
