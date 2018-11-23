@@ -247,7 +247,59 @@ os.ttyname(fd)
 # 返回一个字符串，它表示与文件描述符fd 关联的终端设备。如果fd 没有与终端设备关联，则引发一个异常
 ```
 
-apue
+## 执行程序
+
+如下函数都执行一个新的程序，然后用新的程序替换当前子进程的进程空间，而该子进程从新程序的main函数开始执行。在Unix下，该新程序的进程id是原来被替换的子进程的进程id。在原来子进程中打开的所有描述符默认都是可用的，不会被关闭。
+
+```
+os.execl(path, arg0, arg1, ...)
+
+os.execle(path, arg0, arg1, ..., env)
+
+os.execlp(file, arg0, arg1, ...)
+
+os.execlpe(file, arg0, arg1, ..., env)
+
+os.execv(path, args)
+
+os.execve(path, args, env)
+
+os.execvp(file, args)
+
+os.execvpe(file, args, env)
+```
+
+说明
+
+```
+execl*系列的函数表示其接受的参数是一个个独立的参数传递进去的。
+
+execv*系列的函数表示其接受的参数是以一个list或者是一个tuple表示的参数表
+
+exec*p*系列函数表示在执行参数传递过去的命令时使用PATH环境变量来查找命令
+
+exec*e系列函数表示在执行命令的时候读取该参数指定的环境变量作为默认的环境配置，最后的env参数必须是一个mapping对象，可以是一个dict类型的对象。
+```
+
+> demo
+
+程序重启
+
+```python
+ import sys
+ import os
+ 
+ python = sys.executable
+ os.execl(python, python, *sys.argv)
+```
+
+控制台清屏
+
+```
+os.system("cls)
+```
+
+
 
 
 
