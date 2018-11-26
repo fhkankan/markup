@@ -114,6 +114,9 @@ sys.stdout
 sys.exit()
 # 退出shell程序
 
+sys.getrefcount(x)
+# 获取x的引用次数
+
 sys._getframe(0)
 # 获取当前栈信息
 

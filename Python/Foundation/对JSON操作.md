@@ -1,3 +1,5 @@
+[TOC]
+
 # JSON数据格式
 
 son是 JavaScript Object Notation 的首字母缩写，单词的意思是javascript对象表示法，这里说的json指的是类似于javascript对象的一种数据格式，它基于ECMAScript的一个子集。

@@ -1,3 +1,5 @@
+[TOC]
+
 # XML
 
 XML 指可扩展标记语言（e**X**tensible **M**arkup **L**anguage），标准通用标记语言的子集，是一种用于标记电子文件使其具有结构性的标记语言。 你可以通过本站学习[XML教程](http://www.runoob.com/xml/xml-tutorial.html)
