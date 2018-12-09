@@ -147,6 +147,19 @@ print ("data2['name']: ", data2['name'])
 print ("data2['url']: ", data2['url'])
 ```
 
+价格
+
+```
+from decimal import Decimal
+import json
+
+jstring = '{"name":"prod1", "price":12.50}'
+
+json.loads(jsting, parse_float=Decimal)
+```
+
+
+
 ## 文件
 
 如果你要处理的是文件而不是字符串，你可以使用 **json.dump()** 和 **json.load()** 来编码和解码JSON数据。例如：

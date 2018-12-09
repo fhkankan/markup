@@ -152,6 +152,47 @@ plt.savefig("2017年水果销售额汇总.png")
 plt.show()
 ```
 
+> 正弦/余弦图
+
+```python
+from pylab import *
+import numpy as np
+
+# generate uniformly distributed 
+# 256 points from -pi to pi, inclusive
+x = np.linspace(-np.pi, np.pi, 256, endpoint=True)
+
+# these are vectorised versions
+# of math.cos, and math.sin in built-in Python maths
+# compute cos for every x
+y = np.cos(x)
+
+# compute sin for every x
+y1 = np.sin(x)
+
+# plot cos
+plot(x, y)
+
+# plot sin
+plot(x, y1)
+
+# define plot title
+title("Functions $\sin$ and $\cos$")
+
+# set x limit
+xlim(-3.0, 3.0)
+# set y limit
+ylim(-1.0, 1.0)
+
+# format ticks at specific values
+xticks([-np.pi, -np.pi/2, 0, np.pi/2, np.pi],
+          [r'$-\pi$', r'$-\pi/2$', r'$0$', r'$+\pi/2$', r'$+\pi$'])
+yticks([-1, 0, +1],
+          [r'$-1$', r'$0$', r'$+1$'])
+
+show()
+```
+
 ## 直方图
 
 `plt.hist()`
@@ -331,11 +372,17 @@ plt.colorbar(ax4_im)
 plt.show()
 ```
 
-## plt.subplots()
+## 网格列表
 
-- 同时返回新创建的`figure`和`subplot`对象数组
-- 生成2行2列subplot:`fig, subplot_arr = plt.subplots(2,2)`
-- 在jupyter里可以正常显示，推荐使用这种方式创建多个图表
+```
+plt.subplots(rows,colums,num)
+```
+
+同时返回新创建的`figure`和`subplot`对象数组
+
+生成2行2列subplot:`fig, subplot_arr = plt.subplots(2,2)`
+
+在jupyter里可以正常显示，推荐使用这种方式创建多个图表
 
 ```
 fig, subplot_arr = plt.subplots(2,2)
@@ -343,6 +390,42 @@ fig, subplot_arr = plt.subplots(2,2)
 subplot_arr[1,0].hist(np.random.randn(100), bins=10, color='b', alpha=0.3)
 plt.show()
 ```
+
+样例
+
+```python
+from matplotlib.pyplot import *
+
+# 样本数据
+x = [1,2,3,4]
+y = [5,4,3,2]
+# 创建画布
+figure()
+# 
+subplot(231)
+plot(x, y)
+
+subplot(232)
+bar(x, y)
+
+subplot(233)
+barh(x, y)
+
+subplot(234)
+bar(x, y)
+y1 = [7,8,5,3]
+bar(x, y1, bottom=y, color = 'r')
+
+subplot(235)
+boxplot(x)
+
+subplot(236)
+scatter(x,y)
+
+show()
+```
+
+
 
 ## 图像样式
 

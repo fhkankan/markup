@@ -507,7 +507,7 @@ main元素不能包含子啊article,aside,footer,header,nav元素中
 
 - ul
 
-若列表的顺序是无意义的，使用无需列表
+若列表的顺序是无意义的，使用无序列表
 
 一般应用在布局中的新闻标题列表和链接列表，它是含有语义的，标签结构如下：
 
@@ -1115,7 +1115,12 @@ autofocus	boolean特性，true时表示当加载页面时input元素应该拥有
 ```
 
 - color		颜色
-	 file	                文件
+
+```
+<input type="color">
+```
+
+- file	                文件
 
 ```
 <input type="file" name="music" accept="audio/*" />
