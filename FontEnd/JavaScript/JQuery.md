@@ -139,7 +139,10 @@ JQuery对象封装了原生对象，并支持后面的方法。若需要使用�
 所有的jQuery方法都返回支持元素集合的jQuery对象。即使first()方法也返回一个仅具有一个元素的集合的jQuery对象。
 
 ```javascript
-//Get()方法返回来自jQuery对象的原生DOM独享，但需提供索引
+// eq()方法返回jQuery对象
+var $obj = $('#ul li').eq(0)
+
+// get()方法返回来自jQuery对象的原生DOM对象
 var body = $("body").get(0);
 ```
 
