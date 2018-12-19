@@ -389,6 +389,320 @@ EventUtil.addHandler(document,"gestureend",handleGestureEvent);
 EventUtil.addHandler(document,"gesturechange",handleGestureEvent);
 ```
 
+# 文件处理
+
+## 上传文件
+
+> 获取文件流
+
+```
+<div>
+    上传文件 ： <input type="file" name = "file" id = "fileId" /> 
+</div>
+<script>
+    function getFile() {
+    //js写法        
+    var file=document.getElementById('fileId').files[0];//获取文件流
+    var fileName =  file.name;//获取文件名
+    var fileSize = file.size;// 获取文件大小byte
+    //jq写法
+    var file = $('#fileId')[0].files[0]; 
+    var filePath = $('#fileId').val(); // 文件路径
+    var arr = filePath.split("\\");
+    var fileName = arr[arr.length-1].split('.')[0];
+  }
+```
+
+> 文件上传
+
+```js
+//上传文件
+function uploadFiles(){                                                         
+       var formData = new FormData();
+       formData.append("file",$("#uploadFile")[0].files[0]);//append()里面的第一个参数file对应permission/upload里面的参数file                          
+        $.ajax({
+           type:"post",
+           async:true,  //这里要设置异步上传，才能成功调用myXhr.upload.addEventListener('progress',function(e){}),progress的回掉函数
+           Accept:'text/html;charset=UTF-8',
+           data:formData,
+           contentType:"multipart/form-data",
+           url: uploadUrl,
+           processData: false, // 告诉jQuery不要去处理发送的数据
+           contentType: false, // 告诉jQuery不要去设置Content-Type请求头
+           xhr:function(){                        
+               myXhr = $.ajaxSettings.xhr();
+               // check if upload property exists
+               if(myXhr.upload){ 
+               		myXhr.upload.addEventListener('progress',function(e){                            
+                       var loaded = e.loaded; //已经上传大小情况 
+                       var total = e.total;   //附件总大小 
+                       var percent = Math.floor(100*loaded/total)+"%"; //已经上传的百分比  
+                       console.log("已经上传了："+percent);                 
+                       $("#processBar").css("width",percent);                                                                
+                   	}, false); // for handling the progress of the upload
+            	}
+               return myXhr;
+           },                    
+           success:function(data){                      
+               console.log("上传成功!!!!");                        
+           },
+           error:function(){
+               alert("上传失败！");
+           }
+       });                             
+}
+```
+
+> 多文件上传
+
+多文件上传可采用方案如下
+
+```
+1.单文件上传(多个input标签,多次传输)
+2.同一目录下多文件一次性(一个input标签，一次传输/多次传输)
+```
+
+实例
+
+递归
+
+```js
+//html
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<link rel="stylesheet" type="text/css" href="./css/NewFile.css" rel="external nofollow" >
+<script type="text/javascript" src="./js/jquery-1.9.1.min.js"></script>
+<script type="text/javascript" src="./js/fileMuti.js"></script>
+</head>
+<body>
+<div id="test">
+<input type="file" id="fileMutiply" name="files" multiple="multiple" >
+</div>
+</body>
+</html>
+
+// js
+
+/**
+ * 
+ */
+var i=0;
+var j=0;
+$(function(){
+  $("#fileMutiply").change(function eventStart(){
+    var ss =this.files; //获取当前选择的文件对象
+     for(var m=0;m<ss.length;m++){ 
+     	//循环添加进度条
+        efileName = ss[m].name ;
+     	if (ss[m].size> 1024 * 1024){
+      		sfileSize = (Math.round(ss[m].size /(1024 * 1024))).toString() + 'MB';
+      	}
+    	else{
+      		sfileSize = (Math.round(ss[m].size/1024)).toString() + 'KB';
+      	}
+     	$("#test").append(
+            "<li id="+m+"file><div class='progress'><div id="+m+"barj class='progressbar'></div></div><span class='filename'>"+efileName+"</span><span id="+m+"pps class='progressnum'>"+(sfileSize)+"</span></li>");
+         }
+     sendAjax();
+     function sendAjax() {
+     	//采用递归的方式循环发送ajax请求
+        if(j>=ss.length)  { 
+         	$("#fileMutiply").val("");
+            j=0;
+          	return; 
+        }
+        var formData = new FormData();
+        formData.append('files', ss[j]); //将该file对象添加到formData对象中
+        $.ajax({
+            url:'fileUpLoad.action',
+            type:'POST',
+            cache: false,
+            data:{},//需要什么参数，自己配置
+            data: formData,//文件以formData形式传入
+            processData : false, 
+            //必须false才会自动加上正确的Content-Type 
+            contentType : false , 
+          	/*  beforeSend:beforeSend,//发送请求
+            complete:complete,//请求完成   */  
+     		xhr: function(){   //监听用于上传显示进度
+            	var xhr = $.ajaxSettings.xhr();
+              	if(onprogress && xhr.upload) {
+               		xhr.upload.addEventListener("progress" , onprogress, false);
+               		return xhr;
+            	}
+            } ,
+            success:function(data){
+            	$(".filelist").find("#"+j+"file").remove();//移除进度条样式
+               	j++; //递归条件
+              	sendAjax();
+            },
+            error:function(xhr){
+             alert("上传出错");
+            }               
+          });
+        } 
+  })
+    function onprogress(evt){
+     var loaded = evt.loaded;   //已经上传大小情况 
+     var tot = evt.total;   //附件总大小 
+     var per = Math.floor(100*loaded/tot); //已经上传的百分比 
+     $(".filelist").find("#"+j+"pps").text(per +"%");
+     $(".filelist").find("#"+j+"barj").width(per+"%");
+     };
+})
+```
+
+多文件一次性
+
+```js
+//html
+<div class="input-group">
+    <input type="file" id="attachment" multiple="multiple">
+    <span id="progress_bar" style="color: #1AB394;display: table-cell"></span>
+</div>
+<ul id="attachment_list"></ul>
+<button class="btn btn-file">upload file</button>
+
+// js
+ajaxSetup({   //laravel中的request要带这个header参数
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        }
+    });
+
+$('.btn-file').click(function(){
+        if($('#attachment').val() == '')
+            alert('请选择文件再上传');
+        else{
+            var path = $('#attachment')[0].files;
+            var formData = new FormData();
+            var names = '';
+            /*
+            提示：FormData不能写数组，array json都不行，能写简单的key->value键值对。
+            键值对中key不能是中文，不然后台读不出来，而且要保证key的唯一性，
+            那么我就用文件名path[i].name用md5加密一下好了，当然你也可以用自己喜欢的加密方式。
+            因为laravel不能便利地读取所有file，只能用file('key')读取key值的value，
+            是的，所以你不知道key值是读不出你要的东西的。因为文件的key是变化的，所以我这里写定一个info字段，
+            然后把文件的key写成字符串，然后后台解析字符串，再根据里面的字段获取文件。
+            你也可以写其他需要的数据的键值对到FormData里面，一并传到后台，当成一个虚拟form表单用就行了。
+            */
+            for(var i= 0,name;i<path.length;i++){
+                name = $.md5(path[i].name);
+                formData.append(name, path[i]);
+                names += name + ',';
+            }
+            formData.append('info',names);
+            $.ajax({
+                url: "{{route('upload')}}",
+                type: 'POST',
+                cache: false,
+                data: formData,
+                processData: false,
+                contentType: false,
+                beforeSend: function(){
+                    $('#progress_bar').css('color','#1AB394').show();
+                },
+                success: function(result
+                {
+                $('#progress_bar').html(result.info).css('color','black').fadeOut(3000,function(){$(this).html('')});
+                },
+                error: function (result) {
+
+                },
+                xhr: function(){
+                    var xhr = $.ajaxSettings.xhr();
+                   if(onprogress && xhr.upload) {
+                        xhr.upload.addEventListener("progress" , onprogress, false);
+                        return xhr;
+                   }
+                }
+            });
+/*
+小tips：在网上查找遇到一些方法（例如function A()），没有详细介绍，不知道总共完整传多少个参数，
+每个参数长什么样子的，可以写成function A(a,b,c,d,e,…………){//然后写log打印出来}，
+这里只有一个event对象参数，所以我写4个形参上去，然后写日志出来，只有第一个参数写出来是一个对象，
+而且里面有什么属性也会写出来，后面3个形参则输出为空，
+那么这时候就能写定 function A(obj){//只有一个参数，自己写个喜欢的形参名}。
+前端后台都能用这个小技巧哦~
+*/
+function onprogress(evt){   
+        console.log(evt);
+        var loaded = evt.loaded;
+        var tot = evt.total;
+        $('#progress_bar').html(Math.floor(100*loaded/tot)+'%');
+    }
+```
+
+
+
+## 下载文件
+
+文件格式
+
+```js
+//文件下载
+var blob = new Blob([要保存的文件流], { type: 'application/octet-stream' }),
+//filename，摘取了常用的部分，其实还有其他一些mimetypes = array(
+//    'doc'        => 'application/msword',
+//    'bin'        => 'application/octet-stream',
+//    'exe'        => 'application/octet-stream',
+//    'so'        => 'application/octet-stream',
+//    'dll'        => 'application/octet-stream',
+//    'pdf'        => 'application/pdf',
+//    'ai'        => 'application/postscript',
+//    'xls'        => 'application/vnd.ms-excel',
+//    'ppt'        => 'application/vnd.ms-powerpoint',
+//    'dir'        => 'application/x-director',
+//    'js'        => 'application/x-javascript',
+//    'swf'        => 'application/x-shockwave-flash',
+//    'xhtml'        => 'application/xhtml+xml',
+//    'xht'        => 'application/xhtml+xml',
+//    'zip'        => 'application/zip',
+//    'mid'        => 'audio/midi',////    'midi'        => 'audio/midi',
+//    'mp3'        => 'audio/mpeg',
+//    'rm'        => 'audio/x-pn-realaudio',
+//    'rpm'        => 'audio/x-pn-realaudio-plugin',
+//    'wav'        => 'audio/x-wav',
+//    'bmp'        => 'image/bmp',
+//    'gif'        => 'image/gif',
+//    'jpeg'        => 'image/jpeg',
+//    'jpg'        => 'image/jpeg',
+//    'png'        => 'image/png',
+//    'css'        => 'text/css',
+//    'html'        => 'text/html',
+//    'htm'        => 'text/html',
+//    'txt'        => 'text/plain',
+//    'xsl'        => 'text/xml',
+//    'xml'        => 'text/xml',
+//    'mpeg'        => 'video/mpeg',
+//    'mpg'        => 'video/mpeg',
+//    'avi'        => 'video/x-msvideo',
+//    'movie'        => 'video/x-sgi-movie',
+//);
+fileName = 'filename' + path.substring(path.lastIndexOf("."), path.length);
+downFile(blob, fileName);
+
+//js下载文件流
+function downFile(blob, fileName) {
+    if (window.navigator.msSaveOrOpenBlob) {
+        navigator.msSaveBlob(blob, fileName);
+    } else {
+        var link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = fileName;
+        link.click();
+        window.URL.revokeObjectURL(link.href);
+    }
+}
+```
+
+
+
+
+
 
 
 
