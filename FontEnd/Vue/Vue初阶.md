@@ -787,6 +787,15 @@ Vue 允许为 v-on 在监听键盘事件时添加按键修饰符
 <div @click.ctrl="doSomething">Do something</div>
 ```
 
+注意
+
+```
+如果是原生的input，使用 @keyup.enter就可以，
+若是使用了element-ui，则要加上native限制符，因为element-ui把input进行了封装，原事件就不起作用了
+```
+
+
+
 ## 表单
 
 可以用 v-model 指令在表单控件元素上创建双向数据绑定。

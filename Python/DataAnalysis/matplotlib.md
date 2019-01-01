@@ -1,3 +1,5 @@
+[TOC]
+
 # Matplotlib
 
 Matplotlib 是一个 Python 的 2D绘图库，通过 Matplotlib，开发者可以仅需要几行代码，便可以生成绘图，直方图，功率谱，条形图，错误图，散点图等。
@@ -16,6 +18,12 @@ Matplotlib 是一个 Python 的 2D绘图库，通过 Matplotlib，开发者可�
 
 ```
 import matplotlib.pyplot as plt
+```
+
+> 交互模式下测试
+
+```
+ipython --pylab
 ```
 
 ## 配置参数
@@ -95,7 +103,9 @@ plt.savefig("./test.png")
 plt.show()
 ```
 
-## 线型图
+## 常用图表
+
+### 线型图
 
 `plt.plot()`
 
@@ -193,7 +203,7 @@ yticks([-1, 0, +1],
 show()
 ```
 
-## 直方图
+### 直方图
 
 `plt.hist()`
 
@@ -210,7 +220,7 @@ plt.hist(arr, bins=100, color="r", alpha=0.4)
 plt.show()
 ```
 
-## 散点图
+### 散点图
 
 `plt.scatter()`
 
@@ -225,7 +235,9 @@ plt.scatter(x_data, y_data, c="r", alpha=0.4, s=100)
 plt.show()
 ```
 
-## 纵向柱形图
+### 柱形图
+
+> 纵向
 
 `plt.bar()`
 
@@ -260,7 +272,7 @@ plt.grid()
 plt.show()
 ```
 
-## 横向柱形图
+> 横向
 
 `plt.barh()`
 
@@ -288,7 +300,7 @@ plt.grid()
 plt.show()
 ```
 
-## 混淆矩阵
+### 混淆矩阵
 
 `plt.imshow()`
 
@@ -305,7 +317,7 @@ plt.axis("off")
 plt.show()
 ```
 
-## 饼图
+### 饼图
 
 `plt.pie()`
 
@@ -334,7 +346,7 @@ plt.legend()
 plt.show()
 ```
 
-## 分割子图
+### 分割子图
 
 - subplot命令是将图片窗口划分成若干区域,按照一定顺序使得图形在每个小区域内呈现其图形。
 - 在figure对象中可以包含一个或者多个Axes对象。
@@ -372,7 +384,7 @@ plt.colorbar(ax4_im)
 plt.show()
 ```
 
-## 网格列表
+### 网格列表
 
 ```
 plt.subplots(rows,colums,num)
@@ -425,17 +437,294 @@ scatter(x,y)
 show()
 ```
 
+## 设置样式
 
+### 坐标轴
 
-## 图像样式
+坐标轴范围
+
+```
+1. 不使用axis()或者其他参数设置
+matplotlib会自动使用最小值，可以让我们在一个图中看到所有的数据点
+2. 设置axis(v)
+若范围比数据集合中的最大值小，则按照设置执行，会无法在图中看到所有的数据点
+3. 自适应
+maplotlib.pyplot.autoscale()会计算坐标轴的最佳大小以适应数据的显示
+```
+
+设定坐标轴范围
+
+```
+axis(*v, **kwargs)
+
+参数
+不带参数		返回坐标的默认值[xmin,xmax,ymin,ymax]
+[xmin,xmax,ymin,ymax]	设置坐标轴范围
+```
+
+在相同图形中添加新的坐标轴
+
+```
+用途：需要几个不同的视图来表达相同的数据的不同属性值，可以在一张图中组合显示多个图表
+
+matplotlib.pyplot.axes(arg=None, **kwargs)
+
+参数
+rect
+left/bottom/width/height
+axisbg		指定坐标轴的背景颜色
+sharex/sharey	接收其他坐标轴的值，并让当前坐标轴(x/y)共享相同的值
+polar		指定是否使用极坐标轴
+```
+
+对当前图形添加一条线
+
+```
+matplotlib.pyplot.axhline(y=0, xmin=0, xmax=1. hold=None, **kwargs)
+matplotlib.pyplot.axvline(x=0, ymin=0, hold=None, **kwargs)
+
+根据给定的x/y值相应地绘制出相对于坐标轴的水平线和垂直线
+
+参数
+不传参数	默认x=0,y=0
+```
+
+对当前图形添加一个矩形
+
+```
+matplotlib.pyplot.axhspan(ymin, ymax, xmin=0, xmax=1, hold=None, **kwargs)
+matplotlib.pyplot.axvsapn(xmin, ymax, ymin=0, ymax=1, hold=None, **kwargs)
+```
+
+网格属性，默认关闭
+
+```
+matplotlib.pylot.grid(b=None, which='major', axis='both', **kwargs)
+
+参数
+不传参数	切换网格的显示状态
+which	指定绘制的网格刻度类型(major, minor, both)
+axis	指定绘制哪组网格线(both, x, y)
+```
+
+坐标轴内部实现，高级控制
+
+```
+matplotlib.axes.Axes	包含了操作坐标轴的大多数方法
+matplotlib.axes.Axis	表示单独一个坐标轴
+matplotlib.axes.XAxix	表示x轴
+matplotlib.axes.YAxis	表示y轴
+```
+
+### 图表样式
 
 <http://matplotlib.org/gallery.html>
 
-### 颜色、标价、线型
+#### 颜色标价线型
 
-- ax.plot(x, y, ‘r--’)
+改变线的属性方法
 
-> 等价于ax.plot(x, y, linestyle=‘--’, color=‘r’)
+```
+方法一：向方法中传入参数
+plot(x, y, linewidth=1.5)
+
+方法二：调用方法返回实例后使用setter方法
+line = plot(x, y)
+line.set_linewidth(1.5)
+
+方法三：setp()方法
+line = plot(x, y)
+setp(line, 'linewidth', 1.5)
+```
+
+线条属性
+
+```
+所有属性都包含在matplotlib.lines.Line2D类中
+```
+
+常用属性
+
+| 属性                 | 类型                                          | 描述                                                         |
+| -------------------- | --------------------------------------------- | ------------------------------------------------------------ |
+| alpha                | float                                         | 用来设置混色，并不是所有的后端都支持                         |
+| color或c             | 任意matplotlib颜色/十六进制颜色值/归一化的rgb | 设置线条颜色                                                 |
+| dashes               | 以点为单位的on/off序列                        | 设置破折号序列，若seq为空或若seq=[None, None],linestyle将被设置为solid |
+| label                | 任意字符串                                    | 为图例设置标签值                                             |
+| linestyle或ls        | 线条形状参数                                  | 设置线条风格(也接收drawstyles的值)                           |
+| linewidth或lw        | 以点为单位的浮点值                            | 设置以点为单位的线宽                                         |
+| marker               | 线条标记参数                                  | 设置线条标记                                                 |
+| markeredgecolor或mec | 任意matplotlib颜色/十六进制颜色值/归一化的rgb | 设置标记的边缘颜色                                           |
+| markeredgewidth或mew | 以点为单位的浮点值                            | 设置以嗲那位单位的标记边缘宽度                               |
+| markerfacecolor或mfc | 任意matplotlib颜色/十六进制颜色值/归一化的rgb | 设置标记的颜色                                               |
+| markersize或ms       | float                                         | 设置以点为单位的标记大小                                     |
+| solid_capstyle       | ['butt'\|'round'\|'projecting']               | 设置实线的线端风格                                           |
+| solid_joinstyle      | ['miter'\|'round'\|'bevel']                   | 设置实线的连接风格                                           |
+| visible              | bool                                          | 显示或隐藏artist                                             |
+| xdata                | np.array                                      | 设置x的np.array值                                            |
+| ydata                | np.array                                      | 设置y的np.array值                                            |
+| Zorder               | 任意数字                                      | 为artist设置z轴顺序，低Zorder的artist会先绘制，若在屏幕上x轴水平向右，y轴处置向上，则z轴将指向观察者。这样，0表示在屏幕上，1表示上面的一层，以此类推 |
+
+颜色
+
+| 简写 | 全名   |
+| ---- | ------ |
+| b    | 蓝色   |
+| g    | 绿色   |
+| r    | 红色   |
+| c    | 青色   |
+| m    | 洋红色 |
+| y    | 黄色   |
+| k    | 黑丝   |
+| w    | 白色   |
+
+标记
+
+| marker             | description | marker | description    |
+| ------------------ | ----------- | ------ | -------------- |
+| 'o'                | 圆圈        | '.'    | 点             |
+| 'D'                | 菱形        | 's'    | 正方形         |
+| 'h'                | 六边形1     | '*'    | 星号           |
+| 'H'                | 六边形2     | 'd'    | 小菱形         |
+| '_'                | 水平线      | 'v'    | 一角朝下三角形 |
+| '','None',' ',None | 无          | '<'    | 一角超左三角形 |
+| '8'                | 八边形      | '>'    | 一角超右三角形 |
+| 'p'                | 五边形      | '^'    | 一角朝上三角形 |
+| ','                | 像素        | '\|'   | 竖线           |
+| '+'                | 加号码      | 'x'    | X              |
+
+线型
+
+| linestyle      | description |
+| -------------- | ----------- |
+| '-'/'solid'    | 实现        |
+| '--'/'dashed'  | 破折线      |
+| '-.'/'dashdot' | 点划线      |
+| ':'/'dotted'   | 虚线        |
+| 'None','',' '  | 什么都不画  |
+
+#### 刻度标签图例
+
+对于简单的图表，使用`figure()`、`plot()`、`subplot()`即可使用，对于更多的高级控制，需要使用`matplotlib.axes.Axes`类的坐标轴实例
+
+> 刻度
+
+刻度是图形的一部分，由刻度定位器(tick locator)指定刻度锁在的位置和刻度格式器(tick formatter)指定刻度显示的样式组成。刻度有主刻度(major ticks)和此刻度(minor ticks)，默认不显示次刻度。朱刻度和此刻度可以独立地指定位置和格式化
+
+可以使用`matplotlib.pyplot.locator_params()`控制刻度定位器的行为。尽管刻度位置通常会自动被确定下来，还是可以控制刻度的数目、在plot比较小时使用一个紧凑视图(tight view)
+
+```
+from pylab import *
+
+# get current axis
+ax = gca()
+
+# set view to tight, and maximum number of tick intervals to 10
+ax.locator_params(tight=True, nbins = 10)
+
+# generate 100 normal distribution values
+ax.plot(np.random.normal(10, .1, 100))
+
+show()
+```
+
+也可以使用locator类完成相同的设置
+
+```
+# 设置主定位器为10的倍数
+ax.xaxis.set_major_locator(matplotlib.ticker.MultipleLocator(10))
+```
+
+刻度格式器的配置很简单，格式器规定了值(数字)的显示方式，如用`matplotlib.ticker.FormatStrFormatter`可以方便地指定`%2.1f`或`%1.1f cm`的字符格式作为刻度标签
+
+```
+matplotlib用浮点值表示日期，其值从0001-01-01 UTC起的天数加1。001-01-01 UTC 06:00 的值为1.25
+
+可以使用matplotlib.dates.date2num()/matplotlib.dates.num2data()/matplotlib.dates.drange()对日期进行不同形式的转换
+```
+
+示例
+
+```
+from pylab import *
+import matplotlib as mpl
+import datetime
+
+fig = figure()
+
+# get current axis
+ax = gca()
+
+# set some daterange
+start = datetime.datetime(2013, 01, 01)
+stop = datetime.datetime(2013, 12, 31)
+delta = datetime.timedelta(days = 1)
+
+# convert dates for matplotlib
+dates = mpl.dates.drange(start, stop, delta)
+
+# generate some random values
+values = np.random.rand(len(dates))
+
+ax = gca()
+
+# create plot with dates
+ax.plot_date(dates, values, linestyle='-', marker='')
+
+# specify formater
+date_format = mpl.dates.DateFormatter('%Y-%m-%d')
+
+# apply formater
+ax.xaxis.set_major_formatter(date_format)
+
+# autoformat date labels
+# rotates labels by 30 degrees by default
+# use rotate param to specify different rotation degree 
+# use bottom param to give more room to date labels
+fig.autofmt_xdate()
+
+show()
+```
+
+> 图例与注解
+
+```
+from matplotlib.pyplot import *
+
+# generate different normal distributions
+x1 = np.random.normal(30, 3, 100)
+x2 = np.random.normal(20, 2, 100)
+x3 = np.random.normal(10, 3, 100)
+
+# plot them
+plot(x1, label='plot')
+plot(x2, label='2nd plot')
+plot(x3, label='last plot')
+
+# generate a legend box
+# 列数为3，位置lower left,指定边界框起始位置(0.0, 1.02)，并设置宽度为1，高度为0.102，基于归一化轴坐标系。参数node可设置为None或expend,当为expend时，图例框会水平扩展至整个坐标轴区域。参数borderaxespad指定了坐标轴和图例边界之间的间距
+legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
+       ncol=3, mode="expand", borderaxespad=0.)
+
+# annotate an important value
+# 注解，设置xycoords='data'，可以指定注解和数据使用相同的坐标系，注解文本的起始位置童工xytext指定，箭头由xytext指向xy坐标位置。arrowprops字典中定义了很多箭头属性
+annotate("Important value", (55,20), xycoords='data',
+         xytext=(5, 38), 
+         arrowprops=dict(arrowstyle='->')) 
+show()
+```
+
+位置参数
+
+| 字符串      | 数值 | 字符串       | 数值 |
+| ----------- | ---- | ------------ | ---- |
+| upper right | 1    | center left  | 6    |
+| upper left  | 2    | center right | 7    |
+| Lower left  | 3    | lower center | 8    |
+| Lower right | 4    | upper center | 9    |
+| right       | 5    | Center       | 10   |
+
+
 
 ```
 import matplotlib.pyplot as plt
@@ -445,47 +734,8 @@ fig, axes = plt.subplots(2)
 axes[0].plot(np.random.randint(0, 100, 50), 'ro--')
 # 等价
 axes[1].plot(np.random.randint(0, 100, 50), color='r', marker='o', linestyle='dashed')
-
 plt.show()
 ```
-
-- 颜色
-
-| 简写 | 全名    |
-| ---- | ------- |
-| b    | blue    |
-| g    | green   |
-| r    | red     |
-| c    | cyan    |
-| m    | magenta |
-| y    | yellow  |
-| k    | black   |
-| w    | white   |
-
-- 标记
-
-| marker | description   |
-| ------ | ------------- |
-| .      | point         |
-| ,      | pixel         |
-| o      | circle        |
-| v      | triangle_down |
-| ^      | triangle_up   |
-| <      | triangle_left |
-
-- 线型
-
-| linestyle      | description      |
-| -------------- | ---------------- |
-| '-'/'solid'    | solid line       |
-| '--'/'dashed'  | dashed line      |
-| '-.'/'dashdot' | dash-dotted line |
-| ':'/'dotted'   | dotted line      |
-| 'None'         | draw nothing     |
-| ' '            | draw nothing     |
-| ''             | draw nothing     |
-
-### 刻度、标签、图例
 
 - 设置刻度范围
 
@@ -531,3 +781,36 @@ ax.legend(), plt.legend()
 loc=‘best’：自动选择放置图例最佳位置
 ```
 
+#### 边框线
+
+轴线定义了数据区域的边界，把坐标轴刻度标记连接起来。一共有四个轴线，可以把它们放置在任何位置。默认情况下，它们被放置在坐标轴的边界，故看到数据图表有一个框
+
+移动轴线到图中央
+
+```python
+import matplotlib.pyplot as plt
+import numpy as np
+
+x = np.linspace(-np.pi, np.pi, 500, endpoint=True) 
+y = np.sin(x)
+
+plt.plot(x, y)
+
+ax = plt.gca()
+
+# hide two spines 
+ax.spines['right'].set_color('none')
+ax.spines['top'].set_color('none')
+
+# move bottom and left spine to 0,0
+ax.spines['bottom'].set_position(('data',0))
+ax.spines['left'].set_position(('data',0))
+
+# move ticks positions
+ax.xaxis.set_ticks_position('bottom')
+ax.yaxis.set_ticks_position('left')
+
+plt.show()
+```
+
+轴线可以被限制在数据结束的地方结束，如调用`set_smart_bounds(True)`。此时，matplotlib会尝试以一种复杂的方式设置边界。如处理颠倒的界限或在数据延伸出视图的情况下裁剪线条以适应视图

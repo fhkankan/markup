@@ -236,7 +236,7 @@ with(对象名){
 }
 ```
 
-##常用内部对象
+## 常用内部对象
 
 ### Math
 
@@ -469,6 +469,33 @@ colors.push("green")
 
 - 操作数组元素
 
+> 遍历
+
+forEach() 
+
+方法用于调用数组的每个元素，并将元素传递给回调函数。
+
+**注意:** forEach() 对于空数组是不会执行回调函数的。
+
+```
+array.forEach(function(currentValue, index, arr), thisValue)
+```
+参数
+
+| 参数                                 | 描述                                                         |
+| ------------------------------------ | ------------------------------------------------------------ |
+| *function(currentValue, index, arr)* | 必需。 数组中每个元素需要调用的函数。 函数参数:参数描述*currentValue*必需。当前元素*index*可选。当前元素的索引值。*arr*可选。当前元素所属的数组对象。 |
+| *thisValue*                          | 可选。传递给函数的值一般用 "this" 值。 如果这个参数为空， "undefined" 会传递给 "this" 值 |
+
+for
+
+```
+for(index in array){
+    console.log(index);
+    console.log(array[index])
+}
+```
+
 > 输入输出
 
 输入
@@ -591,6 +618,37 @@ ES6新增内容
 | 转化     | map()            | 转换数组中的所有元素，返回数组的拷贝                         | const items=["a","b"]<br>const numbers=[1,2]<br>const arr=items.map((x,i)=>({name:x,price:numbers[i]})) |
 |          | filter()         | 根据给定条件查找数组元素，返回数组的拷贝                     | cosnt arr=[1,2,3,4]<br>const items=arr.filter(x=>x%2==0)     |
 |          | reduce()         | 把整个数组转化为另一种数组类型，返回数组的拷贝               | const arr=[5,6,7]<br>const sum = arr.reduce((a,x)=>a+=x,0)<br>//a的初始值指定为0,可缺省，默认为0 |
+
+### Array2
+
+字典
+
+- 定义
+
+```
+var dict = new Array()
+```
+
+- 设定值
+
+```
+dict['q'] = "q1"  # 若存在则修改，若不存在则创建
+```
+
+- 遍历
+
+```
+for(var key in dict){
+    cosole.log(key + ":" + dict[key])
+}
+```
+
+- 删除
+
+```
+delete dict['r]
+delete dict.r
+```
 
 ### String
 

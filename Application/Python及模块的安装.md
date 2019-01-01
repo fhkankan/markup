@@ -356,7 +356,140 @@ mkvirtualenv --python=c:\python36\python.exe 虚拟环境名
 删除虚拟环境----rmvirtualenv 文件名
 ```
 
-## pipenv-集成pip与virtualenv，替代virtualenv和pyenv
+## pyenv
+
+> mac
+
+安装
+
+```
+brew install pyenv
+```
+
+环境变量
+
+```
+echo 'eval "$(pyenv init -)"' >> ~/.zshrc
+echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.zshrc
+```
+
+激活
+
+```
+source ~/.zshrc
+```
+
+> ubuntu
+
+克隆pyenv仓库
+
+```
+git clone https://github.com/yyuu/pyenv.git ~/.pyenv
+```
+
+加入环境变量(.bashrc或.zshrc)
+
+```
+# 方式一：终端
+echo 'export PATH=~/.pyenv/bin:$PATH' >> ~/.bashrc
+echo 'export PYENV_ROOT=~/.pyenv' >> ~/.bashrc
+echo 'eval "$(pyenv init -)"' >> ~/.bashrc
+
+# 方式二：编辑器
+export PATH=~/.pyenv/bin:$PATH
+export PYENV_ROOT=~/.pyenv
+eval "$(pyenv init -)"
+```
+
+激活pyenv
+
+```
+spurce ~/.bashrc
+```
+
+> 常用命令
+
+查看
+
+```python
+pyenv version	# 显示当前活动的Python版本以及有关如何设置的信息
+pyenv versions  # 列出pyenv已知的所有Python版本，并在当前活动版本旁显示一个星号
+pyenv which python # 显示pyenv在运行给定命令时将调用的可执行文件的完整路径
+pyenv whence 2to3 # 列出安装了给定命令的所有Python版本
+```
+
+安装
+
+```python
+pyenv install --list # 列出所有可用的Python版本，包括Anaconda，Jython，pypy和stackless
+pyenv install <version> # 安装对应版本
+pyenv install -v <version> # 安装对应版本，若发生错误，可以显示详细的错误信息
+pyenv uninstall <version> # 卸载对应版本
+```
+
+设置
+
+```python
+# global
+# 通过将版本名称写入~/.pyenv/version文件来设置要在所有shell中使用的Python的全局版本。该版本可以被特定于应用程序的.python-version文件覆盖，也可以通过设置PYENV_VERSION环境变量来覆盖。
+pyenv global <version> # 告诉全局环境使用某个版本，为了不破坏系统环境，不建议使用
+pyenv global <version1> <version2>  # 指定多个python版本作为全局python，后者更优先
+pyenv global system   #全局进行切换到系统自带python
+
+# local
+# 通过将版本名称写入.python-version当前目录中的文件来设置本地特定于应用程序的Python版本。该版本覆盖全局版本，并且可以通过设置PYENV_VERSION环境变量或pyenv shell 命令来覆盖自身。
+pyenv local <version> # 当前路径创建一个.python-version, 以后进入这个目录自动切换为该版本
+pyenv local <version1> <version1>  # 指定多个python版本作为本地python，后者更优先
+pyenv local --unset  # 取消设置本地版本
+pyenv local system	  #只针对当前目录及其子目录切换到系统自带python
+
+# shell
+# 通过PYENV_VERSION 在shell中设置环境变量来设置特定于shell的Python版本。此版本覆盖特定于应用程序的版本和全局版本。
+pyenv shell <version> # 当前shell的session中启用某版本，优先级高于global 及 local
+pyenv shell <version1> <version1>  # 指定多个python版本作为shell的python，后者更优先
+pyenv shell --unset	# 取消设置外壳版本
+
+# rehash
+# 为pyenv（即，~/.pyenv/versions/*/bin/*）已知的所有Python二进制文件安装填充程序 。在安装新版本的Python之后运行此命令，或安装提供二进制文件
+pyenv rehash          # 重建环境变量，增删Python版本或带有可执行文件的包（如 pip）以后
+```
+
+> 虚环境virtualenv
+
+安装
+
+```
+# mac
+brew install pyenv-vitualenv
+```
+
+使用
+
+```python
+# 虚环境的真实目录位于：~/.pyenv/versions/
+# 指定的python必须是一个安装前面步骤已经安装好的python版本， 否则会出错
+# 安装虚环境
+pyenv virtualenv env # 从默认版本创建虚拟环境
+pyenv virtualenv 3.6.4 env364 # 创建3.6.4版本的虚拟环境
+# 激活
+pyenv activate env364 # 激活env364这个虚拟环境
+# 退出
+pyenv deactivate # 停用当前的虚拟环境
+# 删除
+pyenv virtualenv-delete env364
+
+# 自动激活
+# 使用pyenv local 虚拟环境名
+# 会把`虚拟环境名`写入当前目录的.python-version文件中
+# 关闭自动激活 -> pyenv deactivate
+# 启动自动激活 -> pyenv activate env364
+pyenv local env364
+pyenv uninstall env364 # 删除 env364 这个虚拟环境
+```
+
+## pipenv
+
+集成pip与virtualenv，替代virtualenv和pyenv
 
 > 安装
 
@@ -463,20 +596,7 @@ Commands:
   shell      进入虚拟环境
   uninstall  卸载一个库
   update     卸载当前所有的包，并安装它们的最新版本
---------------------- 
-作者：wonengguwozai 
-来源：CSDN 
-原文：https://blog.csdn.net/wonengguwozai/article/details/80483864 
-版权声明：本文为博主原创文章，转载请附上博文链接！
 ```
-
-
-
-
-
-
-
-
 
 ## Django--web框架
 
