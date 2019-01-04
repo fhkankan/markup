@@ -509,6 +509,8 @@ for index,ch in enumerate(contents[:-2]):
 
 > zipfile
 
+zip文件的访问与压缩
+
 ```python
 import zipfile
 import os
@@ -538,12 +540,98 @@ with zipfile.ZipFile('newZipFile','w',zipfile.ZIP_DEFILATED) as f:
 
 > rarfile
 
+rar文件的访问
+
 ```python
 import rarfile
 
 with rarfile.RarFile('demo.rar') as fp:
     for fn in fp.namelist():
         print(fn)
+```
+
+> gzip
+
+gz文件的访问与压缩
+
+```python
+import os
+import tarfile
+
+# 压缩
+with tarfile.open('sample.tar', 'w:gz') as tar:
+    for name in [f for f in os.listdir('.') if f.endwith('.py')]:
+        tar.add(name)
+
+# 解压
+with tarfile.open('sample.tar', 'r:gz') as tar:
+    tar.extractall(path='sample')
+```
+
+> 判断文件是否是PE文件
+
+PE的全称Portable Executale,即可移植的可执行文件，PE文件包括exe/com/dll/ocx/sys/src文件等windows平台上所有可执行文件类型，是windows平台上所有软件和程序能够正常运行的基础。每种文件有独特的specification用来说明文件头结构和内容组织方式，依赖specification来判断文件类型比扩展名更准确
+
+```python
+import sys
+import os
+
+if len(sys.argv) != 2:
+    print('Usage:{0} anotherFile'.format(sys.argv[0]))
+    sys.exit()
+    
+filename = sys.argv[1]  # 获取要检测的文件名
+if not os.path.isfile(filename):  # 判断是否为文件
+    print(filename + ' is not file.')
+    sys.exit()
+    
+with open(filename, 'rb') as fp:
+    flag1 = fp.read(2)  # 读取文件前两个字节
+    fp.seek(0x3c)  # 获取PE头偏移
+    offset = ord(fp.read(1))
+    p.seek(offset)
+    flag2 = fp.read(4)  # 获取PE头签名
+# 判断是否为PE文件的特征签名
+if flag1 == b'MZ' and flg2 = b'PE\x00\x00':
+    print(filename + ' is a PE file.')
+else:
+    print(filename + ' is not a PE file.')
+```
+
+> 批量提取PDF文件中的文本转换为TXT记事本文件
+
+安装扩展库pdfminer3k，使用pdf2txt.py对pdf文件进行转换
+
+```python
+import os
+import sys
+import time
+
+pdfs = (pdfs for pdfs in os.listdir('.') if pdfs.endwith('.pdf'))
+
+for pdf1 in pdfs:
+    # 替换文件中的指定字符
+    pdf = pdf1.replace('', '_').replace('-', '_').replace('&', '_')
+    os.rename(pdf1, pdf)
+    print('='*30+'\n', pdf)
+    
+    txt = pdf[:-4] + '.txt'
+    exe = '"' + sys.executable + '""'
+    pdf2txt = os.path.dirname(sys.executable)
+    pdf2txt = pdf2txt + '\\scripts\\pdf2txt.py"-o'
+    try:
+        # 调用命令行工具pdf2txt.py进行转换
+        # 如果pdf加密过，可以改写下面的代码
+        # 在-o前面使用-P来指定密码
+        cmd = exe + pdf2txt + txt + ' ' + pdf
+        os.popen(cmd)
+        # 转换需要一定时间，一般小文件2s
+        time.sleep(2)
+        # 输出转换后的文本，前200个字符
+        with open(txt, encoding='utf-8') as fp:
+            print(fp.read(200))
+    except:
+        pass
 ```
 
 # 操作文件和目录
