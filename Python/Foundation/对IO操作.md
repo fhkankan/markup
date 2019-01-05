@@ -634,56 +634,113 @@ for pdf1 in pdfs:
         pass
 ```
 
-# 操作文件和目录
+# 文件和目录
 
-python提供了os和shutill模块包含多个操作文件和目录的函数
+## os
 
-os可以执行简单的文件夹及文件操作，有些函数在os模块中，有些在os.path模块中
+os模块除了提供使用操作系统功能和访问文件系统之外，还有大量文件和文件夹操作方法
 
-shutill提供大量针对文件的高级操作，特别是针对文件的拷贝和删除，主要功能为目录和文件操作及压缩操作
+| 方法                                                    | 说明                                                         |
+| ------------------------------------------------------- | ------------------------------------------------------------ |
+| access(path, mode)                                      | 测试是否可以按照mode指定的权限访问文件                       |
+| chdir(path)                                             | 把path设为当前工作目录                                       |
+| chmod(path, mode, *, dir_fd=None, follow_symlinks=True) | 改变文件的访问权限                                           |
+| curdir                                                  | 当前文件夹                                                   |
+| environ                                                 | 包含系统环境变量和值的字典                                   |
+| extsep                                                  | 当前操作系统所使用的文件扩展名分隔符                         |
+| get_exec_path()                                         | 返回可执行文件的搜索路径                                     |
+| getcwd()                                                | 返回当前工作目录                                             |
+| listdir(path)                                           | 返回path目录下的问价暖和目录列表                             |
+| mkdir(path[, mode=0777])                                | 创建目录，要求上级目录必须存在                               |
+| makedirs(path1/path2..., mode=511)                      | 创建多级目录，会根据需要自动创建中间缺失的目录               |
+| open(path, flags, mode=0o777,*, dir_fd=None)            | 按照mode指定的权限打开文件，默认权限为可读、可写、可执行     |
+| popen(cmd, mode='r', buffering=-1)                      | 创建进程，启动外部程序                                       |
+| rmdir(path)                                             | 删除目录，目录中不能有文件或子文件                           |
+| remove(path)                                            | 删除指定的文件，要求用户拥有删除文件的权限，并且文件没有只读或其他特殊权限 |
+| removedirs(path1/path2...)                              | 删除多级目录，目录中不能有文件                               |
+| rename(src, dst)                                        | 重命名文件或目录，可以实现文件的移动，若目标文件已存在则抛异常，不能跨越磁盘或分区 |
+| replace(old, new)                                       | 重命名文件或目录，若目标文件已存在则覆盖，不能跨越磁盘或分区 |
+| scandir(path='.')                                       | 返回包含指定文件夹中所有DirEntry对象的迭代对象，遍历文件夹时比listdir()更加高效 |
+| sep                                                     | 当前操作系统所用的路径分隔符                                 |
+| startfile(filepath[, operation])                        | 使用关联的应用程序打开指定文件或启动指定应用程序             |
+| stat(path)                                              | 返回文件的所有属性                                           |
+| system()                                                | 启动外部程序                                                 |
+| truncate(path, length)                                  | 将文件截断，只保留指定长度的内容                             |
+| walk(top, topdown=True, onerror=None)                   | 遍历目录树，该方法返回一个元组，包括3个元素，所有路径名、所有目录列表与文件列表 |
+| write(fd, data)                                         | 将bytes对象data写入文件fd                                    |
 
-## 判断文件和目录
+## os.path
 
-| 函数               | 说明                   |
-| ------------------ | ---------------------- |
-| `os.path.isabs()`  | 判断是否为绝对路径     |
-| `os.path.exists()` | 判断文件或目录是否存在 |
-| `os.path.isdir()`  | 判断是否为目录         |
-| `os.path.isfile()` | 判断是否为文件         |
+提供了大量用于路径判断、切分、连接及文件夹遍历的方法
 
-## 目录操作
+| 方法                | 说明                                                         |
+| ------------------- | ------------------------------------------------------------ |
+| abspath(path)       | 返回给定路径的绝对路径                                       |
+| basename(path)      | 返回指定路径的最后一个组成部分                               |
+| commonpath(paths)   | 返回给定的多个路径的最长公共路径                             |
+| commonprefix(paths) | 返回给定的多个路径的最长公共前缀                             |
+| dirname(p)          | 返回给定路径的文件夹部分                                     |
+| exists(path)        | 判断文件是否存在                                             |
+| getatime(filename)  | 返回文件的最后访问时间                                       |
+| getctime(filename)  | 返回文件的创建时间                                           |
+| getsize(filename)   | 返回文件的大小                                               |
+| isabs(path)         | 判断path是否为绝对路径                                       |
+| isdir(path)         | 判断path是否为文件夹                                         |
+| isfile(path)        | 判断path是否为文件                                           |
+| join(path, *paths)  | 连接两个或多个path                                           |
+| realpath(path)      | 返回给定路径的绝对路径                                       |
+| relpath(path)       | 返回给定路径的相对路径，不能跨越磁盘驱动器或分区             |
+| samefile(f1,f2)     | 测试f1和f2这两个路径是否引用同一个文件                       |
+| split(path)         | 以路径中最后一个斜线为分隔符把路径分隔成两部分，以列表形式返回 |
+| splitext(path)      | 从路径中分隔文件的扩展名                                     |
+| splitdrive(path)    | 从路径中分割驱动器的名称                                     |
 
-| 函数            | 说明               |
-| --------------- | ------------------ |
-| `os.getcwd()`   | 获取当前的工作目录 |
-| `os.chdir()`    | 改变工作目录       |
-| `os.listdir()`  | 列出目录下的文件   |
-| `os.mkdir()`    | 创建单个目录       |
-| `os.makedirs()` | 创建多级目录       |
+## shutil
 
-## 重命名文件和目录
+提供了较高级的文件和文件夹操作
 
+| 方法                                                         | 说明                                                         |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| copy(src, dst)                                               | 复制文件，新文件具有同样的文件属性，若目标文件已存在则抛出异常 |
+| copy2(src, dst)                                              | 复制文件，新文件具有源文件完全一致的属性，包括创建时间、修改时间和最后访问时间等，若目标文件已存在则抛异常 |
+| copyfile(src, dst)                                           | 复制文件，不复制文件属性，若目标文件已存在则直接覆盖         |
+| copyfileobj(fsrc, fdst)                                      | 在两个文件对象之间复制数据                                   |
+| copymode(src, dst)                                           | 把src的模式位复制发哦dst上，之后两者具有相同的模式           |
+| copystat(src, dst)                                           | 把src的模式位、访问时间等所有状态都复制到dst上               |
+| copytree(src, dst)                                           | 递归复制文件夹                                               |
+| disk_usage(path)                                             | 查看磁盘使用情况                                             |
+| move(src ,dst)                                               | 移动问价拿货递归移动文件夹，也可以给文件和文件夹重命名       |
+| rmtree(path)                                                 | 递归删除文件夹                                               |
+| make_archive(base_name, format, root_dir=None, base_dir=None) | 创建TAR或ZIP格式的压缩文件                                   |
+| unpack_archive(filename, extract_dir=None, format=None)      | 解压缩压缩文件                                               |
+
+## glob
+
+提供了一些与文件搜索或遍历有关的函数，并允许使用命令行的统配符进行模糊搜索，方便灵活
+
+```python
+import glob
+
+glob.glob('*.txt')  # 返回当前文件夹中所有扩展名为txt的文件列表
+glob.iglob('c:\\python3.5\\*.*')  # 返回包含指定文件夹找那个所有文件的生成器对象
+glob.glob('tools\\**\*.txt', recursive=True)  # 递归查找tools文件夹中所有.txt文件
+glob._rlistdir('.')  # 递归遍历当前文件夹中所有文件，返回生成器对象
+glob.glob1('dlls', '*.pyd')  # 返回指定文件夹中指定类型的文件列表
+for i in glob.glob2('tools', '**'):
+    print(i)  # 递归遍历tools文件夹下所有文件
 ```
-os.rename(current_file_name, new_file_name)
-```
 
-## 复制与移动文件和目录
+## fnmatch
 
-| 函数                            | 说明                                          |
-| ------------------------------- | --------------------------------------------- |
-| `shutil.copyfile('old','new')`  | 复制文件                                      |
-| `shutil.copytree('old', 'new')` | 复制目录，new目录必须不存在                   |
-| `shutil.copy('old', 'new')`     | 复制文件到指定目录，new目录必须存在           |
-| `shutil.move('old', 'new')`     | 移动文件或目录到新的目录中，new目录可以不存在 |
+提供了文件名的检查功能，支持通配符的使用
 
-## 删除文件和目录
+| 方法                           | 说明                                                         |
+| ------------------------------ | ------------------------------------------------------------ |
+| fnmatch(filename, pattern)     | 检查文件名filename是否与模式pattern相匹配，返回True或False   |
+| fnmatchcase(filename, pattern) | 检查文件名filename是否与模式pattern相匹配，返回True或False，区分大小写 |
+| filter(names, pattern)         | 返回names中符合pattern的那部分元素构成的列表                 |
 
-| 函数              | 说明                         |
-| ----------------- | ---------------------------- |
-| `os.rmdir()`      | 删除空目录                   |
-| `os.remove()`     | 删除单一文件                 |
-| `os.removedirs()` | 递归删除目录及旗下的所有文件 |
-| `shutil.rmtree()` | 删除目录及其下的所有文件     |
+
 
 # 内存映射
 
