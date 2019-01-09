@@ -389,5 +389,374 @@ print(recv_data[0].decode('gbk'))
 udp_socket.close()
 ```
 
+# asyncio
 
+标准库asyncio提供的BaseTransport,ReadTransport,WriteTransport,DatagramTransport以及BaseSubprocessTransport类对不通咧行的信道进行了抽象。一般来说，不建议使用这些类直接实例化对象，而是使用AbstarctEventLoop函数来创建相应的Transport对象并且对底层信道进行初始化。一旦信道创建成功，可以通过一对Protocol对象进行通信了。目前asyncio支持TCP,UDP,SSL和Subprocess管道，不同类型的Transport对象支持的方法略有不同，另外需注意：Transport类不是线程安全的
+
+标准库asyncio还提供了类Protocol,DatagramProtocol和SubprocessProtocl,这些类可用作基类进行二次开发来实现自己的网络协议，创建派生类时只需重写感兴趣的回调函数即可。Protocol类常与Transport类一起使用，Protocol对象解析收到的数据并请求待发出数据的读写操作，而Transport对象则负责实际的I/O操作和必要的缓冲
+
+Protocol对象常用回调函数
+
+| 函数名称                        | 说明                                                         | 适用对象                                     |
+| ------------------------------- | ------------------------------------------------------------ | -------------------------------------------- |
+| `connection_made(transport)`    | 连接建立后自动调用                                           | Protocol,DatagramProtocol,SubProcessProtocol |
+| `connection_lost(exc)`          | 连接丢失或关闭后自动调用                                     | Protocol,DatagramProtocol,SubProcessProtocol |
+| `pipe_data_received(fd, data)`  | 子进程往stdout或stderr管道中写入数据时自动调用，fd是管道的标识符，data是要卸乳的非空字节串 | SubProcessProtocol                           |
+| `pipe_connection_lost(fd, exc)` | 与子进程通信的管道被关闭时自动调用                           | SubProcessProtocol                           |
+| `process_exited()`              | 子进程退出后自动调用                                         | SubProcessProtocol                           |
+| `data_received(data)`           | 收到数据(字节串)时自动调用                                   | Protocol                                     |
+| `eof_received()`                | 通信对象通过write_eof()或者其他类似方法通知不再发送数据时自动调用 | Protocol                                     |
+| `datagram_received(data, addr)` | 收到数据报时自动调用                                         | DatagramProtocol                             |
+| `error_received(exc)`           | 前一次发送或接收操作抛出异常OSError时自动调用                | DatagramProtocol                             |
+| `pause_writing()`               | Transport对象缓冲区达到上水位线时自动调用                    | Protocol,DatagramProtocol,SubProcessProtocol |
+| `resume_writing()`              | Transport对象缓冲区达到下水位线时自动调用                    | Protocol,DatagramProtocol,SubProcessProtocol |
+
+可以在Protocol对象的方法中使用`ensure_future()`来启动协程，但并不保证严格的执行顺序，Protocol对象并不清楚在对象方法中创建的协程，所以也不会等待其执行结束。若需要确定执行顺序的话，可以在协程中通过yield from语句来使用Stream对象
+
+## 使用TCP通信
+
+服务端代码
+
+```python
+# 服务端代码
+import asyncio
+
+class EchoServerClientProtocol(asyncio.Protocol):
+    # 连接建立成功
+    def connection_made(self, transport):
+        peername = transport.get_extra_info('peername')
+        pritn('Connection from {}'.format(peername))
+        self.transport = transport
+
+    # 收到数据
+    def data_received(self, data):
+        message = data.decode()
+        print('Data received:{!r}'.format(message))
+        print('Send:{!r}'.format(message))
+        self.transport.write(data)
+
+    # 对方发送消息结束
+    def eof_received(self):
+        print('Close the client socket')
+        self.transport.close()
+loop = asyncio.get_event_loop()
+
+# 创建服务器，每个客户端的连接请求都会创建一个新的Protocol实例
+coro = loop.create_server(EchoServerClientProtocol, '127.0.0.1', 8888)
+server = loop.run_until_complete(coro)
+
+# 服务器一直运行，直到用户按下Ctrl+C键
+print('Serving on {}'.format(server.sockets[0].getsockname()))
+try:
+    loop.run_forever()
+except KeyboradInerrupt:
+    pass
+
+# 关闭服务器
+server.close()
+loop.run_until_complete(server.wait_closed)
+loop.close()
+```
+
+客户端代码
+
+```python
+# 客户端代码
+import asyncio
+import time
+
+class EchoClientProtocol(asyncio.Protocol):
+    def __init__(self, message, loop):
+        self.message = message
+        self.loop = loop
+
+    # 连接创建成功
+    def connection_made(self, transport):
+        for m in message:
+            transport.write(m.encode())
+            print('Data sent: {!r}'.format(m))
+            time.sleep(1)
+        # 全部消息发送完毕，通知对方不再发送消息
+        transport.write_eof()
+
+    # 收到数据
+    def data_received(self, data):
+        print('Data received:{!r}'.format(data.decode()))
+
+    # 连接被关闭
+    def connection_lost(self, exc):
+        print('The server closed the connection')
+        print('Stop the event loop')
+        self.loop.stop()
+
+loop = asyncio.get_event_loop()
+message = ['Hello word!', '你好']
+coro = loop.create_connection(lambda: EchoClientProtocol(message, loop), '127.0.0.1', 8888)
+loop.run_until_complete(coro)
+loop.run_forever()
+loop.close()
+```
+
+## 使用UDP通信
+
+监听端代码
+
+```python
+# 服务端代码
+import asyncio
+import datetime
+import socket
+
+class EchoServerProtocol:
+    def connection_made(self, transport):
+        self.transport = transport
+
+    def datagram_received(self, data, addr):
+        message = data.decode()
+        print('Received from', str(addr))
+        now = str(datetiem.datetime.now())[:19]
+        self.transport.sendto(now.encode(),addr)
+        print('replied')
+
+loop = asyncio.get_event_loop()
+print("Starting UDP server")
+# 获取本机IP地址
+ip = socket.gethostbyname(socket.gethostname())
+# 创建Protocol实例，服务所有客户端
+listen = loop.create_datagram_endpoint(EchoServerProtocol, local_addr=(ip, 9999))
+transport, protocol = loop.run_until_complete(listen)
+try:
+    loop.run_forever()
+except KeyboardInterrupt:
+    pass
+
+transport.close()
+loop.close()
+```
+
+客户端代码
+
+```python
+# 客户端代码
+import asyncio
+import time
+
+class EchoClientProtocol:
+    def __init__(self, message, loop):
+        self.message = message
+        self.loop = loop
+
+    def connection_made(self, transport):
+        self.transport = transport
+        self.transport.sendto(self.message.encode())
+
+    def datagram_received(self, data, addr):
+        print('Now is :', data.decode())
+        self.transport.close()
+
+    def error_received(self, exc):
+        print('Error received:', exc)
+
+    def connection_lost(self, exc):
+        self.loop.stop()
+
+loop = asyncio.get_event_loop()
+message = "ask for me"
+while True:
+    connect = loop.create_datagram_endpoint(
+        lambda: EchoClientProtocol(message, loop),
+        remote_addr = ('10.2.1.2', 9999)
+    )
+    transport, protocol = loop.run_until_complete(connect)
+    loop.run_forever()
+    transport.close()
+    time.sleep(1)
+loop.close()
+```
+
+## socket
+
+注册用于接收数据的socket,并实现两个socket之间的数据传输
+
+```python
+import asyncio
+
+try:
+    from socket import socketpair
+except ImportError:
+    from asyncio.windows_utils import socketpair
+
+class MyProtocol(asyncio.Protocol):
+    def connection_made(self, transport):
+        self.transport = transport
+
+    def data_received(self, data):
+        # 接收数据，关闭Transport对象
+        print("Received:", data.encode())
+        self.transport.close()
+
+    def connection_lost(self, exc):
+        # Socket已经关闭，停止事件循环
+        loop.stop()
+
+# 创建一对互相联通的socket
+rsock, wsock = socketpair()
+loop = asyncio.get_event_loop()
+# 注册用来等待接收数据的socket
+connect_coro = loop.create_connection(MyProtocol, sock=rsock)
+transport, protocol = loop.run_until_complete(connect_coro)
+# 往互相连通的socket中的一个写入数据
+loop.call_soon(wsock.send, 'hello world.'.encode())
+# 启动事件循环
+loop.run_forever()
+rsock.close()
+wsock.close()
+loop.close()
+```
+
+## StreamReader/StreamWriter
+
+aysncio模块还提供了`open_connection()`函数(对AbstractEventLoop.create_connection()函数的封装)、`open_unix_connection()`函数(对AbstractEventLoop.create_unix_connection()函数的封装)、`start_server()`(对AbstractEventLoop.create_server()函数的封装)、`start_unix_server()`函数，这些函数都是协程函数，其中参数含义与被封装函数基本一致
+
+`open_connection()`函数执行成功的话会返回(reader, writer),其中reader是Sreamreader类的实例，而writer是StreamWriter类的实例。StreamReader类提供了`set_transport(transport),feed_data(data),feed_eof()`方法及协程方法`read(n=-1),readline(),readexactly(n),readuntil(separator=b'\n')`用来从Transport对象中读取数据；封装了Transport类的StreamWriter类则提供了普通方法`close(),get_extra_info(),write(data),writelines(data),write_eof()`和协程方法`drain()`(如果Transport对象的缓冲区达到上水位线就会阻塞写操作，直到缓冲区大小被拉到下水位线时再恢复)。
+
+实现网络聊天程序
+
+服务端代码
+
+```python
+import asyncio
+
+message = {
+    'Hello': 'nihao',
+    'How are you?': 'Fine, thank you.',
+    'Did you have breakfast?': 'Yes',
+    'Bye':'Bye'
+}
+
+@asyncio.coroutine
+def handle_echo(reader, writer):
+    while True:
+        data = yield from reader.read(100)
+        message = data.decode()
+        addr = writer.get_extra_info('peername')
+        print("Reaceived %r from %r" % (message, addr))
+
+        messageReply = message.get(message, 'Sorry')
+        print("Send: %r" % messageReply)
+        writer.write(messageReply.encode())
+        yield from writer.drain()
+        if messageReply == 'Bye':
+            break
+print("Close the client socket")
+writer.close()
+
+# 创建事件循环
+loop = asyncio.get_event_loop()
+# 创建并启动服务器
+coro = asyncio.start_server(handle_echo, '10.2.1.2', 8888, loop=loop)
+server = loop.run_until_complete(coro)
+print('Serving on {}'.format(server.sockets[0].getsockname()))
+#  按Ctrl+C键或Ctrl+Break键退出
+try:
+    loop.run_forever()
+except KeyboardInterrupt:
+    pass
+
+# 关闭服务器
+server.close()
+loop.run_until_complete(server.wait_closed())
+loop.close()
+```
+
+客户端代码
+
+```python
+import asyncio
+
+@asyncio.coroutine
+def tcp_echo_client(loop):
+    reader, writer = yield from asyncio.open_connection(
+        '10.2.1.2', 8888, loop=loop
+    )
+    while True:
+        message = input('You said:')
+        writer.write(message.encode())
+        data = yield from reader.read(100)
+        print('Receive: %r' % data.decode())
+        if message == 'Bye':
+            break
+
+    print('Close the socket')
+    writer.close()
+
+loop = asyncio.get_event_loop()
+loop.run_until_complete(tcp_echo_client(loop))
+loop.close()
+```
+
+获取网页头部信息
+
+```python
+import asyncio
+import urllib.parse 
+import sys
+
+@asyncio.coroutine
+def print_http_header(url):
+    url = urllib.parse.urlsplit(url)
+    if url.scheme == 'https':
+        connect = asyncio.open_connection(url.hostname, 443, ssl=True)
+    else:
+        connect = asyncio.open_connection(url.hostname, 80)
+    reader, writer = yield from connect
+
+    query = ('HEAD {path} HTTP/1.0\r\nHost: {hostname}\r\n\r\n'
+            ).format(path=url.path or '/', hostname = url.hostname)
+    writer.write(query.encode('latin-1'))
+    while True:
+        line = yield from reader.readline()
+        if not line:
+            break
+        line = line.decode('latin1').rstrip()
+        if line:
+            print('HTTP header> % s' % line)
+    writer.close()
+
+url = 'https://docs.python.org/3/library/asyncio-stream.html'
+loop = asyncio.get_event_loop()
+task = asyncio.ensure_future(print_http_header(url))
+loop.run_until_complete(task)
+loop.close()
+```
+
+注册端口并接收数据
+
+```python
+import asyncio
+
+try:
+    from socket import socketpair
+except ImportError:
+    from asyncio.windows_utils import socketpair
+
+@asyncio.coroutine
+def wait_for_data(loop):
+    # 创建一对互相连通的socket
+    rsock, wsock = socketpair()
+    # 注册用来接收数据的socket
+    reader, writer = yield form asyncio.open_connection(sock=rsock, loop=loop)
+    # 通过socket写入数据
+    loop.call_soon(wsock.send, 'This is a test.'.encode())
+    # 等待接收数据
+    data = yield from reader.read(100)
+    print("Received:", data.decode())
+
+    writer.close()
+    wsock.close()
+
+loop = asyncio.get_event_loop()
+loop.run_until_complete(wait_for_data(loop))
+loop.close()
+```
 

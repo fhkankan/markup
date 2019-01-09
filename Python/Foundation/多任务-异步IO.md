@@ -70,6 +70,22 @@ while True:
 由于协程在一个线程内执行，因此对于多核CPU平台，当并发量很大时，可以使用多进程+协程的方式。
 ```
 
+协程概念
+
+```
+协程有两种含义：
+1.用来定义写成的函数，亦可称为协程函数
+2.调用协程函数的得到协程对象，表示一个最终会完成的计算或者IO操作
+
+协程的引入使得编写单线程并发代码称为可能，事件循环在单个线程中运行并在同一个线程中执行所有的回调函数和任务，当事件循环中正在运行一个任务时，该线程中不会再同时运行其他任务，一个事件循环在某个时刻只运行一个任务。但是如果该任务执行yield from语句等待某个Future对象的完成，则当前任务被挂起，事件循环执行下一个任务。当然，不同线程中的事件循环可以并发执行多个任务
+
+在语法形式上，协程可以通过async def语句或生成器来实现，若不需要考虑和旧版本python兼容，则优先考虑前者；基于生成器的协程函数需要使用@asyncio.coroutine进行修饰，并且使用yield from而不是yield语句
+
+Future类代表可代哦用对象的异步执行，Task类是Future的子类，用来调度协程，负责在事件循环中执行协程对象，若果在协程中使用yield from语句从一个Future对象中返回值的话，Task对象会挂起协程的执行并且等待Future对象的完成，当Future对象完成后，协程会重新启动并得到Future对象的结果或异常
+
+于普通函数不同，调用一个协程函数并不会立刻启动代码的执行，返回的协程对象在被调度之前不会做什么事情。启动协程对象的执行有两种方法：1.在一个正在运行的协程中使用await或yield from语句等待线程对象的返回结果；2.使用ensure_future()函数或者AbstractEventLoop.create_task()方法创建任务(Task对象)并调度协程的执行
+```
+
 ## yield
 
 Python对协程的支持是通过generator实现的。
@@ -280,6 +296,61 @@ gevent.joinall([
 ])
 ```
 
+# concurrent.futures
+
+`concurrent.futures`模块提供了异步执行的高级接口，可以通过`ThreadPoolExecutor`实现线程的异步执行，也可以通过`ProcessPoolExecutor`实现进程的异步执行，都继承自抽象类`Exector`,提供了相同的接口
+
+方法
+
+```python
+submit(fn, *args, **kwargs)
+# 用来调度可调用对象fn并为其传递参数args和kwargs，返回一个Future对象
+map(func, *iterables, timeout=None, chunksize=1)
+# 是与内置函数map(func, *iterables)等价的异步执行方法，多个func的调用可以并发执行
+shutdown(wait=True)
+# 通知Executor对象执行完当前Future对象之后释放所有资源，若参数wait为True，则shutdown()方法等待执行结束并释放有关资源之后再返回，否则立即返回
+```
+
+批量移动文件
+
+```python
+from concurrent.futures import ThreadPoolExecutor
+from shutil import copy
+from os import listdir
+from os.path import isfile, json
+
+with ThreadPoolExecutor(max_workers=4) as e:
+    for f in (fn for fn in lisdir('C:\\test')):
+        src = json('C:\\test', f)
+        if isfile(src):
+            # 目标文件夹存在
+            dst = join('D:\\test', f)
+            e.submit(copy, src, dst)
+```
+
+批量快速判断素数
+
+```python
+from concurrent.futures import ProcessPoolExecutor
+
+PRIMES = [109999999, 108376355, 1276544678, 123555677, 234645542424]
+def isPrime(n):
+    if n%2 == 0:
+        return False
+    for i in range(3, int(n**0.5)+1, 2):
+        if n%i == 0:
+            return False
+    return True
+
+def main():
+    with ProcessPoolExecutor() as executor:
+        for number, prime in zip(PRIMES, executor.map(isPrime, PRIMES)):
+            print('%d is prime: %s' % (number, prime))
+
+if __name__ == "__main__":
+    main()
+```
+
 # asyncio
 
 Python 3.4版本引入的标准库asyncio，以生成器对象为基础，直接内置了对异步IO的支持。Python 3.5又提供了语法`async`和`await`层面的支持，可以让coroutine的代码更简洁易读。
@@ -485,6 +556,103 @@ print('Program consumes: %fs' % (now()-start))
 通过run_until_complete()将tasks列表加入事件循环中
 通过tasks的result方法获取协程运行状态
 最后计算整个程序的运行耗时
+```
+
+在单线程中使用事件循环同时计算多个整数的阶乘
+
+```python
+import asyncio
+
+async def factorial(name, number);
+    f = 1
+    for i in range(2, number+1):
+        print("Task %s: Compute factorial (%s)..." % (name, i))
+        await asyncio.sleep(0.5)
+        f *= 1
+    print("Task %s: factorial (%s)=%s"%(name, number, f))
+    # 返回当前上下文中实现AbstractEventLoop接口的事件循环对象
+    loop = asyncio.get_event_loop()
+    tasks = [
+        asyncio.ensure_future(factorial("A", 14)),
+        asyncio.ensure_future(factorial("B", 13)),
+        asyncio.ensure_future(factorial("C", 16))
+    ]
+    # gather()用来返回一个从给定的协程对象或Future对象得到的聚集结果，
+    # 要求所有的Future对象共享同一个事件循环，若所有的任务顺利完成，该函数返回结果列表
+    loop.run_until_complete(asyncio.gather(*tasks))
+    loop.close()
+```
+
+显示当前日期时间
+
+```python
+import asyncio.subprocess
+import sys 
+
+@asyncio.coroutine
+def get_date():
+    code = 'import datetime; print(datetime.datetime.now())'
+    # 创建子进程，并把标准输出重定向道管道
+    create = asyncio.create_subprocess_exec(sys.executable, '-c', code, stdout=asyncio.subprocess.PIPE)
+    proc = yield from create
+    # 读取一行输出
+    data = yield from proc.stdout.readline()
+    line = data.decode('ascii').rstrip()
+    # 等待子进程退出
+    yield from proc.wait()
+    return line
+
+if sys.platform == "win32":
+    loop = asyncio.ProactorEventLoop()
+    asyncio.set_event_loop(loop)
+else:
+    loop = asyncio.get_event_loop()
+
+date = loop.run_until_complete(get_date())
+print("Current date: %s" % date)
+loop.close()
+```
+
+使用协程计算阶乘
+
+```python
+import asyncio
+import operator
+import functools
+
+@asyncio.coroutine
+def slow_operation(future, n):
+    yield from asyncio.sleep(1)
+    result = functools.reduce(operator.mul, range(1, n+1))
+    # 设置计算结果
+    future.set_result(result)
+
+loop = asyncio.get_event_loop()
+future = asyncio.Future()
+# 创建并启动任务，计算50的阶乘
+asyncio.ensure_future(slow_operation(future, 50))
+loop.run_until_complete(future)
+# 输出计算结果
+print(future.result())
+loop.close()
+```
+
+在事件循环中执行函数
+
+```python
+import asyncio
+
+def hello_word(loop):
+    print('hello word')
+    # 结束事件循环
+    loop.stop()
+
+loop = asyncio.get_event_loop()
+# 在制定的事件循环中执行函数
+loop.call_soon(hello_word, loop)
+# 一直运行事件循环，阻塞当前线程，直到调用loop.stop()
+loop.run_forever()
+loop.close()
 ```
 
 # aiohttp
