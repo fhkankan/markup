@@ -461,6 +461,11 @@ pyenv rehash          # 重建环境变量，增删Python版本或带有可执�
 ```
 # mac
 brew install pyenv-vitualenv
+
+# ubuntu
+git clone https://github.com/pyenv/pyenv-virtualenv.git $(pyenv root)/plugins/pyenv-virtualenv
+
+echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.bashrc
 ```
 
 使用
