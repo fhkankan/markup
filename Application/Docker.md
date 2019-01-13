@@ -289,6 +289,33 @@ docker inspect [container_id]
 docker port [container_id]
 ```
 
+> 迁移
+
+备份
+
+```
+docker ps -a  # 查看容器
+docker commit -p 30b8f18f20b4 container-backup  # 创建快照
+docker images  # 查看镜像
+# 方式一：云备份
+docker login 172.16.101.192  # 登录Docker注册中心，
+docker tag a25ddfec4d2a arunpyasi/container-backup:test # 打标签
+docker push arunpyasi/container-backup  # 推送镜像
+# 方式二：本地备份
+docker save -o ~/container-backup.tar container-backup  # 本地保存镜像
+```
+
+恢复
+
+```
+# 方式一：云拉取
+docker pull arunpyasi/container-backup:test  # 拉取镜像
+# 方式二：本地加载
+docker load -i ~/container-backup.tar  # 本地加载
+docker images  # 查看镜像
+docker run -d -p 80:80 container-backup # 运行镜像
+```
+
 ### 仓库管理
 
 仓库指的是Docker镜像存储的地方。
