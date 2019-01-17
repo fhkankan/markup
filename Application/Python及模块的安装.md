@@ -763,7 +763,7 @@ echo 'export PATH="~/anaconda2/bin:$PATH"' >> ~/.bashrc
 source ~/.bashrc
 
 3. 检查
-conda -v
+conda -V
 ```
 
 ## 包管理

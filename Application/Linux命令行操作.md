@@ -172,6 +172,14 @@ sudo lsof -Pti:端口号
 # 查看端口被哪个程序占用
 lsof -i:端口号 |grep "(LISTEN)"
 netstat -tunlp|grep 端口号
+
+# 查使用内存最多的K个进程
+ps -aux | sort -k4nr | head -K
+或 top M
+
+# 查使用CPU最多的K个进程
+ps -aux | sort -k3nr | head -K
+或 top P
 ```
 
 ## 查看时间
@@ -220,7 +228,41 @@ q      ---》 退出
 clear
 ```
 
+# 网络
+
+查看计算机信息
+
+```shell
+ifconfig :查询计算机ip信息
+sudo ifconfig ens 33 新的ip地址：修改ip
+ping ip地址 :检查网络连接状态
+netstat - an ：检查端口使用状况
+lsof -i [tcp/udp]:端口号，查看指定端口那个运行起来的程序在使用
+netstat - an ：检查端口使用状况
+```
+
+杀死进程
+
+```
+# 杀死单个进程
+kill 进程编号，杀死指定进程， kill -9 进程编号，强制杀死进程
+
+# 批量杀死进程
+ps aux|grep python|grep -v grep|cut -c 9-15|xargs kill -15
+
+管道符“|”用来隔开两个命令，管道符左边命令的输出会作为管道符右边命令的输入。 
+“ps aux”是linux 里查看所有进程的命令。这时检索出的进程将作为下一条命令“grep python”的输入。 
+“grep python”的输出结果是，所有含有关键字“python”的进程，这是python程序
+“grep -v grep”是在列出的进程中去除含有关键字“grep”的进程。 
+“cut -c 9-15”是截取输入行的第9个字符到第15个字符，而这正好是进程号PID。 
+“xargs kill -15”中的xargs命令是用来把前面命令的输出结果（PID）作为“kill -15”命令的参数，并执行该令。 
+“kill -15”会正常退出指定进程，-9强行杀掉
+```
+
+
+
 # 显示
+
 ```python
 more
 # 分屏显示文件内容
@@ -941,17 +983,10 @@ usermod -s /bin/ksh -d /home/z –g developer sam
 # 删除用户
 sudo userdel -r 用户名
 ```
-# 网络
-```shell
-ifconfig :查询计算机ip信息
-sudo ifconfig ens 33 新的ip地址：修改ip
-ping ip地址 :检查网络连接状态
-netstat - an ：检查端口使用状况
-lsof -i [tcp/udp]:端口号，查看指定端口那个运行起来的程序在使用
-kill 进程编号，杀死指定进程， kill -9 进程编号，强制杀死进程
-netstat - an ：检查端口使用状况
-```
+
+
 # 包管理器
+
 ```shell
 sudo apt-cache search package             --->搜索软件包
 sudo apt-cache show package               --->获取包的相关信息，如说明、大小、版本等
