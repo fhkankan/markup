@@ -1,4 +1,4 @@
-# 启动环境#
+# 启动环境
 
 ## ubuntu
 
@@ -161,7 +161,7 @@ skip-grant-tables
 重启服务
 ```
 
-# 数据库的操作#
+# 数据库的操作
 
 ```python
 # 查看所有数据库
@@ -196,7 +196,7 @@ mysqldump –uroot –p 数据库名 > python.sql;
 mysql -uroot –p 新数据库名 < python.sql
 ```
 
-# 数据表的操作#
+# 数据表的操作
 
 ```python
 # 查看当前数据库中所有表

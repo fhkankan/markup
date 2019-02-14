@@ -350,7 +350,7 @@ df_obj.rename(
 
 ## 算数运算与数据对齐
 
-Pandas可以对不同索引的对象进行算术运算，如果存在不同的索引，结果的索引就是所有索引的并集。
+Pandas可以对不同索引的对象进行算术运算(add, sub,div,mul等)，如果存在不同的索引，结果的索引就是所有索引的并集。
 
 如果索引相同，按索引对齐进行运算。如果没对齐的位置则补NaN；但是可以通过指定数据填充缺失值，再参与对齐运算。
 
@@ -433,19 +433,25 @@ print(df_obj3.replace(6, 600))
 
 ### Numpy
 
-```
+numpy的ufunc也可以用于pandas对象，即可将函数应用到Series中的每一个元素
+
+```python
 print(np.sum(ser_obj))
 print(np.abs(ser_obj))
 print(np.sum(df_obj))
 print(np.sum(df_obj, axis=1))
+
+reversef = lambda x: -x
+reversef(def_obj)
 ```
 
 ### apply
 
-```
-# 使用apply应用自定义函数到DataFrame的对象的每一行/每一列上,
-# 返回值由自定义函数决定，若是计算类，返回DataFrame,若是统计类，返回Series
+使用apply应用自定义函数到DataFrame的对象的每一行/每一列上
 
+返回值由自定义函数决定，若是计算类，返回DataFrame,若是统计类，返回Series
+
+```python
 print(df.apply(lambda x : x.max()))
 # 指定轴方向，axis=1，方向是行
 print(df.apply(lambda x : x.max(), axis=1))
@@ -453,10 +459,11 @@ print(df.apply(lambda x : x.max(), axis=1))
 
 ### applymap
 
-```
-# 通过applymap将函数应用到DataFrame的每个元素
-# 返回DataFrame
+通过applymap将函数应用到DataFrame的每个元素
 
+返回DataFrame
+
+```python
 print(df.applymap(lambda x : '%.2f' % x))
 ```
 
@@ -479,7 +486,30 @@ df_obj.sort_values(by='column_name', ascending=False))
 
 ### 排名
 
-排名即
+排名即ranking，从1开始一直到数据中有效数据的数量为止，返回数据在排序中的位置
+
+```python
+rrank = pd.Series([10,12,9,9,14,4,2,4,9,1])
+rrank.rank()
+
+rrank.rank(ascending=False)  # 逆序
+```
+
+当有多个数据值是一样的时候(如rrank对象中有3个值为9，2个值为4)，会出现排名相同的情况，这时可使用rank方法的参数method来处理
+
+```
+average	 默认选项，在相同排名中，为各个值平均分配排名
+min		 使用整个相同排名的最小排名
+max		 使用真个相同排名的最大排名
+first	 按值在原始数据中的出现顺序分配排名
+```
+
+示例
+
+```python
+rrank.rank(method='first')
+rrank.rank(method='max')
+```
 
 ## 层级索引与数据重构
 
@@ -492,7 +522,7 @@ df_obj.sort_values(by='column_name', ascending=False))
 
 ### 层级索引
 
-```
+```python
 # 选层
 # 1.选取外层
 ser_obj['outer_label']
@@ -629,9 +659,20 @@ new_df = pd.merge(df_obj7, df_obj8, left_on="key", right_index=True, how="outer"
 
 ## 数据合并
 
-- 沿轴方向将多个对象合并到一起
+pandas提供了如下函数对pandas的数据对象进行合并
 
-### np.concatenate
+| 函数            | 说明 |
+| --------------- | ---- |
+| `concat`        |      |
+| `append`        |      |
+| `merge`         |      |
+| `join`          |      |
+| `combain_first` |      |
+| `update`        |      |
+| `merge_ordered` |      |
+| `merge_asof`    |      |
+
+- np.concatenate
 
 ```
 import numpy as np
@@ -645,13 +686,11 @@ print(np.concatenate([arr1, arr2]))
 print(np.concatenate([arr1, arr2], axis=1))
 ```
 
-### pd.concat
+- pd.concat
 
-- 注意指定轴方向，默认axis=0
-- join指定合并方式，默认为outer
-- Series合并时查看行索引有无重复
+注意指定轴方向，默认axis=0，join指定合并方式，默认为outer，Series合并时查看行索引有无重复
 
-```
+```python
 # index 有重复的情况
 ser_obj1 = pd.Series(np.random.randint(-5, 10, 4), index=range(4))
 ser_obj2 = pd.Series(np.random.randint(-5, 10, 5), index=range(5))
@@ -679,6 +718,16 @@ print(pd.concat([df_obj1, df_obj2, df_obj3], axis=0))
 print(pd.concat([df_obj1, df_obj2, df_obj3], axis=1, join="inner")) 
 ```
 
+- pd.append
+
+```
+
+```
+
+
+
+
+
 ## 数据分组
 
 - 对数据集进行分组，然后对每组进行统计分析
@@ -691,7 +740,7 @@ print(pd.concat([df_obj1, df_obj2, df_obj3], axis=1, join="inner"))
 
 ### 分组操作
 
-```
+```python
 # 分组操作
 # groupby()进行分组，GroupBy对象没有进行实际运算，只是包含分组的中间数据
 # 按列名分组：obj.groupby(‘label’)
@@ -712,7 +761,7 @@ df_obj.groupby(self_def_key).size()
 
 ### 迭代操作
 
-```
+```python
 # GroupBy对象支持迭代操作
 # 每次迭代返回一个元组 (group_name, group_data)，可用于分组数据的具体运算
 # 单层分组，根据key1
@@ -727,15 +776,13 @@ for group_name, group_data in grouped2:
 
 ### 转换
 
-```
+```python
 # GroupBy对象可以转换成列表或字典
 # GroupBy对象转换list
 print(list(grouped1))
 # GroupBy对象转换dict
 print(dict(list(grouped1)))
 ```
-
-
 
 ## 数据聚合
 
@@ -801,8 +848,6 @@ df_obj = pd.DataFrame(
     }, index=list("ABCDEFGH")
 )
 ```
-
-
 
 ### merge()
 

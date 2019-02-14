@@ -349,10 +349,6 @@ $.getJSON(url,function(data)){
           });
 ```
 
-
-
-
-
 # python解析
 
 从python2.6开始，python标准库中添加了对json的支持，操作json时，只需要`import json`即可

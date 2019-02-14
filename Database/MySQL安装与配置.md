@@ -256,8 +256,6 @@ import pymsql
 pymsql.install_as_MySQLdb()
 ```
 
-
-
 # 主从同步配置
 
 ## 基本步骤
@@ -332,7 +330,7 @@ SHOW MASTER STATUS;
 须记下，配置从服务器时会用到。
 ```
 
-###配置从服务器slave(Windows中的MySQL)
+### 配置从服务器slave(Windows中的MySQL)
 
 ```
 1. 找到 Windows 中 MySQL 的配置文件
