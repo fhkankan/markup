@@ -364,8 +364,6 @@ syncdelay：系统同步刷新磁盘的时间，单位为秒，默认时60秒。
 directoryperdb：每个db存放在单独的目录中，建议设置该参数。
 
 repairpath：执行repair时的临时目录。如果没有开启journal，异常down机后重启，必须执行repair操作。
-
-
 ```
 
 ### MongoDB 统计信息
