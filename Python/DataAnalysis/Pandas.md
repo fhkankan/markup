@@ -28,12 +28,14 @@ Pandas有两个最主要也是最重要的数据结构： **Series** 和 **DataF
 
 Series是一种类似于一维数组的 **对象**，由一组数据（各种NumPy数据类型）以及一组与之对应的索引（数据标签）组成。
 
+```
 - 类似一维数组的对象
 - 由数据和索引组成
   - 索引(index)在左，数据(values)在右
   - 索引是自动创建的
+```
 
-#### 创建
+- 创建
 
 ```python
 # 通过list创建
@@ -53,7 +55,7 @@ ser_obj4.index.name = "Info"
 ser_obj3 = pd.Series(data=range(-3, 3), index=list("ABCDEF"), dtype=np.float64, name="测试数据")
 ```
 
-#### 查看
+- 查看
 
 ```python
 # 查看名字
@@ -76,11 +78,13 @@ ser_obj[pos]
 
 DataFrame是一个表格型的数据结构，它含有一组有序的列，每列可以是不同类型的值。DataFrame既有行索引也有列索引，它可以被看做是由Series组成的字典（共用同一个索引），数据是以二维结构存放的。
 
+```
 - 类似多维数组/表格数据 (如，excel, R中的data.frame)
 - 每列数据可以是不同的类型
 - 索引包括列索引和行索引
+```
 
-#### 创建
+- 创建
 
 ```python
 # 通过嵌套列表/ndarray创建
@@ -106,12 +110,21 @@ df_obj[new_col_idx] = data
 df_pbj2 = pd.DataFrame(arr, index= ['A', 'B', 'C'], columns=['a', 'b', 'c', 'd'])
 ```
 
-#### 查看
+- 查看
 
 ```python
 # 产看DataFrame对象的详细信息
 df_obj.info()
 
+# 查看数据的前n行(默认5行)
+df_obj.head()
+# 查看数据的后n行
+df_obj.tail()
+
+# 查看实例的值
+df_obj.values
+# 查看实例每列的属性
+df_obj.dtypes
 # 查看行索引和列索引对象
 df_obj.index
 df_obj.columns
@@ -119,13 +132,58 @@ df_obj.columns
 # 通过索引获取列数据
 df_obj[col_idx]
 df_obj.col_idx
+
 ```
+
+- 文件导入
+
+可以使用如下的函数将主流格式的数据文件读物并转化为DataFrame实例对象
+
+| 函数             | 说明                                 |
+| ---------------- | ------------------------------------ |
+| `read_csv`       | 读入具有分隔符的csv文件              |
+| `read_table`     | 读入具有分隔符的文件                 |
+| `read_sql`       | 读入SQL，MySQL数据库中的数据         |
+| `read_sas`       | 读入SAS的xpt或sas7bdat格式的数据集   |
+| `read_stata`     | 读入STATA数据集                      |
+| `read_json`      | 读入json数据                         |
+| `read_html`      | 读入网页中的表                       |
+| `read_clipboard` | 读入剪贴板中数据内容                 |
+| `read_fwf`       | 读入固定宽度格式化数据               |
+| `read_hdf`       | 读入分布式存储系统(HDFStore)中的文件 |
+
+示例
+
+```python
+jddf = pd.read_csv(
+    'data.csv', 
+    header=None,  # 表示不会把数据的第1行和第1列设置为行列索引
+    name=['name', 'time', 'opening_price', 'closing_price', 'lowest_price', 'highest_price', 'volume']  # 指定列索隐，即通常意义下的变量名
+)
+```
+
+- 数据导出
+
+可以使用如下函数将实例对象输出到外部文件或指定对象中
+
+| 函数           | 说明                     |
+| -------------- | ------------------------ |
+| `to_csv`       | 输出到csv文件中          |
+| `to_excel`     | 输出到excel表中          |
+| `to_hdf`       | 输出到HDFS分布式文件系统 |
+| `to_json`      | 输出到json文件中         |
+| `to_html`      | 输出到网页表中           |
+| `to_dict`      | 输出为字典格式           |
+| `to_stata`     |                          |
+| `to_latex`     | 输出为latex格式          |
+| `to_sql`       | 输出为sql格式            |
+| `to_clipboard` | 输出到剪贴板中           |
 
 ## 索引操作
 
 ### 查看数据
 
-#### Series
+- Series
 
 ```
 # 指定行索引名
@@ -153,9 +211,9 @@ ser_obj1[(ser_obj1 > 10) & (ser_obj1 < 14)]
 ser_obj1[~(ser_obj1 == 12)]
 ```
 
-#### DataFrame
+- DataFrame
 
-```
+```python
 # DataFrame对象本身也支持一些索引取值操作，但是通常情况下，会使用规范良好的高级索引方法。
 
 # 指定index指定行索引，columns指定列索引
@@ -179,14 +237,14 @@ df_obj["raw_label1":"raw_label2"]
 df_obj[df_obj["column_label] >= 2]
 ```
 
-#### 高级索引
+- 高级索引
 
 有3种：标签索引 loc、位置索引 iloc，混合索引ix
 Series结构简单，一般不需要高级索引取值，主要用于DataFrame对象
 
-- loc
+loc
 
-```
+```python
 # Series
 # 1. 取连续多行
 print(ser_obj1.loc['B' : 'C'])
@@ -219,11 +277,11 @@ print(df_obj.loc[df_obj["a"] > -1])
 print(df_obj.loc[df_obj["a"] > -1, ["b", "d"]])
 ```
 
-- iloc
+iloc
 
 作用和loc一样，不过是基于索引编号来索引
 
-```
+```python
 # Series
 print(ser_obj[1:3])
 print(ser_obj.iloc[1:3])
@@ -235,13 +293,13 @@ print(df_obj.iloc[0:2, 1:3])
 print(df_obj.iloc[[0, 2], [0, 3]])
 ```
 
-- ix
+ix
 
 ix是以上二者的综合，既可以使用索引编号，又可以使用自定义索引，但是如果索引既有数字又有英文，容易导致定位的混乱。目前官方已不推荐使用
 
 ### 新增数据
 
-```
+```python
 # Series
 # 新增行数据
 ser_obj["F"] = 3.14
@@ -254,7 +312,7 @@ df_obj["g"] = df_obj["c"] + df_obj["f"]
 
 ### 删除数据
 
-```
+```python
 # del 删除原数据，
 del(df_obj['g'])
 
@@ -267,7 +325,7 @@ df_obj.drop(["C", "D"], inplace=True)
 
 ### 类型转换
 
-```
+```python
 # 索引对象支持类型转换：list,ndarray,Series
 print(df_obj.index)
 print(list(df_obj.index))
@@ -282,7 +340,7 @@ print(pd.Series(df_obj.columns))
 
 ### 重命名
 
-```
+```python
 df_obj.rename(
     index = {"A" : "AA", "B" : "BB", "C" : "CC"}, 
     columns = {"a" : 'aa', "b" : "bb", "c" : "cc", "d" : "dd"}, 
@@ -292,12 +350,13 @@ df_obj.rename(
 
 ## 算数运算与数据对齐
 
-- Pandas可以对不同索引的对象进行算术运算，如果存在不同的索引，结果的索引就是所有索引的并集。
-- 如果索引相同，按索引对齐进行运算。如果没对齐的位置则补NaN；但是可以通过指定数据填充缺失值，再参与对齐运算。
+Pandas可以对不同索引的对象进行算术运算，如果存在不同的索引，结果的索引就是所有索引的并集。
 
-### Series
+如果索引相同，按索引对齐进行运算。如果没对齐的位置则补NaN；但是可以通过指定数据填充缺失值，再参与对齐运算。
 
-```
+- Series
+
+```python
 #  Series 按行、索引对齐
 ser_obj1 = pd.Series(range(10, 15), index=list("ABCDE"))
 ser_obj2 = pd.Series(range(10, 15), index=list("CDEFG"))
@@ -307,9 +366,9 @@ ser_obj3 = ser_obj1.add(ser_obj2)
 ser_obj4 = ser_obj1.add(ser_obj2, fill_value=100)
 ```
 
-### DataFrame
+- DataFrame
 
-```
+```python
 df_obj1 = pd.DataFrame(np.random.randint(-5, 10, (3, 4)), index=list("ABC"), columns=list("abcd"))
 df_obj2 = pd.DataFrame(np.random.randint(-5, 10, (3, 4)), index=list("ABC"), columns=list("cdef"))
 df_obj3 = df_obj1.add(df_obj2)
@@ -401,13 +460,15 @@ print(df.apply(lambda x : x.max(), axis=1))
 print(df.applymap(lambda x : '%.2f' % x))
 ```
 
-## 排序处理
+## 排序排名
 
-```
-# 按索引排序，排序默认使用升序排序，ascending=False 为降序排序
+### 排序
+
+```python
+# 按索引排序
 ser_obj.sort_index()
 # 默认为行索变动排序，排序规则为升序,
-# axis=0表示列变动，ascending=True表示降序
+# axis=0表示列变动，ascending=False表示降序
 print(df_obj.sort_index())
 
 # 按值排序
@@ -415,6 +476,10 @@ print(df_obj.sort_index())
 # 若有重名的列，不能参与排序
 df_obj.sort_values(by='column_name', ascending=False))
 ```
+
+### 排名
+
+排名即
 
 ## 层级索引与数据重构
 
