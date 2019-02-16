@@ -185,7 +185,7 @@ jddf = pd.read_csv(
 
 - Series
 
-```
+```python
 # 指定行索引名
 ser_obj1 = pd.Series(range(10, 15), index= list("ABCDE"))
 
@@ -382,18 +382,76 @@ df_obj4 = df_obj1.add(df_obj2, fill_value=100)
 
 ### 处理缺失值
 
-```
+- 形式
+
+在pandas对象中缺失值除了以`NaN`的形式存在之外，还可以用python基本库中的`None`来表示。
+
+注意：在数值型数据二者都表示`NaN`，而字符型数据`np.nan`表示为`NaN`，`None`就是表示为其本身
+
+缺失值在默认情况下不参与运算及数据分析过程
+
+对于时间戳的datetime64[ns]数据格式，其默认缺失值是以`NaT`的形式存在
+
+- 判断
+
+```python
 # 判断数据集是否有缺失值,返回bool类型的DataFrame
 df_obj.isnull()
 df_obj.notnull()
+```
 
+- 处理
+
+删除
+
+```python
 # 删除缺失值所在的行
 df_obj.dropna()
 # 删除缺失值所在的列
 df_obj.dropna(axis=1)
+```
 
+填充
+
+```python
 # 填充缺失值
 df_obj.fillna(value)
+# 参数
+value 	填充缺失值的标量或字典对象
+method	指定填充方式：backfill,bfill,pad,ffill,None.默认为ffill.pad/ffill表示前向填充；bfill/backfill表示后向填充
+axis	指定待填充的轴：0，1或index,columns.默认axis=0(index)
+inplace	指定是否(默认否)修改对象上的任何其他视图
+limit	指定ffill和backfill填充可
+# ffill
+df_obj.ffill(limit=1)  # 当有连续缺失值时，只填充第1个缺失值
+# bfill
+df_obj.bfill()  # 等价于fillna(method='bfill')
+```
+
+插值
+
+```python
+# 插值即利用已有数据对数值型缺失值进行估计，并用估计结果来替换缺失值
+df_obj.interpolate(method='liner')  # 线性插值
+
+# 参数
+liner	默认
+time
+index
+values
+nearest
+zero
+slinear
+quadratic
+cubic
+barycentric
+krogh
+polynomial
+spline
+piecewise_polynomial
+from_derivatives
+pchip
+akima
 ```
 
 ### 处理重复值
@@ -550,7 +608,7 @@ print(ser_obj.swaplevel().sortlevel())
 
 ### 数据重构
 
-```
+```python
 # unstack()
 # Series->DataFrame
 # 默认1内层索引为列索引，0将最外层做为列索引
@@ -569,7 +627,7 @@ df_obj.T
 
 ## 统计计算和描述
 
-```
+```python
 # 常用的统计计算
 # axis=0 按列统计，axis=1按行统计
 # skipna默认为True，表示计算时排除NaN值
@@ -603,59 +661,6 @@ df_obj.describe()
 | cumprod       | 样本值的累计积                               |
 | diff          | 计算一阶差分(对事件序列很有用)               |
 | pct_change    | 计算百分数变化                               |
-
-## 数据连接
-
-- pd.merge
-- 根据单个或多个键将不同DataFrame的行连接起来
-- 类似数据库的连接操作
-
-```
-import pandas as pd
-import numpy as np
-
-df_obj1 = pd.DataFrame({'key': ['b', 'b', 'a', 'c', 'a', 'a', 'b'],
-                        'data1' : np.random.randint(0,10,7)})
-df_obj2 = pd.DataFrame({'key': ['a', 'b', 'd'],
-                        'data2' : np.random.randint(0,10,3)})
-                        
-# 默认将重叠列的列名作为“外键”进行连接
-print(pd.merge(df_obj1, df_obj2))
-
-# on显示指定“外键”,尤其对于多个同名列
-print(pd.merge(df_obj1, df_obj2, on='key'))
-
-# left_on，左侧数据的“外键”，right_on，右侧数据的“外键”
-# 默认结果为内连接，可以通过how指定连接方式
-# 默认how="inner"内连接，取交集数据
-df_obj3 = df_obj1.rename(columns={'key':'key1'})
-df_obj4 = df_obj2.rename(columns={'key':'key2'})
-print(pd.merge(df_obj3, df_obj4, left_on='key1', right_on='key2'))
-print(pd.merge(df_obj3, df_obj4, left_on="key1", right_on="key2", how="inner" ))
-# how="outer"外连接，取并集结果
-print(pd.merge(df_obj3, df_obj4, left_on="key1", right_on="key2", how="outer" ))
-# how="left"左连接，保证左表的完整性
-print(pd.merge(df_obj3, df_obj4, left_on="key1", right_on="key2", how="left" ))
-# how="right"右连接，保证右表的完整性
-print(pd.merge(df_obj3, df_obj4, left_on="key1", right_on="key2", how="right" ))
-
-# 处理重复列名，suffixes添加前缀，默认为_x, _y
-# suffixes参数接收一个元组/列表， 两个元素分别表示左表和游标的后缀
-df_obj5 = pd.DataFrame({"key": list("ababcacb"),
-    "data": np.random.randint(-5, 10, 8)})
-df_obj6 = pd.DataFrame({"key": list("cbdcdb"),
-    "data": np.random.randint(-5, 10, 6)})
-print(pd.merge(df_obj5, df_obj6, on="key", suffixes=["_left", "_right"]))
-
-# 使用行索引连接，left_index=True或right_index=True
-df_obj7 = pd.DataFrame({"key" : list("ababcbac"),
-    "data" : np.random.randint(-5, 10, 8)})
-
-df_obj8 = pd.DataFrame({"data" : np.random.randint(-5, 10, 6)},
-    index = list("cbdcdb"))
-# left_on表示指定左表的key列做为外键，right_index=True表示使用右表行索引作为外键，进行关联
-new_df = pd.merge(df_obj7, df_obj8, left_on="key", right_index=True, how="outer", suffixes=["_left", "_right"])
-```
 
 ## 数据合并
 
@@ -720,13 +725,88 @@ print(pd.concat([df_obj1, df_obj2, df_obj3], axis=1, join="inner"))
 
 - pd.append
 
+```python
+c1 = pd.DataFrame({
+    'Name':{101: 'Zhang San'},
+    'Subject':{101: 'Literature'},
+    'Score':{101: 98}
+})
+
+c2 = pd.DataFrame({
+    'Gender':{101: 'Male'}
+})
+
+# concat
+c = pd.concat([c1,c2],axis=0)
+
+# append
+c1.append(c2)
 ```
 
+- pd.merge
+
+根据单个或多个键将不同DataFrame的行连接起来，类似数据库的连接操作
+
+```python
+c3 = pd.DataFrame({
+    'Name':{101: 'Zhang San'},
+    'Gender':{101: 'Male'}
+})
+
+# concat
+pd. concat([c1, c3], axis=1)
+
+# merge
+# 将c3和c1按照Name进行匹配合并，参加匹配合并的每个对象应具备同一个列用来作为匹配标识的列
+pd.merge(c1, c3, on='Name')
+
+
+
+import pandas as pd
+import numpy as np
+
+df_obj1 = pd.DataFrame({'key': ['b', 'b', 'a', 'c', 'a', 'a', 'b'],
+                        'data1' : np.random.randint(0,10,7)})
+df_obj2 = pd.DataFrame({'key': ['a', 'b', 'd'],
+                        'data2' : np.random.randint(0,10,3)})
+                        
+# 默认将重叠列的列名作为“外键”进行连接
+print(pd.merge(df_obj1, df_obj2))
+
+# on显示指定“外键”,尤其对于多个同名列
+print(pd.merge(df_obj1, df_obj2, on='key'))
+
+# left_on，左侧数据的“外键”，right_on，右侧数据的“外键”
+# 默认结果为内连接，可以通过how指定连接方式
+# 默认how="inner"内连接，取交集数据
+df_obj3 = df_obj1.rename(columns={'key':'key1'})
+df_obj4 = df_obj2.rename(columns={'key':'key2'})
+print(pd.merge(df_obj3, df_obj4, left_on='key1', right_on='key2'))
+print(pd.merge(df_obj3, df_obj4, left_on="key1", right_on="key2", how="inner" ))
+# how="outer"外连接，取并集结果
+print(pd.merge(df_obj3, df_obj4, left_on="key1", right_on="key2", how="outer" ))
+# how="left"左连接，保证左表的完整性
+print(pd.merge(df_obj3, df_obj4, left_on="key1", right_on="key2", how="left" ))
+# how="right"右连接，保证右表的完整性
+print(pd.merge(df_obj3, df_obj4, left_on="key1", right_on="key2", how="right" ))
+
+# 处理重复列名，suffixes添加前缀，默认为_x, _y
+# suffixes参数接收一个元组/列表， 两个元素分别表示左表和游标的后缀
+df_obj5 = pd.DataFrame({"key": list("ababcacb"),
+    "data": np.random.randint(-5, 10, 8)})
+df_obj6 = pd.DataFrame({"key": list("cbdcdb"),
+    "data": np.random.randint(-5, 10, 6)})
+print(pd.merge(df_obj5, df_obj6, on="key", suffixes=["_left", "_right"]))
+
+# 使用行索引连接，left_index=True或right_index=True
+df_obj7 = pd.DataFrame({"key" : list("ababcbac"),
+    "data" : np.random.randint(-5, 10, 8)})
+
+df_obj8 = pd.DataFrame({"data" : np.random.randint(-5, 10, 6)},
+    index = list("cbdcdb"))
+# left_on表示指定左表的key列做为外键，right_index=True表示使用右表行索引作为外键，进行关联
+new_df = pd.merge(df_obj7, df_obj8, left_on="key", right_index=True, how="outer", suffixes=["_left", "_right"])
 ```
-
-
-
-
 
 ## 数据分组
 
@@ -784,6 +864,196 @@ print(list(grouped1))
 print(dict(list(grouped1)))
 ```
 
+## 数据标签
+
+pandas中可以把DataFrame实例对象的数据转化为Categorical类型的数据，以实现类似于一般统计分析软件中的值标签功能，便于分析结果的展示
+
+```python
+student_profile = pd.DataFrame({
+    'Name':{'Morgan Wang'},
+    'Gender':[0],
+    'Blood':['A'],
+    'Height':[175]
+})
+
+# 转换类型
+student_profile['Gender_Value'] = student_profile['Gender'].astype('category')
+# 挂上标签
+student_profile['Gender_Value'].cat.categories = ['Female', 'Male', 'Unconfirmed']
+
+# 删除与增加值标签，或将类别设置为预定的尺度
+student_profile['Gender_Value'].cat.se_categories = ['Male', 'Female', 'Unconfirmed']
+
+# 对数值类型数据分段标签
+labels = ["{0}-{1}".fromat(i, i+10) for i in range(160, 200, 10)]   # 指定标签形式
+student_profile['Height_Group'] = pd.cut(student_profile.Height,
+                                         range(160, 205, 10),
+                                         right=False,
+                                         labels=labels)
+```
+
+## 时间序列
+
+时间序列在pandas中是索引比较特殊的Series或DataFrame，其最主要的特点是以时间戳(TimeStamp)为索引
+
+### 创建时间序列
+
+生成pandas中的时间序列，就是哟啊生成以时间序列为主要特征的索引。pandas提供了类Timestamp，类Period以及to_timestamp,to_datetime,date_range,period_range等方法来创建或将其他数据类型转换为时间序列
+
+```python
+# 将当前时间转换为时间戳
+pd.Timestamp('now')
+
+# 用时间戳转换为时间序列
+dates = [pd.Timestamp('2017-07-05'), pd.Timestamp('2017-07-06'), pd.Timestamp('2017-07-07')
+]
+ts = pd.Series(np.random.randn(3), dates)
+ts.index
+
+# date_range创建
+dates = pd.date_range('2017-07-05', '2017-07-07')
+ts = ps.Series(np.random.randn(3), dates)
+ts.index
+
+# Period类实例化
+dates = [pd.Period('2017-07-05'), pd.Period('2017-07-06'), pd.Period('2017-07-07')]
+ts = pd.Series(np.random.randn(3), dates)
+ts.index 
+
+# to_datetime
+# 将已有形如时间日期的数据转换为时间序列
+jd_ts = jddf.set_index(pd.to_datetime(jddf['time']))
+jd_ts.index
+jd_ts.head()
+```
+
+### 索引与切片
+
+与普通的Series和DataFrame等数据结果类似，但是可以按照时间戳或时间范围进行索引和切片
+
+如按指定时间范围对数据进行切片，只需在索引号中传入可以解析成日期的字符串即可，这些字符串可以是表示年月日及其组合的内容
+
+```python
+jd_ts['2017-02']  # 提取2017年2月份的数据
+jd_ts['2017-02-10':'2017-02-20']  # 提取2017年2月10日至20日数据
+
+jd_ts.truncate(after='2017-01-06')  # 2017年1月6日前的所有数据
+jd_ts.truncate(after='2017-01-20',before='2017-01-13')  # 2017年1月20日前,2017年1月13日后的所有数据
+```
+
+### 范围与偏移
+
+有 时处于数据分析的需要会用到生成一定时期或时间范围内不同间隔的时间序列索引, `period_range`,`date_range`等函数可以满足这些需求
+
+```python
+pd.date_range(start=None, end=None, periods=None, freq='D', tz=None, normalize=False, name=None, closed=None)
+
+# 参数
+start		用表示时间日期的字符串指定起始日期
+end			用表示时间日期的字符串指定终止时间日期
+periods		指定时间日期的个数
+freq		指定时间日期的频率(间隔方式)
+tz			指定时区
+normalize	在生成日期范围之前，将开始/结束日期标准化为午夜
+name		命名时间日期索引
+closed		指定生成的时间日期索引是(默认None)/否包含start和end指定的时间日期
+```
+
+freq的参数值及其作用
+
+| 参数值(偏移别名) | 功能                      | 参数值(偏移别名) | 功能         |
+| ---------------- | ------------------------- | ---------------- | ------------ |
+| B                | 工作日                    | QS               | 季度初       |
+| C                | 自定义工作日              | BQS              | 季度初工作日 |
+| D                | 日历日                    | A                | 年末         |
+| W                | 周                        | BA               | 年末工作日   |
+| M                | 月末                      | AS               | 年初         |
+| SM               | 半月及月末(第15日及月末)  | BAS              | 年初工作日   |
+| BM               | 月末工作日                | BH               | 工作小时     |
+| CBM              | 自定义月末工作日          | H                | 小时         |
+| MS               | 月初                      | T,min            | 分钟         |
+| SMS              | 月初及月中(第1日及第15日) | S                | 秒           |
+| BMS              | 月初工作日                | L,ms             | 毫秒         |
+| CBMS             | 自定义月初工作日          | U,us             | 微秒         |
+| Q                | 季度末                    | N                | 纳秒         |
+| BQ               | 季度末工作日              | 用户自定义       | 实现特定功能 |
+
+时间偏移后缀
+
+| 偏移后缀                          | 功能                       | 可使用的偏移别名 |
+| --------------------------------- | -------------------------- | ---------------- |
+| -SUN,-MON,TUE,-WED,-THU,-FRI,-SAT | 分别表示以周几为频率的周   | W                |
+| -DEC,-JAN,-FEB,-MAR,-APR,-MAY     | 分别表示以某月为年末的季度 | Q,BQ,QS,BQS      |
+| -JUN,-JUL,-AUG,-SEP,-OCT,-NOV     | 分别表示以某月为年末的年   | A,BA,AS,BAS      |
+
+示例
+
+```python
+pd.date_range(start='2017/07/07', periods=3, freq='M')
+
+pd.date_range('2017/07/07', '2018/07/07', freq='BMS')
+
+pd.date_range('2017/07/07', '2018/01/22', freq='W-WED')
+
+# 自定义的对象进行设定得到自定义的时序索引
+ts_offset = pd.tseries.offsets.Week(1)+pd.tseries.offsets.Hour(8)
+pd.date_range('2017/07/07', periods=10, freq=ts_offset)
+```
+
+### 时间移动及运算
+
+时序数据可以进行时间上的移动。即，沿着十斤啊轴将数据进行前移或后移，其索引保持不变。pandas中的Series和DataFrame都可通过shift方法来进行移动
+
+```python
+sample = jd_ts['2017-01-01':'2017-01-10'][['opening_price', 'closing_price']]
+sample.shift(2)  # 如需向前移动，把数值修改为负数
+sample.shift(-2, freq='1D')  # 使时序索引按天向前移动2日
+
+# 不同索引的时间序列之间可以直接进行算数运算，运算时会自动按时间日期对齐
+date = pd.date_range('2017/01/01', '2017/01/08', freq='D')
+s1 = pd.DateFrame({
+    'opening_price': np.random.randn(8),
+    'closing_price':np.random.randn(8),
+    index=date
+})
+s1 + sample  # 索引会自动将时序索引一致的值进行运算，不一致索引的值赋值为缺失值NaN
+```
+
+### 频率转换及重采样
+
+- 频率转换
+
+对pandas的时序对象可以采用asfreq方法对已有时序索引按照指定的频率重新进行索引，即频率转换。如sample对象是以工作日为时序索引的，可以把其转换为按照日历日或其他时间日期进行索引
+
+```python
+sample.asfreq(freq='D') 
+```
+
+在频率转换的过程中，由于索引发生了变化，原索引的数据会跟转换后的索引自动对齐
+
+- 重采样
+
+重采样(resample)也可将时间序列从一个频率转换到另一个频率，但在转换过程中，可以指定提取出原时序数据中的一些信息，其实质就是按照时间索引进行的数据分组。重采样主要有上采样(upsampling)和下采样(downsampling)两种。该两种方式累哦数据处理过程中的上卷和下钻
+
+pandas对象可采用resample方法对时序进行重采样，通过指定方法的参数fill_method进行采样，指定参数how进行下采样
+
+```python
+# 按照半天频率进行上采样或升采样，并制定缺失值按当日最后一个有效观测值来填充，即指定插值方式
+sample.resample('12H', fill_method='ffill')
+
+# 按照4天频率进行下采样或降采样，how可以指定采样过程中的运算函数(默认mean)
+# ohlc分别表示时序初始值、最大值、最小值、时序终止的数据
+sample.resample('4D', how='ohlc')
+
+# 通过重采样提取公票交易周均开、收盘价信息
+sample.groupby(lambda x: x.week).mean()
+
+# 通过重采样提取股票交易月均开、收盘价信息
+jd_ts[['opening_price', 'closing_price']].groupy(lambda x:x.month).mean()
+```
+
+
+
 ## 数据聚合
 
 - 数组产生标量的过程，如mean()、count()等
@@ -802,7 +1072,7 @@ print(dict(list(grouped1)))
 | prod       | 非NA值的积                  |
 | first/last | 第一个和最后一个的非NA值    |
 
-```
+```python
 print(df_obj5.groupby('key1').sum())
 print(df_obj5.groupby('key1').max())
 print(df_obj5.groupby('key1').min())
@@ -816,7 +1086,7 @@ print(df_obj5.groupby('key1').describe())
 
 grouped.agg(func)，func的参数为groupby索引对应的记录
 
-```
+```python
 func1 = lambda x: x.max() - x.min()
 # agg()传入自定义函数 直接写函数名； 若是Pandas内置的函数，用字符串表示
 print(df_obj.groupby(df_obj["key1"]).agg(func1))
@@ -835,7 +1105,7 @@ print(df_obj.groupby(df_obj["key1"]).agg(dict_map))
 
 ## 分组聚合后的数据合并
 
-```
+```python
 import numpy as np
 import pandas as pd
 
@@ -853,7 +1123,7 @@ df_obj = pd.DataFrame(
 
 对分组聚合后的数据表和原表进行关联
 
-```
+```python
 # 对分组聚合后的结果进行多表关联，通过suffixes参数添加后缀区分同名列
 key1_sum_df1 = df_obj.groupby(df_obj["key1"]).sum()
 print(pd.merge(df_obj, key1_sum_df1, left_on="key1", right_index=True, suffixes=["_left", "_right"]))
@@ -867,7 +1137,7 @@ print(pd.merge(df_obj, key1_sum_df2,left_on="key1",right_index=True ))
 
 接收聚合函数作为参数，运算结果默认和原表形状一致，直接参与concat合并
 
-```
+```python
 key1_tf_df = df_obj[["data1", "data2"]].groupby(df_obj["key1"]).transform("sum").add_prefix("key1_sum_")
 print(pd.concat([df_obj, key1_tf_df], axis=1))
 ```
@@ -876,7 +1146,7 @@ print(pd.concat([df_obj, key1_tf_df], axis=1))
 
 GroupBy对象可以通过apply方法，将自定义函数在各各个分组上分别调用，最后的结果自动通过pd.concat合并到一起。
 
-```
+```python
 import numpy as np
 import pandas as pd
 
@@ -898,6 +1168,5 @@ print(df_obj.groupby(df_obj["LeagueIndex"]).apply(top_n, "Age", 5, True))
 
 # 分组以及默认为行索引，可以通过group_keys=False禁用分组一句作为行索引
 print(df_obj.groupby(df_obj["LeagueIndex"], group_keys=False).apply(top_n, "Age", 5, True))
-
 ```
 
