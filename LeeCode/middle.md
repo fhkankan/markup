@@ -46,6 +46,41 @@ class Solution:
         return re.next
 ```
 
+解法2
+
+```python
+# Definition for singly-linked list.
+# class ListNode:
+#     def __init__(self, x):
+#         self.val = x
+#         self.next = None
+
+class Solution:
+    def addTwoNumbers(self, l1, l2):
+        """
+        :type l1: ListNode
+        :type l2: ListNode
+        :rtype: ListNode
+        """
+        ret = []  # 结果
+        carry = 0  # 进位值
+        while l1 or l2:
+            sum = carry
+            if l1:
+                sum += l1.val
+                l1 = l1.next
+            if l2:
+                sum += l2.val
+                l2 = l2.next
+            carry = sum//10
+            ret.append(sum%10)
+        if carry >0:
+            ret.append(carry)
+        return ret
+```
+
+
+
 # 39组合总和
 
 给定一个**无重复元素**的数组 `candidates` 和一个目标数 `target` ，找出 `candidates` 中所有可以使数字和为 `target` 的组合。
@@ -143,6 +178,27 @@ class Solution:
 解法
 
 ```python
-
+class Solution:
+    def __init__(self):
+        self.res = []
+    def combinationSum2(self, candidates, target):
+        """
+        :type candidates: List[int]
+        :type target: int
+        :rtype: List[List[int]]
+        """
+        candidates.sort()
+        self.backtracking(candidates,target, [], 0)
+        return self.res
+    
+    def backtracking(self, candidates, target, lista, index):
+        if target==0:
+            if lista not in self.res:
+                self.res.append(lista[:])
+        for i in range(index, len(candidates)):
+            if candidates[i] <= target:
+                lista.append(candidates[i])
+                self.backtracking(candidates, target-candidates[i], lista, i+1)
+                lista.pop()
 ```
 
