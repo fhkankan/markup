@@ -2,7 +2,7 @@
 
 ## 安装
 
-> mac
+- mac
 
 ```
 brew install nginx
@@ -25,7 +25,7 @@ sudo launchctl load -w /Library/LaunchDaemons/homebrew.mxcl.nginx.plist
 /usr/local/var/www  # 服务器默认路径
 ```
 
-> ubuntu
+- ubuntu
 
 ```
 sudo apt-get install nginx
@@ -42,7 +42,7 @@ sudo apt-get install nginx
 /etc/init.d/nginx	# 启动脚本
 ```
 
-> docker
+- docker
 
 ```
 docker run \
@@ -66,7 +66,20 @@ docker run \
 nginx.conf是挂载了一个文件（docker是不推荐这样用的），conf.d挂载的是一个目录
 ```
 
+- 源码
 
+```
+# 下载后解压缩
+tar zxvf nginx-1.6.3.tar.gz
+# 安装
+./configure
+make
+sudo make install
+# 启动
+# 默认安装到/usr/local/nginx/目录
+cd /usr/local/nginx/
+sudo sbin/nginx
+```
 
 ## 使用
 

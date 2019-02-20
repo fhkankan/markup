@@ -159,12 +159,11 @@ python@ubuntu:~$ sudo mongod --dbpath=/xxxxx/xxxxx
 
 - 配置文件方式启动
 
-启动时加上`-f`参数，并指向配置文件即可，默认配置文件为`/etc/mongodb.cnf`，也可以自行编写配置文件并指定。
+启动时加上`-f`参数，并指向配置文件即可，默认配置文件为`/etc/mongodb.conf`，也可以自行编写配置文件并指定。
 
 ```
 # 启动mongod，并按指定配置文件执行
-python@ubuntu:~$ sudo mongod -f /etc/mongodb.cnf
-
+python@ubuntu:~$ sudo mongod -f /etc/mongodb.conf
 ```
 
 - 守护进程方式启动
