@@ -305,3 +305,288 @@ class Solution:
         return res           
 ```
 
+# 101对称二叉树
+
+给定一个二叉树，检查它是否是镜像对称的。
+
+例如，二叉树 `[1,2,2,3,4,4,3]` 是对称的。
+
+```
+    1
+   / \
+  2   2
+ / \ / \
+3  4 4  3
+```
+
+但是下面这个 `[1,2,2,null,3,null,3]` 则不是镜像对称的:
+
+```
+    1
+   / \
+  2   2
+   \   \
+   3    3
+```
+
+解法
+
+```python
+# 定义二叉树
+class TreeNode:
+    def __init__(self, x):
+        self.val = x
+        self.left = None
+        self.right = None
+
+# 递归方法
+class Solution:
+    def isSymmetric(self, root):
+        """
+        :type root:TreeNode
+        :rtype: bool
+        """
+        return self.isMirror(root, root)
+    
+ 	def ismirror(self,l_root,r_root):
+        if l_root==None and r_root==None:
+            return True
+        if l_root==None or r_root==None:
+            return False
+        if l_root.val==r_root.val:
+            return self.ismirror(l_root.left,r_root.right) and  self.ismirror(l_root.right,r_root.left)
+        return False
+    
+# 迭代方法
+class Solution:
+    def isSymmetric(self, root):
+        """
+        :type root:TreeNode
+        :rtype: bool
+        """
+        qlist=[]
+        qlist.append(l_root)
+        qlist.append(r_root)
+        while len(qlist)!=0:
+            t1=qlist.pop()
+            t2=qlist.pop()
+            if(t1==None and t2==None):
+                continue
+            if(t1==None or t2==None):
+                return False
+            if(t1.val!=t2.val):
+                return False
+            qlist.append(t1.left)
+            qlist.append(t2.right)
+            qlist.append(t1.right)
+            qlist.append(t2.left)
+        return True
+```
+
+
+
+# 104二叉树的最大深度
+
+```python
+# 定义二叉树
+class TreeNode:
+    def __init__(self, x):
+        self.val = x
+        self.left = None
+        self.right = None
+
+# 递归方法
+class Solution:
+    def maxDepth(self, root):
+        """
+        :type root:TreeNode
+        :rtype: int
+        """
+        if root is None:
+            return 0
+        else:
+            left_height = self.maxDepth(root.left)
+            left_right = self.maxDepth(root.right)
+            return max(left_height, right_height) + 1
+        
+# 迭代方法
+class Solution:
+    def maxDepth(self, root):
+        """
+        :type root:TreeNode
+        :rtype: int
+        """
+        stack = []
+        if root is not None:
+            stack.append((1, root))
+        
+        depth = 0
+        while stack != []:
+            current_depth, root = stack.pop()
+            if root is not None:
+                depth = max(depth, current_depth)
+                stack.append((current_depth+1, root.left))
+                stack.append((current_depth+1, root.right))
+        return depth
+```
+
+# 118杨辉三角
+
+给定一个非负整数 *numRows，*生成杨辉三角的前 *numRows* 行。
+
+在杨辉三角中，每个数是它左上方和右上方的数的和。
+
+**示例:**
+
+```
+输入: 5
+输出:
+[
+     [1],
+    [1,1],
+   [1,2,1],
+  [1,3,3,1],
+ [1,4,6,4,1]
+]
+```
+
+解法
+
+```python
+class Solution:
+    def generate(self, num_rows):
+        triangle = []
+
+        for row_num in range(num_rows):
+            # The first and last row elements are always 1.
+            row = [None for _ in range(row_num+1)]
+            row[0], row[-1] = 1, 1
+
+            # Each triangle element is equal to the sum of the elements
+            # above-and-to-the-left and above-and-to-the-right.
+            for j in range(1, len(row)-1):
+                row[j] = triangle[row_num-1][j-1] + triangle[row_num-1][j]
+
+            triangle.append(row)
+
+        return triangle
+```
+
+# 876转置矩阵
+
+给定一个矩阵 `A`， 返回 `A` 的转置矩阵。
+
+矩阵的转置是指将矩阵的主对角线翻转，交换矩阵的行索引与列索引。
+
+解法
+
+```python
+# 解法一：
+class Solution(object):
+    def transpose(self, A):
+        R, C = len(A), len(A[0])
+        ans = [[None] * R for _ in range(C)]
+        for r, row in enumerate(A):
+            for c, val in enumerate(row):
+                ans[c][r] = val
+        return ans
+
+# 解法二
+# python2
+class Solution(object):
+    def transpose(self, A):
+		return zip(*A)
+# python3
+class Solution(object):
+    def transpose(self, A):
+        res = []
+        for v in zip(*A):
+            res.append(v)
+        return res
+```
+
+# 989数组形式的整数加法
+
+对于非负整数 `X` 而言，*X* 的*数组形式*是每位数字按从左到右的顺序形成的数组。例如，如果 `X = 1231`，那么其数组形式为 `[1,2,3,1]`。
+
+给定非负整数 `X` 的数组形式 `A`，返回整数 `X+K` 的数组形式。
+
+**示例 1：**
+
+```
+输入：A = [1,2,0,0], K = 34
+输出：[1,2,3,4]
+解释：1200 + 34 = 1234
+```
+
+**解释 2：**
+
+```
+输入：A = [2,7,4], K = 181
+输出：[4,5,5]
+解释：274 + 181 = 455
+```
+
+**示例 3：**
+
+```
+输入：A = [2,1,5], K = 806
+输出：[1,0,2,1]
+解释：215 + 806 = 1021
+```
+
+**示例 4：**
+
+```
+输入：A = [9,9,9,9,9,9,9,9,9,9], K = 1
+输出：[1,0,0,0,0,0,0,0,0,0,0]
+解释：9999999999 + 1 = 10000000000
+```
+
+ 
+
+**提示：**
+
+1. `1 <= A.length <= 10000`
+2. `0 <= A[i] <= 9`
+3. `0 <= K <= 10000`
+4. 如果 `A.length > 1`，那么 `A[0] != 0`
+
+解法
+
+```python
+# 错误解法一
+class Solution:
+    def addToArrayForm(self, A: 'List[int]', K: 'int') -> 'List[int]':
+        res = []
+        n = len(A)
+        sum = 0
+        for i, v in enumerate(A):
+            sum += v*10**(n-i-1)
+        sum += K
+        for i in str(sum):
+            res.append(int(i))
+        return res
+    
+# 错误解法二
+from functools import reduce
+class Solution:
+    def addToArrayForm(self, A: 'List[int]', K: 'int') -> 'List[int]':
+        n = reduce(lambda x, y: x * 10 + y, A) + K
+        return (list(map(int, str(n))))
+    
+# 正确解法
+# 防治数据溢出
+def demo(A,K):
+    res = []
+    n = len(A)
+    cur = K
+    while n>0 or cur >0:
+        if n > 0:
+            cur += A[n-1]
+            n -= 1
+        res.insert(0, cur%10)
+        cur //= 10
+    return res
+```
+
