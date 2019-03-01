@@ -49,7 +49,7 @@ JavaScript中将一些常用的功能预先定义成对象，用户可以直接�
 
 由方法如何被调用所决定的，而非函数定义所决定
 
-```
+```js
 const o = {
     name: "LiLei",
     speak(){
@@ -66,7 +66,7 @@ speak();//"My name is !",this绑定到了undefied
 
 在嵌套函数中使用经常出错。
 
-```
+```javascript
 const o = {
 	name: "LiLei",
 	speak:function(){
@@ -102,7 +102,6 @@ const o = {
 	},
 };
 o.speak(); //LiLei
-
 ```
 
 > 指定绑定值
