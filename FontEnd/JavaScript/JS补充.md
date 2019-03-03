@@ -1027,11 +1027,340 @@ b.html
 
 ### CORS
 
-普通跨域请求：只服务端设置Access-Control-Allow-Origin即可，前端无须设置，若要带cookie请求：前后端都需要设置。
+普通跨域请求：只服务端设置Access-Control-Allow-Origin即可，前端无须设置，
 
-需注意的是：由于同源策略的限制，所读取的cookie为跨域请求接口所在域的cookie，而非当前页。如果想实现当前页cookie的写入，可参考下文：七、nginx反向代理中设置proxy_cookie_domain 和 八、NodeJs中间件代理中cookieDomainRewrite参数的设置。
+若要带cookie请求：前后端都需要设置。需注意的是：由于同源策略的限制，所读取的cookie为跨域请求接口所在域的cookie，而非当前页。如果想实现当前页cookie的写入，可参考下文：七、nginx反向代理中设置proxy_cookie_domain 和 八、NodeJs中间件代理中cookieDomainRewrite参数的设置。
 
 目前，所有浏览器都支持该功能(IE8+：IE8/9需要使用XDomainRequest对象来支持CORS）)，CORS也已经成为主流的跨域解决方案。
 
+**前端设置**
+
 - 原生ajax
+
+```javascript
+// 前端设置是否带cookie
+xhr.withCredentials = true;
+```
+
+示例代码
+
+```javascript
+var xhr = new XMLHttpRequest(); // IE8/9需用window.XDomainRequest兼容
+
+// 前端设置是否带cookie
+xhr.withCredentials = true;
+
+xhr.open('post', 'http://www.domain2.com:8080/login', true);
+xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+xhr.send('user=admin');
+
+xhr.onreadystatechange = function() {
+    if (xhr.readyState == 4 && xhr.status == 200) {
+        alert(xhr.responseText);
+    }
+};
+```
+
+- jQuery
+
+```javascript
+$.ajax({
+    ...
+   xhrFields: {
+       withCredentials: true    // 前端设置是否带cookie
+   },
+   crossDomain: true,   // 会让请求头中包含跨域的额外信息，但不会含cookie
+    ...
+});
+```
+
+- vue
+
+```javascript
+// axios
+axios.defaults.withCredentials = true
+
+// vue-resoure
+Vue.http.options.credentials = true
+```
+
+**后端设置**
+
+若后端设置成功，前端浏览器控制台则不会出现跨域报错信息，反之，说明没设成功
+
+- python
+
+```python
+response["Access-Control-Allow-Origin"] = "*"
+response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+response["Access-Control-Max-Age"] = "1000"
+response["Access-Control-Allow-Headers"] = "*"
+```
+
+- java
+
+```java
+/*
+ * 导入包：import javax.servlet.http.HttpServletResponse;
+ * 接口参数中定义：HttpServletResponse response
+ */
+
+// 允许跨域访问的域名：若有端口需写全（协议+域名+端口），若没有端口末尾不用加'/'
+response.setHeader("Access-Control-Allow-Origin", "http://www.domain1.com"); 
+
+// 允许前端带认证cookie：启用此项后，上面的域名不能为'*'，必须指定具体的域名，否则浏览器会提示
+response.setHeader("Access-Control-Allow-Credentials", "true"); 
+
+// 提示OPTIONS预检时，后端需要设置的两个常用自定义头
+response.setHeader("Access-Control-Allow-Headers", "Content-Type,X-Requested-With");
+```
+
+- nodejs
+
+```javascript
+var http = require('http');
+var server = http.createServer();
+var qs = require('querystring');
+
+server.on('request', function(req, res) {
+    var postData = '';
+
+    // 数据块接收中
+    req.addListener('data', function(chunk) {
+        postData += chunk;
+    });
+
+    // 数据接收完毕
+    req.addListener('end', function() {
+        postData = qs.parse(postData);
+
+        // 跨域后台设置
+        res.writeHead(200, {
+            'Access-Control-Allow-Credentials': 'true',     // 后端允许发送Cookie
+            'Access-Control-Allow-Origin': 'http://www.domain1.com',    // 允许访问的域（协议+域名+端口）
+            /* 
+             * 此处设置的cookie还是domain2的而非domain1，因为后端也不能跨域写cookie(nginx反向代理可以实现)，
+             * 但只要domain2中写入一次cookie认证，后面的跨域接口都能从domain2中获取cookie，从而实现所有的接口都能跨域访问
+             */
+            'Set-Cookie': 'l=a123456;Path=/;Domain=www.domain2.com;HttpOnly'  // HttpOnly的作用是让js无法读取cookie
+        });
+
+        res.write(JSON.stringify(postData));
+        res.end();
+    });
+});
+
+server.listen('8080');
+console.log('Server is running at port 8080...');
+```
+
+### nginx
+
+> ##### nginx配置解决iconfont跨域
+
+浏览器跨域访问js、css、img等常规静态资源被同源策略许可，但iconfont字体文件(eot|otf|ttf|woff|svg)例外，此时可在nginx的静态资源服务器中加入以下配置。
+
+```
+location / {
+  add_header Access-Control-Allow-Origin *;
+}
+```
+
+> ##### nginx反向代理接口跨域
+
+跨域原理： 同源策略是浏览器的安全策略，不是HTTP协议的一部分。服务器端调用HTTP接口只是使用HTTP协议，不会执行JS脚本，不需要同源策略，也就不存在跨越问题。
+
+实现思路：通过nginx配置一个代理服务器（域名与domain1相同，端口不同）做跳板机，反向代理访问domain2接口，并且可以顺便修改cookie中domain信息，方便当前域cookie写入，实现跨域登录。
+
+nginx具体配置
+
+```
+#proxy服务器
+server {
+    listen       81;
+    server_name  www.domain1.com;
+
+    location / {
+        proxy_pass   http://www.domain2.com:8080;  #反向代理
+        proxy_cookie_domain www.domain2.com www.domain1.com; #修改cookie里域名
+        index  index.html index.htm;
+
+        # 当用webpack-dev-server等中间件代理接口访问nignx时，此时无浏览器参与，故没有同源限制，下面的跨域配置可不启用
+        add_header Access-Control-Allow-Origin http://www.domain1.com;  #当前端只跨域不带cookie时，可为*
+        add_header Access-Control-Allow-Credentials true;
+    }
+}
+```
+
+前端代码示例
+
+```javascript
+var xhr = new XMLHttpRequest();
+
+// 前端开关：浏览器是否读写cookie
+xhr.withCredentials = true;
+
+// 访问nginx中的代理服务器
+xhr.open('get', 'http://www.domain1.com:81/?user=admin', true);
+xhr.send();
+```
+
+Nodejs后台示例
+
+```javascript
+var http = require('http');
+var server = http.createServer();
+var qs = require('querystring');
+
+server.on('request', function(req, res) {
+    var params = qs.parse(req.url.substring(2));
+
+    // 向前台写cookie
+    res.writeHead(200, {
+        'Set-Cookie': 'l=a123456;Path=/;Domain=www.domain2.com;HttpOnly'   // HttpOnly:脚本无法读取
+    });
+
+    res.write(JSON.stringify(params));
+    res.end();
+});
+
+server.listen('8080');
+console.log('Server is running at port 8080...');
+```
+
+### Nodejs中间件
+
+node中间件实现跨域代理，原理大致与nginx相同，都是通过启一个代理服务器，实现数据的转发，也可以通过设置cookieDomainRewrite参数修改响应头中cookie中域名，实现当前域的cookie写入，方便接口登录认证。
+
+- 非vue框架的跨域(2次跨域)
+
+利用node + express + http-proxy-middleware搭建一个proxy服务器
+
+前端代码示例
+
+```javascript
+var xhr = new XMLHttpRequest();
+
+// 前端开关：浏览器是否读写cookie
+xhr.withCredentials = true;
+
+// 访问http-proxy-middleware代理服务器
+xhr.open('get', 'http://www.domain1.com:3000/login?user=admin', true);
+xhr.send();
+```
+
+中间件服务器
+
+```javascript
+var express = require('express');
+var proxy = require('http-proxy-middleware');
+var app = express();
+
+app.use('/', proxy({
+    // 代理跨域目标接口
+    target: 'http://www.domain2.com:8080',
+    changeOrigin: true,
+
+    // 修改响应头信息，实现跨域并允许带cookie
+    onProxyRes: function(proxyRes, req, res) {
+        res.header('Access-Control-Allow-Origin', 'http://www.domain1.com');
+        res.header('Access-Control-Allow-Credentials', 'true');
+    },
+
+    // 修改响应信息中的cookie域名
+    cookieDomainRewrite: 'www.domain1.com'  // 可以为false，表示不修改
+}));
+
+app.listen(3000);
+console.log('Proxy server is listen at port 3000...');
+```
+
+- vue框架的跨域(1次跨域)
+
+利用node + webpack + webpack-dev-server代理接口跨域。在开发环境下，由于vue渲染服务和接口代理服务都是webpack-dev-server同一个，所以页面与代理接口之间不再跨域，无须设置headers跨域信息了。
+
+webpack.config.js部分配置
+
+```javascript
+module.exports = {
+    entry: {},
+    module: {},
+    ...
+    devServer: {
+        historyApiFallback: true,
+        proxy: [{
+            context: '/login',
+            target: 'http://www.domain2.com:8080',  // 代理跨域目标接口
+            changeOrigin: true,
+            secure: false,  // 当代理某些https服务报错时用
+            cookieDomainRewrite: 'www.domain1.com'  // 可以为false，表示不修改
+        }],
+        noInfo: true
+    }
+}
+```
+
+### WebSocket
+
+WebSocket protocol是HTML5一种新的协议。它实现了浏览器与服务器全双工通信，同时允许跨域通讯，是server push技术的一种很好的实现。
+原生WebSocket API使用起来不太方便，我们使用Socket.io，它很好地封装了webSocket接口，提供了更简单、灵活的接口，也对不支持webSocket的浏览器提供了向下兼容。
+
+前端代码
+
+```javascript
+<div>user input：<input type="text"></div>
+<script src="./socket.io.js"></script>
+<script>
+var socket = io('http://www.domain2.com:8080');
+
+// 连接成功处理
+socket.on('connect', function() {
+    // 监听服务端消息
+    socket.on('message', function(msg) {
+        console.log('data from server: ---> ' + msg); 
+    });
+
+    // 监听服务端关闭
+    socket.on('disconnect', function() { 
+        console.log('Server socket has closed.'); 
+    });
+});
+
+document.getElementsByTagName('input')[0].onblur = function() {
+    socket.send(this.value);
+};
+</script>
+```
+
+Nodejs socket后台
+
+```javascript
+var http = require('http');
+var socket = require('socket.io');
+
+// 启http服务
+var server = http.createServer(function(req, res) {
+    res.writeHead(200, {
+        'Content-type': 'text/html'
+    });
+    res.end();
+});
+
+server.listen('8080');
+console.log('Server is running at port 8080...');
+
+// 监听socket连接
+socket.listen(server).on('connection', function(client) {
+    // 接收信息
+    client.on('message', function(msg) {
+        client.send('hello：' + msg);
+        console.log('data from client: ---> ' + msg);
+    });
+
+    // 断开处理
+    client.on('disconnect', function() {
+        console.log('Client socket has closed.'); 
+    });
+});
+```
 
