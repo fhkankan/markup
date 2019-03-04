@@ -70,7 +70,7 @@ this.mySample = this.mySample || {};
 ```
 ### this关键字
 
-在箭头函数中，函数体内的 this 对象就是定义时所在的对象，而不是调用时所在的对象。在非箭头函数下， this 指向调用其所在函数的对象，而且是离谁近就是指向谁（此对于常规对象，原型链， getter & setter等都适用）：构造函数下，this与被创建的新对象绑定；DOM事件，this指向触发事件的元素；内联事件分两种情况，bind绑定， call & apply 方法等
+在箭头函数中，函数体内的 this 对象就是定义时所在的对象，而不是调用时所在的对象。在非箭头函数下， this 指向调用其所在函数的对象，而且是离谁近就是指向谁（此对于常规对象，原型链， getter & setter等都适用）;构造函数下，this与被创建的新对象绑定；DOM事件，this指向触发事件的元素；内联事件分两种情况，bind绑定， call & apply 方法等
 
 #### 全局环境
 
@@ -197,7 +197,7 @@ console.log(b.a); // logs 38
 
 以上两个例子内部的this都指向对象o, 看到这里的你不妨在控制台执行下以上代码，看看对象 o 和 b ，这些是属于构造函数的内容了，此处不多做介绍。（C2函数中的this.a = 37 对整个过程完全没有影响的， 可以被忽略的）。
 
-- Call&apply
+- call&apply
 
 当函数通过Function对象的原型中继承的方法 call() 和 apply() 方法调用时， 其函数内部的this值可绑定到 call() & apply() 方法指定的第一个对象上， 如果第一个参数不是对象，JavaScript内部会尝试将其转换成对象然后指向它。
 
@@ -373,97 +373,6 @@ var obj = {
 obj.b();  // undefined window{...}
 obj.c();  // 10 Object {...}
 ```
-
-
-
-
-
-> 绑定的一般方式
-
-由方法如何被调用所决定的，而非函数定义所决定
-
-```js
-const o = {
-    name: "LiLei",
-    speak(){
-        return 'My name is ${this.name}!';
-    },
-}
-o.speak();//"My name is LiLei!"
-
-// 改变调用
-const speak = o.speak;
-speak();//"My name is !",this绑定到了undefied
-
-```
-
-在嵌套函数中使用经常出错。
-
-```javascript
-const o = {
-	name: "LiLei",
-	speak:function(){
-       function hello(){
-           return this.name
-       };
-       return hello()
-	},
-};
-o.speak(); //""
-
-//解决方法是给this赋另一个变量
-const o = {
-	name: "LiLei",
-	speak:function(){
-       const self = this;
-       function hello(){
-           return self.name
-       };
-       return hello()
-	},
-};
-o.speak(); //LiLei
-
-//ES6中使用箭头函数也可以解决
-const o = {
-	name: "LiLei",
-	speak:function(){
-       const hello = () => {
-           return this.name
-       };
-       return hello()
-	},
-};
-o.speak(); //LiLei
-```
-
-> 指定绑定值
-
-```
-const bruce = {name: "Bruce"}
-const alice = {name: "Alice"}
-function update(birthYear){
-    this.birthYear = birthYear
-}
-```
-
-call
-
-```
-update.call(bruce, 1949)//bruce是{name: "Bruce", birthYear: 1949}
-update.call(alice, 1969)//alice是{name: "Alice", birthYear: 1969}
-```
-
-apply
-
-适用于将数组作为参数
-
-```
-update.apply(bruce,[1949])//bruce是{name: "Bruce", birthYear: 1949}
-update.apply(alice,[1969])//alice是{name: "Alice", birthYear: 1969}
-```
-
-### 
 
 ## 自定义对象
 
