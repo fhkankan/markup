@@ -616,8 +616,8 @@ git config --global user.email "ex-fuhang001@pingan.com.cn"
 ## 创建网络仓库
 
 ```
-git clone http://www.paicrobot.com:12808/EX-FUHANG001/robotQA.git
-git clone git@www.paicrobot.com:EX-FUHANG001/robotQA.git
+git clone http://ip:12808/EX-FUHANG001/robotQA.git
+git clone git@ip:EX-FUHANG001/robotQA.git
 cd robotQA
 touch README.md
 git add README.md
@@ -630,8 +630,8 @@ git push -u origin master
 ```
 cd existing_folder
 git init
-git remote add origin http://www.paicrobot.com:12808/EX-FUHANG001/robotQA.git
-git remote add origin git@www.paicrobot.com:EX-FUHANG001/robotQA.git
+git remote add origin http://ip:12808/EX-FUHANG001/robotQA.git
+git remote add origin git@ip:EX-FUHANG001/robotQA.git
 git add .
 git commit -m "Initial commit"
 git push -u origin master
@@ -642,8 +642,8 @@ git push -u origin master
 ```
 cd existing_repo
 git remote rename origin old-origin
-git remote add origin http://www.paicrobot.com:12808/EX-FUHANG001/robotQA.git
-git remote add origin git@www.paicrobot.com:EX-FUHANG001/robotQA.git
+git remote add origin http://ip:12808/EX-FUHANG001/robotQA.git
+git remote add origin git@ip:EX-FUHANG001/robotQA.git
 git push -u origin --all
 git push -u origin --tags
 ```
