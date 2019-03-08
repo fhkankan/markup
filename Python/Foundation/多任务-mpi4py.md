@@ -377,7 +377,7 @@ process 1 receives [0. 1. 2. 3. 4. 5. 6. 7. 8. 9.]
 
 - 广播通用的 Python 对象
 
-```
+```python
 # bcast.py
 
 from mpi4py import MPI
@@ -410,7 +410,7 @@ after broadcasting: process 1 has {'key2': ('abc', 'xyz'), 'key1': [7, 2.72, (2+
 
 - 广播numpy数组
 
-```
+```python
 # Bcast.py
 
 import numpy as np
@@ -448,7 +448,7 @@ after broadcasting: process 1 has [0 1 2 3 4 5 6 7 8 9]
 
 - 发散通用的python对象
 
-```
+```python
 # scatter.py
 
 from mpi4py import MPI
@@ -484,7 +484,7 @@ after scattering: process 2 has 9
 
 - 发散numpy数组
 
-```
+```python
 # Scatter.py
 
 import numpy as np
@@ -527,7 +527,7 @@ after scattering: process 1 has [1 1 1 1 1 1 1 1 1 1]
 
 - 收集通用的python对象
 
-```
+```python
 # gather.py
 
 from mpi4py import MPI
@@ -558,7 +558,7 @@ after scattering: process 2 has None
 
 - 收集numpy数组
 
-```
+```python
 # Gather.py
 
 import numpy as np
@@ -599,7 +599,7 @@ after gathering: process 2 has None
 
 比较一下以小写字母开头的 send()/recv() 方法与以大写字母开头的 Send()/Recv() 方法在传递 numpy 数组时的性能差异
 
-```
+```python
 # send_recv_timing.pu
 
 import time
