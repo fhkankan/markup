@@ -452,7 +452,7 @@ pyenv shell --unset	# 取消设置外壳版本
 
 # rehash
 # 为pyenv（即，~/.pyenv/versions/*/bin/*）已知的所有Python二进制文件安装填充程序 。在安装新版本的Python之后运行此命令，或安装提供二进制文件
-pyenv rehash          # 重建环境变量，增删Python版本或带有可执行文件的包（如 pip）以后
+pyenv rehash          # 重建环境变量，增删Python版本或带有可执行文件的包（如pip）以后
 ```
 
 > 虚环境virtualenv
