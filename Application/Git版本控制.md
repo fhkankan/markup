@@ -553,10 +553,9 @@ git commit -m '标签' # 添加至本地仓库
 
 ```shell
 # gitlab
-crobot
+ssh-keygen -t rsa -C "fu.hang.2009@163.com" -f ~/.ssh/gitlab_id_rsa
 # github
 ssh-keygen -t rsa -C "fu.hang.2008@163.com" -f ~/.ssh/github_id_rsa
-# 内网
 ```
 
 添加config文件

@@ -1,3 +1,11 @@
+# 屏幕分辨率
+
+```
+xrandr -s 1920x1080 
+
+# 注意：x是英文字母x，临时生效
+```
+
 # 卸载
 
 ```
@@ -43,10 +51,21 @@ sudo apt-get update
 
 ## 常规安装
 ```
-sudo apt-get install git vlc unrar gparted nginx bleachbit htop
+sudo apt-get install git vlc unrar gparted nginx mongodb bleachbit htop openssh-server
+```
+
+## chrome
+
+```
+wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb 
+sudo apt-get install libappindicator1 libindicator7 
+sudo dpkg -i google-chrome-stable_current_amd64.deb 
+# 自动安装依赖
+$ sudo apt-get -f install 
 ```
 
 ## vim
+
 ```
 sudo add-apt-repository ppa:jonathonf/vim
 sudo apt update
@@ -68,20 +87,82 @@ sudo apt-get install r-base
 sudo apt-get install r-base-dev
 sudo apt-get update
 ```
+## pycharm
+```
+sudo add-apt-repository ppa:mystic-mirage/pycharm
+sudo apt update
+sudo apt install pycharm-community
+```
+设置快捷键
+
+```
+# 方法一：建立软链接(可添加启动器)
+sudo ln -s bin/pycharm.sh的文件目录 /usr/bin/pycharm
+# 方法二：使用快捷图标(可添加启动器)
+sudo gedit /usr/share/applications/Pycharm.desktop
+[Desktop Entry]
+    Type=Application
+    Name=Pycharm
+    GenericName=Pycharm3
+    Comment=Pycharm3:The Python IDE
+    Exec="/home/frankguo/pycharm-community-2017.3.3/bin/pycharm.sh" %f
+    Icon= /home/frankguo/pycharm-community-2017.3.3/bin/pycharm.png
+    Terminal=pycharm
+    Categories=Pycharm;
+sudo chmod +x /usr/share/applications/pycharm.desktop
+```
+
+
+
+## visualStudioCode
+
+```
+# 下载visualStudioCode
+sudo dpkg -i codexxxx
+```
+
+## sogou
+
+```
+# 下载sogou
+sudo dpkg -i sogouxxx
+sudo apt-get -f install
+```
+
+## mysql
+
+```
+sudo apt-get install mysql-server
+sudo apt-get install libmysqld-dev 
+sudo apt-get install libmysqlclient-dev 
+```
+## redis
+
+```
+sudo apt-get install software-properties-common
+sudo apt-add-repository ppa:chris-lea/redis-server
+sudo apt-get update
+sudo apt-get install redis-server
+```
 ## wine-de
+
 ```
 sudo add-apt-repository ppa:wine/wine-builds
 sudo apt-get update
 sudo apt-get install wine-devel
 sudo apt install winehq-devel
 ```
+
 ## Thunderbird
+
 ```
 sudo add-apt-repository ppa:ubuntu-mozilla-security/ppa
 sudo apt-get update
 sudo apt-get install thunderbird
 ```
+
 ## gimp
+
 ```
 # 安装
 sudo add-apt-repository ppa:otto-kesselgulasch/gimp
@@ -91,14 +172,6 @@ sudo apt-get install gimp
 sudo apt-get install ppa-purge
 sudo ppa-purge ppa:otto-kesselgulasch/gimp
 ```
-## chrome
-```
-wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb 
-sudo apt-get install libappindicator1 libindicator7 
-sudo dpkg -i google-chrome-stable_current_amd64.deb 
-# 自动安装依赖
-$ sudo apt-get -f install 
-```
 
 ## indicator-sysmonitor
 
@@ -107,6 +180,7 @@ sudo add-apt-repository ppa:fossfreedom/indicator-sysmonitor
 sudo apt-get update 
 sudo apt-get install indicator-sysmonitor
 ```
+
 ## wps
 
 ```
@@ -124,43 +198,8 @@ sudo fc-cache
 # 4. 重启wps即可，字体缺失的提示不再出现。
 ```
 
-## pycharm
-```
-sudo add-apt-repository ppa:mystic-mirage/pycharm
-sudo apt update
-sudo apt install pycharm-community
-```
-## visualStudioCode
-
-```
-# 下载visualStudioCode
-sudo dpkg -i codexxxx
-```
-
-## mysql
-
-```
-sudo apt-get install mysql-server
-sudo apt-get install libmysqld-dev 
-sudo apt-get install libmysqlclient-dev 
-```
-## nginx
-
-```
-sudo apt-get install nginx
-```
-
-
-
-## redis
-
-```
-sudo apt-get install software-properties-common
-sudo apt-add-repository ppa:chris-lea/redis-server
-sudo apt-get update
-sudo apt-get install redis-server
-```
 ## remarkable
+
 ```
 wget https://remarkableapp.github.io/files/remarkable_1.87_all.deb
 sudo dpkg -i remarkable_1.87_all.deb
@@ -222,10 +261,6 @@ $ sudo apt-get install libgtk2-appindicator-perl
 ## vpnc
 ```
 sudo apt-get install git vpnc
-```
-## openssh-server
-```
-sudo apt-get install openssh-server
 ```
 ## gdb-dashboard
 ```

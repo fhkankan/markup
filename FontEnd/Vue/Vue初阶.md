@@ -1091,7 +1091,7 @@ new Vue({
 
 prop是一个对象而不是字符串数组时，他包含验证要求
 
-```
+```javascript
 Vue.component('example', {
   props: {
     // 基础类型检测 （`null` 意思是任何类型都可以）
@@ -1108,7 +1108,7 @@ Vue.component('example', {
       type: Number,
       default: 100
     },
-    // 数组／对象的默认值应当由一个工厂函数返回
+    // 数组对象的默认值应当由一个工厂函数返回
     propE: {
       type: Object,
       default: function () {
