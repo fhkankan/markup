@@ -16,9 +16,56 @@ Vue.js 的核心是一个允许你采用简洁的模板语法来声明式的将�
 
 {{}}表示文本插入的值
 
+只能存在单行语句，并且不能作用在HTML属性
+
 ```html
 <div id="app">
   <p>{{ message }}</p>
+</div>
+
+<script>
+new Vue({
+  el: '#app',
+  data: {
+    message: '菜鸟教程'
+  }
+})
+</script>
+```
+
+> v-cloak
+
+解决插值表达式闪烁问题
+
+```html
+<style>
+  [v-clock]{
+    display:none
+  }
+</style>
+<div id="app">
+  <p v-clock>{{message}}</p>
+</div>
+
+<script>
+new Vue({
+  el: '#app',
+  data: {
+    message: '菜鸟教程'
+  }
+})
+</script>
+```
+
+> v-text
+
+默认没有闪烁问题
+
+覆盖元素中的内容
+
+```html
+<div id="app">
+  <p v-text="message"></p>
 </div>
 
 <script>
@@ -54,6 +101,8 @@ new Vue({
 
 HTML 属性中的值应使用 v-bind 指令,简写为`:`
 
+对于对应的属性变量视为表达式
+
 以下实例判断 class1 的值，如果为 true 使用 class1 类的样式，否则不使用该类：
 
 ```html
@@ -70,6 +119,23 @@ new Vue({
     el: '#app',
   data:{
       class1: false
+  }
+});
+</script>
+```
+
+合法的js表达式
+
+```html
+<div id="app">
+  <input type="button" value="按钮" v-bind:title="mytitle + '123'">
+</div>
+    
+<script>
+new Vue({
+    el: '#app',
+  data:{
+      mytitle: '这是一个自定义title'
   }
 });
 </script>
@@ -125,11 +191,7 @@ new Vue({
 
 > V-bind
 
-v-bind 指令被用来响应地更新 HTML 属性
-
-参数
-
-在指令后以冒号指明。
+提供了属性绑定机制，缩写为`:`
 
 ```html
 // 这里 href 是参数，告知 v-bind 指令将该元素的 href 属性与表达式 url 的值绑定
@@ -158,7 +220,7 @@ new Vue({
 
 > v-on
 
-用于监听DOM事件
+提供了事件绑定机制，缩写为`@`
 
 ```html
 // 在这里参数是监听的事件名。
@@ -167,11 +229,27 @@ new Vue({
 
 修饰符
 
-是以半角据点`.`指明的特殊后缀，用于之处一个指令该以特殊方式绑定
-
 ```html
-// .prevent 修饰符告诉 v-on 指令对于触发的事件调用 event.preventDefault()：
+// .stop 组织冒泡
+// 默认从里到外执行
+<div class="inner" @click="divHandler">
+  <input type="button" value="点击" @click.stop="btnHandler">
+</div>
+// .prevent 组织默认事件
 <form v-on:submit.prevent="onSubmit"></form>
+<a href="http://www.baidu.com" @click.prevent="linkClick"></a>
+// .capture	添加事件侦听器时使用时间捕获模式
+// 从外到里执行
+<div class="inner" @click.capture="divHandler">
+  <input type="button" value="点击" @click="btnHandler">
+</div>
+// .self	只当事件在该元素本身(如不是子元素)出发时出发回调
+// 捕获或冒泡不执行，只有点击本身才执行
+<div class="inner" @click.self="divHandler">
+  <input type="button" value="点击" @click="btnHandler">
+</div>
+// .once	事件只触发一次
+<a href="http://www.baidu.com" @click.prevent.once="linkClick"></a>
 ```
 
 缩写
@@ -238,6 +316,8 @@ Vue.js 允许你自定义过滤器，被用作一些常见的文本格式化。�
 > v-if
 
 v-if 指令将根据表达式 seen 的值(true 或 false )来决定是否插入 p 元素
+
+每次都会重新删除或创建元素，有较高的切换性能消耗
 
 ```html
 <div id="app">
@@ -313,6 +393,10 @@ new Vue({
 
 v-show 指令来根据条件展示元素：
 
+每次不会重新进行DOM的删除和创建操作，只是操作CSS的切换，有较高的初始渲染消耗
+
+适用于频繁的切换
+
 ```html
 <h1 v-show="ok">Hello!</h1>
 ```
@@ -320,6 +404,8 @@ v-show 指令来根据条件展示元素：
 ### 循环
 
 使用v-for指令
+
+> 数组
 
 v-for 指令需要以 **site in sites** 形式的特殊语法， sites 是源数据数组并且 site 是数组元素迭代的别名。
 
@@ -353,6 +439,15 @@ new Vue({
     <li>--------------</li>
   </template>
 </ul>
+
+// 带下标
+<div id="app">
+  <ol>
+    <li v-for="(site, i) in sites">
+      {{ site.name }}----{{ i }}
+    </li>
+  </ol>
+</div>
 ```
 
 > 迭代对象
@@ -385,6 +480,7 @@ new Vue({
 > 迭代整数
 
 ```html
+// n从1开始
 <div id="app">
   <ul>
     <li v-for="n in 10">
@@ -392,6 +488,15 @@ new Vue({
     </li>
   </ul>
 </div>
+```
+
+- 注意：
+
+在组件中使用v-for循环时，或者一些特殊情况中，若v-for有问题，则需绑定唯一的字符串/数字类型的key值
+
+```html
+// key属性只能是number或string，同时得使用v-bind绑定
+<p v-for="item in items" :key="item.id"></p>
 ```
 
 ## 计算属性
@@ -547,12 +652,30 @@ class 与 style 是 HTML 元素的属性，用于设置元素的样式，我们�
 
 Vue.js v-bind 在处理 class 和 style 时， 专门增强了它。表达式的结果类型除了字符串之外，还可以是对象或数组。
 
-### class属性绑定
+### class
+
+- 方式一
+
+把数组传给v-bind:class
+
+```html
+<div v-bind:class="[activeClass, errorClass]"></div>
+```
+
+- 方式二
+
+三元表达式
+
+```html
+<div v-bind:class="[errorClass ,isActive ? activeClass : '']"></div>
+```
+
+- 方式三
 
 可以为 v-bind:class 设置一个对象，从而动态的切换 class:
 
 ```html
-<div v-bind:class="{ active: isActive }"></div>
+<div v-bind:class="{ active: true }"></div>
 ```
 
 多个属性来动态切换多个class
@@ -562,6 +685,8 @@ Vue.js v-bind 在处理 class 和 style 时， 专门增强了它。表达式的
      v-bind:class="{ active: isActive, 'text-danger': hasError }">
 </div>
 ```
+
+- 方式四
 
 绑定返回对象的计算属性
 
@@ -593,23 +718,9 @@ new Vue({
 </script>
 ```
 
-把数组传给v-bind:class
+### style
 
-```html
-<div v-bind:class="[activeClass, errorClass]"></div>
-```
-
-三元表达式
-
-```html
-<div v-bind:class="[errorClass ,isActive ? activeClass : '']"></div>
-```
-
-### 内联样式
-
-当 **v-bind:style** 使用需要特定前缀的 CSS 属性时，如 transform ，Vue.js 会自动侦测并添加相应的前缀
-
-可以在 **v-bind:style** 直接设置样式
+内联样式，可以在 `v-bind:style` 直接设置样式
 
 ```html
 <div id="app">
@@ -794,8 +905,6 @@ Vue 允许为 v-on 在监听键盘事件时添加按键修饰符
 若是使用了element-ui，则要加上native限制符，因为element-ui把input进行了封装，原事件就不起作用了
 ```
 
-
-
 ## 表单
 
 可以用 v-model 指令在表单控件元素上创建双向数据绑定。
@@ -952,6 +1061,8 @@ tagName 为组件名，options 为配置选项。注册后，我们可以使用�
 ```
 
 ### 组件
+
+一个组件包含三个部分：template、script、style
 
 > 全局组件
 

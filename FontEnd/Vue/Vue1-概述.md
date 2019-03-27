@@ -63,7 +63,7 @@ Vue.js 提供一个官方命令行工具，可用于快速搭建大型单页应�
 ```
 # 全局安装 vue-cli
 $ cnpm install --global vue-cli
-# 创建一个基于 webpack 模板的新项目
+# 创建一个基于 webpack 模板的新项目(项目名不能大写)
 $ vue init webpack my-project
 # 这里需要进行一些配置，默认回车即可
 ...

@@ -835,6 +835,42 @@ ES6新增内容
 |          | filter()         | 根据给定条件查找数组元素，返回数组的拷贝                     | cosnt arr=[1,2,3,4]<br>const items=arr.filter(x=>x%2==0)     |
 |          | reduce()         | 把整个数组转化为另一种数组类型，返回数组的拷贝               | const arr=[5,6,7]<br>const sum = arr.reduce((a,x)=>a+=x,0)<br>//a的初始值指定为0,可缺省，默认为0 |
 
+eg
+
+```javascript
+// sort函数对比
+function compare(pro){
+    return function(obj1, obj2){
+        var val1 = obj1[pro];
+        var val2 = obj2[pro];
+        if(val1 < val2){
+            return 1
+        }else if(val1 > val2){
+            return -1
+        }else{
+            return 0
+        }
+    }
+}
+
+var list = [
+    {name: 'a', id: 4},
+    {name: 'b', id: 5},
+    {name: 'c', id: 3}
+]
+list.sort(compare("id"))
+
+// 简化ES6
+var list = [
+    {name: 'a', id: 4},
+    {name: 'b', id: 5},
+    {name: 'c', id: 3}
+]
+list.sort((a,b)=>{
+  return b.id -a.id
+})
+```
+
 ### Array2
 
 字典
