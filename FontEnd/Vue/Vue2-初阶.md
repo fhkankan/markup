@@ -309,6 +309,41 @@ Vue.js 允许你自定义过滤器，被用作一些常见的文本格式化。�
 
 这里，message 是第一个参数，字符串 'arg1' 将传给过滤器作为第二个参数， arg2 表达式的值将被求值然后传给过滤器作为第三个参数。
 
+- 全局过滤器
+
+```html
+// 全局过滤器
+<div id="app">
+	<p>
+  	{{ msg | dateFormat }}
+	</p>
+</div>
+
+<script>
+  Vue.filter('dateFormat', function(dateStr){
+    var dt = new Date(dateStr)
+    var y = dt.getFullYear()
+    var m = dt.getMonth() + 1
+    var d = dt.getDate()
+    // return y + '-' + m + '-' + d  
+    return '${y}-${m}-${d}'  // 等价
+  })
+  
+  var vm = new Vue({
+    el: '#app',
+    data: {
+      msg: new Date()
+    }
+  }) 
+</script>
+```
+
+- 私有过滤器
+
+```
+
+```
+
 ## 条件与循环
 
 ### 条件

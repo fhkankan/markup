@@ -112,12 +112,14 @@ python ../manage.py startapp 应用名  # 创建app
 
 ```python
 # 项目目录如下：
-与项目同名的目录: 包含项目的配置文件
+项目同名文件夹  
+manage.py: 项目的管理文件，项目运行的入口，指定配置文件路径
+  
+# 与项目同名的目录: 包含项目的配置文件
 __init__.py: 空文件，说明app01是一个python包（模块）
 settings.py: 项目的全局配置文件
 urls.py: 项目的url配置文件
 wsgi.py: web服务器和django框架交互的接口，
-manage.py: 项目的管理文件，项目运行的入口，指定配置文件路径
 
 # 应用目录如下：
 __init__.py: 空文件，表示是一个python包
@@ -184,7 +186,6 @@ class UsersConfig(AppConfig):
     name = 'users'
     # 可手动设置应用的直观可读名字，会在admin管理站点显示
     verbose_name = "用户管理"
-
 ```
 
 ## 项目运行
@@ -324,8 +325,6 @@ python manage.py  migrate
 模型类对象.save()	# 新增或修改
 模型类对象.delete()	# 删除
 ```
-
-
 
 ### 模型管理器
 

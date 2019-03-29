@@ -179,8 +179,6 @@ request.session.set_expiry(value)
   - 如果value为None，那么会话永不过期。
 ```
 
-
-
 ## 中间件
 
 MIDDLEWARE: 中间件
@@ -245,20 +243,20 @@ def process_response(self, request, response):
 1. 定义中间件类：
 
   在app01应用下创建模块：midlleware.py， 在里面创建中间件类如下：
-```
-  	class MyMiddleware(object):
-  	    def __init__(self):
-  	        print('--init--')
-  	
-  	    def process_request(self, request):
-  	        print('--process_request--')
-  	
-  	    def process_view(self, request, view_func, view_args, view_kwargs):
-  	        print('--process_view--')
-  	
-  	    def process_response(self, request, response):
-  	        print('--process_response--')
-  	        return respons
+```python
+class MyMiddleware(object):
+    def __init__(self):
+        print('--init--')
+
+    def process_request(self, request):
+        print('--process_request--')
+
+    def process_view(self, request, view_func, view_args, view_kwargs):
+        print('--process_view--')
+
+    def process_response(self, request, response):
+        print('--process_response--')
+        return respons
 ```
 
 2. views.py文件的进入首页视图函数，打印日志:
@@ -311,7 +309,7 @@ class MyMiddleware(object):
 
 ### 异常处理
 
-异常处理： 视图函数执行出错之后，会调用中间件的process_exception方法，可以在该方法中执行异常操作。	
+异常处理： 视图函数执行出错之后，会调用中间件的process_exception方法，可以在该方法中执行异常操作	
 1. 在index视图函数中，添加执行出错代码：
 
 
@@ -328,7 +326,7 @@ def index(request):
 ```
 
 2. 在前面编写的MyMiddleware中： 添加处理异常的中间件方法，并注释前面的拦截ip的拦截： 
-```
+```python
 # middleware.py
 class MyMiddleware(object):
 	...
@@ -364,7 +362,7 @@ class MyMiddleware(object):
 代码测试： 
 
 1. 再写一个中间件：
-```
+```python
 class MyMiddleware2(object):
     def __init__(self):
         print('-------init2')
@@ -385,7 +383,7 @@ class MyMiddleware2(object):
 
 2. 在setting.py中注册中间件类：
 
-```
+```python
 # setting.py
 MIDDLEWARE_CLASSES = (
     ...

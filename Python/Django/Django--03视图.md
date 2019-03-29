@@ -824,7 +824,7 @@ class RegisterView(View):
 
 **配置路由时，使用类视图的as_view()方法来添加**。
 
-```
+```python
 urlpatterns = [
     # 视图函数：注册
     # url(r'^register/$', views.register, name='register'),
