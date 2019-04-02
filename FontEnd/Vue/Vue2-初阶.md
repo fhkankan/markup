@@ -10,9 +10,9 @@ Vue.js 的核心是一个允许你采用简洁的模板语法来声明式的将�
 结合响应系统，在应用状态改变时， Vue 能够智能地计算出重新渲染组件的最小代价并应用到 DOM 操作上。
 ```
 
-### 插值
+### 文本
 
-> 文本
+#### {{}}
 
 {{}}表示文本插入的值
 
@@ -33,7 +33,7 @@ new Vue({
 </script>
 ```
 
-> v-cloak
+#### v-cloak
 
 解决插值表达式闪烁问题
 
@@ -57,7 +57,7 @@ new Vue({
 </script>
 ```
 
-> v-text
+#### v-text
 
 默认没有闪烁问题
 
@@ -78,7 +78,7 @@ new Vue({
 </script>
 ```
 
-> Html
+#### v-html
 
 v-html用于输出html代码
 
@@ -97,7 +97,7 @@ new Vue({
 </script>
 ```
 
-> 属性
+#### v-bind
 
 HTML 属性中的值应使用 v-bind 指令,简写为`:`
 
@@ -141,7 +141,7 @@ new Vue({
 </script>
 ```
 
-> 表达式
+#### 表达式
 
 Vue.js 都提供了完全的 JavaScript 表达式支持
 
@@ -167,29 +167,11 @@ new Vue({
 
 ### 指令
 
-带有v-前缀的特殊属性
+带有v-前缀的特殊属性，有`v-bind,v-on,v-model,v-if,v-show,v-for`等
 
-指令御用在表打死的值改变时，将某些行为应用到DOM上
+指令是在值改变时，将某些行为应用到DOM上
 
-> V-if
-
-```html
-// v-if 指令将根据表达式 seen 的值(true 或 false )来决定是否插入 p 元素
-<div id="app">
-    <p v-if="seen">现在你看到我了</p>
-</div>
-    
-<script>
-new Vue({
-  el: '#app',
-  data: {
-    seen: true
-  }
-})
-</script>
-```
-
-> V-bind
+#### v-bind
 
 提供了属性绑定机制，缩写为`:`
 
@@ -218,7 +200,7 @@ new Vue({
 <a :href="url"></a>
 ```
 
-> v-on
+#### v-on
 
 提供了事件绑定机制，缩写为`@`
 
@@ -261,7 +243,7 @@ new Vue({
 <a @click="doSomething"></a>
 ```
 
-> v-model
+#### v-model
 
 来在 input、select、text、checkbox、radio 等表单控件元素上创建双向数据绑定，根据表单上的值，自动更新绑定的元素的值。
 
@@ -283,7 +265,13 @@ new Vue({
 
 ### 过滤器
 
-Vue.js 允许你自定义过滤器，被用作一些常见的文本格式化。由"管道符"指示, 格式如下：
+Vue.js 允许你自定义过滤器，被用作一些常见的文本格式化。
+
+范围：只能在插值表达式和v-bind指令中使用
+
+#### 格式
+
+使用
 
 ```html
 <!-- 在两个大括号中 -->
@@ -291,25 +279,29 @@ Vue.js 允许你自定义过滤器，被用作一些常见的文本格式化。�
 
 <!-- 在 v-bind 指令中 -->
 <div v-bind:id="rawId | formatId"></div>
-```
 
-过滤器函数接受表达式的值作为第一个参数
-
-过滤器可以串联：
-
-```
+<!-- 过滤器可以串联 -->
 {{ message | filterA | filterB }}
-```
 
-过滤器是 JavaScript 函数，因此可以接受参数：
-
-```
+<!-- 过滤器函数可以传参 -->
+// message 是第一个参数，字符串 'arg1' 将传给过滤器作为第二个参数， arg2 表达式的值将被求值然后传给过滤器作为第三个参数
 {{ message | filterA('arg1', arg2) }}
 ```
 
-这里，message 是第一个参数，字符串 'arg1' 将传给过滤器作为第二个参数， arg2 表达式的值将被求值然后传给过滤器作为第三个参数。
+定义
 
-- 全局过滤器
+```javascript
+< script>
+	// 过滤器函数接受管道符前的表达式的值作为第一个参数
+	Vue.filter('过滤器名称', function(data){
+    return data
+	})
+</script>
+```
+
+#### 全局
+
+所有的vue实例都共享
 
 ```html
 // 全局过滤器
@@ -319,8 +311,15 @@ Vue.js 允许你自定义过滤器，被用作一些常见的文本格式化。�
 	</p>
 </div>
 
+<div id="app1">
+	<p>
+  	{{ msg | dateFormat }}
+	</p>
+</div>
+
 <script>
   Vue.filter('dateFormat', function(dateStr){
+    // 根据给定的时间字符串，得到特定的时间
     var dt = new Date(dateStr)
     var y = dt.getFullYear()
     var m = dt.getMonth() + 1
@@ -335,13 +334,68 @@ Vue.js 允许你自定义过滤器，被用作一些常见的文本格式化。�
       msg: new Date()
     }
   }) 
+  var vm1 = new Vue({
+    el: '#app1',
+    data: {
+      msg: new Date()
+    }
+  }) 
 </script>
 ```
 
-- 私有过滤器
+#### 局部
 
-```
+只在本实例对象中有效的过滤器
 
+```html
+<div id="app">
+	<p>
+  	{{ msg | dateFormat }}
+	</p>
+</div>
+
+<div id="app1">
+	<p>
+  	{{ msg | dateFormat }}
+	</p>
+</div>
+
+<script>
+  Vue.filter('dateFormat', function(dateStr){
+    // 根据给定的时间字符串，得到特定的时间
+    var dt = new Date(dateStr)
+    var y = dt.getFullYear()
+    var m = dt.getMonth() + 1
+    var d = dt.getDate()
+    // return y + '-' + m + '-' + d  
+    return '${y}-${m}-${d}'  // 等价
+  })
+  
+  var vm = new Vue({
+    el: '#app',
+    data: {
+      msg: new Date()
+    }
+  }) 
+  var vm1 = new Vue({
+    el: '#app1',
+    data: {
+      msg: new Date()
+    },
+    // 定义私有过滤器
+    filters:{
+      // 过滤器调用，采用就近原则。当私有过滤器与公有过滤器重名，使用私有过滤器
+      dateFormat: function(dateStr){
+    		// 根据给定的时间字符串，得到特定的时间
+    		var dt = new Date(dateStr)
+    		var y = dt.getFullYear()
+    		var m = dt.getMonth() + 1
+    		var d = dt.getDate()
+    		// return y + '-' + m + '-' + d  
+    		return '${y}-${m}-${d}'  // 等价
+    }
+  }) 
+</script>
 ```
 
 ## 条件与循环
@@ -854,7 +908,7 @@ new Vue({
 
 ### 修饰符
 
-> 事件修饰符
+#### 事件修饰符
 
 Vue.js 为 v-on 提供了事件修饰符来处理 DOM 事件细节，如：event.preventDefault() 或 event.stopPropagation()。
 
@@ -888,7 +942,7 @@ Vue.js通过由点(.)表示的指令后缀来调用修饰符。
 <a v-on:click.once="doThis"></a>
 ```
 
-> 按键修饰符
+#### 按键修饰符
 
 Vue 允许为 v-on 在监听键盘事件时添加按键修饰符
 
@@ -896,6 +950,8 @@ Vue 允许为 v-on 在监听键盘事件时添加按键修饰符
 <!-- 只有在 keyCode 是 13 时调用 vm.submit() -->
 <input v-on:keyup.13="submit">
 ```
+
+- 常见按键内置修饰符
 
  Vue 为最常用的按键提供了别名
 
@@ -938,6 +994,20 @@ Vue 允许为 v-on 在监听键盘事件时添加按键修饰符
 ```
 如果是原生的input，使用 @keyup.enter就可以，
 若是使用了element-ui，则要加上native限制符，因为element-ui把input进行了封装，原事件就不起作用了
+```
+
+- 自定义按键修饰符
+
+```html
+<input v-on:keyup.f2="submit">
+
+<script>
+  // 自定义全局按键修饰符
+  // 1.x
+  Vue.directive('on').keyCodes.f2 = 113
+  // 2.x
+	Vue.config.keyCodes.f2 = 113
+</script>
 ```
 
 ## 表单
@@ -1075,301 +1145,50 @@ new Vue({
 <input v-model.trim="msg">
 ```
 
-## 组件
-
-组件（Component）是 Vue.js 最强大的功能之一。
-
-组件可以扩展 HTML 元素，封装可重用的代码。
-
-组件系统让我们可以用独立可复用的小组件来构建大型应用，几乎任意类型的应用的界面都可以抽象为一个组件树
-
-注册一个全局组件语法格式如下
-
-```javascript
-Vue.component(tagName, options)
-```
-
-tagName 为组件名，options 为配置选项。注册后，我们可以使用以下方式来调用组件：
-
-```html
-<tagName></tagName>
-```
-
-### 组件
-
-一个组件包含三个部分：template、script、style
-
-> 全局组件
-
-所有实例都能用全局组件
-
-```html
-<div id="app">
-    <runoob></runoob>
-</div>
- 
-<script>
-// 注册
-Vue.component('runoob', {
-  template: '<h1>自定义组件!</h1>'
-})
-// 创建根实例
-new Vue({
-  el: '#app'
-})
-</script>
-```
-
-> 局部组件
-
-可以在实例选项中注册局部组件，这样组件只能在这个实例中使用
-
-```html
-<div id="app">
-    <runoob></runoob>
-</div>
- 
-<script>
-var Child = {
-  template: '<h1>自定义组件!</h1>'
-}
- 
-// 创建根实例
-new Vue({
-  el: '#app',
-  components: {
-    // <runoob> 将只在父模板可用
-    'runoob': Child
-  }
-})
-</script>
-```
-
-> Prop
-
-prop 是父组件用来传递数据的一个自定义属性。
-
-父组件的数据需要通过 props 把数据传给子组件，子组件需要显式地用 props 选项声明 "prop"
-
-```html
-<div id="app">
-    <child message="hello!"></child>
-</div>
- 
-<script>
-// 注册
-Vue.component('child', {
-  // 声明 props
-  props: ['message'],
-  // 同样也可以在 vm 实例中像 "this.message" 这样使用
-  template: '<span>{{ message }}</span>'
-})
-// 创建根实例
-new Vue({
-  el: '#app'
-})
-</script>
-```
-
-> 动态Prop
-
-类似于用 v-bind 绑定 HTML 特性到一个表达式，也可以用 v-bind 动态绑定 props 的值到父组件的数据中。每当父组件的数据变化时，该变化也会传导给子组件
-
-```html
-<div id="app">
-    <div>
-      <input v-model="parentMsg">
-      <br>
-      <child v-bind:message="parentMsg"></child>
-    </div>
-</div>
- 
-<script>
-// 注册
-Vue.component('child', {
-  // 声明 props
-  props: ['message'],
-  // 同样也可以在 vm 实例中像 "this.message" 这样使用
-  template: '<span>{{ message }}</span>'
-})
-// 创建根实例
-new Vue({
-  el: '#app',
-  data: {
-    parentMsg: '父组件内容'
-  }
-})
-</script>
-```
-
-将 v-bind 指令将 todo 传到每一个重复的组件中
-
-```html
-<div id="app">
-    <ol>
-    <todo-item v-for="item in sites" v-bind:todo="item"></todo-item>
-      </ol>
-</div>
- 
-<script>
-Vue.component('todo-item', {
-  props: ['todo'],
-  template: '<li>{{ todo.text }}</li>'
-})
-new Vue({
-  el: '#app',
-  data: {
-    sites: [
-      { text: 'Runoob' },
-      { text: 'Google' },
-      { text: 'Taobao' }
-    ]
-  }
-})
-</script>
-```
-
-注意：prop 是单向绑定的：当父组件的属性变化时，将传导给子组件，但是不会反过来
-
-> Prop验证
-
-组件可以为props指定验证请求
-
-prop是一个对象而不是字符串数组时，他包含验证要求
-
-```javascript
-Vue.component('example', {
-  props: {
-    // 基础类型检测 （`null` 意思是任何类型都可以）
-    propA: Number,
-    // 多种类型
-    propB: [String, Number],
-    // 必传且是字符串
-    propC: {
-      type: String,
-      required: true
-    },
-    // 数字，有默认值
-    propD: {
-      type: Number,
-      default: 100
-    },
-    // 数组对象的默认值应当由一个工厂函数返回
-    propE: {
-      type: Object,
-      default: function () {
-        return { message: 'hello' }
-      }
-    },
-    // 自定义验证函数
-    propF: {
-      validator: function (value) {
-        return value > 10
-      }
-    }
-  }
-})
-```
-
-type 可以是下面原生构造器：
-
- ```
-String
-Number
-Boolean
-Function
-Object
-Array
- ```
-
-type 也可以是一个自定义构造器，使用 instanceof 检测
-
-### 自定义事件
-
-父组件是使用 props 传递数据给子组件，但如果子组件要把数据传递回去，就需要使用自定义事件！
-
-我们可以使用 v-on 绑定自定义事件, 每个 Vue 实例都实现了事件接口(Events interface)，即：
-
-```
-- 使用 $on(eventName) 监听事件
-- 使用 $emit(eventName) 触发事件
-```
-
-另外，父组件可以在使用子组件的地方直接用 v-on 来监听子组件触发的事件。
-
-以下实例中子组件已经和它外部完全解耦了。它所做的只是触发一个父组件关心的内部事件
-
-```html
-<div id="app">
-    <div id="counter-event-example">
-      <p>{{ total }}</p>
-      <button-counter v-on:increment="incrementTotal"></button-counter>
-      <button-counter v-on:increment="incrementTotal"></button-counter>
-    </div>
-</div>
- 
-<script>
-Vue.component('button-counter', {
-  template: '<button v-on:click="incrementHandler">{{ counter }}</button>',
-  data: function () {
-    return {
-      counter: 0
-    }
-  },
-  methods: {
-    incrementHandler: function () {
-      this.counter += 1
-      this.$emit('increment')
-    }
-  },
-})
-new Vue({
-  el: '#counter-event-example',
-  data: {
-    total: 0
-  },
-  methods: {
-    incrementTotal: function () {
-      this.total += 1
-    }
-  }
-})
-</script>
-```
-
-如果你想在某个组件的根元素上监听一个原生事件。可以使用 .native 修饰 v-on
-
-```html
-<my-component v-on:click.native="doTheThing"></my-component>
-```
-
 ## 自定义指令
 
-除了默认设置的核心指令( v-model 和 v-show ), Vue 也允许注册自定义指令。
+### 全局指令
+
+Vue使用`Vue.directive()`注册自定义指令。
+
+```
+directive(commandName, sepcialObj)有2个参数
+参数1:指令的名称，在定义时指令名称前不加`v-`前缀，但是在使用中，必须在指令名称前，加上v-前缀进行调用
+参数2:是一个对象，在这个对象上，有一些指令相关的钩子函数，这些函数可以在特定的阶段执行相关的操作
+```
 
 下面我们注册一个全局指令 v-focus, 该指令的功能是在页面加载时，元素获得焦点：
 
 ```html
 <div id="app">
     <p>页面载入时，input 元素自动获取焦点：</p>
-    <input v-focus>
+    <input v-focus v-color="'red'">
 </div>
  
 <script>
 // 注册一个全局自定义指令 v-focus
 Vue.directive('focus', {
-  // 当绑定元素插入到 DOM 中。
+  // 动作操作常在inserted中设定，需要加载在DOM中，才可设置
   inserted: function (el) {
     // 聚焦元素
     el.focus()
   }
 })
+Vue.directive('color', {
+  // 样式的设定常在bind中设定，只要加载内存，即可设置
+  bind: function (el, binding) {
+    // 改变颜色
+    el.style.color = binding.value
+  }
+})  
 // 创建根实例
 new Vue({
   el: '#app'
 })
 </script>
 ```
+
+### 局部指令
 
 我们也可以在实例使用 directives 选项来注册局部指令，这样指令只能在这个实例中使用
 
@@ -1397,11 +1216,9 @@ new Vue({
 </script>
 ```
 
-### 钩子
+### 钩子函数
 
-> 钩子函数
-
-指令定义函数提供了几个钩子函数（可选）：
+- 定义函数（可选）：
 
 ```
 - bind: 只调用一次，指令第一次绑定到元素时调用，用这个钩子函数可以定义一个在绑定时执行一次的初始化动作。
@@ -1411,9 +1228,7 @@ new Vue({
 - unbind: 只调用一次， 指令与元素解绑时调用。
 ```
 
-> 钩子函数参数
-
-钩子函数的参数有：
+- 函数参数
 
 ```
 - el: 指令所绑定的元素，可以用来直接操作 DOM 。
@@ -1456,15 +1271,6 @@ new Vue({
 </script>
 ```
 
-有时候我们不需要其他钩子函数，我们可以简写函数，如下格式
-
-```html
-Vue.directive('runoob', function (el, binding) {
-  // 设置指令的背景颜色
-  el.style.backgroundColor = binding.value.color
-})
-```
-
 指令函数可接受所有合法的 JavaScript 表达式，以下实例传入了 JavaScript 对象
 
 ```html
@@ -1483,4 +1289,17 @@ new Vue({
 })
 </script>
 ```
+
+- 函数简写
+
+大多数情况下，可能想在bind和update钩子上做重复动作，并且不想关心其他的钩子函数，可以如下格式简写函数
+
+```javascript
+Vue.directive('runoob', function (el, binding) {
+  // 设置指令的背景颜色
+  el.style.backgroundColor = binding.value.color
+})
+```
+
+## 生命周期函数
 

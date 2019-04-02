@@ -687,7 +687,16 @@ colors.push("green")
 
 > 遍历
 
-forEach() 
+`for`
+
+```
+for(index in array){
+    console.log(index);
+    console.log(array[index])
+}
+```
+
+`forEach() `
 
 ES6方法用于调用数组的每个元素，并将元素传递给回调函数。
 
@@ -696,6 +705,7 @@ ES6方法用于调用数组的每个元素，并将元素传递给回调函数�
 ```
 array.forEach(function(currentValue, index, arr), thisValue)
 ```
+
 参数
 
 | 参数                                 | 描述                                                         |
@@ -703,13 +713,31 @@ array.forEach(function(currentValue, index, arr), thisValue)
 | *function(currentValue, index, arr)* | 必需。 数组中每个元素需要调用的函数。 函数参数:参数描述*currentValue*必需。当前元素*index*可选。当前元素的索引值。*arr*可选。当前元素所属的数组对象。 |
 | *thisValue*                          | 可选。传递给函数的值一般用 "this" 值。 如果这个参数为空， "undefined" 会传递给 "this" 值 |
 
-for
+`some`
 
+元素是否存在，存在则true,否则false
+
+```javascript
+const arr=[5,6,7]
+arr.some(x=>x%2==0)
 ```
-for(index in array){
-    console.log(index);
-    console.log(array[index])
-}
+
+`filter`
+
+根据给定条件查找数组元素，返回数组的拷贝
+
+```javascript
+cosnt arr=[1,2,3,4]
+const items=arr.filter(x=>x%2==0)
+```
+
+`findIndex`
+
+从数组开始，可以查找数组元素是否符合函数,返回下标，无则返回-1
+
+```javascript
+const arr=[{id:5,name:"Lilei"},{id:7,name:"Alice"}]
+arr.findIndex(o=>o.id==5)
 ```
 
 > 输入输出
@@ -934,7 +962,7 @@ if (newStr.constructor==String){
 }
 
 // prototype
-String.protype.getLength=function(){
+String.prototype.getLength=function(){
     alert(this.lenght);
 }
 var str = "abcde";
@@ -943,18 +971,22 @@ str.getLength;
 
 - 方法
 
-| 方法          | 说明                                               | 语法                                            |
-| ------------- | -------------------------------------------------- | ----------------------------------------------- |
-| charAt()      | 返回字符串中指定位置的字符                         | stringObject.charAt(index)                      |
-| indexOf()     | 返回某个字符串在字符串中首次出现的位置，无则-1     | stringObject.indexOf(substring, startindex)     |
-| lastIndexOf() | 返回某个字符串在字符串中最后出现的位置，无则-1     | stringObject.lastIndexOf(substring, startindex) |
-| slice()       | 提取字符串的片段，并在新的字符串中返回被提取的部分 | stringObject.slice(startindex, endindex)        |
-| substr()      | 从字符串的指定位置开始提取指定长度的子字符串       | stringObject.substr(startindex,length)          |
-| substring()   | 提取字符串中两个指定的索引号之间的字符             | stringObject.substring(startindex, endindex)    |
-| toLowerCase() | 把字符串转换为小写                                 | stringObject.toLowerCase()                      |
-| toUpperCase() | 把字符串转换为大写                                 | stringObject.toUpperCase()                      |
-| concat()      | 连接多个字符串                                     | stringObject.concat(string1,strign2,...)        |
-| split()       | 把一个字符串分割为字符串数组                       | stringObject.split(separator, limit)            |
+| 方法             | 说明                                                         | 语法                                              |
+| ---------------- | ------------------------------------------------------------ | ------------------------------------------------- |
+| `charAt()`       | 返回字符串中指定位置的子字符串                               | `stringObject.charAt(index)`                      |
+| `charCodeAt()`   | 返回子字符串的unicode编码                                    | `stringObject.charCodeAt(index)`                  |
+| `fromCharCode()` | 根据unicode编码返回字符串                                    | `stringObject.fromCharCode(num1,num2,…numN)`      |
+| `indexOf()`      | 返回某个字符串在字符串中首次出现的位置，无则-1               | `stringObject.indexOf(substring, startindex)`     |
+| `lastIndexOf()`  | 返回某个字符串在字符串中最后出现的位置，无则-1               | `stringObject.lastIndexOf(substring, startindex)` |
+| `slice()`        | 提取字符串的片段，并在新的字符串中返回被提取的部分，参数可正可负，负值表示从右截取 | `stringObject.slice(startindex, endindex)`        |
+| `substr()`       | 从字符串的指定位置开始提取指定长度的子字符串,startindex可正可负，负值表示从右截取 | `stringObject.substr(startindex,length)`          |
+| `substring()`    | 提取字符串中两个指定的索引号之间的字符,参数均为正值          | `stringObject.substring(startindex, endindex)`    |
+| `toLowerCase()`  | 把字符串转换为小写                                           | `stringObject.toLowerCase()`                      |
+| `toUpperCase()`  | 把字符串转换为大写                                           | `stringObject.toUpperCase()`                      |
+| `concat()`       | 连接多个字符串                                               | `stringObject.concat(string1,strign2,…)`          |
+| `split()`        | 把一个字符串分割为字符串数组                                 | `stringObject.split(separator, limit)`            |
+| `replace()`      | 返回替换后的字符串                                           | `stringObject.replace(rgExp/substr, replaceText)` |
+| `match()`        | 正则匹配                                                     | `stringObject.match(rgExp)`                       |
 
 ```
 1、合并操作：“ + ”
@@ -962,6 +994,20 @@ str.getLength;
 3、将数字字符串转化为小数：parseFloat(字符串)
 4、字符串反转：字符串.split('').reverse().join('')
 ```
+ES6新方法
+
+| 方法         | 说明                                                     | 语法                                                |
+| ------------ | -------------------------------------------------------- | --------------------------------------------------- |
+| `includes()` | 如果包含字符串，则返回true，否则返回false                | `stringObject.includes(string1)`                    |
+| `padStart()` | 在字符串头部开始用特定字符填充至指定长度，返回新的字符串 | `stringObject.padStart(maxLenght, fillString= ' ')` |
+| `pafEnd()`   | 在字符串尾部开始用特定字符填充至指定长度，返回新的字符串 | `stringObject.padEnd(maxLenght, fillString= ' ')`   |
+
+```
+//底层构建：String.prototype.includes('要包含的字符串')
+demo = '今天天气怎么样'
+demo.includes('气')
+```
+
 ### JSON
 
 json对象

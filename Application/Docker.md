@@ -209,7 +209,7 @@ eg:docker run nginx /bin/echo "hello docker"
 # 方式二：启动已终止的容器
 docker start [container_id]
 # 方式三：在后台以守护进程方式启动
-docker rn -d [image_name] command ...
+docker run -d [image_name] command ...
 ```
 
 > 关闭、删除

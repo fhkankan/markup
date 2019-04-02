@@ -51,7 +51,7 @@ sudo apt-get update
 
 ## 常规安装
 ```
-sudo apt-get install git vlc unrar gparted nginx mongodb bleachbit htop openssh-server
+sudo apt-get install git vlc unrar gparted nginx mongodb bleachbit htop openssh-server meld
 ```
 
 ## chrome
@@ -129,6 +129,13 @@ sudo dpkg -i sogouxxx
 sudo apt-get -f install
 ```
 
+## opera
+
+```
+# 下载opera
+sudo dpkg -i operaxxx
+```
+
 ## mysql
 
 ```
@@ -184,7 +191,8 @@ sudo apt-get install indicator-sysmonitor
 ## wps
 
 ```
-sudo apt-get install wps-office 
+# 官网下载wps..
+sudo dpkg -i wps...
 # 1. 下载缺失的字体文件
 # 国外下载地址：https://www.dropbox.com/s/lfy4hvq95ilwyw5/wps_symbol_fonts.zip
 # 国内下载地址：https://pan.baidu.com/s/1eS6xIzo
