@@ -112,30 +112,6 @@ sudo gedit /usr/share/applications/Pycharm.desktop
 sudo chmod +x /usr/share/applications/pycharm.desktop
 ```
 
-
-
-## visualStudioCode
-
-```
-# 下载visualStudioCode
-sudo dpkg -i codexxxx
-```
-
-## sogou
-
-```
-# 下载sogou
-sudo dpkg -i sogouxxx
-sudo apt-get -f install
-```
-
-## opera
-
-```
-# 下载opera
-sudo dpkg -i operaxxx
-```
-
 ## mysql
 
 ```
@@ -150,6 +126,22 @@ sudo apt-get install software-properties-common
 sudo apt-add-repository ppa:chris-lea/redis-server
 sudo apt-get update
 sudo apt-get install redis-server
+```
+## 官网下载deb包
+- 官网下载
+```
+visualStudioCode
+sogou
+opera
+dbeaver
+```
+- 安装
+```
+sudo dpkg -i 安装包名字
+```
+- 修复依赖项
+```
+sudo apt-get -f install
 ```
 ## wine-de
 
