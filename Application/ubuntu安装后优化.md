@@ -49,22 +49,54 @@ sudo apt-get update
 ```
 # 常用软件安装
 
+| 软件名               | 安装方式 | 说明              |
+| -------------------- | -------- | ----------------- |
+| git                  | 常规     | 版本管理          |
+| vlc                  | 常规     | 音视频播放器      |
+| unrar                | 常规     | 解压缩            |
+| gparted              | 常规     | 磁盘管理          |
+| nginx                | 常规     | 负载均衡          |
+| mongodb              | 常规     | NoSQL数据库       |
+| bleachbit            | 常规     | 清理记录          |
+| htop                 | 常规     | 查看资源占用      |
+| openssh-server       | 常规     | ssh连接           |
+| meld                 | 常规     | 代码对比          |
+| vpnc                 | 常规     | vpn客户端         |
+| chrome               | deb      | 浏览器            |
+| vim                  | 加仓     | 编辑器            |
+| typora               | 加仓     | 编辑器            |
+| R                    | 加仓     | R语言             |
+| mysql                | 常规     | 关系型数据库      |
+| redis                | 加仓     | key-value数据库   |
+| wine-de              | 加仓     | windows环境       |
+| Thunderbird          | 加仓     | 邮件客户端        |
+| gimp                 | 加仓     | 图片编辑器        |
+| indicator-sysmonitor | 加仓     | 电脑监控客户端    |
+| remarkable           | 加仓     | 编辑器            |
+| Nodepadqq            | 加仓     | 编辑器            |
+| pycharm              | deb      | pythonIDE         |
+| visualStudioCode     | deb      | 编辑器            |
+| sogou                | deb      | 输入法            |
+| opera                | deb      | 浏览器            |
+| dbeaver              | deb      | 数据库管理客户端  |
+| navicat              | tar      | 数据库管理客户端  |
+| postman              | tar      | 接口请求工具      |
+| robo3t               | tar      | mongodb管理客户端 |
+| wps                  | deb      | office            |
+| polipo               |          |                   |
+| ss-qt5               |          |                   |
+| pac manager          |          |                   |
+| gdb-dashboard        |          |                   |
+| vmware               |          |                   |
+
 ## 常规安装
 ```
-sudo apt-get install git vlc unrar gparted nginx mongodb bleachbit htop openssh-server meld
+sudo apt-get install git vpnc vlc unrar gparted nginx mongodb bleachbit htop openssh-server meld
 ```
 
-## chrome
+## 添加仓库
 
-```
-wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb 
-sudo apt-get install libappindicator1 libindicator7 
-sudo dpkg -i google-chrome-stable_current_amd64.deb 
-# 自动安装依赖
-$ sudo apt-get -f install 
-```
-
-## vim
+vim
 
 ```
 sudo add-apt-repository ppa:jonathonf/vim
@@ -72,14 +104,17 @@ sudo apt update
 sudo apt install vim ctags vim-doc
 ```
 
-## typora
+typora
+
 ```
 sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys BA300B7755AFCFAE
 sudo add-apt-repository 'deb http://typora.io linux/'
 sudo apt-get update
 sudo apt-get install typora
 ```
-## R
+
+R
+
 ```
 sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E084DAB9
 sudo sh -c "echo deb http://mirror.bjtu.edu.cn/cran/bin/linux/ubuntu precise/ >>/etc/apt/sources.list"
@@ -87,15 +122,122 @@ sudo apt-get install r-base
 sudo apt-get install r-base-dev
 sudo apt-get update
 ```
-## pycharm
+mysql
+
+```
+sudo apt-get install mysql-server
+sudo apt-get install libmysqld-dev 
+sudo apt-get install libmysqlclient-dev 
+```
+redis
+
+```
+sudo apt-get install software-properties-common
+sudo apt-add-repository ppa:chris-lea/redis-server
+sudo apt-get update
+sudo apt-get install redis-server
+```
+wine-de
+
+```
+sudo add-apt-repository ppa:wine/wine-builds
+sudo apt-get update
+sudo apt-get install wine-devel
+sudo apt install winehq-devel
+```
+
+Thunderbird
+
+```
+sudo add-apt-repository ppa:ubuntu-mozilla-security/ppa
+sudo apt-get update
+sudo apt-get install thunderbird
+```
+
+gimp
+
+```
+# 安装
+sudo add-apt-repository ppa:otto-kesselgulasch/gimp
+sudo apt-get update
+sudo apt-get install gimp
+# 卸载(可选)
+sudo apt-get install ppa-purge
+sudo ppa-purge ppa:otto-kesselgulasch/gimp
+```
+
+indicator-sysmonitor
+
+```
+sudo add-apt-repository ppa:fossfreedom/indicator-sysmonitor 
+sudo apt-get update 
+sudo apt-get install indicator-sysmonitor
+```
+remarkable
+
+```
+wget https://remarkableapp.github.io/files/remarkable_1.87_all.deb
+sudo dpkg -i remarkable_1.87_all.deb
+sudo apt-get -f install 
+```
+
+Nodepadqq
+
+```
+sudo add-apt-repository ppa:notepadqq-team/notepadqq
+sudo apt-get update
+sudo apt-get install notepadqq
+```
+
+pycharm
+
 ```
 sudo add-apt-repository ppa:mystic-mirage/pycharm
 sudo apt update
 sudo apt install pycharm-community
 ```
-设置快捷键
+
+## 安装deb
+- 下载deb
+> 官网下载
 
 ```
+visualStudioCode
+sogou
+opera
+dbeaver
+```
+> 下载工具
+
+chrome
+
+```
+wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb 
+sudo apt-get install libappindicator1 libindicator7 
+```
+
+- 安装
+```
+sudo dpkg -i 安装包名字
+```
+- 修复依赖项
+```
+sudo apt-get -f install
+```
+## 使用tar
+- 管网下载
+```
+pycharm
+navicat
+robo3t
+postman
+```
+- 配置信息
+
+pycharm
+
+```
+# 设置快捷键
 # 方法一：建立软链接(可添加启动器)
 sudo ln -s bin/pycharm.sh的文件目录 /usr/bin/pycharm
 # 方法二：使用快捷图标(可添加启动器)
@@ -112,75 +254,9 @@ sudo gedit /usr/share/applications/Pycharm.desktop
 sudo chmod +x /usr/share/applications/pycharm.desktop
 ```
 
-## mysql
+## 其他软件
 
-```
-sudo apt-get install mysql-server
-sudo apt-get install libmysqld-dev 
-sudo apt-get install libmysqlclient-dev 
-```
-## redis
-
-```
-sudo apt-get install software-properties-common
-sudo apt-add-repository ppa:chris-lea/redis-server
-sudo apt-get update
-sudo apt-get install redis-server
-```
-## 官网下载deb包
-- 官网下载
-```
-visualStudioCode
-sogou
-opera
-dbeaver
-```
-- 安装
-```
-sudo dpkg -i 安装包名字
-```
-- 修复依赖项
-```
-sudo apt-get -f install
-```
-## wine-de
-
-```
-sudo add-apt-repository ppa:wine/wine-builds
-sudo apt-get update
-sudo apt-get install wine-devel
-sudo apt install winehq-devel
-```
-
-## Thunderbird
-
-```
-sudo add-apt-repository ppa:ubuntu-mozilla-security/ppa
-sudo apt-get update
-sudo apt-get install thunderbird
-```
-
-## gimp
-
-```
-# 安装
-sudo add-apt-repository ppa:otto-kesselgulasch/gimp
-sudo apt-get update
-sudo apt-get install gimp
-# 卸载(可选)
-sudo apt-get install ppa-purge
-sudo ppa-purge ppa:otto-kesselgulasch/gimp
-```
-
-## indicator-sysmonitor
-
-```
-sudo add-apt-repository ppa:fossfreedom/indicator-sysmonitor 
-sudo apt-get update 
-sudo apt-get install indicator-sysmonitor
-```
-
-## wps
+### wps
 
 ```
 # 官网下载wps..
@@ -198,21 +274,7 @@ sudo fc-cache
 # 4. 重启wps即可，字体缺失的提示不再出现。
 ```
 
-## remarkable
-
-```
-wget https://remarkableapp.github.io/files/remarkable_1.87_all.deb
-sudo dpkg -i remarkable_1.87_all.deb
-sudo apt-get -f install 
-```
-## Nodepadqq
-```
-sudo add-apt-repository ppa:notepadqq-team/notepadqq
-sudo apt-get update
-sudo apt-get install notepadqq
-```
-
-## polipo
+### polipo
 
 socket5代理转换为http
 
@@ -236,7 +298,7 @@ alias https_proxy='export https_proxy=http://127.0.0.1:8787/'
 # 生效配置
 $ source .bashrc 
 ```
-## ss-qt5
+### ss-qt5
 ```
 # 安装curl
 $ sudo apt install curl
@@ -251,18 +313,14 @@ $ http_proxy
 $ https_proxy
 $ curl http://ip.cn
 ```
-## pac manager（xshell替代）
+### pac manager（xshell替代）
 ```
 $ wget https://astuteinternet.dl.sourceforge.net/project/pacmanager/pac-4.0/pac-4.5.5.7-all.deb
 $ sudo dpkg -i pac-4.5.5.7-all.deb 
 $ sudo apt-get install -f
 $ sudo apt-get install libgtk2-appindicator-perl
 ```
-## vpnc
-```
-sudo apt-get install git vpnc
-```
-## gdb-dashboard
+### gdb-dashboard
 ```
 wget -P ~ git.io/.gdbinit
 mv ~/.gdbinit ~/.gdb-dashboard
@@ -270,7 +328,7 @@ mv ~/.gdbinit ~/.gdb-dashboard
 (gdb) source ~/.gdb-dashboard
 # 也可以直接修改~/.gdbinit,加入source ~/.gdb-dashboard使gdb在载入时自动加载gdb-dashboard
 ```
-## VMWare
+### VMWare
 ```
 # 永久许可证秘钥： 
 注：如果是WinXP或32位系统请用 10.0 版本；11.0 版本之后支持Win7或更高版64位系统。
