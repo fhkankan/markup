@@ -341,7 +341,7 @@ import axios from 'axios'
 
 ### 使用
 
-> get
+#### get
 
 ```js
 // 向具有指定ID的用户发出请求
@@ -367,7 +367,7 @@ axios.get('/user', {
 });
 ```
 
-> post
+#### post
 
 ```js
 axios.post('/user', {
@@ -382,7 +382,7 @@ axios.post('/user', {
 });
 ```
 
-> 多个并发
+#### 多个并发
 
 ```js
 function getUserAccount() {
@@ -401,7 +401,7 @@ axios.all([getUserAccount(), getUserPermissions()])
 
 ### API
 
-> 常规使用
+#### 常规使用
 
 ```js
 axios(config)
@@ -420,7 +420,7 @@ axios(url[, config])
 axios('/user/12345');
 ```
 
-> 请求方法别名
+#### 请求方法别名
 
 ```js
 //为了方便起见，已经为所有支持的请求方法提供了别名。
@@ -434,7 +434,7 @@ axios.patch（url [，data [，config]]）
 //注意:当使用别名方法时，不需要在config中指定url，method和data属性。
 ```
 
-> 并发
+#### 并发
 
 帮助函数处理并发请求。
 
@@ -442,6 +442,8 @@ axios.patch（url [，data [，config]]）
 axios.all（iterable）
 axios.spread（callback）
 ```
+
+#### 实例
 
 > 创建实例
 
@@ -470,7 +472,7 @@ axios＃put（url [，data [，config]]）
 axios＃patch（url [，data [，config]]）
 ```
 
-> 请求配置
+#### 请求配置
 
 这些是用于发出请求的可用配置选项。 只有url是必需的。 如果未指定方法，请求将默认为GET
 
@@ -621,7 +623,7 @@ console.log(response.config);
 });
 ```
 
-> 配置默认值
+#### 配置默认值
 
 全局axios默认值
 
@@ -661,7 +663,7 @@ instance.get（'/ longRequest'，{
 }）;
 ```
 
-> 拦截器
+#### 拦截器
 
 可以截取请求或响应在被 then 或者 catch 处理之前
 
@@ -700,7 +702,7 @@ var instance = axios.create();
 instance.interceptors.request.use(function () {/*...*/});
 ```
 
-> 处理错误
+#### 处理错误
 
 ```
 axios.get（'/ user / 12345'）
@@ -729,7 +731,7 @@ axios.get（'/ user / 12345'，{
 }）
 ```
 
-> 消除
+#### 消除
 
 可以使用取消令牌取消请求
 
@@ -772,7 +774,7 @@ clear();
 
 注意：您可以使用相同的取消令牌取消几个请求
 
-> 使用application / x-www-form-urlencoded格式
+#### 使用application / x-www-form-urlencoded格式
 
 默认情况下，axios将JavaScript对象序列化为JSON。 要以应用程序/ x-www-form-urlencoded格式发送数据，您可以使用以下选项之一
 
@@ -807,4 +809,4 @@ import axios from 'axios';
 axios.get('/user?ID=12345');
 ```
 
-## 
+## vuex

@@ -368,7 +368,11 @@ git add .
 git commit -m "注释"
 
 3. 推送分支到服务器
-git push origin f1
+# 推送的分支远程服务器不存在
+git push origin f1(方法一)
+git push --set-upstream origin f1(方法二)
+# 推送的分支远程服务器存在
+git push
    
 4. 到github上查看，会看到有新增了分支
 ```
