@@ -341,7 +341,7 @@ import axios from 'axios'
 
 ### 使用
 
-#### get
+- get
 
 ```js
 // 向具有指定ID的用户发出请求
@@ -367,7 +367,7 @@ axios.get('/user', {
 });
 ```
 
-#### post
+- post
 
 ```js
 axios.post('/user', {
@@ -382,7 +382,7 @@ axios.post('/user', {
 });
 ```
 
-#### 多个并发
+- 多个并发
 
 ```js
 function getUserAccount() {
@@ -401,7 +401,7 @@ axios.all([getUserAccount(), getUserPermissions()])
 
 ### API
 
-#### 常规使用
+- 常规使用
 
 ```js
 axios(config)
@@ -420,7 +420,7 @@ axios(url[, config])
 axios('/user/12345');
 ```
 
-#### 请求方法别名
+- 请求方法别名
 
 ```js
 //为了方便起见，已经为所有支持的请求方法提供了别名。
@@ -434,7 +434,7 @@ axios.patch（url [，data [，config]]）
 //注意:当使用别名方法时，不需要在config中指定url，method和data属性。
 ```
 
-#### 并发
+- 并发
 
 帮助函数处理并发请求。
 
@@ -443,7 +443,7 @@ axios.all（iterable）
 axios.spread（callback）
 ```
 
-#### 实例
+- 实例
 
 > 创建实例
 
@@ -472,7 +472,7 @@ axios＃put（url [，data [，config]]）
 axios＃patch（url [，data [，config]]）
 ```
 
-#### 请求配置
+- 请求配置
 
 这些是用于发出请求的可用配置选项。 只有url是必需的。 如果未指定方法，请求将默认为GET
 
@@ -623,7 +623,7 @@ console.log(response.config);
 });
 ```
 
-#### 配置默认值
+- 配置默认值
 
 全局axios默认值
 
@@ -663,7 +663,7 @@ instance.get（'/ longRequest'，{
 }）;
 ```
 
-#### 拦截器
+- 拦截器
 
 可以截取请求或响应在被 then 或者 catch 处理之前
 
@@ -702,7 +702,7 @@ var instance = axios.create();
 instance.interceptors.request.use(function () {/*...*/});
 ```
 
-#### 处理错误
+- 处理错误
 
 ```
 axios.get（'/ user / 12345'）
@@ -731,7 +731,7 @@ axios.get（'/ user / 12345'，{
 }）
 ```
 
-#### 消除
+- 消除
 
 可以使用取消令牌取消请求
 
@@ -774,7 +774,7 @@ clear();
 
 注意：您可以使用相同的取消令牌取消几个请求
 
-#### 使用application / x-www-form-urlencoded格式
+- 使用application / x-www-form-urlencoded格式
 
 默认情况下，axios将JavaScript对象序列化为JSON。 要以应用程序/ x-www-form-urlencoded格式发送数据，您可以使用以下选项之一
 
@@ -810,3 +810,38 @@ axios.get('/user?ID=12345');
 ```
 
 ## vuex
+
+[官网](https://vuex.vuejs.org/zh/installation.html)
+
+Vuex 是一个专为 Vue.js 应用程序开发的**状态管理模式**。它采用集中式存储管理应用的所有组件的状态，并以相应的规则保证状态以一种可预测的方式发生变化。Vuex 也集成到 Vue 的官方调试工具 [devtools extension](https://github.com/vuejs/vue-devtools)，提供了诸如零配置的 time-travel 调试、状态快照导入导出等高级调试功能
+
+### 安装
+
+> 引用
+
+```html
+<script src="/path/to/vue.js"></script>
+<script src="/path/to/vuex.js"></script>
+```
+
+> npm
+
+```sh
+npm install vuex --save
+```
+
+在一个模块化的打包系统中，您必须显式地通过 `Vue.use()` 来安装 Vuex：
+
+```js
+import Vue from 'vue'
+import Vuex from 'vuex'
+
+Vue.use(Vuex)
+```
+
+### 使用场景
+
+如果您不打算开发大型单页应用，使用 Vuex 可能是繁琐冗余的。确实是如此——如果您的应用够简单，您最好不要使用 Vuex。一个简单的 [store 模式](https://cn.vuejs.org/v2/guide/state-management.html#%E7%AE%80%E5%8D%95%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86%E8%B5%B7%E6%AD%A5%E4%BD%BF%E7%94%A8)就足够您所需了。但是，如果您需要构建一个中大型单页应用，您很可能会考虑如何更好地在组件外部管理状态，Vuex 将会成为自然而然的选择
+
+
+
