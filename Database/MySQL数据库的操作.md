@@ -16,6 +16,8 @@ sudo service mysql restart
 mysql --help
 # 基本连接
 mysql -uroot -pmysql
+# 远程连接
+mysql -h 192.168.5.400 -uroot -pmysql -P 5001
 # 退出
 quit/exit/ctrl+d
 ```
@@ -246,6 +248,33 @@ insert into students(name,hometown) values('黄蓉','桃花岛');
 insert into classes values(0,'python1'),(0,'python2');
 # 插入select语句
 insert into  classes select clas_id from students where id=3;
+# 多行多列插入(字段需一致)
+INSERT INTO TPersonnelChange(
+    UserId,
+    DepId,
+    SubDepId,
+    PostionType,
+    AuthorityId,
+    ChangeDateS,
+    InsertDate,
+    UpdateDate,
+    SakuseiSyaId
+)SELECT
+    UserId,
+    DepId,
+    SubDepId,
+    PostionType,
+    AuthorityId,
+    DATE_FORMAT(EmployDate, '%Y%m%d'),
+    NOW(),
+    NOW(),
+    1
+FROM
+    TUserMst
+WHERE
+    `Status` = 0
+AND QuitFlg = 0
+AND UserId > 2
 ```
 
 ## 改
@@ -348,6 +377,7 @@ select min(字段名) from 表名;
 select max(字段名) from 表名;
 select avg(字段名) from 表名;
 select count(字段名) from 表名;
+select sum(字段名) from 表名;
 ```
 
 ###条件查询运算符
