@@ -13,7 +13,7 @@
 
   2. 在setting.py中配置静态目录
 
-```
+```python
 # 通过此url来引用静态文件，可以隐藏服务器的文件的实际保存目录
 STATIC_URL = '/abc/'
 
@@ -50,7 +50,62 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
 ## 权限认证
 
+[参考](https://www.cnblogs.com/wangwei916797941/p/7398934.html)
 
+在Django的世界中，在权限管理中有内置的Authentication系统。用来管理帐户，组，和许可。还有基于cookie的用户session。
+Django内置的权限系统包括以下三个部分：
+
+```
+1. 用户（Users）
+2. 许可（Permissions）：用来定义一个用户（user）是否能够做某项任务（task）
+3. 组（Groups）：一种可以批量分配许可到多个用户的通用方式
+```
+使用组件
+```
+1. 将'django.contrib.auth'和'django.contrib.contenttypes'放到settings.py中的INSTALLED_APPS中。（使用contenttypes的原因是auth中的Permission模型依赖于contenttypes）
+2. 执行manage.py syncdb
+3. 装豪就可以使用了
+```
+执行manage.py shell来启动脚本，对其中的一些API进行学习和使用。
+### USer模型
+User模型对应于一个用户，一个帐户，位于'django.contrib.auth.models'模块中。
+User对象有两个多对多的属性分别是：groups和user_permissions：
+```
+>>>from django.contrib.auth.models import User
+>>>es = User.objects.create_user('esperyong','esperyong@gmail.com','123456')
+>>>es.groups
+<django.db.models.fields.related.ManyRelatedManager at 0x10d0642d0>
+>>>es.user_permissions
+<django.db.models.fields.related.ManyRelatedManager at 0x10d014c50>
+```
+使用
+```
+# 直接将一个列表赋值给该属性：
+es.groups = [group_list]
+es.user_permissions = [permission_list]
+# 使用add方法将对象加入：
+es.groups.add(group, group, ...)
+es.user_permissions.add(permission, permission, ...)
+# 使用remove方法将对象删除：
+es.groups.remove(group, group, ...)
+es.user_permissions.remove(permission, permission, ...)
+# 使用clear方法将所有对象删除：
+es.groups.clear()
+es.user_permissions.clear()
+```
+User对象属性
+```
+username:字符串类型。必填。30个字符以内。
+first_name:字符串类型。可选。30个字符以内。
+last_name:字符串类型。可选。30个字符以内。
+email:可选。
+password:明文密码的hash或者是某种元数据。该属性不应该直接赋值明文密码，而应该通过set_password()方法进行赋值，在后面有详细说明TODO。
+is_staff:Boolean类型。用这个来判断是否用户可以登录进入admin site。
+is_active:Boolean类型。用来判断该用户是否是可用激活状态。在删除一个帐户的时候，可以选择将这个属性置为False，而不是真正删除。这样如果应用有外键引用到这个用户，外键就不会被破坏。
+is_superuser:Boolean类型。该属性用来表示该用户拥有所有的许可，而无需明确的赋予给他。
+last_login:datetime类型。最近一次登陆时间。
+date_joined：datetime类型。创建时间。
+```
 
 ## 会话状态保存
 
