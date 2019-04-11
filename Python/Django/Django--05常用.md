@@ -48,6 +48,10 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 	</body>
 	</html>
 
+## 权限认证
+
+
+
 ## 会话状态保存
 
 - 浏览器请求服务器是无状态的： 无状态指一次用户请求时，浏览器、服务器无法知道之前这个用户做过什么，每次请求都是一次新的请求。无状态的应用层面的原因是：浏览器和服务器之间的通信都遵守HTTP协议。根本原因是：浏览器与服务器是使用Socket套接字进行通信的，服务器将请求结果返回给浏览器之后，会关闭当前的Socket连接，而且服务器也会在处理页面完毕之后销毁页面对象。
@@ -57,20 +61,22 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
 ### Cookie
 
-#### 介绍
+- 介绍
 
-- **Cookie是由服务器生成的，存储在浏览器端的少量数据(键值对)**
+```
+- Cookie是由服务器生成的，存储在浏览器端的少量数据(键值对)
 - 服务器生成Cookie后，会在响应请求时发送Cookie数据给浏览器，浏览器接收到后会自动保存
-- **浏览器再次请求服务器时，会自动上传该服务器生成的所有的Cookie**
-- **Cookie是有过期时间的，默认关闭浏览器之后Cookie就会过期** 
+- 浏览器再次请求服务器时，会自动上传该服务器生成的所有的Cookie
+- Cookie是有过期时间的，默认关闭浏览器之后Cookie就会过期
 - 每个域名下保存的Cookie的个数是有限制的，不同浏览器保存的个数不一样；
 - 每个Cookie保存的数据大小是有限制的，不同的浏览器保存的数据大小不一样；
 - Cookie是基于域名安全的： 
   - Cookie的存储是以域名的方式进行区分的； 
   - 每个网站只能读取自己生成的Cookie，而无法读取其它网站生成的Cookie； 
   - 浏览器请求某个网站时，会自动携带该网站所有的Cookie数据给服务器，但不会携带其它网站生成的Cookie数据。
+```
 
-#### 操作
+- 操作
 
 ```python
 # 读取数据
@@ -93,21 +99,22 @@ response.delete_cookie(key)
 
 ### Session
 
-#### 介绍
+- 介绍
 
-- 一些重要敏感的数据（银行卡账号，余额，验证码...），应该存储在服务器端，而不是存储在浏览器，**这种在服务器端进行状态数据保存的方案就是Session**
-- **Session的使用依赖于Cookie**，如果浏览器不能保存Cookie，那么Session则失效了
+```
+- 一些重要敏感的数据（银行卡账号，余额，验证码...），应该存储在服务器端，而不是存储在浏览器，这种在服务器端进行状态数据保存的方案就是Session
+- Session的使用依赖于Cookie，如果浏览器不能保存Cookie，那么Session则失效了
 - django项目有session模块，默认开启session功能，会自动存储session数据到数据库表中
 - Session也是有过期时间的，如果不指定，默认两周就会过期
-
-#### 启动
-
-```
-在django项目中，session功能默认是开启的；要禁用session功能，则可禁用session中间件：
-
 ```
 
-#### 存储
+- 启动
+
+```
+在django项目中，session功能默认是开启的；要禁用session功能，则可禁用session中间件
+```
+
+- 存储
 
 Session数据可以存储在数据库、内存、Redis等，可以通过在项目的setting.py中设置SESSION_ENGINE项，指定Session数据存储的方式。
 
@@ -154,7 +161,7 @@ SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 SESSION_CACHE_ALIAS = "default"
 ```
 
-#### 操作
+- 操作
 
 ```python
 # 写session数据（键值对）
@@ -1032,8 +1039,6 @@ html
 </body>
 </html>
 ```
-
-
 
 
 ## 分页功能

@@ -396,3 +396,18 @@ sudo apt-get install ntpdate
 sudo ntpdate time.windows.com
 sudo hwclock --localtime --systohc
 ```
+
+# 系统镜像
+
+cubic
+
+```
+可对官方镜像做软件的删除、增加，再生成iso
+```
+
+systemback
+
+```
+可对当前系统做备份和封装成iso安装镜像
+```
+
