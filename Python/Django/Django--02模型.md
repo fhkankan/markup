@@ -59,6 +59,8 @@ python manage.py migrate
 
 ### 连接旧有数据库(mysql)
 
+- 自动生成模型类
+
 操作流程
 
 ```python
@@ -107,15 +109,73 @@ python manage.py migrate
 - 外键检测仅对PostgreSQL,还有MySQL表中的某些特定类型生效。 至于其他数据库,外键字段将在假定其为INT列的情况下被自动生成为IntegerField。
 ```
 
-与认证系统的整合
+- 手动写模型类
 
+操作流程
+
+```python
+1.在django中配置数据信息
+1)、修改setting.py
+DATABASES = {
+    'default': {
+        # 'ENGINE': 'django.db.backends.sqlite3',
+        # 'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        # 配置mysql数据库
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': "db_django01",
+        'USER': "root",
+        'PASSWORD': "mysql",
+        'HOST': "localhost",
+        'PORT': 3306,
+    }
+}
+
+2. 手动写相应的模型类
+# 注意：字段名和表名要和数据库中一致
+from django.db import models
+
+class ReportDownload(models.Model):
+    TYPE_CHOICES = (
+        ('pay_jms', '加盟奖励确认'),
+        ('pay_bonus', '加盟奖励确认'),
+        ('pay_stu', '学生缴费明细'),
+        ('pay_order', '加盟商订单查询')
+    )
+    user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+    type = models.CharField(choices=TYPE_CHOICES, max_length=20, default='')
+    url = models.CharField('文件下载地址（绝对地址）', max_length=200)
+    add_time = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "report_download"
 ```
 
+## 模型类
+
+```python
+#定义图书模型类BookInfo
+class BookInfo(models.Model):
+    btitle = models.CharField(max_length=20)#图书名称
+    bpub_date = models.DateField()#发布日期
+    bread = models.IntegerField(default=0)#阅读量
+    bcomment = models.IntegerField(default=0)#评论量
+    isDelete = models.BooleanField(default=False)#逻辑删除
+    class Meta:
+      db_table = 'book_info'  # 表名
+      
+      
+#定义英雄模型类HeroInfo
+class HeroInfo(models.Model):
+    hname = models.CharField(max_length=20)#英雄姓名
+    hgender = models.BooleanField(default=True)#英雄性别
+    isDelete = models.BooleanField(default=False)#逻辑删除
+    hcomment = models.CharField(max_length=200)#英雄描述信息
+    hbook = models.ForeignKey('BookInfo')#英雄与图书表的关系为一对多，所以属性定义在英雄模型类中
+    class Meta:
+      db_table = 'hero_info'  # 表名
 ```
 
-
-
-## 字段类型和选项
+### 字段
 
 ```
 在模型类中，定义属性，生成对应的数据库表字段
@@ -126,7 +186,7 @@ python manage.py migrate
 不允许使用连续的下划线，这是由django的查询方式决定的。
 ```
 
-### 字段类型
+字段类型
 
 | 类型             | 说明                                                         |
 | ---------------- | ------------------------------------------------------------ |
@@ -148,7 +208,7 @@ python manage.py migrate
 
 **注意： 只要修改了表字段的类型，就需要重新生成迁移文件并执行迁移操作。**
 
-### 字段选项
+字段选项
 
 通过选项实现对数据库表字段的约束：
 
@@ -164,88 +224,16 @@ python manage.py migrate
 
 **null是数据库范畴的概念，blank是表单验证范畴的**
 
-### 数据库表名
+### 表
 
-模型类如果未指明表名，Django默认以 小写app应用名_小写模型类名 为数据库表名。
-可通过db_table 指明数据库表名。
+模型类如果未指明表名，Django默认以 `应用名小写_模型类名小写` 为数据库表名。
 
-```python
-class Department(models.Model):    
-		"""部门类"""
-		name = models.CharField(max_length=20)
-		class Meta(object):
-	    	"""指定表名"""
-	        db_table = "department"
-```
-
-### 主键
-
-django会为表创建自动增长的主键列，每个模型只能有一个主键列，如果使用选项设置某属性为主键列后django不会再创建自动增长的主键列。
-默认创建的主键列属性为id，可以使用pk代替，pk全拼为primary key。
-
-### 外键
-
-在设置外键时，需要通过**on_delete**选项指明主表删除数据时，对于外键引用表数据如何处理，在django.db.models中包含了可选常量：
-
-- **CASCADE** 级联，删除主表数据时连同一起删除外键表中数据
-
-- **PROTECT** 保护，通过抛出**ProtectedError**异常，来阻止删除主表中被外键应用的数据
-
-- **SET_NULL** 设置为NULL，仅在该字段null=True允许为null时可用
-
-- **SET_DEFAULT** 设置为默认值，仅在该字段设置了默认值时可用
-
-- **SET()** 设置为特定值或者调用特定方法，如
-
-  ```
-  from django.conf import settings
-  from django.contrib.auth import get_user_model
-  from django.db import models
-  
-  def get_sentinel_user():
-      return get_user_model().objects.get_or_create(username='deleted')[0]
-  
-  class MyModel(models.Model):
-      user = models.ForeignKey(
-          settings.AUTH_USER_MODEL,
-          on_delete=models.SET(get_sentinel_user),
-      )
-  ```
-
-- **DO_NOTHING** 不做任何操作，如果数据库前置指明级联性，此选项会抛出**IntegrityError**异常
-
-## 定义模型类
-
-```python
-#定义图书模型类BookInfo
-class BookInfo(models.Model):
-    btitle = models.CharField(max_length=20)#图书名称
-    bpub_date = models.DateField()#发布日期
-    bread = models.IntegerField(default=0)#阅读量
-    bcomment = models.IntegerField(default=0)#评论量
-    isDelete = models.BooleanField(default=False)#逻辑删除
-
-#定义英雄模型类HeroInfo
-class HeroInfo(models.Model):
-    hname = models.CharField(max_length=20)#英雄姓名
-    hgender = models.BooleanField(default=True)#英雄性别
-    isDelete = models.BooleanField(default=False)#逻辑删除
-    hcomment = models.CharField(max_length=200)#英雄描述信息
-    hbook = models.ForeignKey('BookInfo')#英雄与图书表的关系为一对多，所以属性定义在英雄模型类中
-```
-
-## Meta元选项
+可以通过Meta类来指定数据库表名。若是迁移的，需重新生成迁移文件，并进行生成表
 
 Meta类主要处理的是关于模型的各种元数据的使用和显示。
 
 如：对象的名显示，查询数据库表的默认排序顺序，数据表的名字
 
-- Django默认生成的表名：
-
-  应用名小写_模型类名小写
-
-- 可以通过在模型类中定义Meta类来修改表名：
-
 ```python
 class Department(models.Model):    
 		"""部门类"""
@@ -255,9 +243,45 @@ class Department(models.Model):
 	        db_table = "department"
 ```
 
-- 需重新生成迁移文件，并进行生成表
+### 键
 
-## Admin选项
+- 主键
+
+django会为表创建自动增长的主键列，每个模型只能有一个主键列，如果使用选项设置某属性为主键列后django不会再创建自动增长的主键列。
+
+默认创建的主键列属性为id，可以使用pk代替，pk全拼为primary key。
+
+- 外键
+
+在设置外键时，需要通过`on_delete`选项指明主表删除数据时，对于外键引用表数据如何处理，在django.db.models中包含了可选常量：
+
+| name        | desc                                                         |
+| ----------- | ------------------------------------------------------------ |
+| DO_NOTHING  | 不做任何操作，如果数据库前置指明级联性，此选项会抛出IntegrityError异常 |
+| CASCADE     | 级联，删除主表数据时连同一起删除外键表中数据                 |
+| PROTECT     | 保护，通过抛出ProtectedError异常，来阻止删除主表中被外键应用的数据 |
+| SET_NULL    | 设置为NULL，仅在该字段null=True允许为null时可用              |
+| SET_DEFAULT | 设置为默认值，仅在该字段设置了默认值时可用                   |
+| SET()       | 设置为特定值或者调用特定方法                                 |
+
+`set()`方法
+
+```python
+from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.db import models
+
+def get_sentinel_user():
+    return get_user_model().objects.get_or_create(username='deleted')[0]
+
+class MyModel(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET(get_sentinel_user),
+    )
+```
+
+### Admin选项
 
 注册模型和自定义显示
 
@@ -294,182 +318,130 @@ js:添加js
 save_on_top:
 ```
 
-## 迁移生成
+### 方法属性
+
+方法
 
 ```python
-# 生成数据库表
-python manage.py makemigrations
-python manage.py migrate
+str()			# 在将对象转换成字符串时会被调用。
+
+save()		# 将模型对象保存到数据表中，ORM框架会转换成对应的insert或update语句。
+
+delete()	# 将模型对象从数据表中删除，ORM框架会转换成对应的delete语句。
 ```
-## 查看ORM语句
 
+属性
+
+```python
+objects		# 管理器，是models.Manager类型的对象，用于与数据库进行交互。
+					# 当没有为模型类定义管理器时，Django会为每一个模型类生成一个名为objects的管理器，自定义管理器后，Django不再生成默认管理器objects。
+
+model  		# 在管理器中，可以通过self.model属性，获取管理器所属的模型类，通过self.model()则可以创建模型类对象
 ```
-方法一：
-ret = BookInfo.objects.all()
-print(ret.query)
 
-
-方法二：
-可以通过查看mysql的日志文件，了解Django ORM 生成出来的sql语句。
-
-1、打开mysqld.cnf文件，打开68 69两行的注释：
-sudo vi /etc/mysql/mysql.conf.d/mysqld.cnf
-2、重启mysql服务
-sudo service mysql restart
-3、查看mysql日志文件的内容
-sudo tail -f /var/log/mysql/mysql.log
-tail命令: 默认会显示文件的末尾，会自动刷新显示文件最新内容。退出可按ctrl+c
-```
 ## ORM查询
-
-每个模型类默认都有一个叫 objects 的类属性，它由django自动生成，类型为： `django.db.models.manager.Manager`，可以把它叫 模型管理器;
-
-objects模型管理器中提供了一些查询数据的方法： 
-
-| objects管理器中的方法      | 返回类型 | 作用                                                         |
-| -------------------------- | -------- | ------------------------------------------------------------ |
-| 模型类.objects.get()       | 模型对象 | 返回一个对象，且只能有一个: <br>如果查到多条数据，则报：MultipleObjectsReturned <br>如果查询不到数据，则报：DoesNotExist |
-| 模型类.objects.aggregate() | 字典     | 进行聚合操作                                                 |
-| 模型类.objects.count()     | 数字     | 返回查询集中对象的数目                                       |
-| 模型类.objects.filter()    | QuerySet | 返回满足条件的对象                                           |
-| 模型类.objects.all()       | QuerySet | 返回所有的对象，使用for循环可获取结果                        |
-| 模型类.objects.exclude()   | QuerySet | 返回不满条件的对象                                           |
-| 模型类.objects.order_by()  | QuerySet | 对查询结果集进行排序 <br>`Book.objects.order_by('id')` 升序<br>`book.objects.order_by('-id')`降序 |
-
-### QuerySet
-
-查询集表示从数据库中获取的对象集合，在管理器上调用某些过滤器方法会返回查询集，查询集可以含有零个、一个或多个过滤器。过滤器基于所给的参数限制查询的结果，从Sql的角度，查询集和select语句等价，过滤器像where和limit子句。
-
-- 过滤器
-
-获取多对象的过滤器
-
-```
-all()：返回所有数据。
-filter()：返回满足条件的数据。
-exclude()：返回满足条件之外的数据，相当于sql语句中where部分的not关键字。
-order_by()：对结果进行排序。
-```
-
-获取单对象的过滤器
-
-```
-get()：返回单个满足条件的对象
-	如果未找到会引发"模型类.DoesNotExist"异常。
-	如果多条被返回，会引发"模型类.MultipleObjectsReturned"异常。
-count()：返回当前查询结果的总条数。
-aggregate()：聚合，返回一个字典。
-```
-
-判断是空对象过滤器
-
-```
-exists()：判断查询集中是否有数据，如果有则返回True，没有则返回False。
-```
-
-获取具体对象属性值的过滤器
-
-```
-values()  # 返回所有查询对象指定属性的值(字典格式)
-values_list()  # 返回所有查询对象指定属性的值(元组格式)
-```
-
-- 方法
-
-```
-调用模型管理器的all, filter, exclude, order_by方法会产生一个QuerySet，可以在QuerySet上继续调用这些方法，比如：
-
-Employee.objects.filter(id__gt=3).order_by('-age')
-QuerySet可以作取下标操作, 注意：下标不允许为负数:
-b[0]
-取出QuerySet的第一条数据,
-不存在会抛出IndexError异常
-
-# QuerySet的方法
-QuerySet的get()方法
-取出QuerySet的唯一一条数据
-QuerySet不存在数据，会抛出： DoesNotExist异常
-QuerySet存在多条数据，会抛出：MultiObjectsReturned异常
-```
-
-- 特性
-
-```
-惰性查询：创建查询集不会访问数据库，直到调用数据时，才会访问数据库，调用数据的情况包括迭代、序列化、与if合用。
-
-缓存：第一次遍历使用了QuerySet中的所有的对象（比如通过 列表生成式 遍历了所有对象），则django会把数据缓存起来， 第2次再使用同一个QuerySet时，将会使用缓存。注意：使用索引或切片引用查询集数据，将不会缓存，每次都会查询数据库。
-```
-
-- 限制
-
-```
-对QuerySet可以取下标或作切片操作,
-切片操作会产生一个新的QuerySet，不会立即执行查询
-注意：下标不允许为负数。
-
-如果获取一个对象，直接使用[0]，等同于[0:1].get()，但是如果没有数据，[0]引发IndexError异常，[0:1].get()如果没有数据引发DoesNotExist异常。
-list=BookInfo.objects.all()[0:2]
-```
 
 [参考](https://blog.csdn.net/qq_34755081/article/details/82779489)
 
-### 常用方法
+### 概述
+
+每个模型类默认都有一个叫 objects 的类属性，它由django自动生成，类型为： `django.db.models.manager.Manager`，可以把它叫 模型管理器
+
+查询集表示从数据库中获取的对象集合，在管理器上调用某些过滤器方法会返回查询集，查询集可以含有零个、一个或多个过滤器。
+
+- 常用过滤器
 
 ```python
 all():                 # 查询所有结果 
-filter(**kwargs):      # 它包含了与所给筛选条件相匹配的对象
+filter(**kwargs):      # 它包含了与所给筛选条件相匹配的对象, 多参数时为AND关系
 get(**kwargs):         # 返回与所给筛选条件相匹配的对象，返回结果有且只有一个，如果符合筛选条件的对象超过一个或者没有都会抛出错误。
 exclude(**kwargs):     # 它包含了与所给筛选条件不匹配的对象
 values(*field):        # 返回一个ValueQuerySet——一个特殊的QuerySet，运行后得到的并不是一系列model的实例化对象，而是一个可迭代的字典序列
-values_list(*field):   # 它与values()非常相似，它返回的是一个元组序列，values返回的是一个字典序列 
-order_by(*field):      # 对查询结果排序
+values_list(*field, flat=False):   # 它与values()非常相似，它返回的是一个元组序列，values返回的是一个字典序列 
+order_by(*field):      # 对查询结果排序,默认升序，若是在字段前加'-',则降序
 reverse():             # 对查询结果反向排序，请注意reverse()通常只能在具有已定义顺序的QuerySet上调用(在model类的Meta中指定ordering或调用order_by()方法)。
-distinct():            # 从返回结果中剔除重复纪录(如果你查询跨越多个表，可能在计算QuerySet时得到重复的结果。此时可以使用distinct()，注意只有在PostgreSQL中支持按字段去重。)
+distinct(*field):            # 从返回结果中剔除重复纪录(如果你查询跨越多个表，可能在计算QuerySet时得到重复的结果。此时可以使用distinct()，注意只有在PostgreSQL中支持按字段去重。)
 count():               # 返回数据库中匹配查询(QuerySet)的对象数量。
 first():               # 返回第一条记录
 last():                # 返回最后一条记录 
 exists():              # 如果QuerySet包含数据，就返回True，否则返回False
 ```
 
-返回QuerySet对象
+获取多对象
 
-```
-all()
-filter()
-exclude()
-order_by()
-reverse()
-distinct()
-```
-
-特殊QuerySet
-
-```
-values() 				返回一个可迭代的字典序列
-values_list() 	返回一个可迭代的元祖序列
+```python
+all()   		# 返回所有数据。
+filter()    # 返回满足条件的数据。
+exclude() 	# 返回满足条件之外的数据，相当于sql语句中where部分的not关键字。
+order_by()	# 对结果进行排序。
+reverse()		# 对查询结果反向排序
+distinct()  # 从返回结果中剔除重复纪录
 ```
 
-返回具体对象
+获取单对象
 
-```
-get()
-first()
-last()
-```
-
-返回布尔值
-
-```
-exists()
+```python
+get()					# 返回单个满足条件的对象
+first()				# 获得第一条记录对象
+last()				# 获得最后一条记录对象
+count()				# 返回当前查询结果的总条数。
+aggregate()		# 聚合，返回一个字典。
 ```
 
-返回数字
+获取具体对象属性值的过滤器
+
+```python
+values()  			# 返回所有查询对象指定属性的值(字典格式)
+values_list()		# 返回所有查询对象指定属性的值(元组格式)
+values_list('id', flat=True)  # 返回值的列表
+```
+
+获取布尔值
+
+```python
+exists()  # 判断查询集中是否有数据，如果有则返回True，没有则返回False。
+```
+
+获取数字
+
+```python
+count()  # 返回数据库中匹配查询(QuerySet)的对象数量
+```
+
+- QuerySet方法
+
+多级调用
+
+```python
+# 调用模型管理器的all, filter, exclude, order_by方法会产生一个QuerySet，
+# 可以在QuerySet上继续调用这些方法
+Employee.objects.filter(id__gt=3).order_by('-age')
+```
+
+切片
+
+```python
+# QuerySet可以作取下标操作, 注意：下标不允许为负数:
+b[0]  # 取出QuerySet的第一条数据,不存在会抛出IndexError异常
+# 若想获得后几条记录，可使用reverse和切片
+my_queryset.reverse()[:5]
+```
+
+- 特性
+
+惰性查询
 
 ```
-count()
+创建查询集不会访问数据库，直到调用数据时，才会访问数据库，调用数据的情况包括迭代、序列化、与if合用。
 ```
 
-### 单表条件查询
+缓存
+
+```
+第一次遍历使用了QuerySet中的所有的对象（比如通过 列表生成式 遍历了所有对象），则django会把数据缓存起来， 第2次再使用同一个QuerySet时，将会使用缓存。注意：使用索引或切片引用查询集数据，将不会缓存，每次都会查询数据库。
+```
+
+### 单表条件
 ```
 模型类.objects.filter(模型类属性名__条件名 = 值)
 ```
@@ -717,6 +689,18 @@ from django.db.models import Avg, Sum, Max, Min, Count
 
 ### 分组查询
 
+```
+annotate(args, *kwargs)
+```
+
+使用提供的聚合表达式查询对象。
+
+表达式可以是简单的值、对模型（或任何关联模型）上的字段的引用或者聚合表达式（平均值、总和等）。
+
+annotate()的每个参数都是一个annotation，它将添加到返回的QuerySet每个对象中。
+
+- 示例
+
 按照部分分组求平均工资
 
 ```
@@ -917,151 +901,216 @@ cursor.execute("""SELECT * from auth_user where id = %s""", [1])
 row = cursor.fetchone()
 ```
 
-## QuerySets的API
+### API
 
-```python
-filter()	           # 过滤查询对象。
-exclude()	           # 排除满足条件的对象
-annotate()	         # 使用聚合函数
-order_by()	         # 对查询集进行排序
-reverse()	           # 反向排序
-distinct()	         # 对查询集去重
-values()	           # 返回包含对象具体值的字典的QuerySet
-values_list()	       # 与values()类似，只是返回的是元组而不是字典。
-dates()	             # 根据日期获取查询集
-datetimes()	         # 根据时间获取查询集
-none()	             # 创建空的查询集
-all()	               # 获取所有的对象
-union()	             # 并集
-intersection()	     # 交集
-difference()	       # 差集
-select_related()     # 附带查询关联对象
-prefetch_related()   # 预先查询
-extra()	             # 附加SQL查询
-defer()	             # 不加载指定字段
-only()	             # 只加载指定的字段
-using()	             # 选择数据库
-select_for_update()  # 锁住选择的对象，直到事务结束。
-raw()	               # 接收一个原始的SQL查询
-```
+````python
+##################################################################
+# PUBLIC METHODS THAT ALTER ATTRIBUTES AND RETURN A NEW QUERYSET #
+##################################################################
 
-- filter
+def all(self)
+    # 获取所有的数据对象
 
-```
-filter(**kwargs)
- 
-返回满足查询参数的对象集合。
- 
-查找的参数（**kwargs）应该满足下文字段查找中的格式。多个参数之间是和AND的关系。
- 
-Student.objects.filter(age__lt=10)#查询满足年龄小于10岁的所有学生对象
-```
+def filter(self, *args, **kwargs)
+    # 条件查询
+    # 条件可以是：参数，字典，Q
 
-- exclude
+def exclude(self, *args, **kwargs)
+    # 条件查询
+    # 条件可以是：参数，字典，Q
 
-```
-exclude(**kwargs)
- 
-返回一个新的QuerySet，它包含不满足给定的查找参数的对象
- 
-Student.objects.exclude(age__gt=20, name='lin')#排除所有年龄大于20岁且名字为“lin”的学员集
-```
+def select_related(self, *fields)
+    性能相关：表之间进行join连表操作，一次性获取关联的数据。
 
-- annotate
+    总结：
+    1. select_related主要针一对一和多对一关系进行优化。
+    2. select_related使用SQL的JOIN语句进行优化，通过减少SQL查询的次数来进行优化、提高性能。
 
-```
-nnotate(args, *kwargs)
- 
-使用提供的聚合表达式查询对象。
- 
-表达式可以是简单的值、对模型（或任何关联模型）上的字段的引用或者聚合表达式（平均值、总和等）。
- 
-annotate()的每个参数都是一个annotation，它将添加到返回的QuerySet每个对象中。
- 
-关键字参数指定的Annotation将使用关键字作为Annotation 的别名。 匿名参数的别名将基于聚合函数的名称和模型的字段生成。 只有引用单个字段的聚合表达式才可以使用匿名参数。 其它所有形式都必须用关键字参数。
- 
-例如，如果正在操作一个Blog列表，你可能想知道每个Blog有多少Entry：
->>> from django.db.models import Count
->>> q = Blog.objects.annotate(Count('entry'))
-# The name of the first blog
->>> q[0].name
-'Blogasaurus'
-# The number of entries on the first blog
->>> q[0].entry__count
-42
-```
+def prefetch_related(self, *lookups)
+    性能相关：多表连表操作时速度会慢，使用其执行多次SQL查询在Python代码中实现连表操作。
 
-- order_by
+    总结：
+    1. 对于多对多字段（ManyToManyField）和一对多字段，可以使用prefetch_related()来进行优化。
+    2. prefetch_related()的优化方式是分别查询每个表，然后用Python处理他们之间的关系。
 
-```
-order_by(*fields)
- 
-默认情况下，根据模型的Meta类中的ordering属性对QuerySet中的对象进行排序
-Student.objects.filter(school="阳关小学").order_by('-age', 'name')
-上面的结果将按照age降序排序，然后再按照name升序排序。"-age"前面的负号表示降序顺序。 升序是默认的。 要随机排序，使用"?"，如下所示：
-Student.objects.order_by('?')
-```
+def annotate(self, *args, **kwargs)
+    # 用于实现聚合group by查询
 
-- reverse
+    from django.db.models import Count, Avg, Max, Min, Sum
 
-```
-reverse()
- 
-反向排序QuerySet中返回的元素。 第二次调用reverse()将恢复到原有的排序。
- 
-如要获取QuerySet中最后五个元素，可以这样做：
- 
-my_queryset.reverse()[:5]
- 
-这与Python直接使用负索引有点不一样。 Django不支持负索引。
-```
+    v = models.UserInfo.objects.values('u_id').annotate(uid=Count('u_id'))
+    # SELECT u_id, COUNT(ui) AS `uid` FROM UserInfo GROUP BY u_id
 
-- distinct
+    v = models.UserInfo.objects.values('u_id').annotate(uid=Count('u_id')).filter(uid__gt=1)
+    # SELECT u_id, COUNT(ui_id) AS `uid` FROM UserInfo GROUP BY u_id having count(u_id) > 1
 
-```
-distinct(*fields)
- 
-去除查询结果中重复的行。
- 
-默认情况下，QuerySet不会去除重复的行。当查询跨越多张表的数据时，QuerySet可能得到重复的结果，这时候可以使用distinct()进行去重。
-```
+    v = models.UserInfo.objects.values('u_id').annotate(uid=Count('u_id',distinct=True)).filter(uid__gt=1)
+    # SELECT u_id, COUNT( DISTINCT ui_id) AS `uid` FROM UserInfo GROUP BY u_id having count(u_id) > 1
 
-- values
+def distinct(self, *field_names)
+    # 用于distinct去重
+    models.UserInfo.objects.values('nid').distinct()
+    # select distinct nid from userinfo
 
-```
-values(fields, *expressions)
- 
-返回一个包含数据的字典的queryset，而不是模型实例。
- 
-每个字典表示一个对象，键对应于模型对象的属性名称。如：
- 
-# 列表中包含的是Student对象
->>> Student.objects.filter(name__startswith='Lin')
-<QuerySet [<Student: Lin Student>]>
- 
-# 列表中包含的是数据字典
->>> Student.objects.filter(name__startswith='Lin').values()
-<QuerySet [{'id': 1, 'name': 'Linxiao', 'age': 20}]>
- 
-另外该方法接收可选的位置参数*fields，它指定values()应该限制哪些字段。如果指定字段，每个字典将只包含指定的字段的键/值。如果没有指定字段，每个字典将包含数据库表中所有字段的键和值。如下：
->>> Student.objects.filter(name__startswith='Lin').values()
-<QuerySet [{'id': 1, 'name': 'Linxiao', 'age': 20}]>
- 
->>> Blog.objects.values('id', 'name')
-<QuerySet [{'id': 1, 'name': 'Linxiao'}]>
-```
+    注：只有在PostgreSQL中才能使用distinct进行去重
 
-- values_list
+def order_by(self, *field_names)
+    # 用于排序
+    models.UserInfo.objects.all().order_by('-id','age')
 
-```
-values_list(*fields, flat=False)
- 
-与values()类似，只是在迭代时返回的是元组而不是字典。每个元组包含传递给values_list()调用的相应字段或表达式的值，因此第一个项目是第一个字段等。 像这样：
->>> Student.objects.values_list('id', 'name')
-<QuerySet [(1, 'Linxiao'), ...]>
-```
+def extra(self, select=None, where=None, params=None, tables=None, order_by=None, select_params=None)
+    # 构造额外的查询条件或者映射，如：子查询
+
+    Entry.objects.extra(select={'new_id': "select col from sometable where othercol > %s"}, select_params=(1,))
+    Entry.objects.extra(where=['headline=%s'], params=['Lennon'])
+    Entry.objects.extra(where=["foo='a' OR bar = 'a'", "baz = 'a'"])
+    Entry.objects.extra(select={'new_id': "select id from tb where id > %s"}, select_params=(1,), order_by=['-nid'])
+
+ def reverse(self):
+    # 倒序
+    models.UserInfo.objects.all().order_by('-nid').reverse()
+    # 注：如果存在order_by，reverse则是倒序，如果多个排序则一一倒序
 
 
+ def defer(self, *fields):
+    models.UserInfo.objects.defer('username','id')
+    或
+    models.UserInfo.objects.filter(...).defer('username','id')
+    #映射中排除某列数据
+
+ def only(self, *fields):
+    #仅取某个表中的数据
+     models.UserInfo.objects.only('username','id')
+     或
+     models.UserInfo.objects.filter(...).only('username','id')
+
+ def using(self, alias):
+     指定使用的数据库，参数为别名（setting中的设置）
+
+
+##################################################
+# PUBLIC METHODS THAT RETURN A QUERYSET SUBCLASS #
+##################################################
+
+def raw(self, raw_query, params=None, translations=None, using=None):
+    # 执行原生SQL
+    models.UserInfo.objects.raw('select * from userinfo')
+
+    # 如果SQL是其他表时，必须将名字设置为当前UserInfo对象的主键列名
+    models.UserInfo.objects.raw('select id as nid from 其他表')
+
+    # 为原生SQL设置参数
+    models.UserInfo.objects.raw('select id as nid from userinfo where nid>%s', params=[12,])
+
+    # 将获取的到列名转换为指定列名
+    name_map = {'first': 'first_name', 'last': 'last_name', 'bd': 'birth_date', 'pk': 'id'}
+    Person.objects.raw('SELECT * FROM some_other_table', translations=name_map)
+
+    # 指定数据库
+    models.UserInfo.objects.raw('select * from userinfo', using="default")
+
+    ################### 原生SQL ###################
+    from django.db import connection, connections
+    cursor = connection.cursor()  # cursor = connections['default'].cursor()
+    cursor.execute("""SELECT * from auth_user where id = %s""", [1])
+    row = cursor.fetchone() # fetchall()/fetchmany(..)
+
+
+def values(self, *fields):
+    # 获取每行数据为字典格式
+
+def values_list(self, *fields, **kwargs):
+    # 获取每行数据为元祖
+
+def dates(self, field_name, kind, order='ASC'):
+    # 根据时间进行某一部分进行去重查找并截取指定内容
+    # kind只能是："year"（年）, "month"（年-月）, "day"（年-月-日）
+    # order只能是："ASC"  "DESC"
+    # 并获取转换后的时间
+        - year : 年-01-01
+        - month: 年-月-01
+        - day  : 年-月-日
+
+    models.DatePlus.objects.dates('ctime','day','DESC')
+
+def datetimes(self, field_name, kind, order='ASC', tzinfo=None):
+    # 根据时间进行某一部分进行去重查找并截取指定内容，将时间转换为指定时区时间
+    # kind只能是 "year", "month", "day", "hour", "minute", "second"
+    # order只能是："ASC"  "DESC"
+    # tzinfo时区对象
+    models.DDD.objects.datetimes('ctime','hour',tzinfo=pytz.UTC)
+    models.DDD.objects.datetimes('ctime','hour',tzinfo=pytz.timezone('Asia/Shanghai'))
+
+    """
+    pip3 install pytz
+    import pytz
+    pytz.all_timezones
+    pytz.timezone(‘Asia/Shanghai’)
+    """
+
+def none(self):
+    # 空QuerySet对象
+
+
+####################################
+# METHODS THAT DO DATABASE QUERIES #
+####################################
+
+def aggregate(self, *args, **kwargs):
+   # 聚合函数，获取字典类型聚合结果
+   from django.db.models import Count, Avg, Max, Min, Sum
+   result = models.UserInfo.objects.aggregate(k=Count('u_id', distinct=True), n=Count('nid'))
+   ===> {'k': 3, 'n': 4}
+
+def count(self):
+   # 获取个数
+
+def get(self, *args, **kwargs):
+   # 获取单个对象
+
+def create(self, **kwargs):
+   # 创建对象
+
+def bulk_create(self, objs, batch_size=None):
+    # 批量插入
+    # batch_size表示一次插入的个数
+    objs = [
+        models.DDD(name='r11'),
+        models.DDD(name='r22')
+    ]
+    models.DDD.objects.bulk_create(objs, 10)
+
+def get_or_create(self, defaults=None, **kwargs):
+    # 如果存在，则获取，否则，创建
+    # defaults 指定创建时，其他字段的值
+    obj, created = models.UserInfo.objects.get_or_create(username='root1', defaults={'email': '1111111','u_id': 2, 't_id': 2})
+
+def update_or_create(self, defaults=None, **kwargs):
+    # 如果存在，则更新，否则，创建
+    # defaults 指定创建时或更新时的其他字段
+    obj, created = models.UserInfo.objects.update_or_create(username='root1', defaults={'email': '1111111','u_id': 2, 't_id': 1})
+
+def first(self):
+   # 获取第一个
+
+def last(self):
+   # 获取最后一个
+
+def in_bulk(self, id_list=None):
+   # 根据主键ID进行查找
+   id_list = [11,21,31]
+   models.DDD.objects.in_bulk(id_list)
+
+def delete(self):
+   # 删除
+
+def update(self, **kwargs):
+    # 更新
+
+def exists(self):
+   # 是否有结果
+
+````
 
 ## 增删改
 
@@ -1122,8 +1171,6 @@ if __name__ == '__main__':
         print(str(e))
 ```
 
-
-
 ## 自关联
 
 **自关联关联属性定义：**
@@ -1161,50 +1208,29 @@ parent = area.parent;
 children = area.area_set.all()
 ```
 
-## 模型类实例方法
-
-```
-str()：在将对象转换成字符串时会被调用。
-
-save()：将模型对象保存到数据表中，ORM框架会转换成对应的insert或update语句。
-
-delete()：将模型对象从数据表中删除，ORM框架会转换成对应的delete语句。
-```
-
-## 模型类属性
-
-```
-属性objects：管理器，是models.Manager类型的对象，用于与数据库进行交互。
-
-当没有为模型类定义管理器时，Django会为每一个模型类生成一个名为objects的管理器，自定义管理器后，Django不再生成默认管理器objects。
-
-model属性： 在管理器中，可以通过self.model属性，获取管理器所属的模型类，通过self.model()则可以创建模型类对象
-```
-
 ## 自定义模型管理器
 
-- 每个模型类默认都有一个 **objects** 类属性，可以把它叫 **模型管理器**。它由django自动生成，类型为 `django.db.models.manager.Manager`
+每个模型类默认都有一个 **objects** 类属性，可以把它叫 **模型管理器**。它由django自动生成，类型为 `django.db.models.manager.Manager`
 
+可以在模型类中自定义模型管理器，自定义后, Django将不再生成默认的 **objects**。（模型类可以自定义多个管理器）
 
-- 可以在模型类中自定义模型管理器，自定义后, Django将不再生成默认的 **objects**。（模型类可以自定义多个管理器）
+```python
+class Department(models.Model):
+    # 自定义模型管理器
+    manager = models.Manager()
+    
+# 调用 Department.objects会抛出AttributeError异常，而 Department.manager.all()会返回一个包含所有Department对象的列表。
+```
+两种情况需要自定义管理器
 
-  例如：
+```
+1、修改管理器返回的原始查询集
+(1)自定义模型管理器，继承Manager
+(2)在模型类中应用自定义的模型管理器
 
-  	class Department(models.Model):
-  	    # 自定义模型管理器
-  	    manager = models.Manager()
-  	    
-  	调用 Department.objects会抛出AttributeError异常，而 Department.manager.all()会返回一个包含所有Department对象的列表。
+2、封装增删改查的方法到模型管理器中
+```
 
-- 两种情况需要自定义管理器
-
-  ```
-  1、修改管理器返回的原始查询集
-  (1)自定义模型管理器，继承Manager
-  (2)在模型类中应用自定义的模型管理器
-
-  2、封装增删改查的方法到模型管理器中
-  ```
 
 - 修改原始查询集，重写all()方法
 
@@ -1249,5 +1275,36 @@ class BookInfo(models.Model):
     
 # c）调用语法如下：
 book=BookInfo.books.create_book("abc",date(1980,1,1))
+```
+
+## 迁移生成
+
+```python
+# 生成数据库表
+python manage.py makemigrations
+python manage.py migrate
+```
+
+## 查看ORM语句
+
+通过代码
+
+```python
+ret = BookInfo.objects.all()
+print(ret.query)
+```
+
+通过mysql
+
+```
+可以通过查看mysql的日志文件，了解Django ORM 生成出来的sql语句。
+
+1、打开mysqld.cnf文件，打开68 69两行的注释：
+sudo vi /etc/mysql/mysql.conf.d/mysqld.cnf
+2、重启mysql服务
+sudo service mysql restart
+3、查看mysql日志文件的内容
+sudo tail -f /var/log/mysql/mysql.log
+tail命令: 默认会显示文件的末尾，会自动刷新显示文件最新内容。退出可按ctrl+c
 ```
 
