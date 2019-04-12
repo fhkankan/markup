@@ -322,6 +322,97 @@ tail命令: 默认会显示文件的末尾，会自动刷新显示文件最新�
 ```
 ## ORM查询
 
+每个模型类默认都有一个叫 objects 的类属性，它由django自动生成，类型为： `django.db.models.manager.Manager`，可以把它叫 模型管理器;
+
+objects模型管理器中提供了一些查询数据的方法： 
+
+| objects管理器中的方法      | 返回类型 | 作用                                                         |
+| -------------------------- | -------- | ------------------------------------------------------------ |
+| 模型类.objects.get()       | 模型对象 | 返回一个对象，且只能有一个: <br>如果查到多条数据，则报：MultipleObjectsReturned <br>如果查询不到数据，则报：DoesNotExist |
+| 模型类.objects.aggregate() | 字典     | 进行聚合操作                                                 |
+| 模型类.objects.count()     | 数字     | 返回查询集中对象的数目                                       |
+| 模型类.objects.filter()    | QuerySet | 返回满足条件的对象                                           |
+| 模型类.objects.all()       | QuerySet | 返回所有的对象，使用for循环可获取结果                        |
+| 模型类.objects.exclude()   | QuerySet | 返回不满条件的对象                                           |
+| 模型类.objects.order_by()  | QuerySet | 对查询结果集进行排序 <br>`Book.objects.order_by('id')` 升序<br>`book.objects.order_by('-id')`降序 |
+
+### QuerySet
+
+查询集表示从数据库中获取的对象集合，在管理器上调用某些过滤器方法会返回查询集，查询集可以含有零个、一个或多个过滤器。过滤器基于所给的参数限制查询的结果，从Sql的角度，查询集和select语句等价，过滤器像where和limit子句。
+
+- 过滤器
+
+获取多对象的过滤器
+
+```
+all()：返回所有数据。
+filter()：返回满足条件的数据。
+exclude()：返回满足条件之外的数据，相当于sql语句中where部分的not关键字。
+order_by()：对结果进行排序。
+```
+
+获取单对象的过滤器
+
+```
+get()：返回单个满足条件的对象
+	如果未找到会引发"模型类.DoesNotExist"异常。
+	如果多条被返回，会引发"模型类.MultipleObjectsReturned"异常。
+count()：返回当前查询结果的总条数。
+aggregate()：聚合，返回一个字典。
+```
+
+判断是空对象过滤器
+
+```
+exists()：判断查询集中是否有数据，如果有则返回True，没有则返回False。
+```
+
+获取具体对象属性值的过滤器
+
+```
+values()  # 返回所有查询对象指定属性的值(字典格式)
+values_list()  # 返回所有查询对象指定属性的值(元组格式)
+```
+
+- 方法
+
+```
+调用模型管理器的all, filter, exclude, order_by方法会产生一个QuerySet，可以在QuerySet上继续调用这些方法，比如：
+
+Employee.objects.filter(id__gt=3).order_by('-age')
+QuerySet可以作取下标操作, 注意：下标不允许为负数:
+b[0]
+取出QuerySet的第一条数据,
+不存在会抛出IndexError异常
+
+# QuerySet的方法
+QuerySet的get()方法
+取出QuerySet的唯一一条数据
+QuerySet不存在数据，会抛出： DoesNotExist异常
+QuerySet存在多条数据，会抛出：MultiObjectsReturned异常
+```
+
+- 特性
+
+```
+惰性查询：创建查询集不会访问数据库，直到调用数据时，才会访问数据库，调用数据的情况包括迭代、序列化、与if合用。
+
+缓存：第一次遍历使用了QuerySet中的所有的对象（比如通过 列表生成式 遍历了所有对象），则django会把数据缓存起来， 第2次再使用同一个QuerySet时，将会使用缓存。注意：使用索引或切片引用查询集数据，将不会缓存，每次都会查询数据库。
+```
+
+- 限制
+
+```
+对QuerySet可以取下标或作切片操作,
+切片操作会产生一个新的QuerySet，不会立即执行查询
+注意：下标不允许为负数。
+
+如果获取一个对象，直接使用[0]，等同于[0:1].get()，但是如果没有数据，[0]引发IndexError异常，[0:1].get()如果没有数据引发DoesNotExist异常。
+list=BookInfo.objects.all()[0:2]
+```
+
+[参考](https://blog.csdn.net/qq_34755081/article/details/82779489)
+
 ### 常用方法
 
 ```python
@@ -378,11 +469,13 @@ exists()
 count()
 ```
 
-### 单表条件
+### 单表条件查询
 ```
 模型类.objects.filter(模型类属性名__条件名 = 值)
 ```
 返回QuerySet对象，包含了所有满足条件的数据。
+
+若有多个参数，做AND处理
 
 常见条件
 
@@ -404,6 +497,14 @@ __month  # 日期字段的月份`
 __day  # 日期字段的日
 __in  # 在范围内
 __isnull  # 判空
+
+
+注意：
+mysql：
+date函数： date('2017-1-1')
+year函数: year(hire_date)
+python：
+date类: date(2017,1,1)
 ```
 
 eg
@@ -515,129 +616,217 @@ class NewsInfo(models.Model):
   ntype = models.ManyToManyField('TypeInfo') #通过ManyToManyField建立TypeInfo类和NewsInfo类之间多对多的关系
 ```
 
-- 方法
+> 关联管理器
 
+"关联管理器"是在一对多或者多对多的关联上下文中使用的管理器。
 
-
-
-
-每个模型类默认都有一个叫 objects 的类属性，它由django自动生成，类型为： `django.db.models.manager.Manager`，可以把它叫 模型管理器;
-
-objects模型管理器中提供了一些查询数据的方法： 
-
-| objects管理器中的方法      | 返回类型                                | 作用                                                         |
-| -------------------------- | --------------------------------------- | ------------------------------------------------------------ |
-| 模型类.objects.get()       | 模型对象                                | 返回一个对象，且只能有一个: <br>如果查到多条数据，则报：MultipleObjectsReturned <br>如果查询不到数据，则报：DoesNotExist |
-| 模型类.objects.filter()    | QuerySet                                | 返回满足条件的对象                                           |
-| 模型类.objects.all()       | QuerySet                                | 返回所有的对象                                               |
-| 模型类.objects.exclude()   | QuerySet                                | 返回不满条件的对象                                           |
-| 模型类.objects.order_by()  | QuerySet                                | 对查询结果集进行排序                                         |
-| 模型类.objects.aggregate() | 字典，例如：<br>{'salary__avg': 9500.0} | 进行聚合操作</br>Sum, Count, Max, Min, Avg                   |
-| 模型类.objects.count()     | 数字                                    | 返回查询集中对象的数目                                       |
-
-### get
-
-返回一个对象，且只能有一个
-
-get方法会直接执行sql语句获取数据
-
-如果查到多条数据，则报：MultipleObjectsReturned 
-
-如果查询不到数据，则报：DoesNotExist
-
-### all
-
-返回满足条件的对象QuerySet
-
-并没有真的在数据库中执行SQL语句查询数据，但支持迭代，使用for循环可以获取数据。
-
-### 条件查询
-
-```python
-filter
-# 实现条件查询，返回QuerySet对象，包含了所有满足条件的数据。
-# 用法 
-模型类.objects.filter(模型类属性名__条件名 = 值)
-
-
-注意：
-mysql：
-date函数： date('2017-1-1')
-year函数: year(hire_date)
-python：
-date类: date(2017,1,1)
-```
-
-常见条件
-
-```python
-__gt  # 大于
-__gte  # 大于等于
-__lt  # 小于
-__lte  # 小于等于
-__exact  # 精确等于
-__iexact  # 精确等于忽略大小写 ilike 'aaa'
-__contains  # 包含
-__startswith  # 以…开头
-__istartswith  # 以…开头 忽略大小写
-__endswith  # 以…结尾
-__iendswith # 以…结尾，忽略大小写
-__rang	# 在…范围内
-__year  # 日期字段的年份
-__month  # 日期字段的月份`
-__day  # 日期字段的日
-__in  # 在范围内
-__isnull  # 判空
-```
-
-eg
-
-```python
-BookInfo.objects.filter(bpub_date__gt=date(1990,1,1))
-Student.objects.filter(age__gte=10)
-Student.objects.filter(age__lt=10)
-Student.objects.filter(age__lte=10)
-BookInfo.objects.filter(id_exact=1)
-BookInfo.objects.filter(btitle__contains="天")
-BookInfo.objects.filter(btitle__startwith="天")
-BookInfo.objects.filter(btitle__endwith="传")
-BookInfo.objects.filter(bpub_date__year='1990')
-BookInfo.objects.filter(bpub_date__month=11)
-Student.objects.filter(age__in=[10, 20, 30])
-Student.objects.filter(name__isnull=True)
-```
-
-### exclude
-
-返回不满足条件的数据
+它存在于下面两种情况
 
 ```
-模型类.objects.exclude(条件)
-
-BookInfo.objects.exclude(id=1)
-Student.objects.filter().excute(age=10)
+外键关系的反向查询
+多对多关联关系
 ```
 
-### F对象
+简单来说就是当点后面的对象 可能存在多个的时候就可以使用以下的方法。
+
+- create
+
+创建一个新的对象，保存对象，并将它添加到关联对象集之中，返回新创建的对象
+
+```shell
+>>> import datetime
+>>> models.Author.objects.first().book_set.create(title="番茄物语", publish_date=datetime.date.today())
+```
+
+- add
+
+把指定的model对象添加到关联对象集中
 
 ```
-作用： 引用某个表字段的值, 生成对应的SQL语句, 用于两个属性的比较
+# 添加对象
+>>> author_objs = models.Author.objects.filter(id__lt=3)
+>>> models.Book.objects.first().authors.add(*author_objs)
 
-用法： F('字段')
+# 添加id
+>>> models.Book.objects.first().authors.add(*[1, 2])
+```
 
-使用之前需要先导入：
+- set
+
+更新model对象的关联对象
+
+```
+>>> book_obj = models.Book.objects.first()
+>>> book_obj.authors.set([2, 3])
+```
+
+- remove
+
+从关联对象集中移除执行的model对象
+
+```
+>>> book_obj = models.Book.objects.first()
+>>> book_obj.authors.remove(3)
+```
+
+- clear
+
+从关联对象集中移除一切对象。
+
+```
+>>> book_obj = models.Book.objects.first()
+>>> book_obj.authors.clear()
+```
+
+### 聚合查询
+
+```
+模型类.objects.aggregate(聚合类('模型属性'))
+```
+
+常用聚合类有：Sum, Count, Max, Min, Avg等
+返回值是一个字典, 格式：` {'属性名__聚合函数': 值}`
+
+导入内置函数
+
+```
+from django.db.models import Avg, Sum, Max, Min, Count
+```
+
+默认名称
+
+```
+>>> from django.db.models import Avg, Sum, Max, Min, Count
+>>> models.Book.objects.all().aggregate(Avg("price"))
+{'price__avg': 13.233333}
+```
+
+指定名称
+
+```
+>>> models.Book.objects.aggregate(average_price=Avg('price'))
+{'average_price': 13.233333}
+```
+
+多个聚合
+
+```
+>>> models.Book.objects.all().aggregate(Avg("price"), Max("price"), Min("price"))
+{'price__avg': 13.233333, 'price__max': Decimal('19.90'), 'price__min': Decimal('9.90')}
+```
+
+### 分组查询
+
+按照部分分组求平均工资
+
+```
+select dept,AVG(salary) from employee group by dept;
+
+from django.db.models import Avg
+Employee.objects.values("dept").annotate(avg=Avg("salary").values(dept, "avg")
+```
+
+连表查询的分组
+
+```
+select dept.name,AVG(salary) from employee inner join dept on (employee.dept_id=dept.id) group by dept_id;
+
+from django.db.models import Avg
+models.Dept.objects.annotate(avg=Avg("employee__salary")).values("name", "avg")
+```
+
+统计每一本书的作者个数
+
+```
+>>> book_list = models.Book.objects.all().annotate(author_num=Count("author"))
+>>> for obj in book_list:
+...     print(obj.author_num)
+...
+2
+1
+1
+```
+
+统计出每个出版社买的最便宜的书的价格
+
+```
+>>> publisher_list = models.Publisher.objects.annotate(min_price=Min("book__price"))
+>>> for obj in publisher_list:
+...     print(obj.min_price)
+...     
+9.90
+19.90
+
+# 方法二
+>>> models.Book.objects.values("publisher__name").annotate(min_price=Min("price"))
+<QuerySet [{'publisher__name': '沙河出版社', 'min_price': Decimal('9.90')}, {'publisher__name': '人民出版社', 'min_price': Decimal('19.90')}]>
+```
+
+统计不止一个作者的图书
+
+```
+>>> models.Book.objects.annotate(author_num=Count("author")).filter(author_num__gt=1)
+<QuerySet [<Book: 番茄物语>]>
+```
+
+根据一本图书作者数量的多少对查询集 QuerySet进行排序
+
+```
+>>> models.Book.objects.annotate(author_num=Count("author")).order_by("author_num")
+<QuerySet [<Book: 香蕉物语>, <Book: 橘子物语>, <Book: 番茄物语>]>
+```
+
+查询各个作者出的书的总价格
+
+```
+>>> models.Author.objects.annotate(sum_price=Sum("book__price")).values("name", "sum_price")
+<QuerySet [{'name': '小精灵', 'sum_price': Decimal('9.90')}, {'name': '小仙女', 'sum_price': Decimal('29.80')}, {'name': '小魔女', 'sum_price': Decimal('9.90')}]>
+```
+
+### F查询
+
+```
+F('字段')
+```
+
+F() 的实例可以在查询中引用字段，来比较同一个 model 实例中两个不同字段的值。
+
+查询评论数大于收藏数的书籍
+
+```
 from django.db.models import F
-list = BookInfo.objects.filter(bread__gt=F('bcomment') * 2)
+models.Book.objects.filter(commnet_num__gt=F('keep_num'))
 ```
 
-### Q对象
+Django 支持 F() 对象之间以及 F() 对象和常数之间的加减乘除和取模的操作
 
-```sql
-作用： 组合多个查询条件，可以通过&|~(not and or)对多个Q对象进行逻辑操作。同sql语句中where部分的and关键字
+```
+models.Book.objects.filter(commnet_num__lt=F('keep_num')*2)
+```
 
-用法： Q(条件1) 逻辑操作符 Q(条件2)
+修改操作也可以使用F函数,比如将每一本书的价格提高30元
 
-需要先导入：
+```
+models.Book.objects.all().update(price=F("price")+30)
+```
+
+修改char字段
+
+```
+>>> from django.db.models.functions import Concat
+>>> from django.db.models import Value
+>>> models.Book.objects.all().update(title=Concat(F("title"), Value("("), Value("第一版"), Value(")")))
+```
+
+### Q查询
+
+```
+Q(条件1) 逻辑操作符 Q(条件2)
+```
+
+组合多个查询条件，可以通过&|~(not and or)对多个Q对象进行逻辑操作。同sql语句中where部分的and关键字
+
+```python
 from django.db.models import Q
 # 或
 list = BookInfo.objects.filter(Q(bread__gt=20) | Q(pk__lt=3))
@@ -649,112 +838,83 @@ BookInfo.objects.filter(bread_gt=20).filter(id_lt=3)
 BookInfo.objects.filter(Q(bread_gt=20)&(id_lt=3))
 ```
 
-### order_by
+查询作者名是小仙女或小魔女的
 
 ```
-作用： 对查询结果进行排序, 默认升序
-
-用法：
-升序： 模型类.objects.order_by('字段名') 
-降序： 模型类.objects.order_by('-字段名')
+models.Book.objects.filter(Q(authors__name="小仙女")|Q(authors__name="小魔女"))
 ```
 
-### aggregate
+查询作者名字是小仙女并且不是2018年出版的书的书名
+
+```
+>>> models.Book.objects.filter(Q(author__name="小仙女") & ~Q(publish_date__year=2018)).values_list("title")
+<QuerySet [('番茄物语',)]>
+```
+
+查询出版年份是2017或2018，书名中带物语的所有书
+
+```
+>>> models.Book.objects.filter(Q(publish_date__year=2018) | Q(publish_date__year=2017), title__icontains="物语")
+<QuerySet [<Book: 番茄物语>, <Book: 香蕉物语>, <Book: 橘子物语>]>
+```
+
+### SQL
+
+- extra
+
+在QuerySet的基础上继续执行子语句
 
 ```python
-作用： 聚合操作，对多行查询结果中的一列进行操作，返回一个值。
+extra(self, select=None, where=None, params=None, tables=None, order_by=None, select_params=None)
 
-用法： 模型类.objects.aggregate（聚合类（'模型属性'））
-
-常用聚合类有：Sum, Count, Max, Min, Avg等
-返回值是一个字典, 格式： {'属性名__聚合函数': 值}
-
-需先导入聚合类：
-from django.db.models import Sum, Count, Max, Min, Avg
-list = BookInfo.objects.aggregate(Sum('bread'))
+# 参数
+select和select_params是一组
+where和params是一组
+tables用来设置from哪个表
 ```
 
-### count方法
+示例
 
-```
-作用：统计满足条件的对象的个数，返回值是一个数字
+```python
+Entry.objects.extra(select={'new_id': "select col from sometable where othercol > %s"}, select_params=(1,))
 
-用法： 模型类.objects.count()
-```
+Entry.objects.extra(where=['headline=%s'], params=['Lennon'])
 
-## 查询集
+Entry.objects.extra(where=["foo='a' OR bar = 'a'", "baz = 'a'"])
 
-查询集表示从数据库中获取的对象集合，在管理器上调用某些过滤器方法会返回查询集，查询集可以含有零个、一个或多个过滤器。过滤器基于所给的参数限制查询的结果，从Sql的角度，查询集和select语句等价，过滤器像where和limit子句。
+Entry.objects.extra(select={'new_id': "select id from tb where id > %s"}, select_params=(1,), order_by=['-nid'])
 
-### 过滤器
 
-- 获取多对象的过滤器
-
-```
-all()：返回所有数据。
-filter()：返回满足条件的数据。
-exclude()：返回满足条件之外的数据，相当于sql语句中where部分的not关键字。
-order_by()：对结果进行排序。
-```
-
-- 获取单对象的过滤器
-
-```
-get()：返回单个满足条件的对象
-	如果未找到会引发"模型类.DoesNotExist"异常。
-	如果多条被返回，会引发"模型类.MultipleObjectsReturned"异常。
-count()：返回当前查询结果的总条数。
-aggregate()：聚合，返回一个字典。
-```
-
-- 判断是空对象过滤器
-
-```
-exists()：判断查询集中是否有数据，如果有则返回True，没有则返回False。
+models.UserInfo.objects.extra(
+                    select={'newid':'select count(1) from app01_usertype where id>%s'},
+                    select_params=[1,],
+                    where = ['age>%s'],
+                    params=[18,],
+                    order_by=['-age'],
+                    tables=['app01_usertype']
+                )
+# 等价SQL
+"""
+select 
+    app01_userinfo.id,
+    (select count(1) from app01_usertype where id>1) as newid
+from app01_userinfo,app01_usertype
+where 
+    app01_userinfo.age > 18
+order by 
+    app01_userinfo.age desc
+"""
 ```
 
-- 获取具体对象属性值的过滤器
+- cursor
 
-```
-values()  # 返回所有查询对象指定属性的值(字典格式)
-values_list()  # 返回所有查询对象指定属性的值(元组格式)
-```
+纯原生sql，更高灵活度的方式执行原生SQL语句
 
-### 方法
-
-```
-调用模型管理器的all, filter, exclude, order_by方法会产生一个QuerySet，可以在QuerySet上继续调用这些方法，比如：
-
-Employee.objects.filter(id__gt=3).order_by('-age')
-QuerySet可以作取下标操作, 注意：下标不允许为负数:
-b[0]
-取出QuerySet的第一条数据,
-不存在会抛出IndexError异常
-
-# QuerySet的方法
-QuerySet的get()方法
-取出QuerySet的唯一一条数据
-QuerySet不存在数据，会抛出： DoesNotExist异常
-QuerySet存在多条数据，会抛出：MultiObjectsReturned异常
-```
-
-### 特性
-
-```
-惰性查询：创建查询集不会访问数据库，直到调用数据时，才会访问数据库，调用数据的情况包括迭代、序列化、与if合用。
-
-缓存：第一次遍历使用了QuerySet中的所有的对象（比如通过 列表生成式 遍历了所有对象），则django会把数据缓存起来， 第2次再使用同一个QuerySet时，将会使用缓存。注意：使用索引或切片引用查询集数据，将不会缓存，每次都会查询数据库。
-```
-
-### 限制
-
-```
-对QuerySet可以取下标或作切片操作,
-切片操作会产生一个新的QuerySet，不会立即执行查询
-注意：下标不允许为负数。
-
-如果获取一个对象，直接使用[0]，等同于[0:1].get()，但是如果没有数据，[0]引发IndexError异常，[0:1].get()如果没有数据引发DoesNotExist异常。
-list=BookInfo.objects.all()[0:2]
+```python
+from django.db import connection, connections
+cursor = connection.cursor()  # cursor = connections['default'].cursor()
+cursor.execute("""SELECT * from auth_user where id = %s""", [1])
+row = cursor.fetchone()
 ```
 
 ## QuerySets的API
@@ -903,53 +1063,6 @@ values_list(*fields, flat=False)
 
 
 
-## 关联管理器
-
-"关联管理器"是在一对多或者多对多的关联上下文中使用的管理器。
-
-它存在于下面两种情况
-
-```
-外键关系的反向查询
-多对多关联关系
-```
-
-
-简单来说就是当点后面的对象 可能存在多个的时候就可以使用以下的方法。
-
-- create
-
-创建一个新的对象，保存对象，并将它添加到关联对象集之中，返回新创建的对象
-
-```shell
->>> import datetime
->>> models.Author.objects.first().book_set.create(title="番茄物语", publish_date=datetime.date.today())
-```
-
-- add
-
-```
-
-```
-
-- set
-
-```
-
-```
-
-- remove
-
-```
-
-```
-
-- clear
-
-```
-
-```
-
 ## 增删改
 
 ```python
@@ -986,6 +1099,30 @@ BookInfo.objects.filter(id=1).update(btitle = "射雕英雄传")
 
 调用一个模型类对象的delete方法，就可以实现数据删除，会根据id删除
 ```
+
+事务
+
+```python
+import os
+    
+if __name__ == '__main__':
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "BMS.settings")
+    import django
+    django.setup()
+    
+    import datetime
+    from app01 import models
+    
+    try:
+        from django.db import transaction
+        with transaction.atomic():
+            new_publisher = models.Publisher.objects.create(name="火星出版社")
+            models.Book.objects.create(title="橘子物语", publish_date=datetime.date.today(), publisher_id=10)  # 指定一个不存在的出版社id
+    except Exception as e:
+        print(str(e))
+```
+
+
 
 ## 自关联
 
