@@ -320,15 +320,214 @@ sudo service mysql restart
 sudo tail -f /var/log/mysql/mysql.log
 tail命令: 默认会显示文件的末尾，会自动刷新显示文件最新内容。退出可按ctrl+c
 ```
-## 字段查询
+## ORM查询
 
-每个模型类默认都有一个叫 **objects** 的类属性，它由django自动生成，类型为： `django.db.models.manager.Manager`，可以把它叫 **模型管理器**;
+### 常用方法
 
-**objects模型管理器**中提供了一些查询数据的方法： 
+```python
+all():                 # 查询所有结果 
+filter(**kwargs):      # 它包含了与所给筛选条件相匹配的对象
+get(**kwargs):         # 返回与所给筛选条件相匹配的对象，返回结果有且只有一个，如果符合筛选条件的对象超过一个或者没有都会抛出错误。
+exclude(**kwargs):     # 它包含了与所给筛选条件不匹配的对象
+values(*field):        # 返回一个ValueQuerySet——一个特殊的QuerySet，运行后得到的并不是一系列model的实例化对象，而是一个可迭代的字典序列
+values_list(*field):   # 它与values()非常相似，它返回的是一个元组序列，values返回的是一个字典序列 
+order_by(*field):      # 对查询结果排序
+reverse():             # 对查询结果反向排序，请注意reverse()通常只能在具有已定义顺序的QuerySet上调用(在model类的Meta中指定ordering或调用order_by()方法)。
+distinct():            # 从返回结果中剔除重复纪录(如果你查询跨越多个表，可能在计算QuerySet时得到重复的结果。此时可以使用distinct()，注意只有在PostgreSQL中支持按字段去重。)
+count():               # 返回数据库中匹配查询(QuerySet)的对象数量。
+first():               # 返回第一条记录
+last():                # 返回最后一条记录 
+exists():              # 如果QuerySet包含数据，就返回True，否则返回False
+```
+
+返回QuerySet对象
+
+```
+all()
+filter()
+exclude()
+order_by()
+reverse()
+distinct()
+```
+
+特殊QuerySet
+
+```
+values() 				返回一个可迭代的字典序列
+values_list() 	返回一个可迭代的元祖序列
+```
+
+返回具体对象
+
+```
+get()
+first()
+last()
+```
+
+返回布尔值
+
+```
+exists()
+```
+
+返回数字
+
+```
+count()
+```
+
+### 单表条件
+```
+模型类.objects.filter(模型类属性名__条件名 = 值)
+```
+返回QuerySet对象，包含了所有满足条件的数据。
+
+常见条件
+
+```python
+__gt  # 大于
+__gte  # 大于等于
+__lt  # 小于
+__lte  # 小于等于
+__exact  # 精确等于
+__iexact  # 精确等于忽略大小写 ilike 'aaa'
+__contains  # 包含
+__startswith  # 以…开头
+__istartswith  # 以…开头 忽略大小写
+__endswith  # 以…结尾
+__iendswith # 以…结尾，忽略大小写
+__rang	# 在…范围内
+__year  # 日期字段的年份
+__month  # 日期字段的月份`
+__day  # 日期字段的日
+__in  # 在范围内
+__isnull  # 判空
+```
+
+eg
+
+```python
+BookInfo.objects.filter(bpub_date__gt=date(1990,1,1))
+Student.objects.filter(age__gte=10)
+Student.objects.filter(age__lt=10)
+Student.objects.filter(age__lte=10)
+BookInfo.objects.filter(id_exact=1)
+BookInfo.objects.filter(btitle__contains="天")
+BookInfo.objects.filter(btitle__startwith="天")
+BookInfo.objects.filter(btitle__endwith="传")
+BookInfo.objects.filter(bpub_date__year='1990')
+BookInfo.objects.filter(bpub_date__month=11)
+Student.objects.filter(age__in=[10, 20, 30])
+Student.objects.filter(name__isnull=True)
+```
+
+### 外键关联
+
+在类模型中创建关联关系
+
+```
+一对多关系，将字段定义在多的一端中
+关联属性 = models.ForeignKey("一类类名")
+
+多对多关系，将字段定义在任意一端中
+关联属性 = models.ManyToManyField("关联类类名")
+
+一对一关系，将字段定义在任意一端中
+关联属性 = models.OneToOneField("关联类类名")
+```
+
+关联查询
+
+```
+对象进行关联查询
+1. 由一类对象查询多类对象
+一类对象.多类名小写_set.all()
+2. 由多类对象查询一类对象
+多类对象.关联属性
+
+
+模型类进行关联查询
+1. 通过多类的条件查询一类数据：
+一类名.objects.filter(多类名小写__多类属性名__条件名=值) 
+2. 通过一类的条件查询多类数据：
+多类名.objects.filter(关联属性__一类属性名__条件名=值)
+提示：会生成内连接语句进行查询， 条件名为in,gt, isnull等
+```
+
+- 一对多
+
+正向查找
+
+```python
+# 对象查找
+# 对象.关联字段.字段
+book_obj = models.Book.objects.first()  # 第一本书对象
+print(book_obj.publisher)  # 得到这本书关联的出版社对象
+print(book_obj.publisher.name)  # 得到出版社对象的名称
+# 字段查找
+# 关联字段__字段
+print(models.Book.objects.values_list("publisher__name"))
+```
+
+反向查找
+
+```python
+# 对象查找
+# obj.表名_set
+publisher_obj = models.Publisher.objects.first()  # 找到第一个出版社对象
+books = publisher_obj.book_set.all()  # 找到第一个出版社出版的所有书
+titles = books.values_list("title")  # 找到第一个出版社出版的所有书的书名
+# 字段查找
+# 表名__字段
+titles = models.Publisher.objects.values_list("book__title")
+```
+
+- 多对多
+
+```python
+# 方式一：手工指定
+class NewsType(models.model):
+    ntid = models.AutoField(promary_key=True)
+    news_id = models.ForeignKey("NewsInfo")
+    type_id = models.ForeignKey("TypeInfo")
+    
+class TypeInfo(models.Model):
+    tid = models.AutoField(promary_key=True)
+  	tname = models.CharField(max_length=20) 
+
+class NewsInfo(models.Model):
+    nid = models.AutoField(promary_key=True)
+  	ntitle = models.CharField(max_length=60)
+  	ncontent = models.TextField()
+  	npub_date = models.DateTimeField(auto_now_add=True)
+    # 指定第三张表
+  	t2n= models.ManyToManyField('TypeInfo', through="NewsType") 
+# 方式二：使用Django
+class TypeInfo(models.Model):
+  tname = models.CharField(max_length=20) #新闻类别
+
+class NewsInfo(models.Model):
+  ntitle = models.CharField(max_length=60) #新闻标题
+  ncontent = models.TextField() #新闻内容
+  npub_date = models.DateTimeField(auto_now_add=True) #新闻发布时间
+  ntype = models.ManyToManyField('TypeInfo') #通过ManyToManyField建立TypeInfo类和NewsInfo类之间多对多的关系
+```
+
+- 方法
+
+
+
+
+
+每个模型类默认都有一个叫 objects 的类属性，它由django自动生成，类型为： `django.db.models.manager.Manager`，可以把它叫 模型管理器;
+
+objects模型管理器中提供了一些查询数据的方法： 
 
 | objects管理器中的方法      | 返回类型                                | 作用                                                         |
 | -------------------------- | --------------------------------------- | ------------------------------------------------------------ |
-| 模型类.objects.get()       | 模型对象                                | **返回一个对象，且只能有一个**: <br>如果查到多条数据，则报：MultipleObjectsReturned <br>如果查询不到数据，则报：DoesNotExist |
+| 模型类.objects.get()       | 模型对象                                | 返回一个对象，且只能有一个: <br>如果查到多条数据，则报：MultipleObjectsReturned <br>如果查询不到数据，则报：DoesNotExist |
 | 模型类.objects.filter()    | QuerySet                                | 返回满足条件的对象                                           |
 | 模型类.objects.all()       | QuerySet                                | 返回所有的对象                                               |
 | 模型类.objects.exclude()   | QuerySet                                | 返回不满条件的对象                                           |
@@ -336,6 +535,21 @@ tail命令: 默认会显示文件的末尾，会自动刷新显示文件最新�
 | 模型类.objects.aggregate() | 字典，例如：<br>{'salary__avg': 9500.0} | 进行聚合操作</br>Sum, Count, Max, Min, Avg                   |
 | 模型类.objects.count()     | 数字                                    | 返回查询集中对象的数目                                       |
 
+### get
+
+返回一个对象，且只能有一个
+
+get方法会直接执行sql语句获取数据
+
+如果查到多条数据，则报：MultipleObjectsReturned 
+
+如果查询不到数据，则报：DoesNotExist
+
+### all
+
+返回满足条件的对象QuerySet
+
+并没有真的在数据库中执行SQL语句查询数据，但支持迭代，使用for循环可以获取数据。
 
 ### 条件查询
 
@@ -345,18 +559,6 @@ filter
 # 用法 
 模型类.objects.filter(模型类属性名__条件名 = 值)
 
-# 条件名
-判等： exact
-模糊查询： contains / endswith / startswith
-空查询： isnull
-范围查询: in
-比较查询: gt、lt、gte、lte
-日期查询： year， date类
-    
-exclude    
-# 返回不满足条件的数据
-# 用法
-模型类.objects.exclude(条件)
 
 注意：
 mysql：
@@ -366,32 +568,55 @@ python：
 date类: date(2017,1,1)
 ```
 
+常见条件
+
+```python
+__gt  # 大于
+__gte  # 大于等于
+__lt  # 小于
+__lte  # 小于等于
+__exact  # 精确等于
+__iexact  # 精确等于忽略大小写 ilike 'aaa'
+__contains  # 包含
+__startswith  # 以…开头
+__istartswith  # 以…开头 忽略大小写
+__endswith  # 以…结尾
+__iendswith # 以…结尾，忽略大小写
+__rang	# 在…范围内
+__year  # 日期字段的年份
+__month  # 日期字段的月份`
+__day  # 日期字段的日
+__in  # 在范围内
+__isnull  # 判空
+```
+
 eg
 
 ```python
-# 精确查询
+BookInfo.objects.filter(bpub_date__gt=date(1990,1,1))
+Student.objects.filter(age__gte=10)
+Student.objects.filter(age__lt=10)
+Student.objects.filter(age__lte=10)
 BookInfo.objects.filter(id_exact=1)
-// 精简写法
-BookInfo.objects.filter(id=1)
-BookInfo.objects.get(id=1)
-BookInfo.objects.exclude(id=1)
-BookInfo.objects.filter(id__isnull=True)
-# 模糊查询
 BookInfo.objects.filter(btitle__contains="天")
 BookInfo.objects.filter(btitle__startwith="天")
 BookInfo.objects.filter(btitle__endwith="传")
-# 范
-BookInfo.objects.filter(id__in=[1,3])
-BookInfo.objects.filter(id__gt=1)
-BookInfo.objects.filter(id__gte=1)
-BookInfo.objects.filter(id__lt=1)
-BookInfo.objects.filter(id__lte=1)
-BookInfo.objects.filter(bpub_date__gt=date(1990,1,1))
-# 日期
 BookInfo.objects.filter(bpub_date__year='1990')
 BookInfo.objects.filter(bpub_date__month=11)
+Student.objects.filter(age__in=[10, 20, 30])
+Student.objects.filter(name__isnull=True)
 ```
 
+### exclude
+
+返回不满足条件的数据
+
+```
+模型类.objects.exclude(条件)
+
+BookInfo.objects.exclude(id=1)
+Student.objects.filter().excute(age=10)
+```
 
 ### F对象
 
@@ -532,6 +757,199 @@ QuerySet存在多条数据，会抛出：MultiObjectsReturned异常
 list=BookInfo.objects.all()[0:2]
 ```
 
+## QuerySets的API
+
+```python
+filter()	           # 过滤查询对象。
+exclude()	           # 排除满足条件的对象
+annotate()	         # 使用聚合函数
+order_by()	         # 对查询集进行排序
+reverse()	           # 反向排序
+distinct()	         # 对查询集去重
+values()	           # 返回包含对象具体值的字典的QuerySet
+values_list()	       # 与values()类似，只是返回的是元组而不是字典。
+dates()	             # 根据日期获取查询集
+datetimes()	         # 根据时间获取查询集
+none()	             # 创建空的查询集
+all()	               # 获取所有的对象
+union()	             # 并集
+intersection()	     # 交集
+difference()	       # 差集
+select_related()     # 附带查询关联对象
+prefetch_related()   # 预先查询
+extra()	             # 附加SQL查询
+defer()	             # 不加载指定字段
+only()	             # 只加载指定的字段
+using()	             # 选择数据库
+select_for_update()  # 锁住选择的对象，直到事务结束。
+raw()	               # 接收一个原始的SQL查询
+```
+
+- filter
+
+```
+filter(**kwargs)
+ 
+返回满足查询参数的对象集合。
+ 
+查找的参数（**kwargs）应该满足下文字段查找中的格式。多个参数之间是和AND的关系。
+ 
+Student.objects.filter(age__lt=10)#查询满足年龄小于10岁的所有学生对象
+```
+
+- exclude
+
+```
+exclude(**kwargs)
+ 
+返回一个新的QuerySet，它包含不满足给定的查找参数的对象
+ 
+Student.objects.exclude(age__gt=20, name='lin')#排除所有年龄大于20岁且名字为“lin”的学员集
+```
+
+- annotate
+
+```
+nnotate(args, *kwargs)
+ 
+使用提供的聚合表达式查询对象。
+ 
+表达式可以是简单的值、对模型（或任何关联模型）上的字段的引用或者聚合表达式（平均值、总和等）。
+ 
+annotate()的每个参数都是一个annotation，它将添加到返回的QuerySet每个对象中。
+ 
+关键字参数指定的Annotation将使用关键字作为Annotation 的别名。 匿名参数的别名将基于聚合函数的名称和模型的字段生成。 只有引用单个字段的聚合表达式才可以使用匿名参数。 其它所有形式都必须用关键字参数。
+ 
+例如，如果正在操作一个Blog列表，你可能想知道每个Blog有多少Entry：
+>>> from django.db.models import Count
+>>> q = Blog.objects.annotate(Count('entry'))
+# The name of the first blog
+>>> q[0].name
+'Blogasaurus'
+# The number of entries on the first blog
+>>> q[0].entry__count
+42
+```
+
+- order_by
+
+```
+order_by(*fields)
+ 
+默认情况下，根据模型的Meta类中的ordering属性对QuerySet中的对象进行排序
+Student.objects.filter(school="阳关小学").order_by('-age', 'name')
+上面的结果将按照age降序排序，然后再按照name升序排序。"-age"前面的负号表示降序顺序。 升序是默认的。 要随机排序，使用"?"，如下所示：
+Student.objects.order_by('?')
+```
+
+- reverse
+
+```
+reverse()
+ 
+反向排序QuerySet中返回的元素。 第二次调用reverse()将恢复到原有的排序。
+ 
+如要获取QuerySet中最后五个元素，可以这样做：
+ 
+my_queryset.reverse()[:5]
+ 
+这与Python直接使用负索引有点不一样。 Django不支持负索引。
+```
+
+- distinct
+
+```
+distinct(*fields)
+ 
+去除查询结果中重复的行。
+ 
+默认情况下，QuerySet不会去除重复的行。当查询跨越多张表的数据时，QuerySet可能得到重复的结果，这时候可以使用distinct()进行去重。
+```
+
+- values
+
+```
+values(fields, *expressions)
+ 
+返回一个包含数据的字典的queryset，而不是模型实例。
+ 
+每个字典表示一个对象，键对应于模型对象的属性名称。如：
+ 
+# 列表中包含的是Student对象
+>>> Student.objects.filter(name__startswith='Lin')
+<QuerySet [<Student: Lin Student>]>
+ 
+# 列表中包含的是数据字典
+>>> Student.objects.filter(name__startswith='Lin').values()
+<QuerySet [{'id': 1, 'name': 'Linxiao', 'age': 20}]>
+ 
+另外该方法接收可选的位置参数*fields，它指定values()应该限制哪些字段。如果指定字段，每个字典将只包含指定的字段的键/值。如果没有指定字段，每个字典将包含数据库表中所有字段的键和值。如下：
+>>> Student.objects.filter(name__startswith='Lin').values()
+<QuerySet [{'id': 1, 'name': 'Linxiao', 'age': 20}]>
+ 
+>>> Blog.objects.values('id', 'name')
+<QuerySet [{'id': 1, 'name': 'Linxiao'}]>
+```
+
+- values_list
+
+```
+values_list(*fields, flat=False)
+ 
+与values()类似，只是在迭代时返回的是元组而不是字典。每个元组包含传递给values_list()调用的相应字段或表达式的值，因此第一个项目是第一个字段等。 像这样：
+>>> Student.objects.values_list('id', 'name')
+<QuerySet [(1, 'Linxiao'), ...]>
+```
+
+
+
+## 关联管理器
+
+"关联管理器"是在一对多或者多对多的关联上下文中使用的管理器。
+
+它存在于下面两种情况
+
+```
+外键关系的反向查询
+多对多关联关系
+```
+
+
+简单来说就是当点后面的对象 可能存在多个的时候就可以使用以下的方法。
+
+- create
+
+创建一个新的对象，保存对象，并将它添加到关联对象集之中，返回新创建的对象
+
+```shell
+>>> import datetime
+>>> models.Author.objects.first().book_set.create(title="番茄物语", publish_date=datetime.date.today())
+```
+
+- add
+
+```
+
+```
+
+- set
+
+```
+
+```
+
+- remove
+
+```
+
+```
+
+- clear
+
+```
+
+```
+
 ## 增删改
 
 ```python
@@ -564,116 +982,12 @@ book.save()
 BookInfo.objects.filter(id=1).update(btitle = "射雕英雄传")
 
 
-
 调用一个模型类对象的save方法， 就可以实现数据新增或修改，id在表中存在为修改，否则为新增。
 
 调用一个模型类对象的delete方法，就可以实现数据删除，会根据id删除
 ```
 
-## 模型类关系
-
-### 模型类关系
-
-```
-在类模型中创建关联关系
-
-一对多关系，将字段定义在多的一端中
-关联属性 = models.ForeignKey("一类类名")
-
-多对多关系，将字段定义在任意一端中
-关联属性 = models.ManyToManyField("关联类类名")
-
-一对一关系，将字段定义在任意一端中
-关联属性 = models.OneToOneField("关联类类名")
-```
-
-- eg
-
-```python
-# 一对多
-#定义图书模型类BookInfo
-class BookInfo(models.Model):
-    btitle = models.CharField(max_length=20)#图书名称
-    bpub_date = models.DateField()#发布日期
-    bread = models.IntegerField(default=0)#阅读量
-    bcomment = models.IntegerField(default=0)#评论量
-    isDelete = models.BooleanField(default=False)#逻辑删除
-#定义英雄模型类HeroInfo
-class HeroInfo(models.Model):
-    hname = models.CharField(max_length=20)#英雄姓名
-    hgender = models.BooleanField(default=True)#英雄性别
-    isDelete = models.BooleanField(default=False)#逻辑删除
-    hcomment = models.CharField(max_length=200)#英雄描述信息
-    hbook = models.ForeignKey('BookInfo')#英雄与图书表的关系为一对多，所以属性定义在英雄模型类中
-
- 
-# 多对多
-# 方式一：手工指定
-class NewsType(models.model):
-    ntid = models.AutoField(promary_key=True)
-    news_id = models.ForeignKey("NewsInfo")
-    type_id = models.ForeignKey("TypeInfo")
-    
-class TypeInfo(models.Model):
-    tid = models.AutoField(promary_key=True)
-  	tname = models.CharField(max_length=20) 
-
-class NewsInfo(models.Model):
-    nid = models.AutoField(promary_key=True)
-  	ntitle = models.CharField(max_length=60)
-  	ncontent = models.TextField()
-  	npub_date = models.DateTimeField(auto_now_add=True)
-    # 指定第三张表
-  	t2n= models.ManyToManyField('TypeInfo', through="NewsType") 
-# 方式二：使用Django
-class TypeInfo(models.Model):
-  tname = models.CharField(max_length=20) #新闻类别
-
-class NewsInfo(models.Model):
-  ntitle = models.CharField(max_length=60) #新闻标题
-  ncontent = models.TextField() #新闻内容
-  npub_date = models.DateTimeField(auto_now_add=True) #新闻发布时间
-  ntype = models.ManyToManyField('TypeInfo') #通过ManyToManyField建立TypeInfo类和NewsInfo类之间多对多的关系
-```
-
-### 关联查询
-
-```
-一、通过对象进行关联查询
-用法：
-由一类对象查询多类对象：
-一类对象.多类名小写_set.all()
-
-由多类对象查询一类对象：
-多类对象.关联属性
-
-
-二、通过模型类进行关联查询
-用法：
-通过多类的条件查询一类数据：
-一类名.objects.filter(多类名小写__多类属性名__条件名=值) 
-
-通过一类的条件查询多类数据：
-多类名.objects.filter(关联属性__一类属性名__条件名=值)
-提示：会生成内连接语句进行查询， 条件名为in,gt, isnull等
-```
-
-- eg
-
-```python
-# 对象关联查询
-b = BookInfo.objects.get(id=1)
-b.heroinfo_set.all()
-
-h = HeroInfo.objects.get(id=1)
-h.hbook
-
-# 模型类关联查询
-list = BookInfo.objects.filter(heroinfo__hcontent__contains='八')
-list = HeroInfo.objects.filter(hbook__btitle='天龙八部')
-```
-
-### 自关联
+## 自关联
 
 **自关联关联属性定义：**
 
