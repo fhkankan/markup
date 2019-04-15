@@ -228,7 +228,7 @@ time.strftime("%Y-%m-%d-%H", tiem.localtime(stamp))
 
 对日期和时间进行加减实际上就是把datetime往后或往前计算，得到新的datetime。加减可以直接用`+`和`-`运算符，不过需要导入`timedelta`这个类：
 
-```
+```python
 >>> from datetime import datetime, timedelta
 >>> now = datetime.now()
 >>> now
@@ -236,6 +236,8 @@ datetime.datetime(2015, 5, 18, 16, 57, 3, 540997)
 >>> now + timedelta(hours=10)
 datetime.datetime(2015, 5, 19, 2, 57, 3, 540997)
 >>> now - timedelta(days=1)
+datetime.datetime(2015, 5, 17, 16, 57, 3, 540997)
+>>> now + timedelta(days=-1)
 datetime.datetime(2015, 5, 17, 16, 57, 3, 540997)
 >>> now + timedelta(days=2, hours=12)
 datetime.datetime(2015, 5, 21, 4, 57, 3, 540997)
