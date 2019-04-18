@@ -887,67 +887,57 @@ html
 
 Django中的分页操作： 
 
-- Django提供了数据分页的类，这些类被定义在django/core/paginator.py中
-- 对象Paginator用于对列进行一页n条数据的分页运算
-- 对象Page用于表示第m页的数据
+Django提供了数据分页的类，这些类被定义在django/core/paginator.py中
+
+对象Paginator用于对列进行一页n条数据的分页运算
+
+对象Page用于表示第m页的数据
 
 分页对象： 
 
 - Paginator对象
-  - 方法init(列表,int)： 返回分页对象，参数为列表数据，每页数据的条数
-  - 属性count： 返回对象总数
-  - 属性num_pages： 返回页面总数
-  - 属性page_range： 返回页码列表，从1开始，例如[1, 2, 3, 4]
-  - 方法page(m)： 返回Page对象，表示第m页的数据，下标从1开始
+
+属性
+
+| name       | Desc                                    |
+| ---------- | --------------------------------------- |
+| count      | 返回对象总数                            |
+| num_pages  | 返回页面总数                            |
+| page_range | 返回页码列表，从1开始，例如[1, 2, 3, 4] |
+
+方法
+
+| name      | Desc                                         |
+| --------- | -------------------------------------------- |
+| init      | 返回分页对象，参数为列表数据，每页数据的条数 |
+| `page(m)` | 返回Page对象，表示第m页的数据，下标从1开始   |
+
 - Page对象
-  - 调用Paginator对象的page()方法返回Page对象，不需要手动构造
-  - 属性object_list： 返回当前页对象的列表
-  - 属性number： 返回当前是第几页，从1开始
-  - 属性paginator： 当前页对应的Paginator对象
-  - 方法has_next()： 如果有下一页返回True
-  - 属性next_page_number： 下一页页码
-  - 方法has_previous()： 如果有上一页返回True
-  - 属性previous_page_number： 上一页页码
-  - 方法len()： 返回当前页面对象的个数
 
-## 案例-省市选择
+调用Paginator对象的page()方法返回Page对象，不需要手动构造
 
-- 需求： 
+属性
 
-  可以切换选择省份或城市，查看下级区县。
+| name                 | Desc                      |
+| -------------------- | ------------------------- |
+| object_list          | 返回当前页对象的列表      |
+| number               | 返回当前页对象的列表      |
+| paginator            | 当前页对应的Paginator对象 |
+| next_page_number     | 下一页页码                |
+| previous_page_number | 上一页页码                |
+|                      |                           |
 
-- 实现步骤： 
+方法
 
-  一、进入区域显示界面  
+| name             | desc                   |
+| ---------------- | ---------------------- |
+| `has_next()`     | 如果有下一页返回True   |
+| `has_previous()` | 如果有上一页返回True   |
+| `len()`          | 返回当前页面对象的个数 |
 
-  ```
-  1. 配置进入界面的url地址
-  2. 定义视图函数
-  3. 定义html界面
-  ```
+使用
 
-  二、显示省份
+```
 
-  ```
-  1. 服务器提供获取省份服务： 定义请求省份的url地址，和获取省份的视图函数
-  2. 配置静态文件： 
-  
-  	- 在项目下创建static/js目录，复制jquery到static/js目录下.
-  	- 在项目下的setting.py文件中配置： 
-  
-  			# 指定静态文件所在的物理目录
-  			STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
-  
-  3. 客户端请求数据： 在html界面中通过ajax请求，获取省份数据	
-  ```
-
-  三、切换省份显示城市
-
-  ```
-  1. 服务器提供获取下级区域服务
-  2. 获取子区域的视图函数
-  3. 在html界面中，通过ajax发请求，获取城市数据
-  ```
-
-  四、切换城市显示区县
+```
 

@@ -441,7 +441,48 @@ my_queryset.reverse()[:5]
 第一次遍历使用了QuerySet中的所有的对象（比如通过 列表生成式 遍历了所有对象），则django会把数据缓存起来， 第2次再使用同一个QuerySet时，将会使用缓存。注意：使用索引或切片引用查询集数据，将不会缓存，每次都会查询数据库。
 ```
 
+- 样例
+
+```python
+paper_list.filter(name__icontains=name)
+Project.objects.get(pk=project_id)
+UserPro.objects.filter(pk=system.update_user_id).last()
+User.objects.filter(type=1).exclude(status=-1).exclude(employee__training_use=1)
+SchoolClass.objects.filter(pk=data.cls_id, status=1).first().project_id
+UserBook.objects.filter(userbookclass__status=1).count()
+JmsGift.objects.filter(jms_user_id=jms_user_id).exists()
+OrderDetail.objects.filter(order_id=order.id).values_list("user_book_id", flat=True))
+PDFTask.objects.filter(homework_date=date).order_by("-id")
+UserBookClass.objects.filter(user_book__project_id=project_id).aggregate(
+        class_name=GROUP_CONCAT("cls__name", distinct=True, separator='，'))
+CouponUser.objects.filter(start_time__lte=now).exclude(end_time__lte=now).aggregate(sum=Sum("num"))
+
+project_id_list = Project.objects.filter(status=1).values_list("id", flat=True)
+query = SchoolUser.objects.exclude(status=-1).filter(user_type=1)
+Project.objects.filter(pk__in=project_id_list).values("id", "name")
+query = query.extra(where=[
+'exists (select * from yh_user_book where user_id=auth_user.id and status in (0, 1) AND project_id in (%s))'% ','.join(map(str, project_id_list))])
+
+UserBookClass.objects.filter(user_book__project__in=project_id_list,).\
+            values("user_id", "user_book__project_id").\
+            annotate(class_name=GROUP_CONCAT("cls__name", distinct=True, separator='<br>')).\
+            values("user_id", "user_book__project_id", "class_name")
+
+SchoolClass.objects.filter(school_id=school_id, status=1). \
+            extra(where=['0 = (select count(*) from yh_user_book_class where cls_id=yh_class.id and user_type=3 and status=1 and user_id !=%s)'
+            % tea_user_id]).values("id", "name", 'project_id').order_by("name", "id")
+  
+  
+StudentScore.objects.filter(user_id__in=uids, project_id__in=project_id_list). \
+            values("user_id", "project_id").annotate(max_id=Max("id")). \
+            values_list("max_id", flat=True).distinct()
+users.annotate(live=Case(When(last_login__gte=live_data, then=1), When(date_joined__gte=live_data,then=1), default=0, output_field=IntegerField()))
+    
+users.filter(Q(date_joined__gt=live_data) | Q(last_login__gt=live_data))
+```
+
 ### 单表条件
+
 ```
 模型类.objects.filter(模型类属性名__条件名 = 值)
 ```
@@ -513,18 +554,18 @@ Student.objects.filter(name__isnull=True)
 
 关联查询
 
-```
-对象进行关联查询
+```python
+# 对象进行关联查询
 1. 由一类对象查询多类对象
 一类对象.多类名小写_set.all()
 2. 由多类对象查询一类对象
 多类对象.关联属性
 
 
-模型类进行关联查询
-1. 通过多类的条件查询一类数据：
+# 模型类进行关联查询
+1. 查询一类数据(通过多类的条件)：
 一类名.objects.filter(多类名小写__多类属性名__条件名=值) 
-2. 通过一类的条件查询多类数据：
+2. 查询多类数据(通过一类的条件)：
 多类名.objects.filter(关联属性__一类属性名__条件名=值)
 提示：会生成内连接语句进行查询， 条件名为in,gt, isnull等
 ```
@@ -667,7 +708,7 @@ from django.db.models import Avg, Sum, Max, Min, Count
 
 默认名称
 
-```
+```shell
 >>> from django.db.models import Avg, Sum, Max, Min, Count
 >>> models.Book.objects.all().aggregate(Avg("price"))
 {'price__avg': 13.233333}
@@ -675,14 +716,14 @@ from django.db.models import Avg, Sum, Max, Min, Count
 
 指定名称
 
-```
+```shell
 >>> models.Book.objects.aggregate(average_price=Avg('price'))
 {'average_price': 13.233333}
 ```
 
 多个聚合
 
-```
+```shell
 >>> models.Book.objects.all().aggregate(Avg("price"), Max("price"), Min("price"))
 {'price__avg': 13.233333, 'price__max': Decimal('19.90'), 'price__min': Decimal('9.90')}
 ```
@@ -703,7 +744,7 @@ annotate()的每个参数都是一个annotation，它将添加到返回的QueryS
 
 按照部分分组求平均工资
 
-```
+```shell
 select dept,AVG(salary) from employee group by dept;
 
 from django.db.models import Avg
@@ -712,7 +753,7 @@ Employee.objects.values("dept").annotate(avg=Avg("salary").values(dept, "avg")
 
 连表查询的分组
 
-```
+```shell
 select dept.name,AVG(salary) from employee inner join dept on (employee.dept_id=dept.id) group by dept_id;
 
 from django.db.models import Avg
@@ -721,7 +762,7 @@ models.Dept.objects.annotate(avg=Avg("employee__salary")).values("name", "avg")
 
 统计每一本书的作者个数
 
-```
+```shell
 >>> book_list = models.Book.objects.all().annotate(author_num=Count("author"))
 >>> for obj in book_list:
 ...     print(obj.author_num)
@@ -733,7 +774,7 @@ models.Dept.objects.annotate(avg=Avg("employee__salary")).values("name", "avg")
 
 统计出每个出版社买的最便宜的书的价格
 
-```
+```shell
 >>> publisher_list = models.Publisher.objects.annotate(min_price=Min("book__price"))
 >>> for obj in publisher_list:
 ...     print(obj.min_price)
@@ -748,21 +789,21 @@ models.Dept.objects.annotate(avg=Avg("employee__salary")).values("name", "avg")
 
 统计不止一个作者的图书
 
-```
+```shell
 >>> models.Book.objects.annotate(author_num=Count("author")).filter(author_num__gt=1)
 <QuerySet [<Book: 番茄物语>]>
 ```
 
 根据一本图书作者数量的多少对查询集 QuerySet进行排序
 
-```
+```shell
 >>> models.Book.objects.annotate(author_num=Count("author")).order_by("author_num")
 <QuerySet [<Book: 香蕉物语>, <Book: 橘子物语>, <Book: 番茄物语>]>
 ```
 
 查询各个作者出的书的总价格
 
-```
+```shell
 >>> models.Author.objects.annotate(sum_price=Sum("book__price")).values("name", "sum_price")
 <QuerySet [{'name': '小精灵', 'sum_price': Decimal('9.90')}, {'name': '小仙女', 'sum_price': Decimal('29.80')}, {'name': '小魔女', 'sum_price': Decimal('9.90')}]>
 ```
@@ -790,13 +831,13 @@ models.Book.objects.filter(commnet_num__lt=F('keep_num')*2)
 
 修改操作也可以使用F函数,比如将每一本书的价格提高30元
 
-```
+```python
 models.Book.objects.all().update(price=F("price")+30)
 ```
 
 修改char字段
 
-```
+```shell
 >>> from django.db.models.functions import Concat
 >>> from django.db.models import Value
 >>> models.Book.objects.all().update(title=Concat(F("title"), Value("("), Value("第一版"), Value(")")))
@@ -1114,39 +1155,45 @@ def exists(self):
 
 ## 增删改
 
+增
+
 ```python
-# 调用Django羡慕python命令解释器
-python manage.py shell
 from book_app.models import *
 
-# 增
-# 方法一
+# 对象方法
+# 调用一个模型类对象的save方法， 就可以实现数据新增或修改，id在表中存在为修改，否则为新增。
 book1 = BookInfo(btitle="倚天屠龙记", bpub_date="1990-08-23")
 book1.save()
-# 方法二
-BookInfo.objects.create(btitle="倚天屠龙记", bpub_date="1990-08-23")
+
+# 模型类方法
+BookInfo.objects.create(btitle="倚天屠龙记", bpub_date="1990-08-23"， create_time=datetime.datetime.now())
 
 # 批量写入数据库
 Entry.objects.bulk_create([
     Entry(headline='This is a test'),
     Entry(headline='This is only a test'),
 ])
+```
 
-# 删
-book1.delete()
+删
 
-# 改
-# 方法一
+```python
+# 调用一个模型类对象的delete方法，就可以实现数据删除，会根据id删除
+BookInfo.objects.filter(pk=id).delete()
+```
+
+改
+
+```python
+# 对象方法
+# 调用一个模型类对象的save方法， 就可以实现数据新增或修改，id在表中存在为修改，否则为新增。
 book = BookInfo.objects.get(id=1)
 book.btitle = "射雕英雄传"
 book.save()
-# 方法二
+
+# 模型类方法
 BookInfo.objects.filter(id=1).update(btitle = "射雕英雄传")
-
-
-调用一个模型类对象的save方法， 就可以实现数据新增或修改，id在表中存在为修改，否则为新增。
-
-调用一个模型类对象的delete方法，就可以实现数据删除，会根据id删除
+catalogs.filter(pk=key).update(is_system=1, system_num=F("system_num") + 20)
 ```
 
 事务
