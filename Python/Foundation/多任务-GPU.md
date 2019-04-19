@@ -470,13 +470,281 @@ NumbaPro是一个Python编译器，提供了基于CUDA的API编程接口，可�
 
 ### 准备工作
 
+NumbaPro是Anaconda Accelerate的一部分，基于以BSD协议发布的开源项目Numba,而Numba自身也很大程度上依赖于LLVM编译器。NumbaPro的GPU后端利用了基于LLVM的NVIDIA编译器SDK
+
+若要使用NumbaPro，需要以下步骤
+
+```
+1.下载并安装Anaconda提供的发行版
+2.从Anaconda的命令行提示符中输入以下命令
+conda update conda
+conda install accelerate
+conda install numbapro
+3.检查系统使用了最新的CUDA驱动器
+在Anaconda控制台打开python并输入
+import numbapro
+numbapro.check_cuda
+```
+
+### 实现
+
+使用NumbaPro执行矩阵乘法
+
+```python
+from numbapro import guvectorize
+import numpy as np
+
+
+@guvectorize(['void(int64[:,:], int64[:,:], int64[:,:])'], '(m,n),(n,p)->(m,p)')
+def matmul(A,B,C):
+  # 输入军阵A、B，生成输出矩阵C
+	m, n = A.shape
+	n, p = B.shape
+	for i in range(m):
+		for j in range(p):
+			C[i, j] = 0
+			for k in range(n):
+				C[i, j] += A[i, k]*B[k, j]
+
+dim = 10
+A = np.random.randint(dim, size=(dim, dim))
+B = np.random.randint(dim, size=(dim, dim))
+
+C = matmul(A, B)
+print("input matrix A")
+print(":\n%s" % A)
+print("input matrix B")
+print(":\n%s" % B)
+print("result matrix C = A*B")
+print(":\n%s" % C)
+```
+
+@guvectorize装饰器
+
+```
+适用于数组参数，改装饰器可接受一个额外参数，指定gufunc签名。各参数如下
+前三个参数指定要管理的数据类型，为整数数组：'void(int64[:,:], int64[:,:], int64[:,:])'
+最后一个参数指定如何操作矩阵维度：'(m,n),(n,p)->(m,p)'
+```
+
+### 使用GPU加速的库
+
+NumbaPro提供了一个CUDA库的Python封装，可用于数值计算。使用这些库后，无须编写任何与GPU相关的代码即可获得大幅速度提升。相关库解释如下
+
+cuBLAS
+
+```
+NVIDIA开发的一个库，提供了可在GPU上运行的主要线性代数函数。与在CPU上实现了线性代数函数的基础线性代数子程序库类似，cuBLAS库将其函数划分为以下三个层次
+第一层：向量操作
+第二层：矩阵和向量之间的事务处理
+第三层：矩阵之间的操作
+将函数划分为三层，是基于执行选定操作需哟啊多少层嵌套循环决定的。更准确地说，每个层次的操作是执行选定函数所需哟啊的基本循环
+```
+
+cuFFT
+
+```
+该库提供了一个在NVIDIA GPU上以分布式方式计算快速傅立叶变换(FFT)的简单接口，可以在不自省实现FFT的情况下利用GPU的并行特性
+```
+
+cuRAND
+
+```
+该库支持创建准随机数，准随机数指的是由一个确定性算法生成的随机数
+```
+
+cuSPArse
+
+```
+该库提供了一组用于管理稀疏矩阵(sparse matrix)的函数。和第一个库不同，它的函数划分为四个层次
+第一层：稀疏向量(sparse vector)和稠密向量(dense vector)之间的操作
+第二层：稀疏矩阵(sparse matrix)和稠密向量(dense vector)之间的操作
+第三层：稀疏矩阵(sparse matrix)和一组稠密向量(dense vector)之间的操作
+转换：支持不同存储格式之间转换的操作
+```
+
+通用矩阵乘(General Matrix Multiply，简称GEMM)是一种在NVIDIA GPU上执行矩阵间乘法(matrix-matrix multiplication)的例行程序。
+
+下面使用Numpy模块的线性版和使用cuBLAS库的并行版
+
+```python
+import numbapro.cudalib.cublas as cublas
+import numpy as np
+from timeit import default_timer as timer
+
+dim = 10  # 矩阵维度
+
+def gemm():
+    print("Version 2".center(80, '='))
+
+    A = np.random.rand(dim, dim)  # 输入矩阵
+    B = np.random.rand(dim, dim)  # 输入矩阵
+    D = np.zeros_like(A, order='F')  # 保存cuBLAS实现的输出
+
+    print("matrix A:")
+    print(A)
+    print("matrix B:")
+    print(B)
+
+    # numpy
+    start = timer()
+    E = np.dot(A, B)
+    numpy_time = timer() - start
+    print("Numpy took %f seconds" % numpy_time)
+
+    # cuBLAS
+    blas = cublas.Blas()
+    start = timer()
+    # gemm函数是cuBLAS中的一个第三层函数
+    blas.gemm('T', 'T', dim, dim, dim, 1.0, A, B, 1.0, D)
+    cuda_time = timer() - start
+    print(D)
+    print("CUBLAS took %f seconds" % cuda_time)
+    diff = np.abs(D-E)
+    print("Maximum error %f" % np.max(diff))
+
+def main():
+    gemm()
+
+if __name__ == '__main__':
+    main()
+```
 
 
 
+## PyOpenCL
 
-## pyopencl
+开放计算语言(open computing language，简称OpenCL)是用于开发跨不同平台运行程序的框架，平台可以是使用不同生产商生产的CPU或GPU组成的。这个框架是在GPU上使用CUDA执行软件的主要替代方案，但其出发点截然不同。CUDA的优点在于专精，以可移植性不高为代价确保了极佳的性能。而OpenCL则给出了市场上几乎所有设备兼容的解决方案。用OpenCL编写的软件可以在所有主流厂商生产的处理器上运行。OpenCL包含一种基于C99(有部分限制)的语言，可编写内核，支持直接和CUDA-C-Fortan或CUDA相同的方式使用硬件。OpenCL提供了运行高度并行、同步的原语，如内存区域指示器和不同执行平台的控制机制。但是OpenCL程序的可移植性也有限制，只能在不同设备上运行相同的代码，这也确保了各个平台上的性能同等可靠。为了获得最佳性能，根据设备的特征对代码进行优化至关重要。OpenCL在python中的实现，叫做PyOpenCL
 
 pyopencl使得在python中调用OpenCL并行计算API。OpenCL是跨平台的并行编程标准，可以运行在个人计算机、服务器、移动终端及嵌入式系统等多个平台，既可以在CPU上，也可以运行在GPU上，大幅度提高了各类应用中数据处理速度，包括游戏、娱乐、医学软件及科学计算等。
+
+### 准备工作
+
+PyOpenCL之于OpenCL，好比PyCUDA之于CUDA，是GPGUPU平台的python包装器(PyOpenCL在NVIDIA和AMD两家的GPU显卡上均可运行)，由Andreas开发和维护。
+
+```
+1. 安装OpenCL驱动器
+2. 安装pyOpenCL
+3. 验证是否正确安装PyOpenCL环境
+```
+
+验证脚本
+
+```python
+import pyopencl as cl
+
+
+def print_device_info():
+    print('\n' + '=' * 60 + '\nOpenCL Platforms and Devices')
+    for platform in cl.get_platforms():
+        print('='*60)
+        print('Platform-Name: ' + platform.name)
+        print('Platform-Vendor: ' + platform.vendor)
+        print('Platform-versions: ' + platform.versions)
+        print('Platform-Profile: ' + platform.profile)
+        for device in platform.get_devices():
+            print('   ' + '-' *n 56)
+            print('   Device - name; ' + device.name)
+            print('   Device - Type: ' + cl.device_type.to_string(device.type))
+            print('   Device - Max Clock Speed: {0} Mhz'.format(device.max_clock_frequency))
+            print('   Device - Compute Units: {0}'.format(device.max_compute_units))
+            print('   Device - Local Memory: {0:.0f} KB'.format(device.Local_mem_size/1024.0))
+            print('   Device - Constant Memory: {0:.0f} KB'.format(device.max_constant_buffer_size/1024.0))
+            print('   Device - Global Memory: {0:.0f} GB'.format(device.global_mem_size/1073741824.0))
+            print('   Device - Max Buffer/Image Size: {0:.0f} MB'.format(device.max_mem_alloc_size/1048576.0))
+            print('   Device - Max Work Group Size: {0:.0f}'.format(device.max_work_group_size))
+    print('\n')
+
+if __name__ == "__main__":
+    print_device_info()
+```
+
+### 构建PyOpenCL应用
+
+第一步是编码宿主应用(host application)。实际上，这个应用将在宿主电脑上执行，然后调度连接设备(GPU显卡)上的内核应用
+
+宿主应用必须包含5个数据结构
+
+```
+- 设备
+用来执行内核代码的硬件。PyOpenCL应用可以在CPU和GPU显卡上执行，也可以嵌入到设备中，如现场可编程门阵列(Field Programmable Gate Array, 简称FPGA)
+- 程序
+一组内核。程序将选择必须在设备上执行的内核
+- 内核
+将在设备上编译执行的代码。内核本质上是一个类C函数，可以在支持OpenCL驱动器的人一设备上编译执行。内核是宿主调用在设备上运行的函数的唯一方法。宿主调用内核时，设备上的许多工作项将开始运行。每个工作项都将运行内核代码，但是操作的是数据集的不同部分
+- 命令队列
+每个设备通过该数据结构接收内核。命令队列用于确定设备上内核的执行顺序
+- 上下文
+指一组设备。上下文支持设备接收内核，转移数据
+```
+
+示例
+
+对两个向量并行求和
+
+```python
+import numpy as np
+import pyopencl as cl
+import numpy.linalg as la
+
+# 向量维数
+vector_dimension = 100
+# 输入向量
+vector_a = np.random.randint(vector_dimension, size=vector_dimension)
+vector_b = np.random.randint(vector_dimension, size=vector_dimension)
+# 选择运行内核代码的设备
+# 选择平台
+platform = cl.get_platforms()[0]
+# 选择设备
+device = platform.get_devices()[0]
+# 定义上下文
+context = cl.get_platforms()[0]
+# 定义队列
+queue = cl.CommandQueue(context)
+# 为了在设备上计算，输入向量必须转移到设备内存中
+mf = cl.mem_flags
+# 在涉笔内存中创建两个缓冲区
+a_g = cl.Buffer(context, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=vector_a)
+b_g = cl.Buffer(context, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=vector_b)
+# 内核代码
+program = cl.Program(context, 
+        """__kernel void vectorSum(__global const int *a_g, __global const int *b_g, __global int *res_g){
+        int gid = get_global_id(0);
+        res_g[gid] = a_g[gid] + b_g[gid];
+        } """).build()
+# 准备好最终输出向量的缓冲区
+res_g = cl.Buffer(context, mf.WRITE_ONLY, vector_a.nbytes)
+# 在设备上执行代码
+# 在OpenCL和PyOpenCL中，缓冲区依附于上下文，只有在设备上使用该缓冲区时才会转移到设备中
+program.vectorSum(queue, vector_a.shape, None, a_g, b_g, res_g)
+# 为了可视化地产看结果，构建一个空向量
+res_np = np.empty_like(vector_a)
+# 将结果复制到这个向量中
+cl.enqueue_copy(queue, res_np, res_g)
+
+print("PyOenCL sum of two vectors")
+print("Platform Selected = %s" % platform.name)
+print("Device Selected = %s" % device.name)
+print("Vector Length = %s" % vector_dimension)
+print("Input Vector A")
+print(vector_a)
+print("Input Vector B")
+print(vector_b)
+print("Output Vector Result A + B")
+print(res_np)
+# 使用断言检查结果
+assert (la.norm(res_np - (vector_a + vector_b))) < le-5
+```
+
+内核代码
+
+```
+名称为vectorSum
+参数列表定义了输入参数的数据类型和输出数据类型
+在内核函数的主体中，两个向量之和的定义如下：
+初始化向量索引：int_gid = get_global_id(0)
+向量的组件相加：res_g[gid] = a_g[gid] + b_g[gid]
+```
 
 下面的案例使用pyopencl在GPU上并行判断素数，测试结果显示在640核GPU上的运行速度是4核CPU的12倍左右
 
@@ -529,6 +797,10 @@ for i in range(end//size + 1):
 print(result)
 ```
 
+### 对逐元素表达式求值
+
+
+
 ## tensorflow
 
 tensorflow是一个用于人工智能的开源神器，是一个采用数据流图(data flow graphs)用于数值计算的开源软件库。数据流图使用节点(nodes)和边线(edges)的有向图来描述数学计算，图中节点表示数学操作，也可以表示数据输入的起点或者数据输出的终点，而边线白哦是在节点之间的输入输出关系，用来运输大小可动态调整的多维数据数组，也就是张量(temsor)。tensorflow可以在普通计算机、服务器和移动设备的CPU和GPU上展开计算，具有很强的可移植性，支持C++、python等多种语言
@@ -573,4 +845,6 @@ with tf.device('/gpu:0'):
             # 显示训练过程，这里掩饰了两种查看变量值的方法
             print(step, sess.run(W), b.eval())
 ```
+
+## pyTorch
 
