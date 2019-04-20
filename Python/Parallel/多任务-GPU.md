@@ -799,7 +799,141 @@ print(result)
 
 ### 对逐元素表达式求值
 
+与PyCUDA类似，PyOpenCL在pyopencl.elementwise类中提供了在单次计算(single computational pass)中求复杂表达式值的功能。实现该功能的方法是
 
+```python
+ElementwiseKernel(context, argument, operation, name, ",",",", optional_parameters)
+
+# 参数
+context:执行逐元素操作的设备或设备组
+argument:由计算中所需参数组成的类C参数列表
+operation:一个字符串，代表将使用参数列表执行的操作
+name:与ElementwiseKernel相关联的内核名称
+optional_parameters:这些参数对于该实例并不重要
+```
+
+将两个整数向量相加
+
+```python
+import pyopencl as c1
+import pyopencl.array as cl_array
+import numpy as np
+
+# 初始化上下文
+context = cl.create_some_context()
+# 实例化队列
+queue = cl.CommandQueue(context)
+# 创建输入向量和结果向量的实例，并将向量复制到设备
+vector_dimension = 100
+vector_a = cl_array.to_device(
+        queue, np.random.randint(vector_dimension, size=vector_dimension)
+        )
+vector_b = cl_array.to_device(
+        queue, np.random.randint(vector_dimension, size=vector_dimension)
+        )
+result_vector = cl_array.empty_like(vector_a)
+# 创建核心函数
+# 所有参数都包含在一个字符串中，格式为C参数列表
+# 由一个C代码段执行操作，即将向量组间相加
+# 函数名将用于编译内核
+elementwiseSum = cl.elementwise.ElementwiseKernel(
+    context, "int *a, int *b, int *c", "c[i] = a[i] + b[i]", "sum"
+        )
+elementwiseSum(vector_a, vector_b, result_vector)
+
+print("pyopencl elementwise sum or two vectors")
+print("vector length = %s" % vector_dimension)
+print("input vector a")
+print(vector_a)
+print("input vector_b")
+print(vector_b)
+print("output vector result A + B")
+print(result_vector)
+```
+
+### 测试GPU应用
+
+在开始研究算法性能之前，要注意进行测试的执行平台，这些系统的具体特性会影响计算时间，属于需要重点考虑的因素
+
+使用如下机器进行测试
+
+```
+GPU: GeForce GT 240
+CPU: Intel Core2 Duo 2.33 GHz
+RAM: DDR2 4GB
+```
+
+在本次测试中，将计算并比较一个简单数学运算的计算时间，该运算为求两个向量之和，元素均为浮点数。为了比较，在两个不同的函数中实现相同的操作。
+
+第一个函数只使用CPU，第二个使用PyOpenCL，并利用GPU进行计算。测试使用的输入为最大维度为10000个元素的向量
+
+```python
+from time import time 
+import pyopencl as cl 
+import numpy as np 
+import PyOpeClDeviceInfo as device_info
+import numpy.linalg as la 
+
+# 输入向量
+a = np.random.rand(10000).astype(np.float32)
+b = np.random.rand(10000).astype(np.float32)
+
+def test_cpu_vector_sum(a, b):
+    c_cpu = np.empty_like(a)
+    cpu_start_time = time()
+    for i in range(10000):
+        for j in range(10000):
+            c_cpu[i] = a[i] + b[i]
+    cpu_end_time = time()
+    print("CPU Time: {0} s".format(cpu_end_time - cpu_start_time))
+    return c_cpu 
+
+def test_gpu_vector_sum(a, b):
+    # 定义上下文
+    paltform = cl.get_platforms()[0]
+    device = platform.get_devices()[0]
+    context = cl.Context([device])
+    queue = cl.CommandQueue(context, properties=cl.command_queue_properties.PROFILINF_ENABLE)
+    # 准备数据结构
+    a_buffer = cl.Buffer(context, cl.mem_flags.READ_ONLY | cl.mem_flags.COPY_HOST_PTR, hostbuf=a)
+    b_buffer = cl.Buffer(context, cl.mem_flags.READ_ONLY | cl.mem_flags.COPY_HOST_PTR, hostbuf=b)
+    c_buffer = cl.Buffer(context, cl.mem_flags.READ_ONLY | cl.mem_flags.COPY_HOST_PTR, hostbuf=c)
+    program = cl.Program(context, """
+            __kernel void sum(
+                __global const float *a,
+                __global const float *b,
+                __gloabl float *c
+            )
+            {
+                int i = get_global_id(0);
+                int j;
+                for(j=0; j<10000; j++){
+                    c[i] = a[i] + b[i]
+                }
+            }
+            """).build()
+    # 开始GPU测试
+    gpu_start_time = time()
+    event = program.sum(queue, a.shape, None, a_buffer, b_buffer, c_buffer)
+    event.wait()
+    elapsed = le-9*(event.profile.end - event.profile.start)
+    print("GPU Kernel evaluation TIme: {0} s".format(elapsed))
+    c_gpu = np.empty_like(a)
+    cl.enqueue_read_buffer(queue, c_buffer, c_gpu).wait()
+    gpu_end_time = time()
+    print("GPU Time: {0} s".format(gpu_end_time - gpu_start_time))
+    return c_gpu
+
+if __name__ == "__main__":
+    # 打印设备信息
+    device_info.print_device_info()
+    # 在CPU上调用测试
+    cpu_result = test_cpu_vector_sum(a, b)
+    # 在GPU上调用测试
+    gpu_result = test_gpu_vector_sum(a, b)
+    # 断言,检查结果
+    assert (la.normal(cpu_result - gpu_result)) < le-5
+```
 
 ## tensorflow
 
