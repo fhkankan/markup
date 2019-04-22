@@ -206,6 +206,25 @@ class HeroInfo(models.Model):
 
 [官方更多字段类型说明](http://python.usyiyi.cn/translate/django_182/ref/models/fields.html)
 
+类型对照(mysql)
+
+| 数据库字段类型 | 模型类字段类型 | python数据类型    |
+| -------------- | -------------- | ----------------- |
+| datetime       | DatetimeFiled  | datetime.datetime |
+| date           | DateFiled      | dateteime.date    |
+| decimal(11,2)  | Decimal()      | Int,Decimal       |
+
+例子
+
+```python
+# datetime.datetime类型
+datetime.datetime.now(),
+# 转换为字符串：
+datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+# dateteime.date类型
+datetime.datetime.strptime('1999-01-01', "%Y-%m-%d").date()
+```
+
 **注意： 只要修改了表字段的类型，就需要重新生成迁移文件并执行迁移操作。**
 
 字段选项
