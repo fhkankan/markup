@@ -463,6 +463,9 @@ Project.objects.filter(pk__in=project_id_list).values("id", "name")
 query = query.extra(where=[
 'exists (select * from yh_user_book where user_id=auth_user.id and status in (0, 1) AND project_id in (%s))'% ','.join(map(str, project_id_list))])
 
+assess_info = assess_info.extra(select={"asses_id": "id"}).\
+            values("asses_id", "again_delay_delay").last() or {}
+
 UserBookClass.objects.filter(user_book__project__in=project_id_list,).\
             values("user_id", "user_book__project_id").\
             annotate(class_name=GROUP_CONCAT("cls__name", distinct=True, separator='<br>')).\
@@ -893,7 +896,7 @@ models.Book.objects.filter(Q(authors__name="小仙女")|Q(authors__name="小魔�
 extra(self, select=None, where=None, params=None, tables=None, order_by=None, select_params=None)
 
 # 参数
-select和select_params是一组
+select和select_params是一组  
 where和params是一组
 tables用来设置from哪个表
 ```
