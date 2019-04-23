@@ -1,362 +1,6 @@
-# 模型
+[TOC]
 
-ORM Object relational mapping 对象关系映射
-
-- 自动生成的数据库表
-- 以面向对象的方式操作数据库数据
-- 通过方便的配置，切换使用不同的数据库
-
-## 配置使用数据库
-
-### 创建空白数据库(mysql)
-
-操作流程 
-
-```python
-1、手动生成mysql数据库
-mysql –uroot –p 
-show databases;
-create database db_django01 charset=utf8;
-
-2、在Django中配置mysql
-1)、修改setting.py中的DATABASES
-	# Project01/setting.py
-DATABASES = {
-    'default': {
-        # 'ENGINE': 'django.db.backends.sqlite3',
-        # 'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-
-        # 配置mysql数据库
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': "db_django01",
-        'USER': "root",
-        'PASSWORD': "mysql",
-        'HOST': "localhost",
-        'PORT': 3306,
-    }
-}
-
-2)、在python虚拟环境下安装mysqlPython包:
-pip install mysql-python 	# python2
-pip install pymysql			# python3
-pip install mysqlclient # python2、3
-
-3)、导入mysql包
-在项目或应用的__init__.py中，
-import pymysql
-pymysql.install_as_MySQLdb()
-
-4)、编写新的modle.py
-
-5)、重新生成数据库表
-删除掉应用名/migrations目录下所有的迁移文件
-重新执行：
-python manage.py makemigrations
-python manage.py migrate
-
-3、确认是否已经生成了对应的数据库表
-```
-
-### 连接旧有数据库(mysql)
-
-- 自动生成模型类
-
-操作流程
-
-```python
-1.在django中配置数据信息
-1)、修改setting.py
-DATABASES = {
-    'default': {
-        # 'ENGINE': 'django.db.backends.sqlite3',
-        # 'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-        # 配置mysql数据库
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': "db_django01",
-        'USER': "root",
-        'PASSWORD': "mysql",
-        'HOST': "localhost",
-        'PORT': 3306,
-    }
-}
-
-2)、检查数据库表信息
-python manage.py inspectdb
-
-3)、生成modle.py
-python manage.py inspectdb > myapp/models.py
-
-4)、修改model.py信息
-managed = False  # 表示django不对该表进行创建、修改和删除
-managed = True  # 默认状态，django的migrate表记录model中类的改动变化，执行makemigrations和migrate将改动应用到数据库表
-
-5)、安装核心django表
-python manage.py migrate
-
-2.检查数据库表与模型之间的对应关系
-```
-
-清理生成的Models
-
-```
-- 数据库的每一个表都会被转化为一个model类。这意味着你需要为多对多连接表重构其models为ManyToManyField的对象。所生成的每一个model中的每个字段都拥有自己的属性，包括id主键字段。
-- 如果某个model没有主键的时候，那么Django会为其自动增加一个id主键字段。你或许想移除这行代码因为这样不仅是冗余的码而且如果当你的应用需要向这些表中增加新纪录时，会导致某些问题。
-- 每一个字段都是通过查找数据库列类型来确定的。取过inspectdb无法把某个数据库字段映射导model字段上，它会使用TextField字段进行代替，并且会在所生成的model字段后面加入注释“该字段类型是猜的”。
-- 如果你的数据库中的某个字段在Django中找不到合适的对应物，你可以忽略它，因为Django模型层不要求导入数据表中的每个列。
-- 如果数据库中某个列的名字是P与桃红的保留字， inspectdb会在每个属性名后加上_field，并将db_column属性设置为真实的字段名。
-- 如果数据库中的某张表引用了其他表，就像外键和多键，需要是党的四ugai所生成model的顺序，以使得这种引用能够正确映射。
-- 对于PostgreSQL,MySQL和SQLite数据库系统，insoectdb能够自动检测出主键关系。也就是说，它会在合适的位置插入primary_key=True，而对于其他数据库系统，你必须为每个model中至少一个字段插入这样的语句。因为这个主键字段是必须有的。
-- 外键检测仅对PostgreSQL,还有MySQL表中的某些特定类型生效。 至于其他数据库,外键字段将在假定其为INT列的情况下被自动生成为IntegerField。
-```
-
-- 手动写模型类
-
-操作流程
-
-```python
-1.在django中配置数据信息
-1)、修改setting.py
-DATABASES = {
-    'default': {
-        # 'ENGINE': 'django.db.backends.sqlite3',
-        # 'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-        # 配置mysql数据库
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': "db_django01",
-        'USER': "root",
-        'PASSWORD': "mysql",
-        'HOST': "localhost",
-        'PORT': 3306,
-    }
-}
-
-2. 手动写相应的模型类
-# 注意：字段名和表名要和数据库中一致
-from django.db import models
-
-class ReportDownload(models.Model):
-    TYPE_CHOICES = (
-        ('pay_jms', '加盟奖励确认'),
-        ('pay_bonus', '加盟奖励确认'),
-        ('pay_stu', '学生缴费明细'),
-        ('pay_order', '加盟商订单查询')
-    )
-    user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
-    type = models.CharField(choices=TYPE_CHOICES, max_length=20, default='')
-    url = models.CharField('文件下载地址（绝对地址）', max_length=200)
-    add_time = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        db_table = "report_download"
-```
-
-## 模型类
-
-```python
-#定义图书模型类BookInfo
-class BookInfo(models.Model):
-    btitle = models.CharField(max_length=20)#图书名称
-    bpub_date = models.DateField()#发布日期
-    bread = models.IntegerField(default=0)#阅读量
-    bcomment = models.IntegerField(default=0)#评论量
-    isDelete = models.BooleanField(default=False)#逻辑删除
-    class Meta:
-      db_table = 'book_info'  # 表名
-      
-      
-#定义英雄模型类HeroInfo
-class HeroInfo(models.Model):
-    hname = models.CharField(max_length=20)#英雄姓名
-    hgender = models.BooleanField(default=True)#英雄性别
-    isDelete = models.BooleanField(default=False)#逻辑删除
-    hcomment = models.CharField(max_length=200)#英雄描述信息
-    hbook = models.ForeignKey('BookInfo')#英雄与图书表的关系为一对多，所以属性定义在英雄模型类中
-    class Meta:
-      db_table = 'hero_info'  # 表名
-```
-
-### 字段
-
-```
-在模型类中，定义属性，生成对应的数据库表字段
-属性名 = models.字段类型(字段选项)
-
-属性名命名限制
-不能是python的保留关键字。
-不允许使用连续的下划线，这是由django的查询方式决定的。
-```
-
-字段类型
-
-| 类型             | 说明                                                         |
-| ---------------- | ------------------------------------------------------------ |
-| AutoField        | 自动增长的IntegerField，通常不用指定，不指定时Django会自动创建属性名为id的自动增长属性 |
-| BooleanField     | 布尔字段，值为True或False                                    |
-| NullBooleanField | 支持Null、True、False三种值                                  |
-| CharField        | 字符串，参数max_length表示最大字符个数                       |
-| TextField        | 大文本字段，一般超过4000个字符时使用                         |
-| IntegerField     | 整数                                                         |
-| DecimalField     | 十进制浮点数， 参数max_digits表示总位数， 参数decimal_places表示小数位数 |
-| FloatField       | 浮点数                                                       |
-| DateField        | 日期， 参数auto_now表示每次保存对象时，自动设置该字段为当前时间，用于"最后一次修改"的时间戳，它总是使用当前日期，默认为False； 参数auto_now_add表示当对象第一次被创建时自动设置当前时间，用于创建的时间戳，它总是使用当前日期，默认为False; 参数auto_now_add和auto_now是相互排斥的，组合将会发生错误 |
-| TimeField        | 时间，参数同DateField                                        |
-| DateTimeField    | 日期时间，参数同DateField                                    |
-| FileField        | 上传文件字段                                                 |
-| ImageField       | 继承于FileField，对上传的内容进行校验，确保是有效的图片      |
-
-[官方更多字段类型说明](http://python.usyiyi.cn/translate/django_182/ref/models/fields.html)
-
-类型对照(mysql)
-
-| 数据库字段类型 | 模型类字段类型 | python数据类型    |
-| -------------- | -------------- | ----------------- |
-| datetime       | DatetimeFiled  | datetime.datetime |
-| date           | DateFiled      | dateteime.date    |
-| decimal(11,2)  | Decimal()      | Int,Decimal       |
-
-例子
-
-```python
-# datetime.datetime类型
-datetime.datetime.now(),
-# 转换为字符串：
-datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-# dateteime.date类型
-datetime.datetime.strptime('1999-01-01', "%Y-%m-%d").date()
-```
-
-**注意： 只要修改了表字段的类型，就需要重新生成迁移文件并执行迁移操作。**
-
-字段选项
-
-通过选项实现对数据库表字段的约束：
-
-| 选项        | 默认值   | 描述                                                         | 是否要重新迁移修改表结构 |
-| ----------- | -------- | ------------------------------------------------------------ | ------------------------ |
-| null        | False    | 如果为True，数据库中字段允许为空                             | 是                       |
-| unique      | False    | True表示这个字段在表中必须有唯一值                           | 是                       |
-| db_column   | 属性名称 | 字段名，如果未指定，则使用属性的名称                         | 是                       |
-| db_index    | False    | 若值为True, 则在表中会为此字段创建索引。 查看索引：show index from 表名 | 是                       |
-| primary_key | False    | s若为True，则该字段会成为模型的主键字段，一般作为AutoField的选项使用 | 是                       |
-| default     |          | 默认值                                                       | 否                       |
-| blank       | False    | True，html页面表单验证时字段允许为空                         | 否                       |
-
-**null是数据库范畴的概念，blank是表单验证范畴的**
-
-### 表
-
-模型类如果未指明表名，Django默认以 `应用名小写_模型类名小写` 为数据库表名。
-
-可以通过Meta类来指定数据库表名。若是迁移的，需重新生成迁移文件，并进行生成表
-
-Meta类主要处理的是关于模型的各种元数据的使用和显示。
-
-如：对象的名显示，查询数据库表的默认排序顺序，数据表的名字
-
-```python
-class Department(models.Model):    
-		"""部门类"""
-		name = models.CharField(max_length=20)
-		class Meta(object):
-	    	"""指定表名"""
-	        db_table = "department"
-```
-
-### 键
-
-- 主键
-
-django会为表创建自动增长的主键列，每个模型只能有一个主键列，如果使用选项设置某属性为主键列后django不会再创建自动增长的主键列。
-
-默认创建的主键列属性为id，可以使用pk代替，pk全拼为primary key。
-
-- 外键
-
-在设置外键时，需要通过`on_delete`选项指明主表删除数据时，对于外键引用表数据如何处理，在django.db.models中包含了可选常量：
-
-| name        | desc                                                         |
-| ----------- | ------------------------------------------------------------ |
-| DO_NOTHING  | 不做任何操作，如果数据库前置指明级联性，此选项会抛出IntegrityError异常 |
-| CASCADE     | 级联，删除主表数据时连同一起删除外键表中数据                 |
-| PROTECT     | 保护，通过抛出ProtectedError异常，来阻止删除主表中被外键应用的数据 |
-| SET_NULL    | 设置为NULL，仅在该字段null=True允许为null时可用              |
-| SET_DEFAULT | 设置为默认值，仅在该字段设置了默认值时可用                   |
-| SET()       | 设置为特定值或者调用特定方法                                 |
-
-`set()`方法
-
-```python
-from django.conf import settings
-from django.contrib.auth import get_user_model
-from django.db import models
-
-def get_sentinel_user():
-    return get_user_model().objects.get_or_create(username='deleted')[0]
-
-class MyModel(models.Model):
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET(get_sentinel_user),
-    )
-```
-
-### Admin选项
-
-注册模型和自定义显示
-
-```python
-# app01/admin.py:
-from django.contrib import admin
-from app01.models import Department, Employee
-
-
-class DepartmentAdmin(admin.ModelAdmin):
-	# 指定后台网页要显示的字段
-	list_display = ["id", "name", "create_date"]
-
-class EmployeeAdmin(admin.ModelAdmin):
-    # 指定后台网页要显示的字段
-    list_display = ["id", "name", "age", "sex", "comment"]
-    
-# 注册Model类
-admin.site.register(Department, DepartmentAdmin)
-admin.site.register(Employee, EmployeeAdmin)
-```
-
-ModelAdmin选项中的类型
-
-```
-# 列表格式化
-list_display:显示在列表试图里的变量
-list_display_links:激活变量查找和过滤链接
-list_filter:
-
-# 表单显示
-fields:重写模型里默认表单表现形式
-js:添加js
-save_on_top:
-```
-
-### 方法属性
-
-方法
-
-```python
-str()			# 在将对象转换成字符串时会被调用。
-
-save()		# 将模型对象保存到数据表中，ORM框架会转换成对应的insert或update语句。
-
-delete()	# 将模型对象从数据表中删除，ORM框架会转换成对应的delete语句。
-```
-
-属性
-
-```python
-objects		# 管理器，是models.Manager类型的对象，用于与数据库进行交互。
-					# 当没有为模型类定义管理器时，Django会为每一个模型类生成一个名为objects的管理器，自定义管理器后，Django不再生成默认管理器objects。
-
-model  		# 在管理器中，可以通过self.model属性，获取管理器所属的模型类，通过self.model()则可以创建模型类对象
-```
+# 模型-查询
 
 ## ORM查询
 
@@ -507,7 +151,9 @@ users.filter(Q(date_joined__gt=live_data) | Q(last_login__gt=live_data))
 
 ```
 模型类.objects.filter(模型类属性名__条件名 = 值)
+
 ```
+
 返回QuerySet对象，包含了所有满足条件的数据。
 
 若有多个参数，做AND处理
@@ -649,6 +295,7 @@ class NewsInfo(models.Model):
   ncontent = models.TextField() #新闻内容
   npub_date = models.DateTimeField(auto_now_add=True) #新闻发布时间
   ntype = models.ManyToManyField('TypeInfo') #通过ManyToManyField建立TypeInfo类和NewsInfo类之间多对多的关系
+
 ```
 
 > 关联管理器
@@ -660,6 +307,7 @@ class NewsInfo(models.Model):
 ```
 外键关系的反向查询
 多对多关联关系
+
 ```
 
 简单来说就是当点后面的对象 可能存在多个的时候就可以使用以下的方法。
@@ -671,6 +319,7 @@ class NewsInfo(models.Model):
 ```shell
 >>> import datetime
 >>> models.Author.objects.first().book_set.create(title="番茄物语", publish_date=datetime.date.today())
+
 ```
 
 - add
@@ -726,6 +375,7 @@ class NewsInfo(models.Model):
 
 ```
 from django.db.models import Avg, Sum, Max, Min, Count
+
 ```
 
 默认名称
@@ -734,6 +384,7 @@ from django.db.models import Avg, Sum, Max, Min, Count
 >>> from django.db.models import Avg, Sum, Max, Min, Count
 >>> models.Book.objects.all().aggregate(Avg("price"))
 {'price__avg': 13.233333}
+
 ```
 
 指定名称
@@ -741,6 +392,7 @@ from django.db.models import Avg, Sum, Max, Min, Count
 ```shell
 >>> models.Book.objects.aggregate(average_price=Avg('price'))
 {'average_price': 13.233333}
+
 ```
 
 多个聚合
@@ -748,12 +400,14 @@ from django.db.models import Avg, Sum, Max, Min, Count
 ```shell
 >>> models.Book.objects.all().aggregate(Avg("price"), Max("price"), Min("price"))
 {'price__avg': 13.233333, 'price__max': Decimal('19.90'), 'price__min': Decimal('9.90')}
+
 ```
 
 ### 分组查询
 
 ```
 annotate(args, *kwargs)
+
 ```
 
 使用提供的聚合表达式查询对象。
@@ -771,6 +425,7 @@ select dept,AVG(salary) from employee group by dept;
 
 from django.db.models import Avg
 Employee.objects.values("dept").annotate(avg=Avg("salary").values(dept, "avg")
+
 ```
 
 连表查询的分组
@@ -780,6 +435,7 @@ select dept.name,AVG(salary) from employee inner join dept on (employee.dept_id=
 
 from django.db.models import Avg
 models.Dept.objects.annotate(avg=Avg("employee__salary")).values("name", "avg")
+
 ```
 
 统计每一本书的作者个数
@@ -792,6 +448,7 @@ models.Dept.objects.annotate(avg=Avg("employee__salary")).values("name", "avg")
 2
 1
 1
+
 ```
 
 统计出每个出版社买的最便宜的书的价格
@@ -807,6 +464,7 @@ models.Dept.objects.annotate(avg=Avg("employee__salary")).values("name", "avg")
 # 方法二
 >>> models.Book.objects.values("publisher__name").annotate(min_price=Min("price"))
 <QuerySet [{'publisher__name': '沙河出版社', 'min_price': Decimal('9.90')}, {'publisher__name': '人民出版社', 'min_price': Decimal('19.90')}]>
+
 ```
 
 统计不止一个作者的图书
@@ -814,6 +472,7 @@ models.Dept.objects.annotate(avg=Avg("employee__salary")).values("name", "avg")
 ```shell
 >>> models.Book.objects.annotate(author_num=Count("author")).filter(author_num__gt=1)
 <QuerySet [<Book: 番茄物语>]>
+
 ```
 
 根据一本图书作者数量的多少对查询集 QuerySet进行排序
@@ -821,6 +480,7 @@ models.Dept.objects.annotate(avg=Avg("employee__salary")).values("name", "avg")
 ```shell
 >>> models.Book.objects.annotate(author_num=Count("author")).order_by("author_num")
 <QuerySet [<Book: 香蕉物语>, <Book: 橘子物语>, <Book: 番茄物语>]>
+
 ```
 
 查询各个作者出的书的总价格
@@ -828,12 +488,14 @@ models.Dept.objects.annotate(avg=Avg("employee__salary")).values("name", "avg")
 ```shell
 >>> models.Author.objects.annotate(sum_price=Sum("book__price")).values("name", "sum_price")
 <QuerySet [{'name': '小精灵', 'sum_price': Decimal('9.90')}, {'name': '小仙女', 'sum_price': Decimal('29.80')}, {'name': '小魔女', 'sum_price': Decimal('9.90')}]>
+
 ```
 
 ### F查询
 
 ```
 F('字段')
+
 ```
 
 F() 的实例可以在查询中引用字段，来比较同一个 model 实例中两个不同字段的值。
@@ -843,18 +505,21 @@ F() 的实例可以在查询中引用字段，来比较同一个 model 实例中
 ```
 from django.db.models import F
 models.Book.objects.filter(commnet_num__gt=F('keep_num'))
+
 ```
 
 Django 支持 F() 对象之间以及 F() 对象和常数之间的加减乘除和取模的操作
 
 ```
 models.Book.objects.filter(commnet_num__lt=F('keep_num')*2)
+
 ```
 
 修改操作也可以使用F函数,比如将每一本书的价格提高30元
 
 ```python
 models.Book.objects.all().update(price=F("price")+30)
+
 ```
 
 修改char字段
@@ -863,6 +528,7 @@ models.Book.objects.all().update(price=F("price")+30)
 >>> from django.db.models.functions import Concat
 >>> from django.db.models import Value
 >>> models.Book.objects.all().update(title=Concat(F("title"), Value("("), Value("第一版"), Value(")")))
+
 ```
 
 ### Q查询
@@ -951,6 +617,7 @@ where
 order by 
     app01_userinfo.age desc
 """
+
 ```
 
 - cursor
@@ -962,11 +629,12 @@ from django.db import connection, connections
 cursor = connection.cursor()  # cursor = connections['default'].cursor()
 cursor.execute("""SELECT * from auth_user where id = %s""", [1])
 row = cursor.fetchone()
+
 ```
 
 ### API
 
-````python
+```python
 ##################################################################
 # PUBLIC METHODS THAT ALTER ATTRIBUTES AND RETURN A NEW QUERYSET #
 ##################################################################
@@ -1173,7 +841,7 @@ def update(self, **kwargs):
 def exists(self):
    # 是否有结果
 
-````
+```
 
 ## 增删改
 
@@ -1202,6 +870,7 @@ Entry.objects.bulk_create([
 ```python
 # 调用一个模型类对象的delete方法，就可以实现数据删除，会根据id删除
 BookInfo.objects.filter(pk=id).delete()
+
 ```
 
 改
@@ -1216,9 +885,114 @@ book.save()
 # 模型类方法
 BookInfo.objects.filter(id=1).update(btitle = "射雕英雄传")
 catalogs.filter(pk=key).update(is_system=1, system_num=F("system_num") + 20)
+
 ```
 
-事务
+## 数据库事务
+
+https://yiyibooks.cn/xx/django_182/topics/db/transactions.html
+
+### 管理数据库事务
+
+Django 的默认行为是运行在自动提交模式下。任何一个查询都立即被提交到数据库中，除非激活一个事务。
+
+Django 用事务或者保存点去自动的保证复杂ORM各种查询操作的统一性,尤其是 [*delete()*](https://yiyibooks.cn/__trs__/xx/django_182/topics/db/queries.html#topics-db-queries-delete) 和[*update()*](https://yiyibooks.cn/__trs__/xx/django_182/topics/db/queries.html#topics-db-queries-update) 查询.
+
+Django’s [`测试用例`](https://yiyibooks.cn/__trs__/xx/django_182/topics/testing/tools.html#django.test.TestCase) 也包装了事务性能原因的测试类
+
+- http请求
+
+```
+在web上一种简单处理事务的方式是把每个请求用事务包装起来.在每个你想保存这种行为的数据库的配置文件中，设置 ATOMIC_REQUESTS值为 True，
+
+它是这样工作的。在调用一个view里面的方法之前，django开始一个事务如果发出的响应没有问题,Django就会提交这个事务。如果在view这里产生一个异常，Django就会回滚这次事务
+
+你可能会在你的视图代码中执行一部分提交并且回滚，通常使用atomic()context管理器.但是最后你的视图，要么是所有改变都提交执行，要么是都不提交。
+
+缺点：
+当流量增长时它会表现出较差的效率。对每个视图开启一个事务是有所耗费的。其对性能的影响依赖于应用程序对数据库的查询语句效率和数据库当前的锁竞争情况。
+
+```
+
+当 [`ATOMIC_REQUESTS`](https://yiyibooks.cn/__trs__/xx/django_182/ref/settings.html#std:setting-DATABASE-ATOMIC_REQUESTS)被启用后，仍然有办法来阻止视图运行一个事务操作
+
+```
+non_atomic_requests(using=None)
+
+# 这个装饰器会否定一个由 ATOMIC_REQUESTS设定的视图:
+
+```
+
+示例
+
+```python
+# 它将仅工作在设定了此装饰器的视图上。
+from django.db import transaction
+
+@transaction.non_atomic_requests
+def my_view(request):
+    do_stuff()
+
+@transaction.non_atomic_requests(using='other')
+def my_other_view(request):
+    do_stuff_on_the_other_database()
+
+```
+
+- Atomic
+
+```
+atomic(using=None, savepoint=True)
+
+# 参数
+using参数是数据库的名字，若没提供，默认使用"default"数据库
+savepoint是True，采用如下的事务管理逻辑：
+当进入到最外层的 atomic 代码块时会打开一个事务;当进入到内层atomic代码块时会创建一个保存点;当退出内部块时会释放或回滚保存点;当退出外部块时提交或回退事物。
+savepoint为False来使对内层的保存点失效。
+如果异常发生，若设置了savepoint，Django会在退出第一层代码块时执行回滚，否则会在最外层的代码块上执行回滚。 原子性始终会在外层事物上得到保证。这个选项仅仅用在设置保存点开销很明显时的情况下。它的缺点是打破了上述错误处理的原则。
+
+# 特性
+atomic()会将其下的一系列数据库操作视为一个整体，等待同时提交或回滚
+可嵌套使用atomic()，会自动创建savepoint以允许部分提交或回滚
+
+```
+
+函数视图
+
+```python
+# 加装饰器
+from django.db import transaction
+
+@transaction.atomic
+def viewfunc(request):
+    # This code executes inside a transaction.
+    do_stuff()
+
+```
+
+类视图
+
+```python
+# 加扩展类
+from django.db import transaction
+
+class TransactionMixin(object):
+    """为视图添加事务支持的装饰器"""
+    @classmethod
+    def as_view(cls, *args, **kwargs):
+        # super寻找调用类AddressView的下一个父类的as_view()
+        view = super(TransactionMixin, cls).as_view(*args, **kwargs)
+
+        view = transaction.atomic(view)
+
+        return view
+      
+class Demo(TransactionMixin, view):
+  pass
+
+```
+
+上下文管理
 
 ```python
 import os
@@ -1238,15 +1012,81 @@ if __name__ == '__main__':
             models.Book.objects.create(title="橘子物语", publish_date=datetime.date.today(), publisher_id=10)  # 指定一个不存在的出版社id
     except Exception as e:
         print(str(e))
+
 ```
+
+嵌套使用
+
+```python
+from django.db import IntegrityError, transaction
+
+@transaction.atomic
+def viewfunc(request):
+    create_parent()
+
+    try:
+        with transaction.atomic():
+            generate_relationships()
+    except IntegrityError:
+        handle_exception()
+
+    add_children()
+```
+
+- Savepoint
+
+尽可能优先选择`atomic()`控制食物，它遵循数据库的相关特性且防止了非法操作，低级别的API仅仅用于自定义的事务管理场景，可与atomic混合使用
+
+```python
+from django.db import transaction
+
+
+# 创建保存点
+save_id = transaction.savepoint()
+# 回退（回滚）到保存点
+transaction.savepoint_rollback(save_id) 
+# 提交保存点	
+transaction.savepoint_commit(save_id) 
+```
+
+示例
+
+```python
+rom django.db import transaction
+
+# open a transaction
+@transaction.atomic
+def viewfunc(request):
+
+    a.save()
+    # transaction now contains a.save()
+    sid = transaction.savepoint()
+    b.save()
+    # transaction now contains a.save() and b.save()
+    if want_to_keep_b:
+        transaction.savepoint_commit(sid)
+        # open transaction still contains a.save() and b.save()
+    else:
+        transaction.savepoint_rollback(sid)
+        # open transaction now contains only a.save()
+```
+
+### 关闭事务管理
+
+你可以在配置文件里通过设置[`AUTOCOMMIT`](https://yiyibooks.cn/__trs__/xx/django_182/ref/settings.html#std:setting-DATABASE-AUTOCOMMIT)为 `False` 完全关闭Django的事物管理。如果这样做了，Django将不能启用autocommit,也不能执行任何 commits. 你只能遵照数据库层面的规则行为。
+
+这就需要你对每个事务执行明确的commit操作，即使由Django或第三方库创建的。因此，这最好只用于你自定义的事务控制中间件或者是一些比较奇特的场景。
 
 ## 自关联
 
 **自关联关联属性定义：**
 
-    # 区域表自关联属性：特殊的一对多
-    
-    关联属性 = models.ForeignKey('self')
+```
+# 区域表自关联属性：特殊的一对多
+
+关联属性 = models.ForeignKey('self')
+
+```
 
 举例：
 
@@ -1275,6 +1115,7 @@ class Area(models.Model):
 area = Area.objects.get(id=232)
 parent = area.parent;
 children = area.area_set.all()
+
 ```
 
 ## 自定义模型管理器
@@ -1289,7 +1130,9 @@ class Department(models.Model):
     manager = models.Manager()
     
 # 调用 Department.objects会抛出AttributeError异常，而 Department.manager.all()会返回一个包含所有Department对象的列表。
+
 ```
+
 两种情况需要自定义管理器
 
 ```
@@ -1298,8 +1141,8 @@ class Department(models.Model):
 (2)在模型类中应用自定义的模型管理器
 
 2、封装增删改查的方法到模型管理器中
-```
 
+```
 
 - 修改原始查询集，重写all()方法
 
@@ -1316,6 +1159,7 @@ class BookInfoManager(models.Manager):
 class BookInfo(models.Model):
     ...
     books = BookInfoManager() 
+
 ```
 
 - 在管理器类中定义创建对象的方法

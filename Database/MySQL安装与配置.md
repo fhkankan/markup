@@ -219,9 +219,11 @@ $PATH/support-files/mysql.server start # 推荐
 $PATH/support-files/mysql.server stop
 
 # 客户端
+# 本地
 mysql -uroot
-
 mysql -u 用户名 -p
+# 远程
+mysql -h192.168.5.140 -uroot -pxxx -P5317
 ```
 
 - 修改密码

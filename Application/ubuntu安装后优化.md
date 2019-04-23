@@ -236,8 +236,13 @@ postman
 
 pycharm
 
-```
+```sh
 # 设置快捷键
+# 方法一：建立命令行快捷
+cd ~
+vim .bashrc
+alias pycharm="bash /home/application/pycharm-2019.3.2/bin/pycharm.sh"
+source .bashrc
 # 方法一：建立软链接(可添加启动器)
 sudo ln -s bin/pycharm.sh的文件目录 /usr/bin/pycharm
 # 方法二：使用快捷图标(可添加启动器)

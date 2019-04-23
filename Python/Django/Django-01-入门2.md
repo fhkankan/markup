@@ -1,0 +1,501 @@
+[TOC]
+
+#测试
+
+测试是检查你的代码能否正常运行的简单例行程序。
+
+测试可以划分为不同的级别。
+
+```
+一些测试可能专注于小细节（*某一个模型的方法是否会返回预期的值？*）， 其他的测试可能会检查软件的整体运行是否正常（*用户在对网站进行了一系列的操作后，是否返回了正确的结果？*）。如使用shell来检测一个方法的行为，或者运行程序并输入数据来检查它的行为方式。 
+```
+
+自动化测试
+
+```
+自动化测试的不同之处就在于这些测试会由系统来完成。你创建了一组测试程序，当你修改了你的应用，你就可以用这组测试程序来检查你的代码是否仍然同预期的那样运行，而无需执行耗时的手动测试。
+```
+
+创建测试的原因
+
+```
+将节省时间
+不仅可以发现问题，还能防止问题
+有助于团队合作
+```
+
+## 测试内部逻辑
+
+存在问题
+
+```
+如果Question在最近一天发布，Question.was_published_recently() 方法返回True（这是对的），但是如果Question的pub_date 字段是在未来，它还返回True（这肯定是不对的）
+```
+
+手动测试
+
+```shell
+>>> python manage.py shell
+>>> import datetime
+>>> from django.utils import timezone
+>>> from polls.models import Question
+>>> # create a Question instance with pub_date 30 days in the future
+>>> future_question = Question(pub_date=timezone.now() + datetime.timedelta(days=30))
+>>> # was it published recently?
+>>> future_question.was_published_recently()
+True
+```
+
+自动化测试
+
+```python
+# polls/tests.py
+import datetime
+
+from django.utils import timezone
+from django.test import TestCase
+
+from .models import Question
+
+
+class QuestionMethodTests(TestCase):
+
+    def test_was_published_recently_with_future_question(self):
+        """
+        was_published_recently() should return False for questions whose
+        pub_date is in the future.
+        """
+        time = timezone.now() + datetime.timedelta(days=30)
+        future_question = Question(pub_date=time)
+        self.assertEqual(future_question.was_published_recently(), False)
+```
+
+运行测试
+
+```shell
+>>>python manage.py test polls
+# 测试过程
+1. python manage.py test polls查找polls 应用下的测试用例
+2. 它找到 django.test.TestCase 类的一个子类
+3. 它为测试创建了一个特定的数据库
+4. 它查找用于测试的方法 —— 名字以test开始
+5. 它运行test_was_published_recently_with_future_question创建一个pub_date为未来30天的 Question实例
+6. 然后利用assertEqual()方法，它发现was_published_recently() 返回True，尽管我们希望它返回False
+```
+
+修复错误
+
+```python
+# polls/models.py
+def was_published_recently(self):
+    now = timezone.now()
+    return now - datetime.timedelta(days=1) <= self.pub_date <= now
+```
+
+综合测试
+
+```python
+# 添加两个其他测试方法，综合测试这个方法
+# polls/test.py
+def test_was_published_recently_with_old_question(self):
+    """
+    was_published_recently() should return False for questions whose
+    pub_date is older than 1 day.
+    """
+    time = timezone.now() - datetime.timedelta(days=30)
+    old_question = Question(pub_date=time)
+    self.assertEqual(old_question.was_published_recently(), False)
+
+def test_was_published_recently_with_recent_question(self):
+    """
+    was_published_recently() should return True for questions whose
+    pub_date is within the last day.
+    """
+    time = timezone.now() - datetime.timedelta(hours=1)
+    recent_question = Question(pub_date=time)
+    self.assertEqual(recent_question.was_published_recently(), True)
+```
+
+## 测试一个视图
+
+存在问题
+
+```
+这个投票应用没有区分能力：它将会发布任何一个Question，包括 pub_date字段位于未来。我们应该改进这一点。 设定pub_date在未来应该表示Question在未来发布，但是直到那个时间点才会变得可见。
+```
+
+django测试客户端
+
+```
+Django提供了一个测试客户端来模拟用户和代码的交互。我们可以在tests.py 甚至在shell 中使用它。
+```
+
+在shell中设置测试环境
+
+```shell
+# 注意：这种方法不会建立一个测试数据库，需要运行在想有的数据库上
+>>> from django.test.utils import setup_test_environment
+>>> # 安装一个模板渲染器，可以检查响应的一些额外属性如response.context
+>>> setup_test_environment()
+```
+
+导入测试客户端类
+
+```
+>>> from django.test import Client
+>>> # create an instance of the client for our use
+>>> client = Client()
+```
+
+使用这个客户端
+
+```shell
+>>> # get a response from '/'
+>>> response = client.get('/')
+>>> # we should expect a 404 from that address
+>>> response.status_code
+404
+>>> # on the other hand we should expect to find something at '/polls/'
+>>> # we'll use 'reverse()' rather than a hardcoded URL
+>>> from django.core.urlresolvers import reverse
+>>> response = client.get(reverse('polls:index'))
+>>> response.status_code
+200
+>>> response.content
+'\n\n\n    <p>No polls are available.</p>\n\n'
+>>> # note - you might get unexpected results if your ``TIME_ZONE``
+>>> # in ``settings.py`` is not correct. If you need to change it,
+>>> # you will also need to restart your shell session
+>>> from polls.models import Question
+>>> from django.utils import timezone
+>>> # create a Question and save it
+>>> q = Question(question_text="Who is your favorite Beatle?", pub_date=timezone.now())
+>>> q.save()
+>>> # check the response once again
+>>> response = client.get('/polls/')
+>>> response.content
+'\n\n\n    <ul>\n    \n        <li><a href="/polls/1/">Who is your favorite Beatle?</a></li>\n    \n    </ul>\n\n'
+>>> # If the following doesn't work, you probably omitted the call to
+>>> # setup_test_environment() described above
+>>> response.context['latest_question_list']
+[<Question: Who is your favorite Beatle?>]
+```
+
+改进视图
+
+```python
+# polls/views.py
+from django.utils import timezone
+
+class IndexView(generic.ListView):
+    template_name = 'polls/index.html'
+    context_object_name = 'latest_question_list'
+
+    def get_queryset(self):
+        """Return the last five published questions."""
+        # return Question.objects.order_by('-pub_date')[:5]
+        return Question.objects.filter(pub_date__lte=timezone.now()).order_by('-pub_date')[:5]
+```
+
+编写测试函数
+
+```python
+# polls/test.py
+from django.core.urlresolvers import reverse
+def create_question(question_text, days):
+    """
+    Creates a question with the given `question_text` published the given
+    number of `days` offset to now (negative for questions published
+    in the past, positive for questions that have yet to be published).
+    """
+    time = timezone.now() + datetime.timedelta(days=days)
+    return Question.objects.create(question_text=question_text,
+                                   pub_date=time)
+
+
+class QuestionViewTests(TestCase):
+    def test_index_view_with_no_questions(self):
+        """
+        If no questions exist, an appropriate message should be displayed.
+        """
+        response = self.client.get(reverse('polls:index'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "No polls are available.")
+        self.assertQuerysetEqual(response.context['latest_question_list'], [])
+
+    def test_index_view_with_a_past_question(self):
+        """
+        Questions with a pub_date in the past should be displayed on the
+        index page.
+        """
+        create_question(question_text="Past question.", days=-30)
+        response = self.client.get(reverse('polls:index'))
+        self.assertQuerysetEqual(
+            response.context['latest_question_list'],
+            ['<Question: Past question.>']
+        )
+
+    def test_index_view_with_a_future_question(self):
+        """
+        Questions with a pub_date in the future should not be displayed on
+        the index page.
+        """
+        create_question(question_text="Future question.", days=30)
+        response = self.client.get(reverse('polls:index'))
+        self.assertContains(response, "No polls are available.",
+                            status_code=200)
+        self.assertQuerysetEqual(response.context['latest_question_list'], [])
+
+    def test_index_view_with_future_question_and_past_question(self):
+        """
+        Even if both past and future questions exist, only past questions
+        should be displayed.
+        """
+        create_question(question_text="Past question.", days=-30)
+        create_question(question_text="Future question.", days=30)
+        response = self.client.get(reverse('polls:index'))
+        self.assertQuerysetEqual(
+            response.context['latest_question_list'],
+            ['<Question: Past question.>']
+        )
+
+    def test_index_view_with_two_past_questions(self):
+        """
+        The questions index page may display multiple questions.
+        """
+        create_question(question_text="Past question 1.", days=-30)
+        create_question(question_text="Past question 2.", days=-5)
+        response = self.client.get(reverse('polls:index'))
+        self.assertQuerysetEqual(
+            response.context['latest_question_list'],
+            ['<Question: Past question 2.>', '<Question: Past question 1.>']
+        )
+```
+
+测试DetailView
+
+```
+一切都运行得很好； 然而，即使未来发布的Question不会出现在index中，如果用户知道或者猜出正确的URL依然可以访问它们。
+```
+
+给DetailView添加一个这样的约束
+
+```python
+# polls/views.py
+class DetailView(generic.DetailView):
+    ...
+    def get_queryset(self):
+        """
+        Excludes any questions that aren't published yet.
+        """
+        return Question.objects.filter(pub_date__lte=timezone.now())
+```
+
+测试函数
+
+```python
+# polls/tests.py
+class QuestionIndexDetailTests(TestCase):
+    def test_detail_view_with_a_future_question(self):
+        """
+        The detail view of a question with a pub_date in the future should
+        return a 404 not found.
+        """
+        future_question = create_question(question_text='Future question.',
+                                          days=5)
+        response = self.client.get(reverse('polls:detail',
+                                   args=(future_question.id,)))
+        self.assertEqual(response.status_code, 404)
+
+    def test_detail_view_with_a_past_question(self):
+        """
+        The detail view of a question with a pub_date in the past should
+        display the question's text.
+        """
+        past_question = create_question(question_text='Past Question.',
+                                        days=-5)
+        response = self.client.get(reverse('polls:detail',
+                                   args=(past_question.id,)))
+        self.assertContains(response, past_question.question_text,
+                            status_code=200)
+```
+
+#打包
+
+## 准备工作
+
+项目和可重用的应用
+
+```
+mysite/
+    manage.py
+    mysite/
+        __init__.py
+        settings.py
+        urls.py
+        wsgi.py
+    polls/
+        __init__.py
+        admin.py
+        migrations/
+            __init__.py
+            0001_initial.py
+        models.py
+        static/
+            polls/
+                images/
+                    background.gif
+                style.css
+        templates/
+            polls/
+                detail.html
+                index.html
+                results.html
+        tests.py
+        urls.py
+        views.py
+    templates/
+        admin/
+            base_site.html
+```
+
+安装工具
+
+```
+setuptolls
+pip
+```
+
+## 打包步骤
+
+1. 在你的Django项目之外，为polls创建一个父目录。称这个目录为django-polls
+   注意：当为你的包选择一个名字时，检查一下PyPI中的资源以避免与已经存在的包有名字冲突。应用的标签（应用的包的点分路径的最后部分）在INSTALLED_APPS中必须唯一。避免使用与Django的contrib 包 中任何一个使用相同
+2. 将polls 目录移动到django-polls目录。
+3. 创建一个包含以下内容的文件django-polls/README.rst
+
+```
+=====
+Polls
+=====
+
+Polls is a simple Django app to conduct Web-based polls. For each
+question, visitors can choose between a fixed number of answers.
+
+Detailed documentation is in the "docs" directory.
+
+Quick start
+-----------
+
+1. Add "polls" to your INSTALLED_APPS setting like this::
+
+    INSTALLED_APPS = (
+        ...
+        'polls',
+    )
+
+2. Include the polls URLconf in your project urls.py like this::
+
+    url(r'^polls/', include('polls.urls')),
+
+3. Run `python manage.py migrate` to create the polls models.
+
+4. Start the development server and visit http://127.0.0.1:8000/admin/
+   to create a poll (you'll need the Admin app enabled).
+
+5. Visit http://127.0.0.1:8000/polls/ to participate in the poll.
+```
+
+4. 创建一个`django-polls/LICENSE`文件
+5. 创建一个`setup.py` 文件，它提供如何构建和安装该应用的详细信息。
+
+```python
+# django-polls/setup.py
+import os
+from setuptools import setup
+
+with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as readme:
+    README = readme.read()
+
+# allow setup.py to be run from any path
+os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
+
+setup(
+    name='django-polls',
+    version='0.1',
+    packages=['polls'],
+    include_package_data=True,
+    license='BSD License',  # example license
+    description='A simple Django app to conduct Web-based polls.',
+    long_description=README,
+    url='http://www.example.com/',
+    author='Your Name',
+    author_email='yourname@example.com',
+    classifiers=[
+        'Environment :: Web Environment',
+        'Framework :: Django',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: BSD License', # example license
+        'Operating System :: OS Independent',
+        'Programming Language :: Python',
+        # Replace these appropriately if you are stuck on Python 2.
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.2',
+        'Programming Language :: Python :: 3.3',
+        'Topic :: Internet :: WWW/HTTP',
+        'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
+    ],
+)
+```
+
+6. 默认只有Python模块和包会包含进包中。如果需要包含额外的文件，我们需要创建一个`MANIFEST.in`文件。上一步提到的setuptools 文档对这个文件有更详细的讨论。如果要包含模板、`README.rst`和我们的`LICENSE` 文件，创建一个文件`django-polls/MANIFEST.in`，其内容如下：
+
+```
+# django-polls/MANIFEST.in
+include LICENSE
+include README.rst
+recursive-include polls/static *
+recursive-include polls/templates *
+```
+
+7. 将详细的文档包含进你的应用中，它是可选的，但建议你这样做。创建一个空的目录`django-polls/docs`用于将来存放文档。向`django-polls/MANIFEST.in`添加另外一行：
+
+```
+recursive-include docs *
+```
+
+意`docs`不会包含进你的包中除非你添加一些文件到它下面。许多Django应用还通过类似[readthedocs.org](https://readthedocs.org/)这样的站点提供它们的在线文档.
+
+8. 试着通过`python setup.py sdist` 构建你的包（从`django-polls`的内部运行）。这会创建一个`dist`目录并构建一个新包：`django-polls-0.1.tar.gz`。
+
+## 使用打过的包
+
+安装成某个用户的库
+
+```
+用户级别的安装比系统级别的安装有许多优点，例如将包运行在普通用户级别上不但不会影响系统服务还不会影响其他用户
+
+注意根据用户的安装仍然可以影响以该用户身份运行的系统工具，所以virtualenv 是更健壮的解决办法
+```
+
+安装
+
+```
+pip install --user django-polls/dist/django-polls-0.1.tar.gz
+```
+
+卸载
+
+```
+pip uninstall django-polls
+```
+
+## 发布应用
+
+有如下几种方式
+
+```
+将这个包用邮件发送给朋友。
+上传这个包到你的网站上。
+上传这个包到一个公开的仓库，例如Python 包索引 (PyPI)
+```
+
