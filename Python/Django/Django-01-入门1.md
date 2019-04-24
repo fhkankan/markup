@@ -296,6 +296,7 @@ pymysql.install_as_MySQLdb()
 # polls/models.py
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
+from django.utils import timezone
 
 @python_2_unicode_compatible  # 如果你需要支持Python 2
 class Question(models.Model):
@@ -304,6 +305,10 @@ class Question(models.Model):
     # 在交互环境中易于识别，在自动生成的管理界面使用对象的表示
     def __str__(self):
         return self.question_text
+    # 添加自定义方法
+    def was_published_recently(self):
+        return self.pub_date >= timezone.now() - datetime.timedelta(days=1)
+    
 
 @python_2_unicode_compatible  # 如果你需要支持Python 2
 class Choice(models.Model):
@@ -450,7 +455,7 @@ urlpatterns = [
     # 方法一：字符串，不需要导包，自动识别
     # url(r'users/', include('apps.users.urls')),
     # 方法二：元组，需要导包
-	url(r'users/', include(apps.users.urls， namespace='users')),
+		url(r'users/', include(apps.users.urls， namespace='users')),
 ]
 
 
@@ -466,11 +471,13 @@ urlpatterns = [
 ]
 ```
 
+注意：url中的namespace和name便于模板的去处硬编码和视图中的反解析
+
 ### 视图函数
 
 一旦正则表达式匹配，Django会调用给定的视图，这是一个Python函数。 每个视图将得到一个request对象 —— 它包含了request 的metadata(元数据) —— 和正则表达式所捕获到的值
 
-每个视图只负责两件事中的一件：返回一个包含请求的页面内容的 HttpResponse对象， 或抛出一个异常如Http404。
+每个视图只负责两件事中的一件：返回一个包含请求的页面内容的 HttpResponse对象， 或抛出一个异常如Http404（见模板-调用模板）。
 
 ```python
 # 在 应用/views.py 下，定义视图函数，

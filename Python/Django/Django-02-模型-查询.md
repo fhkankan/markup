@@ -2,6 +2,502 @@
 
 # 模型-查询
 
+一旦你创建了[data models](https://yiyibooks.cn/__trs__/qy/django2/topics/db/models.html)，Django就会自动为你提供一个数据库抽象API，让你可以创建，检索，更新和删除对象。本文档介绍了如何使用此API。 有关所有各种模型查找选项的完整详细信息，请参阅[数据模型参考](https://yiyibooks.cn/__trs__/qy/django2/ref/models/index.html)。
+
+参考模型
+
+```python
+from django.db import models
+
+class Blog(models.Model):
+    name = models.CharField(max_length=100)
+    tagline = models.TextField()
+
+    def __str__(self):
+        return self.name
+
+class Author(models.Model):
+    name = models.CharField(max_length=200)
+    email = models.EmailField()
+
+    def __str__(self):
+        return self.name
+
+class Entry(models.Model):
+    blog = models.ForeignKey(Blog, on_delete=models.CASCADE)
+    headline = models.CharField(max_length=255)
+    body_text = models.TextField()
+    pub_date = models.DateField()
+    mod_date = models.DateField()
+    authors = models.ManyToManyField(Author)
+    n_comments = models.IntegerField()
+    n_pingbacks = models.IntegerField()
+    rating = models.IntegerField()
+
+    def __str__(self):
+        return self.headline
+```
+
+## 创建对象
+
+有两个方法
+
+```python
+save()  	# 在执行前，Django不会访问数据库，方法没有返回值
+p = Person(first_name="Bruce", last_name="Springsteen")
+p.save(force_insert=True)
+
+create()  # 一条语句创建对象
+p = Person.objects.create(first_name="Bruce", last_name="Springsteen")
+```
+
+示例
+
+```shell
+>>> from blog.models import Blog
+>>> b = Blog(name='Beatles Blog', tagline='All the latest Beatles news.')
+>>> b.save()  # 执行SQL的insert语句
+```
+
+## 更新对象
+
+```python
+# 更新普通字段
+>>> b5.name = 'New name'
+>>> b5.save()  # 执行SQL的update语句
+
+# 更新ForeignKey
+>>> from blog.models import Entry
+>>> entry = Entry.objects.get(pk=1)
+>>> cheese_blog = Blog.objects.get(name="Cheddar Talk")
+>>> entry.blog = cheese_blog
+>>> entry.save()
+
+# 更新ManyToManyField
+>>> from blog.models import Author
+>>> joe = Author.objects.create(name="Joe")
+>>> entry.authors.add(joe)  # 需使用add()增加关联关系的一条记录
+>>> john = Author.objects.create(name="John")
+>>> paul = Author.objects.create(name="Paul")
+>>> entry.authors.add(john, paul)  # 多条记录
+```
+
+## 获取对象
+
+通过模型中的`管理器`构造一个`查询集`，来从你的数据库中获取对象。
+
+每个模型类默认都有一个叫 `objects `的类属性，它由django自动生成，类型为： `django.db.models.manager.Manager`，可以把它叫 模型管理器。
+
+`查询集`表示从数据库中取出来的对象的集合。它可以含有零个、一个或者多个*过滤器*。过滤器基于所给的参数限制查询的结果。 
+
+```shell
+>>> Blog.objects  # 只可以通过模型的类访问
+<django.db.models.manager.Manager object at ...>
+>>> b = Blog(name='Foo', tagline='Bar')
+>>> b.objects  # 不可以通过模型的实例访问
+Traceback:
+    ...
+AttributeError: "Manager isn't accessible via Blog instances."
+```
+
+### [查询集方法](https://yiyibooks.cn/xx/django_182/ref/models/querysets.html#queryset-api)
+
+#### 返回新的查询集
+
+```python
+filter(**kwargs)  
+# 过滤，包含了与所给筛选条件相匹配的对象, 多参数时为AND关系过滤
+exclude(**kwargs)  
+# 排除，包含了与所给筛选条件不匹配的对象，底层SQL中多个参数通过AND连接，然后所有内容放入NOT()
+annotate(*args,**kwargs)  
+# 分组，使用提供的查询表达式列表注释QuerySet中的每个对象。 表达式可以是简单值，对模型（或任何相关模型）上的字段的引用，或者是通过与对象中的对象相关的对象计算的聚合表达式（平均值，总和等）
+order_by(*fields)  
+# 排序，隐式是升序排序，'-'前缀表示降序排序,'?'表示随机排序
+reverse()  
+# 对查询结果反向排序,只能在具有已定义顺序的QuerySet上调用(在model类的Meta中指定ordering或调用order_by()方法)。
+distinct(*fields)  
+# 从返回结果中剔除重复纪录(如果你查询跨越多个表，可能在计算QuerySet时得到重复的结果。此时可以使用distinct()，注意只有在PostgreSQL中支持按字段去重。)
+values(*fields, **expressions)  
+# 返回一个ValueQuerySet—一个特殊的QuerySet，迭代时得到的并不是模型实例化对象，而是一个字典序列
+values_list(*field, flat=False, named=False) 
+# 它与values()非常相似，它返回的是一个元组序列，values返回的是一个字典序列 
+dates
+
+datetimes
+none
+all()  
+# 查询所有结果 
+union
+intersection
+difference
+select_related
+prefetch_related
+extra
+defer
+only
+using
+select_for_update
+raw
+```
+
+- 示例
+
+filter
+
+```python
+paper_list.filter(name__icontains=name)
+```
+
+exclude
+
+```python
+Entry.objects.exclude(pub_date__gt=datetime.date(2005, 1, 3), headline='Hello')
+```
+
+Annotate
+
+```python
+# 不指定名字,默认关键自作为Annotation的别名，只适用于单个字段
+>>> from django.db.models import Count
+>>> q = Blog.objects.annotate(Count('entry'))
+>>> q[0].name  # 第一个blog的名字
+'Blogasaurus'
+>>> q[0].entry__count  # 第一个blog的entry_count的值，Entity的数量
+42
+
+# 指定名字
+>>> q = Blog.objects.annotate(number_of_entries=Count('entry'))
+# The number of entries on the first blog, using the name provided
+>>> q[0].number_of_entries
+42
+```
+
+Order_by
+
+```python
+Entry.objects.filter(pub_date__year=2005).order_by('-pub_date', 'headline')
+Entry.objects.order_by('?')  # 随机
+Entry.objects.order_by('blog__name', 'headline')  # 关联字段
+Entry.objects.order_by('blog_id')  #  无join
+Entry.objects.order_by('blog__id')  # Join
+Entry.objects.order_by(Coalesce('summary', 'headline').desc())  # 表达式
+Entry.objects.order_by(Lower('headline').desc())  # 大小写
+Entry.objects.order_by('headline').order_by('pub_date')  # 最后一个有效
+Entry.objects.order_by()  # 默认的排序
+# 检查是否有任何方式的排序
+QuerySet.ordered  # True/False
+# 影响distinct(),values()
+# order_by调用的字段会包含在SELECT中，可能会有重复行，
+# 指定一个多值字段来排序结果（ManyToManyField或ForeignKey的反向关联)
+class Event(Model):
+   parent = models.ForeignKey('self', related_name='children')
+   date = models.DateField()
+Event.objects.order_by('children__date')  # 会返回扩大的新QuerySet,需注意慎用
+```
+
+reverse
+
+```python
+my_queryset.reverse()[:5]  # 后5个元素
+```
+
+distinct
+
+```python
+Author.objects.distinct()
+
+# 如果你使用的是distinct()和order_by()，请注意相关模型的排序
+# 当一起使用distinct()和values()时，请注意字段在不在values()
+```
+
+values
+
+```shell
+>>> Blog.objects.values()
+[{'id': 1, 'name': 'Beatles Blog', 'tagline': 'All the latest Beatles news.'}],
+>>> Blog.objects.values('id', 'name')
+[{'id': 1, 'name': 'Beatles Blog'}]
+# 表达式
+>>> from django.db.models.functions import Lower
+>>> Blog.objects.values(lower_name=Lower('name'))
+<QuerySet [{'lower_name': 'beatles blog'}]>
+# 聚合
+>>> from django.db.models import Count
+>>> Blog.objects.values('author', entries=Count('entry'))
+<QuerySet [{'author': 1, 'entries': 20}, {'author': 1, 'entries': 13}]>
+>>> Blog.objects.values('author').annotate(entries=Count('entry'))
+<QuerySet [{'author': 1, 'entries': 33}]>
+# Foreignkey
+>>> Entry.objects.values()
+[{'blog_id': 1, 'headline': 'First Entry', ...}, ...]
+>>> Entry.objects.values('blog')
+[{'blog': 1}, ...]
+>>> Entry.objects.values('blog_id')
+[{'blog_id': 1}, ...]
+# 反向关联
+>>> Blog.objects.values('name', 'entry__headline')
+<QuerySet [{'name': 'My blog', 'entry__headline': 'An entry'},
+     {'name': 'My blog', 'entry__headline': 'Another entry'}, ...]>
+# 注意
+- 当values() 与distinct() 一起使用时，注意排序可能影响最终的结果。
+- 如果values() 子句位于extra() 调用之后，extra() 中的select 参数定义的字段必须显式包含在values() 调用中。values() 调用后面的extra() 调用将忽略选择的额外的字段。
+- 在values() 之后调用only() 和defer() 不太合理，所以将引发一个NotImplementedError。
+```
+
+values_list
+
+```
+
+```
+
+
+
+#### 不返回查询集的方法
+
+```python
+get()   
+# 返回与所给筛选条件相匹配的对象，返回结果有且只有一个，如果符合筛选条件的对象超过一个或者没有都会抛出错误。
+create
+ger_or_create
+update_or_create
+bulk_create
+count()
+# 返回数据库中匹配查询(QuerySet)的对象数量。
+in_bulk
+iterator
+latest
+earliest
+first()
+# 返回第一条记录对象
+last()
+# 返回最后一条记录对象 
+aggregate
+# 聚合，返回一个字典。
+exists()
+# 如果QuerySet包含数据，就返回True，否则返回False
+update
+delete
+as_manager
+```
+
+### 字段查询
+
+字段查询是指如何指定SQL `WHERE` 子句的内容。它们通过查询集方法的关键字参数指定。
+
+基本形式
+
+```
+field__lookuptype=value
+```
+
+字段名
+
+```
+查询条件中指定的字段必须是模型字段的名称
+ForeignKey在字段名加上`_id`后缀时，该参数的值应该是外键的原始值
+```
+
+字段查询参数
+
+```python
+exact  # 精确等于
+iexact  # 精确等于忽略大小写 ilike 'aaa'
+contains  # 包含
+icontains  # 
+in  # 
+exclude  # 
+gt  # 大于
+gte  # 大于等于
+lt  # 小于
+lte  # 小于等于
+startswith  # 以…开头
+istartswith  # 以…开头 忽略大小写
+endswith  # 以…结尾
+iendswith # 以…结尾，忽略大小写
+rang	# 在…范围内
+year  # 日期字段的年份
+month  # 日期字段的月份`
+day  # 日期字段的日
+week_day
+hour
+minute
+second
+isnull  # 判空
+search
+regex
+iregex
+```
+
+### 聚合函数
+
+```
+expression
+output_field
+**extra
+Avg
+Count
+Max
+Min
+StdDev
+Sum
+Variance
+```
+
+### 查询表达式
+
+
+
+
+
+
+
+
+
+
+
+
+
+### 所有对象
+
+`all()`方法，返回QuerySet
+
+```shell
+>>> all_entries = Entry.objects.all()
+```
+
+### 过滤器获取特定对象
+
+`filter(),exclude()`方法，返回QuerySet
+
+```python
+filter(**kwargs)
+# 返回一个新的查询集，它包含满足查询参数的对象
+exclude(**kwargs)
+# 返回一个新的查询集，它包含不满足查询参数的对象
+
+查询参数需哟啊满足特定格式，详见“字段查询”
+```
+
+- 链式过滤
+
+查询集的筛选结果还是查询集，所以可以将筛选语句链接在一起
+
+```shell
+>>> Entry.objects.filter(
+...     headline__startswith='What'
+... ).exclude(
+...     pub_date__gte=datetime.date.today()
+... ).filter(
+...     pub_date__gte=datetime(2005, 1, 30)
+... )
+```
+
+- 过滤后的查询集是独立的
+
+每次筛选后得到的都是一个全新的独立的查询集，和之前的查询集没有任何绑定关系。可以被存储及反复使用
+
+```shell
+>>> q1 = Entry.objects.filter(headline__startswith="What")
+>>> q2 = q1.exclude(pub_date__gte=datetime.date.today())
+>>> q3 = q1.filter(pub_date__gte=datetime.date.today())
+```
+
+- 查询集是惰性执行的
+
+创建查询集不会带来任何数据库的访问。只有在查询集需要求值时，Django才会真正运行这个查询
+
+### get获取单一对象
+
+`get()`返回单一对象。或是没有记录，引发`DoesNotExist`异常，多条记录，引发`MultipleObjectsReturned`异常
+
+```shell
+>>> one_entry = Entry.objects.get(pk=1)
+```
+
+### 查询集API
+
+### 限制查询集
+
+可以使用Python 的切片语法来限制`查询集`记录的数目 。它等同于SQL 的`LIMIT` 和`OFFSET` 子句。
+
+```shell
+>>> Entry.objects.all()[:5]
+>>> Entry.objects.order_by('headline')[0]
+```
+
+第二条语句若没有对象，将引发`IndexError`
+
+
+
+### 跨关联关系查询
+
+
+
+## 对查询集求值
+
+- 迭代
+
+`queryset`是可迭代的，它在首次迭代查询集时执行实际的数据库查询
+
+```python
+for e in Entry.objects.all():
+    print(e.headline)
+```
+
+如果您只想确定是否存在至少一个结果， 使用`exists()`更有效
+
+- 切片
+
+可以使用Python的数组切片语法对`QuerySet`进行切片。 对一个未求值的QuerySet进行切片操作通常返回另一个未求值的Queryset，但是如果你在切片操作时使用了“step”参数，那么Django就会执行数据库的查询，结果是返回一个列表。 切片已经求值过的`QuerySet`也会返回一个列表。
+
+还要注意的是，即使切割的未计算的`查询集`返回另一个未计算的`查询集`，进一步修改它（例如，添加更多的过滤器，或修改排序）是不允许的，因为这不很好地转换为SQL，它也没有明确的含义。
+
+- 序列化/缓存
+
+如果你`Pickle`一个`查询集`，它将在Pickle 之前强制将所有的结果加载到内存中。Pickle 通常用于缓存之前，并且当缓存的查询集重新加载时，你希望结果已经存在随时准备使用（从数据库读取耗费时间，就失去了缓存的目的）。这意味着当你Unpickle`查询集`时，它包含Pickle 时的结果，而不是当前数据库中的结果。
+
+如果此后你只想Pickle 必要的信息来从数据库重新创建`查询集`，可以Pickle`查询集`的`query` 属性。
+
+然后你可以使用类似下面的代码重新创建原始的`查询集`（不用加载任何结果）
+
+```python
+>>> import pickle
+>>> query = pickle.loads(s)     # Assuming 's' is the pickled string.
+>>> qs = MyModel.objects.all()
+>>> qs.query = query            # Restore the original 'query'.
+```
+
+注意：不能在不同版本的Django中使用pickles。不可用于归档的长期策略
+
+- repr
+
+一个`QuerySet`就等价于你使用`repr()`时的效果。 这会为你在python的交互式编译下提供方便，所以在你使用API交互的时候就会立马看到你的结果。
+
+- len
+
+你对`查询集`调用`len()` 时， 将对它求值。正如你期望的那样，返回一个查询结果集的长度。
+
+注意：当求数量时，使用`count()`方法更合适
+
+- list
+
+对`查询集`调用`list()` 将强制对它求值
+
+```
+entry_list = list(Entry.objects.all())
+```
+
+- bool
+
+测试一个`查询集`的布尔值，例如使用`bool()`、`or`、`and`或者`if` 语句将导致查询集的执行。如果至少有一个记录，则`查询集`为`True`，否则为`False`。
+
+```python
+if Entry.objects.filter(headline="Test"):
+   print("There is at least one Entry with the headline Test")
+```
+
+注意：如果你需要知道是否存在至少一条记录（而不需要真实的对象），使用 `exists()`将更加高效。
+
 ## ORM查询
 
 [参考](https://blog.csdn.net/qq_34755081/article/details/82779489)
@@ -307,7 +803,6 @@ class NewsInfo(models.Model):
 ```
 外键关系的反向查询
 多对多关联关系
-
 ```
 
 简单来说就是当点后面的对象 可能存在多个的时候就可以使用以下的方法。
@@ -319,7 +814,6 @@ class NewsInfo(models.Model):
 ```shell
 >>> import datetime
 >>> models.Author.objects.first().book_set.create(title="番茄物语", publish_date=datetime.date.today())
-
 ```
 
 - add
@@ -407,7 +901,6 @@ from django.db.models import Avg, Sum, Max, Min, Count
 
 ```
 annotate(args, *kwargs)
-
 ```
 
 使用提供的聚合表达式查询对象。
@@ -841,361 +1334,6 @@ def update(self, **kwargs):
 def exists(self):
    # 是否有结果
 
-```
-
-## 增删改
-
-增
-
-```python
-from book_app.models import *
-
-# 对象方法
-# 调用一个模型类对象的save方法， 就可以实现数据新增或修改，id在表中存在为修改，否则为新增。
-book1 = BookInfo(btitle="倚天屠龙记", bpub_date="1990-08-23")
-book1.save()
-
-# 模型类方法
-BookInfo.objects.create(btitle="倚天屠龙记", bpub_date="1990-08-23"， create_time=datetime.datetime.now())
-
-# 批量写入数据库
-Entry.objects.bulk_create([
-    Entry(headline='This is a test'),
-    Entry(headline='This is only a test'),
-])
-```
-
-删
-
-```python
-# 调用一个模型类对象的delete方法，就可以实现数据删除，会根据id删除
-BookInfo.objects.filter(pk=id).delete()
-
-```
-
-改
-
-```python
-# 对象方法
-# 调用一个模型类对象的save方法， 就可以实现数据新增或修改，id在表中存在为修改，否则为新增。
-book = BookInfo.objects.get(id=1)
-book.btitle = "射雕英雄传"
-book.save()
-
-# 模型类方法
-BookInfo.objects.filter(id=1).update(btitle = "射雕英雄传")
-catalogs.filter(pk=key).update(is_system=1, system_num=F("system_num") + 20)
-
-```
-
-## 数据库事务
-
-https://yiyibooks.cn/xx/django_182/topics/db/transactions.html
-
-### 管理数据库事务
-
-Django 的默认行为是运行在自动提交模式下。任何一个查询都立即被提交到数据库中，除非激活一个事务。
-
-Django 用事务或者保存点去自动的保证复杂ORM各种查询操作的统一性,尤其是 [*delete()*](https://yiyibooks.cn/__trs__/xx/django_182/topics/db/queries.html#topics-db-queries-delete) 和[*update()*](https://yiyibooks.cn/__trs__/xx/django_182/topics/db/queries.html#topics-db-queries-update) 查询.
-
-Django’s [`测试用例`](https://yiyibooks.cn/__trs__/xx/django_182/topics/testing/tools.html#django.test.TestCase) 也包装了事务性能原因的测试类
-
-- http请求
-
-```
-在web上一种简单处理事务的方式是把每个请求用事务包装起来.在每个你想保存这种行为的数据库的配置文件中，设置 ATOMIC_REQUESTS值为 True，
-
-它是这样工作的。在调用一个view里面的方法之前，django开始一个事务如果发出的响应没有问题,Django就会提交这个事务。如果在view这里产生一个异常，Django就会回滚这次事务
-
-你可能会在你的视图代码中执行一部分提交并且回滚，通常使用atomic()context管理器.但是最后你的视图，要么是所有改变都提交执行，要么是都不提交。
-
-缺点：
-当流量增长时它会表现出较差的效率。对每个视图开启一个事务是有所耗费的。其对性能的影响依赖于应用程序对数据库的查询语句效率和数据库当前的锁竞争情况。
-
-```
-
-当 [`ATOMIC_REQUESTS`](https://yiyibooks.cn/__trs__/xx/django_182/ref/settings.html#std:setting-DATABASE-ATOMIC_REQUESTS)被启用后，仍然有办法来阻止视图运行一个事务操作
-
-```
-non_atomic_requests(using=None)
-
-# 这个装饰器会否定一个由 ATOMIC_REQUESTS设定的视图:
-
-```
-
-示例
-
-```python
-# 它将仅工作在设定了此装饰器的视图上。
-from django.db import transaction
-
-@transaction.non_atomic_requests
-def my_view(request):
-    do_stuff()
-
-@transaction.non_atomic_requests(using='other')
-def my_other_view(request):
-    do_stuff_on_the_other_database()
-
-```
-
-- Atomic
-
-```
-atomic(using=None, savepoint=True)
-
-# 参数
-using参数是数据库的名字，若没提供，默认使用"default"数据库
-savepoint是True，采用如下的事务管理逻辑：
-当进入到最外层的 atomic 代码块时会打开一个事务;当进入到内层atomic代码块时会创建一个保存点;当退出内部块时会释放或回滚保存点;当退出外部块时提交或回退事物。
-savepoint为False来使对内层的保存点失效。
-如果异常发生，若设置了savepoint，Django会在退出第一层代码块时执行回滚，否则会在最外层的代码块上执行回滚。 原子性始终会在外层事物上得到保证。这个选项仅仅用在设置保存点开销很明显时的情况下。它的缺点是打破了上述错误处理的原则。
-
-# 特性
-atomic()会将其下的一系列数据库操作视为一个整体，等待同时提交或回滚
-可嵌套使用atomic()，会自动创建savepoint以允许部分提交或回滚
-
-```
-
-函数视图
-
-```python
-# 加装饰器
-from django.db import transaction
-
-@transaction.atomic
-def viewfunc(request):
-    # This code executes inside a transaction.
-    do_stuff()
-
-```
-
-类视图
-
-```python
-# 加扩展类
-from django.db import transaction
-
-class TransactionMixin(object):
-    """为视图添加事务支持的装饰器"""
-    @classmethod
-    def as_view(cls, *args, **kwargs):
-        # super寻找调用类AddressView的下一个父类的as_view()
-        view = super(TransactionMixin, cls).as_view(*args, **kwargs)
-
-        view = transaction.atomic(view)
-
-        return view
-      
-class Demo(TransactionMixin, view):
-  pass
-
-```
-
-上下文管理
-
-```python
-import os
-    
-if __name__ == '__main__':
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "BMS.settings")
-    import django
-    django.setup()
-    
-    import datetime
-    from app01 import models
-    
-    try:
-        from django.db import transaction
-        with transaction.atomic():
-            new_publisher = models.Publisher.objects.create(name="火星出版社")
-            models.Book.objects.create(title="橘子物语", publish_date=datetime.date.today(), publisher_id=10)  # 指定一个不存在的出版社id
-    except Exception as e:
-        print(str(e))
-
-```
-
-嵌套使用
-
-```python
-from django.db import IntegrityError, transaction
-
-@transaction.atomic
-def viewfunc(request):
-    create_parent()
-
-    try:
-        with transaction.atomic():
-            generate_relationships()
-    except IntegrityError:
-        handle_exception()
-
-    add_children()
-```
-
-- Savepoint
-
-尽可能优先选择`atomic()`控制食物，它遵循数据库的相关特性且防止了非法操作，低级别的API仅仅用于自定义的事务管理场景，可与atomic混合使用
-
-```python
-from django.db import transaction
-
-
-# 创建保存点
-save_id = transaction.savepoint()
-# 回退（回滚）到保存点
-transaction.savepoint_rollback(save_id) 
-# 提交保存点	
-transaction.savepoint_commit(save_id) 
-```
-
-示例
-
-```python
-rom django.db import transaction
-
-# open a transaction
-@transaction.atomic
-def viewfunc(request):
-
-    a.save()
-    # transaction now contains a.save()
-    sid = transaction.savepoint()
-    b.save()
-    # transaction now contains a.save() and b.save()
-    if want_to_keep_b:
-        transaction.savepoint_commit(sid)
-        # open transaction still contains a.save() and b.save()
-    else:
-        transaction.savepoint_rollback(sid)
-        # open transaction now contains only a.save()
-```
-
-### 关闭事务管理
-
-你可以在配置文件里通过设置[`AUTOCOMMIT`](https://yiyibooks.cn/__trs__/xx/django_182/ref/settings.html#std:setting-DATABASE-AUTOCOMMIT)为 `False` 完全关闭Django的事物管理。如果这样做了，Django将不能启用autocommit,也不能执行任何 commits. 你只能遵照数据库层面的规则行为。
-
-这就需要你对每个事务执行明确的commit操作，即使由Django或第三方库创建的。因此，这最好只用于你自定义的事务控制中间件或者是一些比较奇特的场景。
-
-## 自关联
-
-**自关联关联属性定义：**
-
-```
-# 区域表自关联属性：特殊的一对多
-
-关联属性 = models.ForeignKey('self')
-
-```
-
-举例：
-
-```
-需求： 查询出广州市的上级区域和下级区域
-- 资料中提供了测试数据：area.sql
-- 往数据库表插入测试数据
-- 广州市的id为232
-- 在python环境中，查询出广州市的上级区域和下级区域
-
-实现步骤：
-1. 添加区域模型类
-class Area(models.Model):
-"""区域类： 保存省份 城市 区县"""
-	# 区域名称
-    title = models.CharField(max_length=30)
-
-    # 关联属性：自关联 (表示上级区域)
-    parent = models.ForeignKey('self', null=True, blank=True)
-
-    def __str__(self):
-        return self.title
-2. 迁移生成表
-3. 插入测试数据，并查看（资料：area.sql）
-4. 进入python交互环境，编写orm查询代码，查询出广州市的上级区域和下级区域
-area = Area.objects.get(id=232)
-parent = area.parent;
-children = area.area_set.all()
-
-```
-
-## 自定义模型管理器
-
-每个模型类默认都有一个 **objects** 类属性，可以把它叫 **模型管理器**。它由django自动生成，类型为 `django.db.models.manager.Manager`
-
-可以在模型类中自定义模型管理器，自定义后, Django将不再生成默认的 **objects**。（模型类可以自定义多个管理器）
-
-```python
-class Department(models.Model):
-    # 自定义模型管理器
-    manager = models.Manager()
-    
-# 调用 Department.objects会抛出AttributeError异常，而 Department.manager.all()会返回一个包含所有Department对象的列表。
-
-```
-
-两种情况需要自定义管理器
-
-```
-1、修改管理器返回的原始查询集
-(1)自定义模型管理器，继承Manager
-(2)在模型类中应用自定义的模型管理器
-
-2、封装增删改查的方法到模型管理器中
-
-```
-
-- 修改原始查询集，重写all()方法
-
-```python
-# a）打开booktest/models.py文件，定义类BookInfoManager
-class BookInfoManager(models.Manager):
-	"""图书管理器"""
-    def all(self):
-        #默认查询未删除的图书信息
-        #调用父类的成员语法为：super().方法名
-        return super().all().filter(isDelete=False)
-        
-# b)在模型类BookInfo中定义管理器
-class BookInfo(models.Model):
-    ...
-    books = BookInfoManager() 
-
-```
-
-- 在管理器类中定义创建对象的方法
-
-```python
-# a）打开booktest/models.py文件，定义方法create。
-class BookInfoManager(models.Manager):
-    ...
-    #创建模型类，接收参数为属性赋值
-    def create_book(self, title, pub_date):
-        #创建模型类对象self.model可以获得模型类
-        book = self.model()
-        book.btitle = title
-        book.bpub_date = pub_date
-        book.bread=0
-        book.bcommet=0
-        book.isDelete = False
-        # 将数据插入进数据表
-        book.save()
-        return book
-        
-# b）为模型类BookInfo定义管理器books语法如下
-class BookInfo(models.Model):
-    ...
-    books = BookInfoManager()
-    
-# c）调用语法如下：
-book=BookInfo.books.create_book("abc",date(1980,1,1))
-```
-
-## 迁移生成
-
-```python
-# 生成数据库表
-python manage.py makemigrations
-python manage.py migrate
 ```
 
 ## 查看ORM语句
