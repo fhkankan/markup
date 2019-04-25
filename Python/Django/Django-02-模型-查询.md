@@ -4,6 +4,8 @@
 
 一旦你创建了[data models](https://yiyibooks.cn/__trs__/qy/django2/topics/db/models.html)，Django就会自动为你提供一个数据库抽象API，让你可以创建，检索，更新和删除对象。本文档介绍了如何使用此API。 有关所有各种模型查找选项的完整详细信息，请参阅[数据模型参考](https://yiyibooks.cn/__trs__/qy/django2/ref/models/index.html)。
 
+## 模型与数据
+
 参考模型
 
 ```python
@@ -38,28 +40,24 @@ class Entry(models.Model):
         return self.headline
 ```
 
-## 创建对象
-
-有两个方法
+创建对象
 
 ```python
+# 有两个方法
 save()  	# 在执行前，Django不会访问数据库，方法没有返回值
 p = Person(first_name="Bruce", last_name="Springsteen")
 p.save(force_insert=True)
 
 create()  # 一条语句创建对象
 p = Person.objects.create(first_name="Bruce", last_name="Springsteen")
-```
 
-示例
-
-```shell
+# 示例
 >>> from blog.models import Blog
 >>> b = Blog(name='Beatles Blog', tagline='All the latest Beatles news.')
 >>> b.save()  # 执行SQL的insert语句
 ```
 
-## 更新对象
+更新对象
 
 ```python
 # 更新普通字段
@@ -100,9 +98,100 @@ Traceback:
 AttributeError: "Manager isn't accessible via Blog instances."
 ```
 
+### QuerySet特性
+
+`filter(),exclude()`方法，返回QuerySet
+
+```python
+filter(**kwargs)
+# 返回一个新的查询集，它包含满足查询参数的对象
+exclude(**kwargs)
+# 返回一个新的查询集，它包含不满足查询参数的对象
+
+查询参数需要满足特定格式，详见“字段查询”
+```
+
+- 链式过滤
+
+查询集的筛选结果还是查询集，所以可以将筛选语句链接在一起
+
+```shell
+>>> Entry.objects.filter(
+...     headline__startswith='What'
+... ).exclude(
+...     pub_date__gte=datetime.date.today()
+... ).filter(
+...     pub_date__gte=datetime(2005, 1, 30)
+... )
+```
+
+- 过滤后的查询集是独立的
+
+每次筛选后得到的都是一个全新的独立的查询集，和之前的查询集没有任何绑定关系。可以被存储及反复使用
+
+```shell
+>>> q1 = Entry.objects.filter(headline__startswith="What")
+>>> q2 = q1.exclude(pub_date__gte=datetime.date.today())
+>>> q3 = q1.filter(pub_date__gte=datetime.date.today())
+```
+
+- 查询集是惰性执行的
+
+创建查询集不会带来任何数据库的访问。只有在查询集需要求值时，Django才会真正运行这个查询
+
+### 限制查询集
+
+可以使用Python 的切片语法来限制`查询集`记录的数目 。它等同于SQL 的`LIMIT` 和`OFFSET` 子句。
+
+```shell
+>>> Entry.objects.all()[:5]
+>>> Entry.objects.order_by('headline')[0]
+```
+
+第二条语句若没有对象，将引发`IndexError`
+
+### 缓存和查询集
+
+每个`查询集`都包含一个缓存来最小化对数据库的访问。在一个新创建的`查询集`中，缓存为空。首次对`查询集`进行求值 —— 同时发生数据库查询 ——Django 将保存查询的结果到`查询集`的缓存中并返回明确请求的结果（例如，如果正在迭代`查询集`，则返回下一个结果）。接下来对该`查询集`的求值将重用缓存的结果。
+
+```python
+# 相同的数据库查询执行两次，同时两个结果列表可能不相同(请求期间Entry被添或删)
+>>> print([e.headline for e in Entry.objects.all()])
+>>> print([e.pub_date for e in Entry.objects.all()])
+# 保存查询机并重新使用
+>>> queryset = Entry.objects.all()
+>>> print([p.headline for p in queryset]) # Evaluate the query set.
+>>> print([p.pub_date for p in queryset]) # Re-use the cache from the evaluation.
+```
+
+- 何时查询集不会被缓存
+
+查询集不会永远缓存它们的结果。当只对查询集的*部分*进行求值时会检查缓存， 但是如果这个部分不在缓存中，那么接下来查询返回的记录都将不会被缓存。特别地，这意味着使用切片或索引来*限制查询集*将不会填充缓存。
+
+注意：简单地打印查询集不会填充缓存。因为`__repr__()` 调用只返回全部查询集的一个切片。
+
+```python
+# 重复获取查询集对象中一个特定的索引将每次都查询数据库
+>>> queryset = Entry.objects.all()
+>>> print queryset[5] # Queries the database
+>>> print queryset[5] # Queries the database again
+
+# 如果已经对全部查询集求值过，则将检查缓存
+>>> queryset = Entry.objects.all()
+>>> [entry for entry in queryset] # Queries the database
+>>> print queryset[5] # Uses cache
+>>> print queryset[5] # Uses cache
+
+# 使得全部的查询集被求值并填充到缓存中
+>>> [entry for entry in queryset]
+>>> bool(queryset)
+>>> entry in queryset
+>>> list(queryset)
+```
+
 ### [查询集方法](https://yiyibooks.cn/xx/django_182/ref/models/querysets.html#queryset-api)
 
-#### 返回新的查询集
+#### 返回新查询集
 
 ```python
 filter(**kwargs)  
@@ -119,25 +208,38 @@ distinct(*fields)
 # 从返回结果中剔除重复纪录(如果你查询跨越多个表，可能在计算QuerySet时得到重复的结果。此时可以使用distinct()，注意只有在PostgreSQL中支持按字段去重。)
 values(*fields, **expressions)  
 # 返回一个ValueQuerySet—一个特殊的QuerySet，迭代时得到的并不是模型实例化对象，而是一个字典序列
-values_list(*field, flat=False, named=False) 
+values_list(*fields, flat=False, named=False) 
 # 它与values()非常相似，它返回的是一个元组序列，values返回的是一个字典序列 
-dates
-
-datetimes
-none
+dates(field, kind, order='ASC')
+# 返回DateQuerySet - QuerySet，其计算结果为datetime.date对象列表，表示特定种类的所有可用日期QuerySet。field应为模型的DateField的名称。 kind应为"year"、"month"或"day"。隐式的是升序排序。若要随机排序，请使用"?"，order（默认为“ASC”）应为'ASC'或'DESC'
+datetimes(field, kind, order='ASC', tzinfo=None)
+# 返回QuerySet，其值为datetime.datetime对象的列表，表示QuerySet内容中特定类型的所有可用日期。field应为模型的DateTimeField的名称。kind应为“year”，“month”，“day”，“hour”，“minute”或“second”。结果列表中的每个datetime.datetime对象被“截断”到给定的类型。order, 默认为'ASC', 可选项为'ASC' 或者 'DESC'. 这个选项指定了返回结果的排序方式。tzinfo定义在截断之前将数据时间转换到的时区。实际上，给定的datetime具有不同的表示，这取决于使用的时区。此参数必须是datetime.tzinfo对象。如果它无，Django使用当前时区。当USE_TZ为False时，它不起作用。
+none()
+# 调用none()将创建一个从不返回任何对象的查询集，并且在访问结果时不会执行任何查询。qs.none()查询集是EmptyQuerySet的一个实例。
 all()  
-# 查询所有结果 
-union
-intersection
-difference
-select_related
-prefetch_related
-extra
-defer
-only
-using
-select_for_update
-raw
+# 返回当前QuerySet（或QuerySet 子类）的副本,当对QuerySet进行求值时，它通常会缓存其结果。如果数据库中的数据在QuerySet求值之后可能已经改变，你可以通过在以前求值过的QuerySet上调用相同的all() 查询以获得更新后的结果。
+union(*other_qs, all=False)
+# 使用SQL的UNION来结合多个QuerySet的结果，默认查询去重后的数据，若需有重复的数据，all设置为True
+intersection(*other_qs)
+# 使用SQL的INTERSECT运算符返回两个或多个QuerySet的共享元素
+difference(*other_qs)
+# 使用SQL的EXCEPT运算符仅保留QuerySet中存在的元素，而不保留其他一些QuerySet中的元素。
+select_related(fields)
+# 将“跟随”外键关系，在执行查询时选择其他相关对象数据。 这是一个性能增强器，它会导致一个单个更复杂的查询，但是也意味着以后再使用外键关系时，不会重新需要数据可查询。
+prefetch_related(*lookups)
+# 将在一个批处理中自动检索每个指定查找的相关对象。
+extra(select=None, where=None, params=None, tables=None, order_by=None, select_params=None)
+# 在 QuerySet生成的SQL从句中注入新子句,实现复杂where子句。参数可选，但必须有一个
+defer(*fields)
+# 延迟加载，不要从数据库中检索它们
+only(*fields)
+# 只有这些字段立即加载，其他都被推迟
+using(alias)
+# 使用多个数据库，空值查询集在哪个数据库上求值
+select_for_update(nowwait=False)
+# 锁定相关行知道事物结束，在支持的数据库上产生一个select...for update
+raw(raw_query, params=None, translation=None)
+# 接收一个原始SQL查询，执行它并返回一个django.db.models.query.RawQuerySet 实例。这个RawQuerySet 实例可以迭代以提供实例对象，就像普通的QuerySet 一样。
 ```
 
 - 示例
@@ -213,11 +315,12 @@ Author.objects.distinct()
 values
 
 ```shell
+# 多字段
 >>> Blog.objects.values()
 [{'id': 1, 'name': 'Beatles Blog', 'tagline': 'All the latest Beatles news.'}],
 >>> Blog.objects.values('id', 'name')
 [{'id': 1, 'name': 'Beatles Blog'}]
-# 表达式
+# 表达式， 1.11支持表达式
 >>> from django.db.models.functions import Lower
 >>> Blog.objects.values(lower_name=Lower('name'))
 <QuerySet [{'lower_name': 'beatles blog'}]>
@@ -246,38 +349,516 @@ values
 
 values_list
 
+```shell
+# 多字段
+>>> Entry.objects.values_list()
+<QuerySet [(1, 'First entry',...), ...]>
+>>> Entry.objects.values_list('id', 'headline')
+<QuerySet [(1, 'First entry'), ...]>
+#  表达式， 1.11支持字段上加表达式
+>>> from django.db.models.functions import Lower
+>>> Entry.objects.values_list('id', Lower('headline'))
+<QuerySet [(1, 'first entry'), ...]>
+
+# 单字段
+>>> Entry.objects.values_list('id').order_by('id')
+<QuerySet[(1,), (2,), (3,), ...]>
+>>> Entry.objects.values_list('id', flat=True).order_by('id')
+<QuerySet [1, 2, 3, ...]>
+# 关键字， 2.0支持named
+>>> Entry.objects.values_list('id', 'headline', named=True)
+<QuerySet [Row(id=1, headline='First entry'), ...]>
+
+# ForeignKey
+>>> Entry.objects.values_list('authors')
+<QuerySet [('Noam Chomsky',), ('George Orwell',), (None,)]>
+
+# manyToMany
+>>> Author.objects.values_list('name', 'entry__headline')
+<QuerySet [('Noam Chomsky', 'Impressions of Gaza'),
+ ('George Orwell', 'Why Socialists Do Not Believe in Fun'),
+ ('George Orwell', 'In Defence of English Cooking'),
+ ('Don Quixote', None)]>
 ```
 
+date
+
+```shell
+>>> Entry.objects.dates('pub_date', 'year') # 去过重的year
+[datetime.date(2005, 1, 1)]
+>>> Entry.objects.dates('pub_date', 'month')  # 去过重的year/month
+[datetime.date(2005, 2, 1), datetime.date(2005, 3, 1)]
+>>> Entry.objects.dates('pub_date', 'day')  # 去过重的year/month/day
+[datetime.date(2005, 2, 20), datetime.date(2005, 3, 20)]
+>>> Entry.objects.dates('pub_date', 'day', order='DESC')
+[datetime.date(2005, 3, 20), datetime.date(2005, 2, 20)]
+>>> Entry.objects.filter(headline__contains='Lennon').dates('pub_date', 'day')
+[datetime.date(2005, 3, 20)]
 ```
 
+none
 
+```shell
+>>> Entry.objects.none()
+<QuerySet []>
+>>> from django.db.models.query import EmptyQuerySet
+>>> isinstance(Entry.objects.none(), EmptyQuerySet)
+True
+```
 
-#### 不返回查询集的方法
+union/intersection/difference
+
+```shell
+# 1.11新增
+>>> qs1.union(qs2, qs3)
+>>> qs1.intersection(qs2, qs3)
+>>> qs1.difference(qs2, qs3)
+# union,intersection,difference会返回第一个QuerySet类型模型实例，即使变量是其他模型的QuerySet。只要所有QuerySet中的SELECT列表相同，传递不同的模型就会起作用（至少类型，只要类型相同，名称无关紧要）。在这种情况下，您必须使用应用于生成的QuerySet的QuerySet方法中的第一个QuerySet中的列名。
+>>> qs1 = Author.objects.values_list('name')
+>>> qs2 = Entry.objects.values_list('headline')
+>>> qs1.union(qs2).order_by('name')
+# 在结果QuerySet上只允许LIMIT,OFFSET,COUNT(*),ORDER BY和指定列(如slicing,count(),order_by()和values()/values_list())。此外，数据库限制组合查询中允许的操作。例如，大多数数据库在组合查询中不允许LIMIT或OFFSET。
+```
+
+Select_related
 
 ```python
-get()   
+# 标准查询
+e = Entry.objects.get(id=5)  # Hits the database.
+b = e.blog  # Hits the database again to get the related Blog object.
+
+# select_related
+e = Entry.objects.select_related('blog').get(id=5)  # Hits the database.
+b = e.blog  # Doesn't hit the database, because e.blog has been prepopulated in the previous query.
+
+# 需要清除QuerySet上过去调用select_related所添加的相关字段列表
+without_relations = queryset.select_related(None)
+
+# 多参数与链式调用类似
+select_related('foo', 'bar')
+select_related('foo').select_related('bar')
+
+# 任意对象的查询集上均可用
+rom django.utils import timezone
+
+blogs = set()  # Find all the blogs with entries scheduled to be published in the future.
+
+for e in Entry.objects.filter(pub_date__gt=timezone.now()).select_related('blog'):
+    # Without select_related(), this would make a database query for each
+    # loop iteration in order to fetch the related blog for each entry.
+    blogs.add(e.blog)
+    
+# filter()和select_related()之间的链接顺序并不重要，如下等价
+Entry.objects.filter(pub_date__gt=timezone.now()).select_related('blog')
+Entry.objects.select_related('blog').filter(pub_date__gt=timezone.now())
+
+# 外键查询
+from django.db import models
+
+class City(models.Model):
+    # ...
+    pass
+class Person(models.Model):
+    # ...
+    hometown = models.ForeignKey(
+        City,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+    )
+class Book(models.Model):
+    # ...
+    author = models.ForeignKey(Person, on_delete=models.CASCADE)
+
+# 如下操作将会缓存与其相关的Person和 City关系:
+b = Book.objects.select_related('author__hometown').get(id=4)
+p = b.author         # Doesn't hit the database.
+c = p.hometown       # Doesn't hit the database.
+
+b = Book.objects.get(id=4) # No select_related() in this example.
+p = b.author         # Hits the database.
+c = p.hometown       # Hits the database.
+
+# 在传递给select_related() 的字段中，你可以使用任何ForeignKey 和OneToOneField。
+# 在传递给select_related 的字段中，你还可以反向引用OneToOneField —— 也就是说，你可以回溯到定义OneToOneField 的字段。此时，可以使用关联对象字段的related_name，而不要指定字段的名称。
+```
+
+Preach_related
+
+```python
+# 具有与select_related类似的目的，两者都被设计为阻止由访问相关对象而导致的数据库查询的泛滥，但是策略是完全不同的。
+# select_related通过创建SQL连接并在SELECT语句中包括相关对象的字段来工作。因此，select_related在同一数据库查询中获取相关对象。然而，为了避免由于跨越“多个”关系而导致的大得多的结果集，select_related限于单值关系 - 外键和一对一关系。
+# prefetch_related 独立查找每个关系，并在Python中执行“关联(joining)”。这允许它除了select_related支持的外键和一对一关系以外, 还能预取多对多和多对一对象，这正是select_related不能实现的。prefetch_related 还支持GenericRelation 和 GenericForeignKey的预取.
+```
+
+extra
+
+```python
+# select
+# 在 SELECT 从句中添加其他字段信息，它应该是一个字典，存放着属性名到 SQL 从句的映射。
+Entry.objects.extra(select={'is_recent': "pub_date > '2006-01-01'"})
+Blog.objects.extra(
+    select={
+        'entry_count': 'SELECT COUNT(*) FROM blog_entry WHERE blog_entry.blog_id = blog_blog.id'
+    },
+)
+Blog.objects.extra(
+    select=OrderedDict([('a', '%s'), ('b', '%s')]),
+    select_params=('one', 'two'))
+
+# where/tables
+# 可以使用where定义显式SQL WHERE子句 - 也许执行非显式连接。您可以使用tables手动将表添加到SQL FROM子句。where和tables都接受字符串列表。所有where参数均为“与”任何其他搜索条件
+Entry.objects.extra(where=["foo='a' OR bar = 'a'", "baz = 'a'"])
+Entry.objects.extra(where=['headline=%s'], params=['Lennon'])
+
+# order_by
+# 如需要使用通过extra()包含的一些新字段或表来对结果查询进行排序，请使用order_by参数extra()并传入一个字符串序列。这些字符串应该是模型字段（如查询集上的正常order_by()方法），形式为table_name.column_name或您在select参数到extra()
+q = Entry.objects.extra(select={'is_recent': "pub_date > '2006-01-01'"})
+q = q.extra(order_by = ['-is_recent'])
+```
+
+defer
+
+```python
+# 传递字段名不加载到defer()
+Entry.objects.defer("headline", "body")
+# 多次调用，均会添加新字段，顺序无关
+Entry.objects.defer("body").filter(rating=5).defer("headline")
+# 关联模型
+Blog.objects.select_related().defer("entry__headline", "entry__body")
+# 清空延迟字段
+my_queryset.defer(None)
+```
+
+only
+
+```python
+# 就延迟而言，如下等价
+Person.objects.defer("age", "biography")
+Person.objects.only("name")
+
+# 连续调用，只有最后有效
+Entry.objects.only("body", "rating").only("headline")
+
+# defer与only连用
+Entry.objects.only("headline", "body").defer("body")  # Final result is that everything except "headline" is deferred.
+Entry.objects.defer("body").only("headline", "body")  # Final result loads headline and body immediately (only() replaces any existing set of fields).
+```
+
+using
+
+```shell
+# queries the database with the 'default' alias.
+>>> Entry.objects.all()
+
+# queries the database with the 'backup' alias
+>>> Entry.objects.using('backup')
+```
+
+select_for_update
+
+```python
+entries = Entry.objects.select_for_update().filter(author=request.user)  # 所有匹配的行将被锁定，直到事务结束。这意味着可以通过锁防止数据被其它事务修改
+
+# 解决阻塞
+一般情况下如果其他事务锁定了相关行，那么本查询将被阻塞，直到锁被释放。如果这不是你想要的行为，可以使用如下方法之一：
+1. 请使用select_for_update(nowait=True). 这将使查询不阻塞。如果其它事务持有冲突的锁, 那么查询将引发 DatabaseError 异常
+2.可以使用select_for_update(skip_locked=True)来忽略行锁定。nowait和skip_locked是互斥的，并且尝试在启用两个选项的情况下调用select_for_update（）将导致ValueError。
+
+# nullable关系不能使用
+>>> Person.objects.select_related('hometown').select_for_update()
+Traceback (most recent call last):
+...
+django.db.utils.NotSupportedError: FOR UPDATE cannot be applied to the nullable side of an outer join
+# 若是不关注null对象，可排除
+>>> Person.objects.select_related('hometown').select_for_update().exclude(hometown=None)
+<QuerySet [<Person: ...)>, ...]>
+```
+
+#### 不返回查询集
+
+```python
+get(**kwargs)   
 # 返回与所给筛选条件相匹配的对象，返回结果有且只有一个，如果符合筛选条件的对象超过一个或者没有都会抛出错误。
-create
-ger_or_create
-update_or_create
-bulk_create
+create(**kwargs)
+# 一个在一步操作中同时创建对象并且保存的便捷方法. 
+get_or_create(defaults=None, **kwargs)
+# 一个通过给出的kwargs 来查询对象的便捷方法（如果你的模型中的所有字段都有默认值，可以为空），需要的话创建一个对象。返回一个由(object, created)组成的元组，元组中的object 是一个查询到的或者是被创建的对象， created 是一个表示是否创建了新的对象的布尔值。
+update_or_create(defaults=None, **kwargs)
+# 一个通过给出的kwargs 来更新对象的便捷方法， 如果需要的话创建一个新的对象。defaults 是一个由 (field, value) 对组成的字典，用于更新对象。返回一个由 (object, created)组成的元组,元组中的object 是一个创建的或者是被更新的对象， created 是一个标示是否创建了新的对象的布尔值。尝试通过给出的kwargs 去从数据库中获取匹配的对象。如果找到匹配的对象，它将会依据defaults 字典给出的值更新字段。
+bulk_create(objs, batch_size=None)
+# 此方法以有效的方式（通常只有1个查询，无论有多少对象）将提供的对象列表插入到数据库中。batch_size参数控制在单个查询中创建的对象数。默认值是在一个批处理中创建所有对象，除了SQLite，其中默认值为每个查询最多使用999个变量。
 count()
-# 返回数据库中匹配查询(QuerySet)的对象数量。
-in_bulk
-iterator
-latest
-earliest
+# 返回数据库中匹配查询(QuerySet)的对象数量。永远不会引发异常
+in_bulk(id_list=None, field_name='pk')
+# 获取主键值的列表和字段名，并返回将每个主键值映射到具有给定ID的对象的实例的字典。若主键列表缺省，返回所有，field_name必须是唯一的，默认主键
+iterator(chunk_size=2000)
+# 评估QuerySet（通过执行查询），并返回一个迭代器。
+latest(*fields)
+# 使用作为日期字段提供的field_name，按日期返回表中的最新对象。
+earliest(*fields)
+# 除非方向更改，类似latest()
 first()
-# 返回第一条记录对象
+# 返回结果集的第一个对象, 当没有找到时返回None.如果 QuerySet 没有设置排序,则将会自动按主键进行排序
 last()
-# 返回最后一条记录对象 
-aggregate
-# 聚合，返回一个字典。
+# 返回最后一条记录对象 ,当没有找到时返回None.如果 QuerySet 没有设置排序,则将会自动按主键进行排序
+aggregate(*args, **kwargs)
+# 聚合，返回一个字典，包含根据QuerySet计算得到的聚合值（平均数、和等等）。aggregate() 的每个参数指定返回的字典中将要包含的值
 exists()
 # 如果QuerySet包含数据，就返回True，否则返回False
+update(**kwargs)
+# 对指定的字段执行SQL更新查询，并返回匹配的行数（如果某些行已具有新值，则可能不等于已更新的行数）。不能在已采取切片或以其他方式无法过滤的QuerySet上调用
+delete()
+# 对QuerySet中的所有行执行SQL删除查询。立即应用delete()。不能在已采取切片或以其他方式无法过滤的QuerySet上调用delete()
+as_manager()
+# 类方法返回一个复制了QueSet方法的Manager对象的实例
+```
+
+- 示例
+
+get
+
+```python
+Entry.objects.get(id='foo') # raises Entry.DoesNotExist
+```
+
+create
+
+```python
+p = Person.objects.create(first_name="Bruce", last_name="Springsteen")
+
+p = Person(first_name="Bruce", last_name="Springsteen")
+p.save(force_insert=True)
+```
+
+get_or_create
+
+```python
+# 1.11支持defaults中设置可调用值
+try:
+    obj = Person.objects.get(first_name='John', last_name='Lennon')
+except Person.DoesNotExist:
+    obj = Person(first_name='John', last_name='Lennon', birthday=date(1940, 10, 9))
+    obj.save()
+    
+# 改写为
+obj, created = Person.objects.get_or_create(first_name='John', last_name='Lennon', defaults={'birthday': date(1940, 10, 9)})
+
+# 创建逻辑
+params = {k: v for k, v in kwargs.items() if '__' not in k}
+params.update(defaults)
+obj = self.model(**params)
+obj.save()
+
+# 有名为defaults的字段，做精确查询
+Foo.objects.get_or_create(defaults__exact='bar', defaults={'defaults': 'baz'})
+
+# 反向关联
+class Chapter(models.Model):
+    title = models.CharField(max_length=255, unique=True)
+
+class Book(models.Model):
+    title = models.CharField(max_length=256)
+    chapters = models.ManyToManyField(Chapter)
+
+>>> book = Book.objects.create(title="Ulysses")
+>>> book.chapters.get_or_create(title="Telemachus")
+(<Chapter: Telemachus>, True)
+>>> book.chapters.get_or_create(title="Telemachus")
+(<Chapter: Telemachus>, False)
+>>> Chapter.objects.create(title="Chapter 1")
+<Chapter: Chapter 1>
+>>> book.chapters.get_or_create(title="Chapter 1")
+# Raises IntegrityError
+```
+
+Update_create
+
+```python
+# 在1.11支持defaults中使用可调用值
+defaults = {'first_name': 'Bob'}
+try:
+    obj = Person.objects.get(first_name='John', last_name='Lennon')
+    for key, value in defaults.items():
+        setattr(obj, key, value)
+    obj.save()
+except Person.DoesNotExist:
+    new_values = {'first_name': 'John', 'last_name': 'Lennon'}
+    new_values.update(defaults)
+    obj = Person(**new_values)
+    obj.save()
+    
+# uodate_create简写
+obj, created = Person.objects.update_or_create(
+    first_name='John', last_name='Lennon',
+    defaults={'first_name': 'Bob'},
+)
+```
+
+Bulk_create
+
+```shell
+>>> Entry.objects.bulk_create([
+...     Entry(headline="Django 1.0 Released"),
+...     Entry(headline="Django 1.1 Announced"),
+...     Entry(headline="Breaking: Django is awesome")
+... ])
+
+# 注意：
+- 将不会调用模型的save()方法，并且不会发送pre_save和post_save信号。
+- 它不适用于多表继承场景中的子模型。
+- 如果模型的主键是AutoField，它不会像save()那样检索和设置主键属性。
+- 它不适用于多对多关系
+- 它将objs转换为一个列表，如果它是一个生成器，它会完全评估objs。强制转换允许检查所有对象，以便可以首先插入具有手动设置主键的任何对象。如果要在不评估整个生成器的情况下立即批量插入对象，只要对象没有任何手动设置的主键，就可以使用此技术：
+from itertools import islice
+
+batch_size = 100
+objs = (Entry(headling'Test %s' % i) for i in range(1000))
+while True:
+    batch = list(islice(objs, batch_size))
+    if not batch:
+        break
+    Entry.objects.bulk_create(batch, batch_size)
+```
+
+count
+
+```python
+# Returns the total number of entries in the database.
+Entry.objects.count()
+
+# Returns the number of entries whose headline contains 'Lennon'
+Entry.objects.filter(headline__contains='Lennon').count()
+
+# count()在后台执行SELECT COUNT（*） count()，而不是将所有的记录加载到Python对象中并在结果上调用len()（除非你需要将对象加载到内存中， len()会更快）。
+# 如果您想要QuerySet中的项目数量，并且还要从中检索模型实例（例如，通过迭代它），使用len（查询集）更有效，这不会像count()一样导致额外的数据库查询。
+```
+
+is_bulk
+
+```shell
+>>> Blog.objects.in_bulk([1])
+{1: <Blog: Beatles Blog>}
+>>> Blog.objects.in_bulk([1, 2])
+{1: <Blog: Beatles Blog>, 2: <Blog: Cheddar Talk>}
+>>> Blog.objects.in_bulk([])  #  传空列表会得到空字典
+{}
+>>> Blog.objects.in_bulk()
+{1: <Blog: Beatles Blog>, 2: <Blog: Cheddar Talk>, 3: <Blog: Django Weblog>}
+# field_name在2.0新增
+>>> Blog.objects.in_bulk(['beatles_blog'], field_name='slug')
+{'beatles_blog': <Blog: Beatles Blog>}
+```
+
+iterator
+
+```python
+# chunk_size参数在2.0添加
+
+# QuerySet通常在内部缓存其结果，以便在重复计算是不会导致额外的查询。相反，iterator()将直接读取结果，而不在QuerySet级别执行任何缓存（内部，默认迭代器调用iterator()并高速缓存返回值）。对于返回大量只需要访问一次的对象的QuerySet，这可以带来更好的性能和显着减少内存。
+
+# 请注意，在已经求值了的QuerySet上使用iterator()会强制它再次计算，重复查询。
+
+# 此外，使用iterator()会导致先前的prefetch_related()调用被忽略，因为这两个优化一起没有意义。
+```
+
+latest/earliest
+
+```python
+Entry.objects.latest('pub_date')
+# 2.0支持多变量
+Entry.objects.latest('pub_date', '-expire_date')
+
+# get,latest,earliest对于查询无对象时，抛出DoesNotExist错误
+```
+
+first/last
+
+```python
+p = Article.objects.order_by('title', 'pub_date').first()
+# 等价于如下
+try:
+    p = Article.objects.order_by('title', 'pub_date')[0]
+except IndexError:
+    p = None
+```
+
+aggregate
+
+```python
+# 使用关键字参数指定的聚合将使用关键字参数的名称作为Annotation 的名称。匿名的参数的名称将基于聚合函数的名称和模型字段生成。复杂的聚合不可以使用匿名参数，它们必须指定一个关键字参数作为别名。
+# 默认
+>>> from django.db.models import Count
+>>> q = Blog.objects.aggregate(Count('entry'))
+{'entry__count': 16}
+# 指定名称
+>>> q = Blog.objects.aggregate(number_of_entries=Count('entry'))
+{'number_of_entries': 16}
+```
+
+exists
+
+```python
+entry = Entry.objects.get(pk=123)
+# 此方法优于下面
+if some_queryset.filter(pk=entry.pk).exists():
+    print("Entry contained in queryset")
+
+if entry in some_queryset:
+   print("Entry contained in QuerySet")
+```
+
 update
+
+```shell
+>>> Entry.objects.filter(pub_date__year=2010).update(comments_on=False)
+# 更新多个字段
+>>> Entry.objects.filter(pub_date__year=2010).update(comments_on=False, headline='This is old')
+# 法立即应用，对更新的QuerySet的唯一限制是它只能更新模型主表中的列，而不是相关模型
+>>> Entry.objects.update(blog__name='foo') # Won't work!
+# 使用关联字段查询时可以的
+>>> Entry.objects.filter(blog__id=1).update(comments_on=True)
+
+# 如果你只是更新一个记录，不需要对模型对象做任何事情，最有效的方法是调用update()，而不是将模型对象加载到内存中
+# not do this
+e = Entry.objects.get(id=10)
+e.comments_on = False
+e.save()
+# to do this
+Entry.objects.filter(id=10).update(comments_on=False)
+
+# update不执行save()，也不传输pre_save和post_save信号，若是需要调用自定义的save()方法
+for e in Entry.objects.filter(pub_date__year=2010):
+    e.comments_on = False
+    e.save()
+```
+
 delete
-as_manager
+
+```shell
+>>> b = Blog.objects.get(pk=1)
+# Delete all the entries belonging to this Blog.
+>>> Entry.objects.filter(blog=b).delete()  # 批量删除
+(4, {'weblog.Entry': 2, 'weblog.Entry_authors': 2})
+>>> b.delete()  # 单独删除
+
+
+# ForeignKey
+# 默认情况下，Django的ForeignKey模拟SQL约束ON DELETE CASCADE字，任何具有指向要删除的对象的外键的对象将与它们一起被删除。
+>>> blogs = Blog.objects.all()
+# This will delete all Blogs and all of their Entry objects.
+>>> blogs.delete()
+(5, {'weblog.Blog': 1, 'weblog.Entry': 2, 'weblog.Entry_authors': 2})
+
+# 此级联行为可通过ForeignKey的on_delete参数自定义。
+
+# delete()方法执行批量删除，并且不会在模型上调用任何delete()方法。但它会为所有已删除的对象（包括级联删除）发出pre_delete和post_delete信号。若要使用自定义的delete()方法
+for e in Entry.objects.filter(pub_date__year=2010):
+    e.save()
+
+# Django需要获取对象到内存中以发送信号和处理级联。然而，如果没有级联和没有信号，那么Django可以采取快速路径并删除对象而不提取到内存中。对于大型删除，这可以显着减少内存使用。执行的查询量也可以减少。
+
+# 设置为on_delete DO_NOTHING的外键不会阻止删除快速路径。
 ```
 
 ### 字段查询
@@ -294,142 +875,401 @@ field__lookuptype=value
 
 ```
 查询条件中指定的字段必须是模型字段的名称
+
 ForeignKey在字段名加上`_id`后缀时，该参数的值应该是外键的原始值
 ```
 
 字段查询参数
 
 ```python
-exact  # 精确等于
-iexact  # 精确等于忽略大小写 ilike 'aaa'
-contains  # 包含
-icontains  # 
-in  # 
+exact  # 精确等于,若参数为None，则按照NULL进行SQL，SQL中=
+iexact  # 不区分大小写的精确匹配,若参数为None，则按照NULL进行SQL，SQL中ilike
+contains  # 区分大小写的包含，SQL中like '%...%'
+icontains  # 不区分大小写的包含, SQL中ilike '%...%'
+in  # 在给定的列表, SQL中in(...,...)
 exclude  # 
-gt  # 大于
+gt  # 大于,SQL中>
 gte  # 大于等于
 lt  # 小于
 lte  # 小于等于
-startswith  # 以…开头
-istartswith  # 以…开头 忽略大小写
-endswith  # 以…结尾
-iendswith # 以…结尾，忽略大小写
-rang	# 在…范围内
-year  # 日期字段的年份
-month  # 日期字段的月份`
-day  # 日期字段的日
-week_day
-hour
-minute
-second
-isnull  # 判空
-search
-regex
-iregex
+startswith  # 区分大小写，开始位置匹配, SQL中like '...%'
+istartswith  # 不区分大小写，开始位置匹配,SQL中ilike '...%'
+endswith  # 以…结尾, 区分大小写，SQL中like '%...'
+iendswith # 以…结尾，忽略大小写,SQL中ilike '%...'
+rang	# 在…范围内, SQL中between...with...
+year  # 对于日期和日期时间字段，确切的年匹配。整数年
+month  # 对于日期和日期时间字段，确切的月份匹配。取整数1~12
+day  # 对于日期和日期时间字段，具体到某一天的匹配。取一个整数的天数
+week  # 对于日期和日期时间字段，取周数（1-52或53），即周一开始周数，第一周开始于周四或之前。
+week_day # 对于日期和日期时间字段，“星期几”匹配。取整数值，表示星期几从1(星期日)到7(星期六)
+quarter  # 对于日期和日期时间字段，“一年中的四分之一”匹配。允许链接其他字段查找。取1到4之间的整数值，表示一年中的四分之一。
+time  # 对于datetime字段，将值转换为时间。允许链接其他字段查找。采用datetime.time值。
+hour  # 对于日期时间字段，精确的小时匹配。取0和23之间的整数
+minute  # 对于日期时间字段，精确的分钟匹配。取0和59之间的整数
+second  # 对于datetime字段，精确的第二个匹配。取0和59之间的整数。
+isnull  # 值为 True 或 False, 相当于 SQL语句IS NULL和IS NOT NULL.
+search  # 一个Boolean类型的全文搜索，以全文搜索的优势。这个很像 contains ，但是由于全文索引的优势，以使它更显著的快
+regex  # 区分大小写的正则表达式匹配
+iregex  # 不区分大小写的正则表达式匹配
+# 正则表达式语法是正在使用的数据库后端的语法。在SQLite没有内置正则表达式支持的情况下，此功能由（Python）用户定义的REGEXP函数提供，因此正则表达式语法是Python的re模块。
+```
+
+示例
+
+```python
+# exact/iexact
+Entry.objects.get(id__exact=14)
+Entry.objects.get(id__exact=None)  # SQL中使用is NULL
+Blog.objects.get(name__iexact='beatles blog')
+Blog.objects.get(name__iexact=None)  # SQL中使用is NULL
+# contains/icontains
+Entry.objects.get(headline__contains='Lennon')
+Entry.objects.get(headline__icontains='Lennon')
+# in
+Entry.objects.filter(id__in=[1, 3, 4])
+inner_qs = Blog.objects.filter(name__contains='Cheddar')  # 动态查询
+entries = Entry.objects.filter(blog__in=inner_qs)
+inner_qs = Blog.objects.filter(name__contains='Ch').values('name')  # 嵌套查询
+entries = Entry.objects.filter(blog__name__in=inner_qs)
+values = Blog.objects.filter(name__contains='Cheddar').values_list('pk', flat=True)  # 分步查询
+entries = Entry.objects.filter(blog__in=list(values))
+# gt,gte,lt,lte
+Entry.objects.filter(id__gt=4)
+# startwith,istartwith,endwith,iendwith
+Entry.objects.filter(headline__startswith='Will')
+Entry.objects.filter(headline__istartswith='will')
+Entry.objects.filter(headline__endswith='cats')
+Entry.objects.filter(headline__iendswith='will')
+# range
+import datetime
+start_date = datetime.date(2005, 1, 1)
+end_date = datetime.date(2005, 3, 31)
+Entry.objects.filter(pub_date__range=(start_date, end_date))  # 过滤具有日期的DateTimeField不会包含最后一天的项目，因为边界被解释为“给定日期的0am”
+# year,month,day,week,week_day,quarter,time,hour,minute,second
+Entry.objects.filter(pub_date__year=2005)
+SELECT ... WHERE pub_date BETWEEN '2005-01-01' AND '2005-12-31';  # 等价SQL
+Entry.objects.filter(pub_date__month=12)
+SELECT ... WHERE EXTRACT('month' FROM pub_date) = '12';  # 等价SQL
+Entry.objects.filter(pub_date__day=3)  
+SELECT ... WHERE EXTRACT('day' FROM pub_date) = '3';  # 等价SQL
+Entry.objects.filter(pub_date__week__gte=32, pub_date__week__lte=38)
+Entry.objects.filter(pub_date__week_day=2)
+Entry.objects.filter(pub_date__quarter=2)
+Entry.objects.filter(pub_date__time__between=(datetime.time(8), datetime.time(17)))
+Event.objects.filter(timestamp__hour=23)
+SELECT ... WHERE EXTRACT('hour' FROM timestamp) = '23'; # 等价SQL
+Event.objects.filter(timestamp__minute=29)
+SELECT ... WHERE EXTRACT('minute' FROM timestamp) = '29';  # 等价SQL
+Event.objects.filter(timestamp__second=31)
+SELECT ... WHERE EXTRACT('second' FROM timestamp) = '31';  # 等价SQL
+# isnull
+Entry.objects.filter(pub_date__isnull=True)
+# search
+Entry.objects.filter(headline__search="+Django -jazz Python")
+SELECT ... WHERE MATCH(tablename, headline) AGAINST (+Django -jazz Python IN BOOLEAN MODE);  # 等价SQL
+# regex/iregex
+Entry.objects.get(title__regex=r'^(An?|The) +')
+SELECT ... WHERE title REGEXP BINARY '^(An?|The) +'; -- MySQL  # 等价SQL
+Entry.objects.get(title__iregex=r'^(an?|the) +')
 ```
 
 ### 聚合函数
 
-```
-expression
-output_field
+```python
+Avg(expression, output_field=FloatField(), filter=None, **extra)
+# 返回给定expression 的平均值，其中expression 必须为数值。
+# 默认的别名：<field>__avg
+# 返回类型：float
+Count(expression, distinct=False, filter=None, **extra)
+# 返回与expression 相关的对象的个数。distinct默认False，若为True，则将只计算唯一的实例
+# 默认的别名：<field>__count
+# 返回类型：int
+Max(expression, output_field=None, filter=None, **extra)
+# 返回expression 的最大值。
+# 默认的别名：<field>__max
+# 返回类型：与输入字段的类型相同，如果提供则为 output_field 类型
+Min(expression, output_field=None, filter=None, **extra)
+# 返回expression 的最小值
+# 默认的别名：<field>__min
+# 返回的类型：与输入字段的类型相同，如果提供则为 output_field 类型
+StdDev(expression, sample=False, filter=None, **extra)
+# 返回expression 的标准差。默认情况下，StdDev 返回群体的标准差。但是，如果sample=True，返回的值将是样本的标准差。
+# 默认的别名：<field>__stddev
+# 返回类型：float
+Sum(expression, output_field=None, filter=None, **extra)
+# 计算expression 的所有值的和。
+# 默认的别名：<field>__sum
+# 返回类型：与输入的字段相同，如果提供则为output_field 的类型
+Variance(expression, sample=False, filter=None, **extra)
+# 返回expression 的方差。默认情况下，Variance 返回群体的方差。但是，如果sample=True，返回的值将是样本的方差。
+# 默认的别名：<field>__variance
+# 返回的类型：float
+
+# 参数
+expression  
+# 引用模型字段的一个字符串，或者一个查询表达式。
+output_field  
+# 用来表示返回值的模型字段，它是一个可选的参数。在组合多个类型的字段时，只有在所有的字段都是相同类型的情况下，Django 才能确定output_field。否则，你必须自己提供output_field 参数。
+filter
+# 2.0新增，一个可选的Q对象，用于过滤聚合的行
 **extra
-Avg
-Count
-Max
-Min
-StdDev
-Sum
-Variance
+# 这些关键字参数可以给聚合函数生成的SQL 提供额外的信息。
 ```
+
+### 查询pk
+
+为了方便，Django 提供一个查询快捷方式`pk` ，它表示“primary key” 的意思
+
+```shell
+# 精确查询
+>>> Blog.objects.get(id__exact=14) # Explicit form
+>>> Blog.objects.get(id=14) # __exact is implied
+>>> Blog.objects.get(pk=14) # pk implies id__exact
+# 与其他类型结合
+# Get blogs entries with id 1, 4 and 7
+>>> Blog.objects.filter(pk__in=[1,4,7])
+# Get all blog entries with id > 14
+>>> Blog.objects.filter(pk__gt=14)
+# 在join中工作
+>>> Entry.objects.filter(blog__id__exact=3) # Explicit form
+>>> Entry.objects.filter(blog__id=3)        # __exact is implied
+>>> Entry.objects.filter(blog__pk=3)        # __pk implies __id__exact
+```
+
+### 转义like语句中的`%,_`
+
+与`LIKE` SQL 语句等同的字段查询（`iexact`、`contains`、`icontains`、`startswith`、`istartswith`、`endswith` 和`iendswith`）将自动转义在`LIKE` 语句中使用的两个特殊的字符 —— 百分号和下划线。（在`LIKE` 语句中，百分号通配符表示多个字符，下划线通配符表示单个字符）。
+
+```python
+# 查询
+>>> Entry.objects.filter(headline__contains='%')
+# django自动转义为类似如下的SQL
+SELECT ... WHERE headline LIKE '%\%%';
+```
+
+
 
 ### 查询表达式
 
+#### F
 
-
-
-
-
-
-
-
-
-
-
-
-### 所有对象
-
-`all()`方法，返回QuerySet
+`F()` 返回的实例用作查询内部对模型字段的引用。这些引用可以用于查询的filter 中来比较相同模型实例上不同字段之间值的比较。
 
 ```shell
->>> all_entries = Entry.objects.all()
+>>> from django.db.models import F
+>>> Entry.objects.filter(n_comments__gt=F('n_pingbacks'))
 ```
 
-### 过滤器获取特定对象
+Django 支持对`F()` 对象使用加法、减法、乘法、除法、取模以及幂计算等算术操作，两个操作数可以都是常数和其它`F()` 对象。
 
-`filter(),exclude()`方法，返回QuerySet
+```shell
+>>> Entry.objects.filter(n_comments__gt=F('n_pingbacks') * 2)
+>>> Entry.objects.filter(rating__lt=F('n_comments') + F('n_pingbacks'))
+>>> from datetime import timedelta
+>>> Entry.objects.filter(mod_date__gt=F('pub_date') + timedelta(days=3))
+```
+
+可以在`F()` 对象中使用双下划线标记来跨越关联关系。带有双下划线的`F()` 对象将引入任何需要的join 操作以访问关联的对象
+
+```shell
+>>> Entry.objects.filter(authors__name=F('blog__name'))
+```
+
+`F()` 对象支持`.bitand()` 和`.bitor()` 两种位操作
+
+```shell
+>>> F('somefield').bitand(16)
+```
+
+###  查询相关的类
+
+#### Q
+
+`Q()` 对象用于封装一组关键字参数。这些关键字参数就是“字段查询” 中所提及的那些。
+
+`Q` 对象可以使用`&` 求和，使用`|` 操作符组求或，使用`~` 操作符取反，允许组合操作。当一个操作符在两个`Q` 对象上使用时，它产生一个新的`Q` 对象
 
 ```python
-filter(**kwargs)
-# 返回一个新的查询集，它包含满足查询参数的对象
-exclude(**kwargs)
-# 返回一个新的查询集，它包含不满足查询参数的对象
-
-查询参数需哟啊满足特定格式，详见“字段查询”
+from django.db.models import Q
+# 或
+list = BookInfo.objects.filter(Q(bread__gt=20) | Q(pk__lt=3))
+# 非
+list = BookInfo.objects.filter(~Q(pk=3))
+# 与
+BookInfo.objects.filter(bread_gt=20,id_lt=3)
+BookInfo.objects.filter(bread_gt=20).filter(id_lt=3)
+BookInfo.objects.filter(Q(bread_gt=20)&(id_lt=3))
+# 多个Q对象参数，逻辑关系为AND
+Poll.objects.get(Q(question__startswith='Who'),Q(pub_date=date(2005, 5, 2)) | Q(pub_date=date(2005, 5, 6)))
+# 混合关键字和Q对象，但是Q对象必须置前
+Poll.objects.get(Q(pub_date=date(2005, 5, 2)) | Q(pub_date=date(2005, 5, 6)), question__startswith='Who')
 ```
 
-- 链式过滤
+#### Prefetch
 
-查询集的筛选结果还是查询集，所以可以将筛选语句链接在一起
+通常，Prefetch() 对象能够用于控制prefetch_related( )的操作.
+
+```python
+class Prefetch(lookup, queryset=None, to_attr=None)
+
+# lookup参数描述了跟随的关系，并且工作方式与传递给prefetch_related()的基于字符串的查找相同。
+# queryset参数为给定的查找提供基本QuerySet。这对于进一步过滤预取操作或从预取关系调用select_related()很有用，因此进一步减少查询数量
+# to_attr参数将预取操作的结果设置为自定义属性。当使用to_attr时，预取的结果存储在列表中。这可以提供比存储在QuerySet实例内的缓存结果的传统prefetch_related调用显着的速度改进。
+```
+
+示例
 
 ```shell
->>> Entry.objects.filter(
-...     headline__startswith='What'
-... ).exclude(
-...     pub_date__gte=datetime.date.today()
-... ).filter(
-...     pub_date__gte=datetime(2005, 1, 30)
+# lookup
+>>> Question.objects.prefetch_related(Prefetch('choice_set')).get().choice_set.all()
+[<Choice: Not much>, <Choice: The sky>, <Choice: Just hacking again>]
+# This will only execute two queries regardless of the number of Question
+# and Choice objects.
+>>> Question.objects.prefetch_related(Prefetch('choice_set')).all()
+[<Question: Question object>]
+
+# queryset
+>>> voted_choices = Choice.objects.filter(votes__gt=0)
+>>> voted_choices
+[<Choice: The sky>]
+>>> prefetch = Prefetch('choice_set', queryset=voted_choices)
+>>> Question.objects.prefetch_related(prefetch).get().choice_set.all()
+[<Choice: The sky>]
+
+# to_attr
+>>> prefetch = Prefetch('choice_set', queryset=voted_choices, to_attr='voted_choices')
+>>> Question.objects.prefetch_related(prefetch).get().voted_choices
+[<Choice: The sky>]
+>>> Question.objects.prefetch_related(prefetch).get().choice_set.all()
+[<Choice: Not much>, <Choice: The sky>, <Choice: Just hacking again>]
+```
+
+#### prefetch_related_objects
+
+在可迭代的模型实例上预取给定的查找。这在接收模型实例列表而不是QuerySet的代码中很有用;例如，从缓存中获取模型或手动实例化它们时。2.0中新增
+
+```python
+prefetch_related_objects(model_instances, *related_lookups)
+
+# 传递一个可迭代的模型实例（必须都是同一个类）以及要预取的查找或预取对象
+```
+
+示例
+
+```shell
+>>> from django.db.models import prefetch_related_objects
+>>> restaurants = fetch_top_restaurants_from_cache()  # A list of Restaurants
+>>> prefetch_related_objects(restaurants, 'pizzas__toppings')
+```
+
+#### FilteredRelation
+
+FilteredRelation与`annotate（）`一起使用，以在执行JOIN时创建ON子句。它不作用于默认关系，而是作用于注释名称（下面的示例中为pizzas_vegetarian）。2.0新增
+
+```python
+FilteredRelation(relation_name, *, condition=Q())[source]
+
+# relation_name参数：要过滤关系的字段的名称。
+# condition参数：用于控制过滤的Q对象。
+```
+
+不支持如下场景
+
+```python
+# 1.跨越关系段的条件
+>>> Restaurant.objects.annotate(
+...    pizzas_with_toppings_startswith_n=FilteredRelation(
+...        'pizzas__toppings',
+...        condition=Q(pizzas__toppings__name__startswith='n'),
+...    ),
+... )
+Traceback (most recent call last):
+...
+ValueError: FilteredRelation's condition doesn't support nested relations (got 'pizzas__toppings__name__startswith').
+# 2. QuerySet.only() and prefetch_related()
+# 3. 从父模型继承的GenericForeignKey
+```
+
+示例
+
+```shell
+>>> from django.db.models import FilteredRelation, Q
+>>> Restaurant.objects.annotate(
+...    pizzas_vegetarian=FilteredRelation(
+...        'pizzas', condition=Q(pizzas__vegetarian=True),
+...    ),
+... ).filter(pizzas_vegetarian__name__icontains='mozzarella')
+
+# 大量数据，以下更优
+>>> Restaurant.objects.filter(
+...     pizzas__vegetarian=True,
+...     pizzas__name__icontains='mozzarella',
 ... )
 ```
 
-- 过滤后的查询集是独立的
 
-每次筛选后得到的都是一个全新的独立的查询集，和之前的查询集没有任何绑定关系。可以被存储及反复使用
-
-```shell
->>> q1 = Entry.objects.filter(headline__startswith="What")
->>> q2 = q1.exclude(pub_date__gte=datetime.date.today())
->>> q3 = q1.filter(pub_date__gte=datetime.date.today())
-```
-
-- 查询集是惰性执行的
-
-创建查询集不会带来任何数据库的访问。只有在查询集需要求值时，Django才会真正运行这个查询
-
-### get获取单一对象
-
-`get()`返回单一对象。或是没有记录，引发`DoesNotExist`异常，多条记录，引发`MultipleObjectsReturned`异常
-
-```shell
->>> one_entry = Entry.objects.get(pk=1)
-```
-
-### 查询集API
-
-### 限制查询集
-
-可以使用Python 的切片语法来限制`查询集`记录的数目 。它等同于SQL 的`LIMIT` 和`OFFSET` 子句。
-
-```shell
->>> Entry.objects.all()[:5]
->>> Entry.objects.order_by('headline')[0]
-```
-
-第二条语句若没有对象，将引发`IndexError`
 
 
 
 ### 跨关联关系查询
+
+查询中的关联关系，Django会在后台自动帮你处理`JOIN`。若要跨越关联关系，只需使用关联的模型字段的名称，并使用双下划线分隔，直至你想要的字段。这种跨越可以是任意的深度
+
+```shell
+>>> Entry.objects.filter(blog__name='Beatles Blog')
+```
+
+若要引用一个“反向”的关系，只需要使用该模型的小写的名称。
+
+```shell
+>>> Blog.objects.filter(entry__headline__contains='Lennon')
+```
+
+如果你在多个关联关系直接过滤而且其中某个中介模型没有满足过滤条件的值，Django 将把它当做一个空的（所有的值都为`NULL`）但是合法的对象。这意味着不会有错误引发
+
+```python
+Blog.objects.filter(entry__authors__name='Lennon')
+```
+
+isnull使用
+
+```python
+Blog.objects.filter(entry__authors__name__isnull=True)
+# 返回包括author的name为空,以及author的name不为空但entry的author为空的的Blog对象。
+Blog.objects.filter(entry__authors__isnull=False, entry__authors__name__isnull=True)
+# 返回author的name为空，entry的author不为空的的Blog对象
+```
+
+### 跨越多值的查询
+
+当你基于`ManyToManyField` 或反向的`ForeignKey`来过滤一个对象时，有两种不同种类的过滤器。考虑`Blog`/`Entry` 关联关系（`Blog` 和 `Entry` 是一对多的关系）。我们可能想找出headline为*“Lennon”* 并且pub_date为'2008'年的Entry。或者我们可能想查询headline为*“Lennon”* 的Entry或者pub_date为'2008'的Entry。因为实际上有和单个`Blog` 相关联的多个Entry，所以这两个查询在某些场景下都是有可能并有意义的。
+
+`ManyToManyField`有类似的情况。例如，如果`Entry`有一个`ManyToManyField`叫做 `tags`，我们可能想找到tag 叫做*“music”* 和*“bands”* 的Entry，或者我们想找一个tag 名为*“music”* 且状态为*“public”*的Entry。
+
+对于这两种情况，Django 有种一致的方法来处理`filter()`调用。一个`filter()` 调用中的所有参数会同时应用以过滤出满足所有要求的记录。接下来的`filter()`调用进一步限制对象集，但是对于多值关系，它们应用到与主模型关联的对象，而不是应用到前一个`filter()`调用选择出来的对象。
+
+```python
+# 假设这里有一个blog拥有一条包含'Lennon'的entries条目和一条来自2008的entries条目,但是没有一条来自2008并且包含"Lennon"的entries条目。
+Blog.objects.filter(entry__headline__contains='Lennon', entry__pub_date__year=2008)  # 且，return None
+Blog.objects.filter(entry__headline__contains='Lennon').filter(entry__pub_date__year=2008)  # 或，有一个blog
+```
+
+exclude与filter的实现并不同。单个`exclude()`调用中的条件不必引用同一个记录
+
+```python
+# 排除headline 中包含“Lennon”的Entry和在2008 年发布的Entry,但不是排除同时满足两个条件
+Blog.objects.exclude(
+    entry__headline__contains='Lennon',
+    entry__pub_date__year=2008,
+)
+# 排除同时满足两个条件
+Blog.objects.exclude(
+    entry=Entry.objects.filter(
+        headline__contains='Lennon',
+        pub_date__year=2008,
+    ),
+)
+```
 
 
 
@@ -483,8 +1323,9 @@ for e in Entry.objects.all():
 
 对`查询集`调用`list()` 将强制对它求值
 
-```
+```python
 entry_list = list(Entry.objects.all())
+entry_id_list = list(Entry.objects.values_list('id', flat=True).order_by('id'))
 ```
 
 - bool
@@ -497,6 +1338,22 @@ if Entry.objects.filter(headline="Test"):
 ```
 
 注意：如果你需要知道是否存在至少一条记录（而不需要真实的对象），使用 `exists()`将更加高效。
+
+## 比较对象
+
+为了比较两个模型实例，只需要使用标准的Python 比较操作符，即双等于符号：`==`。在后台，它会比较两个模型主键的值。
+
+```python
+>>> some_entry == other_entry
+>>> some_entry.id == other_entry.id
+# 主键名无关
+>>> some_obj == other_obj
+>>> some_obj.name == other_obj.name
+```
+
+
+
+
 
 ## ORM查询
 

@@ -25,7 +25,6 @@ Entry.objects.bulk_create([
 ```python
 # 调用一个模型类对象的delete方法，就可以实现数据删除，会根据id删除
 BookInfo.objects.filter(pk=id).delete()
-
 ```
 
 改
