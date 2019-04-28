@@ -814,10 +814,14 @@ update
 >>> Entry.objects.filter(pub_date__year=2010).update(comments_on=False)
 # 更新多个字段
 >>> Entry.objects.filter(pub_date__year=2010).update(comments_on=False, headline='This is old')
-# 法立即应用，对更新的QuerySet的唯一限制是它只能更新模型主表中的列，而不是相关模型
+# 立即应用，对更新的QuerySet的唯一限制是它只能访问一个数据库表，也就是模型的主表，而不是相关模型
 >>> Entry.objects.update(blog__name='foo') # Won't work!
 # 使用关联字段查询时可以的
 >>> Entry.objects.filter(blog__id=1).update(comments_on=True)
+# F()对象
+>>> Entry.objects.all().update(n_pingbacks=F('n_pingbacks') + 1)  # ok
+# THIS WILL RAISE A FieldError
+>>> Entry.objects.update(headline=F('blog__name'))  # wrong,不可引入join
 
 # 如果你只是更新一个记录，不需要对模型对象做任何事情，最有效的方法是调用update()，而不是将模型对象加载到内存中
 # not do this
@@ -827,7 +831,7 @@ e.save()
 # to do this
 Entry.objects.filter(id=10).update(comments_on=False)
 
-# update不执行save()，也不传输pre_save和post_save信号，若是需要调用自定义的save()方法
+# update会直接转换成一个SQL语句，时一个批量的直接更新操作。不执行save()，也不传输pre_save和post_save信号，若是需要调用自定义的save()方法
 for e in Entry.objects.filter(pub_date__year=2010):
     e.comments_on = False
     e.save()
@@ -1047,11 +1051,60 @@ filter
 SELECT ... WHERE headline LIKE '%\%%';
 ```
 
-
-
 ### 查询表达式
 
+```
+表达式定义在django.db.models.expressions 和 django.db.models.aggregates中, 但为了方便，通常可以直接从django.db.models导入.
+```
+
 #### F
+
+一个 `F()`对象代表了一个model的字段值或注释列。它会生成一个SQL表达式。优点如下
+
+```
+1. 直接通过数据库操作而不是python
+2. 减少数据库查询次数
+3. 可避免竞态条件，保证字段的值为当前最新
+```
+
+使用它就可以直接参考model的field和执行数据库操作而不用再把它们（model field）查询出来放到python内存中
+
+```python
+# Tintin filed a news story!
+reporter = Reporters.objects.get(name='Tintin')
+reporter.stories_filed += 1  # 从数据库取出放到内存中并用我们熟悉的python运算符操作它
+reporter.save()
+
+# F方法
+from django.db.models import F
+
+reporter = Reporters.objects.get(name='Tintin')
+reporter.stories_filed = F('stories_filed') + 1  # SQL实时数据
+reporter.save()
+
+# 要访问以这种方式保存的新值，必须重新加载该对象：
+reporter = Reporters.objects.get(pk=reporter.pk)
+# Or, more succinctly:
+reporter.refresh_from_db()
+
+# 在Model.save()后F()仍存在
+reporter = Reporters.objects.get(name='Tintin')
+reporter.stories_filed = F('stories_filed') + 1
+reporter.save()
+
+reporter.name = 'Tintin Jr.'
+reporter.save()  # stories_filed被更新2次，若初始值为1，此时为3
+```
+
+- update
+
+```shell
+>>> Entry.objects.all().update(n_pingbacks=F('n_pingbacks') + 1)  # ok，批量更新
+# THIS WILL RAISE A FieldError
+>>> Entry.objects.update(headline=F('blog__name'))  # fail,不可引入join
+```
+
+- filter
 
 `F()` 返回的实例用作查询内部对模型字段的引用。这些引用可以用于查询的filter 中来比较相同模型实例上不同字段之间值的比较。
 
@@ -1080,6 +1133,162 @@ Django 支持对`F()` 对象使用加法、减法、乘法、除法、取模以�
 ```shell
 >>> F('somefield').bitand(16)
 ```
+
+- annotate
+
+```python
+# 通过将不同字段与算术相结合来在模型上创建动态字段
+company = Company.objects.annotate(chairs_needed=F('num_employees') - F('num_chairs'))
+
+# 如果你组合的字段是不同类型，你需要告诉Django将返回什么类型的字段。由于F()不直接支持output_field，您需要使用ExpressionWrapper
+from django.db.models import DateTimeField, ExpressionWrapper, F
+
+Ticket.objects.annotate(
+    expires=ExpressionWrapper(
+        F('active_at') + F('duration'), output_field=DateTimeField()))
+
+# 引用诸如ForeignKey之类的关系字段时，F（）返回主键值而不是模型实例
+>> car = Company.objects.annotate(built_by=F('manufacturer'))[0]
+>> car.manufacturer
+<Manufacturer: Toyota>
+>> car.built_by
+3
+```
+
+#### Func
+
+`Func()` 表达式是所有表达式的基础类型，包括数据库函数如 `COALESCE` 和 `LOWER`, 或者 `SUM`聚合
+
+```python
+# 方法一：直接使用
+from django.db.models import Func, F
+queryset.annotate(field_lower=Func(F('field'), function='LOWER'))
+
+# 方法二：用于构建数据库函数库
+class Lower(Func):
+    function = 'LOWER'
+queryset.annotate(field_lower=Lower(F('field')))
+
+# 均生成类似SQL
+select ... LOWER('db_table')
+```
+
+- API
+
+```python
+Class Func(*expression, **extra)
+
+# 参数
+*expression  # 是函数将应用于的位置表达式列表。表达式将转换为字符串，与arg_joiner连接在一起，然后作为expressions占位符插入到template中。位置参数可以是表达式或Python值。字符串被假定为列引用，将包装在F（）表达式中，而其他值将包装在Value（）表达式中。
+**extra  # 是key=value键值对，可以插入到template属性中。为避免SQL注入漏洞，extra不得包含不受信任的用户输入，因为这些值会插入到SQL字符串中，而不是作为查询参数传递，数据库驱动程序会将其转义。 
+function,template,arg_joiner关键字可用于替换同名的属性，而无需定义自己的类。
+output_field可用于定义预期的返回类型
+```
+
+属性
+
+```python
+function  
+# 类属性，描述将生成的函数。具体来说，函数将作为template中的function占位符进行插值。默认None
+template  
+# 类属性，作为格式字符串，描述为此函数生成的SQL。默认为'%(function)s(%(expressions)s)'。如果你正在构建像strftime('%W', 'date')这样的SQL并且在查询中需要一个文字％字符，那么在模板属性中将它翻两倍（%%%%），因为字符串被插值两次：as_sql（）中的模板插值和SQL插值中的一次使用数据库游标中的查询参数。
+arg_joiner
+# 类属性，表示用于将表达式列表连接在一起的字符。默认为','
+arity
+# 类属性，表示函数接收的参数个数。如果设置了此属性并且使用不同数量的表达式调用函数，则将引发TypeError。默认为None
+```
+
+方法
+
+```python
+as_sql(compiler, connection, function=None, template=None, arg_joiner=None, **extra_context)
+# 为数据库函数生成SQL
+
+# as_vendor()方法应该用 function, template, arg_joiner和其他**extra_context 来按照需要自定义SQL
+class ConcatPair(Func):
+    ...
+    function = 'CONCAT'
+    ...
+
+    def as_mysql(self, compiler, connection):
+        return super().as_sql(
+            compiler, connection,
+            function='CONCAT_WS',
+            template="%(function)s('', %(expressions)s)",
+        )
+```
+
+#### Aggregate
+
+`Aggregate()`表达式是`Func()`表达式的一个特例，它通知查询需要`GROUP BY`子句。所有的聚合函数，类似`Sum(),Count()`，均继承自`Aggregate()`
+
+```python
+# 由于Aggregates是表达式和包装表达式，可以表示一些复杂的计算
+from django.db.models import Count
+
+Company.objects.annotate(
+    managers_required=(Count('num_employees') / 4) + Count('num_managers'))
+```
+
+- API
+
+```python
+class Aggregate(expression, output_field=None, filter=None, **extra)
+
+# 参数
+expression  # 可以是模型上的字段名称，也可以是其他表达式。它将转换为字符串并用作template中的expressions占位符
+output_field  # output_field参数需要一个模型字段实例，如IntegerField()或BooleanField()，Django将在从数据库中检索后加载该值。通常在实例化模型字段时不需要参数，因为不会对表达式的输出值(max_length，max_digits等)强制执行与数据验证相关的任何参数。注意：只有当Django无法确定结果应该是什么字段类型时才需要output_field。混合字段类型的复杂表达式应定义所需的output_field。例如，将IntegerField（）和FloatField（）放在一起应该可以定义output_field = FloatField（）。
+filter  # filter参数采用Q对象，该对象用于过滤聚合的行
+**extra  # 是可以插入到template的键值对
+```
+
+属性
+
+```python
+template
+# 类属性，作为格式字符串，描述为此函数生成的SQL。默认为'%(function)s(%(expressions)s)'。
+function
+# 类属性，描述将要生成的聚合函数。具体来说，函数将作为template中的function占位符进行插值。默认None
+window_compatible
+# 默认为True，因为大多数聚合函数都可以用作Window中的源表达式。
+```
+
+- 自定义Aggregate函数
+
+```python
+from django.db.models import Aggregate
+
+class Count(Aggregate):
+    # supports COUNT(distinct field)
+    function = 'COUNT'
+    template = '%(function)s(%(distinct)s%(expressions)s)'
+
+    def __init__(self, expression, distinct=False, **extra):
+        super().__init__(
+            expression,
+            distinct='DISTINCT ' if distinct else '',
+            output_field=IntegerField(),
+            **extra
+        )
+```
+
+#### Value
+
+```
+class Value(value, output_field=None)
+```
+
+`Value()`对象表示表达式的最小可能组件：简单值。当您需要表示表达式中的整数，布尔值或字符串的值时，可以将该值包装在`Value()`中。
+
+很少需要直接使用`value()`，当使用表达式`F('field')+1`，Django隐式地将1包装在`value()`中，允许在更复杂的表达式中使用简单值。如果要将字符串传递给表达式，则需要使用`Value()`。大多数表达式将字符串参数解释为字段的名称，如`Lower('name')`
+
+value参数描述要包含在表达式中的值，例如1，True或None。Django知道如何将这些Python值转换为相应的数据库类型。
+
+`output_field`参数应该是一个模型字段实例，如`IntegerField()`或`BooleanField()`，Django将在从数据库中检索后加载该值。通常在实例化模型字段时不需要参数，因为不会对表达式的输出值`(max_length，max_digits等)`强制执行与数据验证相关的任何参数。
+
+#### ExpressionWrapper
+
+#### 
 
 ###  查询相关的类
 
@@ -1209,7 +1418,286 @@ ValueError: FilteredRelation's condition doesn't support nested relations (got '
 
 
 
+## 关联的对象
 
+当你在一个模型中定义一个关联关系时（例如，`ForeignKey`、 `OneToOneField`或`ManyToManyField`），该模型的实例将带有一个方便的API 来访问关联的对象。
+
+### 一对多
+
+- 前向查询
+
+若一个模型具有ForeignKey，则该模型将可以通过属性访问关联的对象
+
+```python
+>>> e = Entry.objects.get(id=2)
+>>> e.blog # Returns the related Blog object.
+```
+
+可以通过外键属性获取和设置
+
+```shell
+>>> e = Entry.objects.get(id=2)
+>>> e.blog = some_blog
+>>> e.save()
+# 如果ForeignKey字段有null=True设置（即它允许NULL 值），你可以分配None来删除对应的关联性。
+>>> e = Entry.objects.get(id=2)
+>>> e.blog = None
+>>> e.save() # "UPDATE blog_entry SET blog_id = NULL ...;"
+```
+
+一对多关联关系的前向访问在第一次访问关联的对象时被缓存。以后对同一个对象的外键的访问都使用缓存。
+
+```shell
+>>> e = Entry.objects.get(id=2)
+>>> print(e.blog)  # Hits the database to retrieve the associated Blog.
+>>> print(e.blog)  # Doesn't hit the database; uses cached version.
+
+# 注意select_related() 查询集方法递归地预填充所有的一对多关系到缓存中
+>>> e = Entry.objects.select_related().get(id=2)
+>>> print(e.blog)  # Doesn't hit the database; uses cached version.
+>>> print(e.blog)  # Doesn't hit the database; uses cached version.
+```
+
+- 反向查询
+
+果一个模型有一个`ForeignKey`，那么外键模型的实例将有权访问返回前一个模型的所有实例的`Manager`。 默认情况下，`Manager`被命名为`FOO_set`，其中`FOO`是小写的源模型名称。 这个`Manager`返回`QuerySets`，它可以进行过滤和操作。
+
+```shell
+>>> b = Blog.objects.get(id=1)
+>>> b.entry_set.all() # Returns all Entry objects related to Blog.
+
+# b.entry_set is a Manager that returns QuerySets.
+>>> b.entry_set.filter(headline__contains='Lennon')
+>>> b.entry_set.count()
+
+# 可覆盖foo_set名称，使用related_name
+# 如果Entry 模型改成blog = ForeignKey(Blog, related_name='entries')
+>>> b = Blog.objects.get(id=1)
+>>> b.entries.all() # Returns all Entry objects related to Blog.
+# b.entries is a Manager that returns QuerySets.
+>>> b.entries.filter(headline__contains='Lennon')
+>>> b.entries.count()
+```
+
+自定义反向管理器
+
+```python
+# 默认情况下，用于反向关系的RelatedManager是该模型的默认管理器的子类。 
+# 如果要为给定查询指定其他管理器,可如下定义
+from django.db import models
+
+class Entry(models.Model):
+    #...
+    objects = models.Manager()  # Default Manager
+    entries = EntryManager()    # Custom Manager
+
+b = Blog.objects.get(id=1)
+b.entry_set(manager='entries').all()
+
+# 如果EntryManager 在它的get_queryset()方法中使用默认的过滤，那么该过滤将适用于all()调用
+# 指定一个自定义的管理器还可以让你调用自定义的方法
+b.entry_set(manager='entries').is_published()
+```
+
+### 多对多
+
+多对多关系的两端都会自动获得访问另一端的API。这些API 的工作方式与上面提到的“方向”一对多关系一样。
+
+唯一的区别在于属性的名称：定义 `ManyToManyField`的模型使用该字段的属性名称，而“反向”模型使用源模型的小写名称加上`'_set'` （和一对多关系一样）
+
+```python
+e = Entry.objects.get(id=3)
+e.authors.all() # Returns all Author objects for this Entry.
+e.authors.count()
+e.authors.filter(name__contains='John')
+
+a = Author.objects.get(id=5)
+a.entry_set.all() # Returns all Entry objects for this Author.
+
+
+# 类似ForeignKey，ManyToManyField 可以指定related_name。在上面的例子中，如果Entry 中的ManyToManyField 指定related_name='entries'，那么Author 实例将使用 entries 属性而不是entry_set。
+```
+
+### 一对一
+
+一对一关系与多对一关系非常相似。
+
+- 正向
+
+如果你在模型中定义一个`OneToOneField`，该模型的实例将可以通过该模型的一个简单属性访问关联的模型。
+
+```python
+class EntryDetail(models.Model):
+    entry = models.OneToOneField(Entry)
+    details = models.TextField()
+
+ed = EntryDetail.objects.get(id=2)
+ed.entry # Returns the related Entry object.
+```
+
+- 反向
+
+在“反向”查询中有所不同。一对一关系中的关联模型同样具有一个`管理器`对象，但是该`管理器`表示一个单一的对象而不是对象的集合
+
+```python
+e = Entry.objects.get(id=2)
+e.entrydetail # returns the related EntryDetail object
+
+# 如果没有对象赋值给这个关联关系，Django 将引发一个DoesNotExist 异常。
+
+# 实例可以赋值给反向的关联关系，方法和正向的关联关系一样
+e.entrydetail = ed
+```
+
+### 反向关联的实现
+
+其它对象关系映射要求你在关联关系的两端都要定义。Django 的开发人员相信这是对DRY（不要重复你自己的代码）原则的违背，所以Django 只要求你在一端定义关联关系。
+
+但是这怎么可能？因为一个模型类直到其它模型类被加载之后才知道哪些模型类是关联的。
+
+答案在`app registry` 中。当Django 启动时，它导入`INSTALLED_APPS`中列出的每个应用，然后导入每个应用中的`models` 模块。每创建一个新的模型时，Django 添加反向的关系到所有关联的模型。如果关联的模型还没有导入，Django 将保存关联关系的记录并在最终关联的模型导入时添加这些关联关系。
+
+由于这个原因，你使用的所有模型都定义在`INSTALLED_APPS` 列出的应用中就显得特别重要。否则，反向的关联关系将不能正确工作。
+
+### 关联管理器
+
+`relateManager`时在一对多或多对多的关联上下文中使用的管理器，存在如下两种
+
+```python
+# 1. ForeignKey关系的另一边
+from django.db import models
+class Reporter(models.Model):
+    # ...
+    pass
+class Article(models.Model):
+    reporter = models.ForeignKey(Reporter, on_delete=models.CASCADE)
+# 管理器可以使用reporter.article_set方法
+
+# 2. ManyToManyField关系的两边
+class Topping(models.Model):
+    # ...
+    pass
+class Pizza(models.Model):
+    toppings = models.ManyToManyField(Topping)
+# 管理器将会拥有topping.pizza_set 和pizza.toppings两个方法
+```
+
+- 方法
+
+| name     | Desc                                                         |
+| -------- | ------------------------------------------------------------ |
+| `add`    | 把指定的模型对象添加到关联对象集中                           |
+| `create` | 创建一个新的对象，保存对象，并将它添加到关联对象集之中。返回新创建的对象 |
+| `remove` | 从关联对象集中移除执行的模型对象                             |
+| `clear`  | 从关联对象集中移除一切对象                                   |
+| `set`    | 更新model对象的关联对象                                      |
+
+注意对于所有类型的关联字段，`add()`、`create()`、`remove()`、`clear()`和`set`都会马上更新数据库。换句话说，在关联的任何一端，都不需要再调用`save()`方法。
+
+如果你再多对多关系中使用了*中间模型*，`add,create,remove,set`方法会被禁用。
+
+如果使用了`prefetch_related()`，`add,remove,clear,set`方法会清除预取缓存。
+
+add
+
+```python
+add(obj1[,obj2,...])
+# 把指定的模型对象添加到关联对象集中
+>>> b = Blog.objects.get(id=1)
+>>> e = Entry.objects.get(id=234)
+>>> b.entry_set.add(e) # Associates Entry e with Blog b.
+
+# 对于ForeignKey关系，e.save()由关联管理器调用，执行更新操作。然而，在多对多关系中使用add()并不会调用任何 save()方法，而是由QuerySet.bulk_create()创建关系。如果你需要在关系被创建时执行一些自定义的逻辑，请监听m2m_changed信号。
+```
+
+create
+
+```python
+create(**kwargs)
+# 创建一个新的对象，保存对象，并将它添加到关联对象集之中。返回新创建的对象
+# 要注意我们并不需要指定模型中用于定义关系的关键词参数。在上面的例子中，我们并没有传入blog参数给create()。Django会明白新的 Entry对象blog 数据字段应该被设置为b。
+>>> b = Blog.objects.get(id=1)
+>>> e = b.entry_set.create(
+...     headline='Hello',
+...     body_text='Hi',
+...     pub_date=datetime.date(2005, 1, 1)
+... )
+
+# No need to call e.save() at this point -- it's already been saved.
+
+# 等价于
+>>> b = Blog.objects.get(id=1)
+>>> e = Entry(
+...     blog=b,
+...     headline='Hello',
+...     body_text='Hi',
+...     pub_date=datetime.date(2005, 1, 1)
+... )
+>>> e.save(force_insert=True)
+```
+
+remove
+
+```python
+remove(obj1[,obj2,...])
+# 从关联对象集中移除执行的模型对象
+>>> b = Blog.objects.get(id=1)
+>>> e = Entry.objects.get(id=234)
+>>> b.entry_set.remove(e) # Disassociates Entry e from Blog b.
+
+# 和add()相似，上面的例子中，e.save()会执行更新操作。但是，多对多关系上的remove()，会使用QuerySet.delete()删除关系，意思是并不会有任何模型调用save()方法：如果你想在一个关系被删除时执行自定义的代码，请监听m2m_changed信号。
+
+# 对于ForeignKey对象，这个方法仅在null=True时存在。如果关联的字段不能设置为None (NULL)，则这个对象在添加到另一个关联之前不能移除关联。在上面的例子中，从b.entry_set()移除e等价于让e.blog = None，由于blog的ForeignKey没有设置null=True，这个操作是无效的。
+# 对于ForeignKey对象，该方法接受一个bulk参数来控制它如何执行操作。如果为True（默认值），QuerySet.update()会被使用。而如果bulk=False，会在每个单独的模型实例上调用save()方法。这会触发pre_save和post_save，它们会消耗一定的性能。
+```
+
+clear
+
+```shell
+clear()
+# 从关联对象集中移除一切对象
+>>> b = Blog.objects.get(id=1)
+>>> b.entry_set.clear()
+
+# 注意这样不会删除对象 —— 只会删除他们之间的关联。
+
+# 就像 remove() 方法一样，clear()只能在 null=True的ForeignKey上被调用，也可以接受bulk关键词参数。
+```
+
+set
+
+```shell
+set(objs, bulk=True, clear=False)
+# 更新model对象的关联对象
+>>> new_list = [obj1, obj2, obj3]
+>>> e.related_set.set(new_list)
+
+# clear参数来控制如何执行操作。如果为False（默认值），则使用remove()删除新集中缺少的元素，并仅添加新的元素。如果clear = True，则调用clear()方法，并立即添加整个集合。
+# bulk参数传递给add（）。
+# 请注意，由于set()是复合操作，因此它受竞争条件的限制。例如，可以在对clear（）的调用和对add（）的调用之间向数据库添加新对象。
+```
+
+
+
+过赋值一个新的可迭代的对象，关联对象集可以被整体替换掉。
+
+```
+>>> new_list = [obj1, obj2, obj3]
+>>> e.related_set = new_list
+```
+
+如果外键关系满足`null=True`，关联管理器会在添加`new_list`中的内容之前，首先调用`clear()`方法来解除关联集中一切已存在对象的关联。否则， `new_list`中的对象会在已存在的关联的基础上被添加。
+
+### 通过关联的对象进行查询
+
+在关联对象字段上的查询与正常字段的查询遵循同样的规则。当你指定查询需要匹配的一个值时，你可以使用一个对象实例或者对象的主键的值。
+
+```python
+# 如果你有一个id=5 的Blog对象b，下面的三个查询将是完全一样的
+Entry.objects.filter(blog=b) # Query using object instance
+Entry.objects.filter(blog=b.id) # Query using id from instance
+Entry.objects.filter(blog=5) # Query using id directly
+```
 
 ### 跨关联关系查询
 
@@ -1270,8 +1758,6 @@ Blog.objects.exclude(
     ),
 )
 ```
-
-
 
 ## 对查询集求值
 
@@ -1349,6 +1835,44 @@ if Entry.objects.filter(headline="Test"):
 # 主键名无关
 >>> some_obj == other_obj
 >>> some_obj.name == other_obj.name
+```
+
+## 拷贝模型实例
+
+无继承
+
+```python
+blog = Blog(name='My blog', tagline='Blogging is easy')
+blog.save() # blog.pk == 1
+
+blog.pk = None
+blog.save() # blog.pk == 2
+```
+
+使用继承
+
+```python
+class ThemeBlog(Blog):
+    theme = models.CharField(max_length=200)
+
+django_blog = ThemeBlog(name='Django', tagline='Django is easy', theme='python')
+django_blog.save() # django_blog.pk == 3
+
+
+# 不拷贝关联对象
+django_blog.pk = None
+django_blog.id = None
+django_blog.save() # django_blog.pk == 4
+```
+
+拷贝关联对象
+
+```python
+entry = Entry.objects.all()[0] # some previous entry
+old_authors = entry.authors.all()
+entry.pk = None
+entry.save()
+entry.authors = old_authors # saves new many2many relations
 ```
 
 
