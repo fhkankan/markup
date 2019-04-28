@@ -604,7 +604,55 @@ Docker Daemon是Docker架构中一个常驻在后台的系统进程，它在后�
 docker logs是跟随容器而产生的，如果删除了某个容器，相应的日志文件也会随着被删除
 ```
 
+### 清理命令
 
+杀死所有正在运行的容器
+
+```
+docker kill $(docker ps -a -q)
+```
+
+删除所有已经停止的容器
+
+```
+docker rm $(docker ps -a -q)
+```
+
+删除所有未打 dangling 标签的镜像
+
+```
+docker rmi $(docker images -q -f dangling=true)
+```
+
+通过镜像的id来删除指定镜像
+
+```
+docker rmi <image id>
+```
+
+删除所有镜像
+
+```
+docker rmi $(docker images -q)
+```
+
+为这些命令创建别名
+
+```
+# ~/.bash_aliases
+
+# 杀死所有正在运行的容器.
+alias dockerkill='docker kill $(docker ps -a -q)'
+
+# 删除所有已经停止的容器.
+alias dockercleanc='docker rm $(docker ps -a -q)'
+
+# 删除所有未打标签的镜像.
+alias dockercleani='docker rmi $(docker images -q -f dangling=true)'
+
+# 删除所有已经停止的容器和未打标签的镜像.
+alias dockerclean='dockercleanc || true && dockercleani'
+```
 
 # Dockerfile
 
