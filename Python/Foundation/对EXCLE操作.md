@@ -10,6 +10,8 @@ pip install xlwt
 pip install xlutils
 # 方法三
 pip install pyExcelerator
+# 方法四
+pip install XlsxWriter
 ```
 
 ## 读取

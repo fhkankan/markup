@@ -1288,7 +1288,408 @@ value参数描述要包含在表达式中的值，例如1，True或None。Django
 
 #### ExpressionWrapper
 
-#### 
+```python
+class ExpressionWrapper(expression, output_field)
+```
+
+`ExpressionWrapper`仅仅是对其他的表达式进行包裹，提供对其他表达式可能无法使用的属性(如output_field)的访问。
+
+对于不同类型的`F()`表达式的数学计算，`ExpressionWrapper`是必须的。
+
+#### Condition
+
+在 `filters,annotations,aggregations,updates`中可以使用`if...elif...else`。条件表达式计算表的每一行的一系列条件，并返回匹配的结果表达式。条件表达式也可以像其他表达式一样组合和嵌套。
+
+```python
+from django.db import models
+
+class Client(models.Model):
+    REGULAR = 'R'
+    GOLD = 'G'
+    PLATINUM = 'P'
+    ACCOUNT_TYPE_CHOICES = (
+        (REGULAR, 'Regular'),
+        (GOLD, 'Gold'),
+        (PLATINUM, 'Platinum'),
+    )
+    name = models.CharField(max_length=50)
+    registered_on = models.DateField()
+    account_type = models.CharField(
+        max_length=1,
+        choices=ACCOUNT_TYPE_CHOICES,
+        default=REGULAR,
+    )
+```
+
+- When
+
+```
+class When(condition=None, then=None, **lookups)
+```
+
+`When()`对象用于封装条件及其结果以在条件表达式中使用。使用`When()`对象类似于使用`filter()`方法。可以使用字段查找或Q对象指定条件。结果使用then关键字提供。
+
+```shell
+>>> from django.db.models import When, F, Q
+>>> # String arguments refer to fields; the following two examples are equivalent:
+>>> When(account_type=Client.GOLD, then='name')
+>>> When(account_type=Client.GOLD, then=F('name'))
+>>> # You can use field lookups in the condition
+>>> from datetime import date
+>>> When(registered_on__gt=date(2014, 1, 1),
+...      registered_on__lt=date(2015, 1, 1),
+...      then='account_type')
+>>> # Complex conditions can be created using Q objects
+>>> When(Q(name__startswith="John") | Q(name__startswith="Paul"),
+...      then='name')
+```
+
+由于then关键字参数是为When（）的结果保留的，因此如果Model有一个名为then的字段，则存在潜在的冲突。这可以通过两种方式解决
+
+```shell
+>>> When(then__exact=0, then=1)
+>>> When(Q(then=0), then=1)
+```
+
+- case
+
+```
+class Case(*cases, **extra)
+```
+
+`Case()`表达式类似于Python中的if ... elif ... else语句。提供的`When()`对象中的每个条件按顺序计算，直到一个求值为真值。返回匹配的`When()`对象的结果表达式。
+
+```shell
+>>>
+>>> from datetime import date, timedelta
+>>> from django.db.models import CharField, Case, Value, When
+>>> Client.objects.create(
+...     name='Jane Doe',
+...     account_type=Client.REGULAR,
+...     registered_on=date.today() - timedelta(days=36))
+>>> Client.objects.create(
+...     name='James Smith',
+...     account_type=Client.GOLD,
+...     registered_on=date.today() - timedelta(days=5))
+>>> Client.objects.create(
+...     name='Jack Black',
+...     account_type=Client.PLATINUM,
+...     registered_on=date.today() - timedelta(days=10 * 365))
+>>> # Get the discount for each Client based on the account type
+>>> Client.objects.annotate(
+...     discount=Case(
+...         When(account_type=Client.GOLD, then=Value('5%')),
+...         When(account_type=Client.PLATINUM, then=Value('10%')),
+...         default=Value('0%'),
+...         output_field=CharField(),
+...     ),
+... ).values_list('name', 'discount')
+<QuerySet [('Jane Doe', '0%'), ('James Smith', '5%'), ('Jack Black', '10%')]>
+```
+
+`Case()`接受任意数量的`When()`对象作为单独的参数。使用关键字参数提供其他选项。如果没有条件评估为TRUE，则返回使用default关键字参数给出的表达式。如果未提供默认参数，则使用None。
+
+如果我们想根据客户与我们在一起的时间来更改我们之前的查询以获得折扣，我们可以使用查找来执行此操作：
+
+```shell
+>>> a_month_ago = date.today() - timedelta(days=30)
+>>> a_year_ago = date.today() - timedelta(days=365)
+>>> # Get the discount for each Client based on the registration date
+>>> Client.objects.annotate(
+...     discount=Case(
+...         When(registered_on__lte=a_year_ago, then=Value('10%')),
+...         When(registered_on__lte=a_month_ago, then=Value('5%')),
+...         default=Value('0%'),
+...         output_field=CharField(),
+...     )
+... ).values_list('name', 'discount')
+<QuerySet [('Jane Doe', '5%'), ('James Smith', '0%'), ('Jack Black', '10%')]>
+```
+
+case+filter
+
+```shell
+# 找到一个多月前注册的黄金客户和一年多前注册的白金客户
+>>> a_month_ago = date.today() - timedelta(days=30)
+>>> a_year_ago = date.today() - timedelta(days=365)
+>>> Client.objects.filter(
+...     registered_on__lte=Case(
+...         When(account_type=Client.GOLD, then=a_month_ago),
+...         When(account_type=Client.PLATINUM, then=a_year_ago),
+...     ),
+... ).values_list('name', 'account_type')
+<QuerySet [('Jack Black', 'P')]>
+```
+
+- update
+
+```shell
+# 假设我们想要更改客户的account_type以匹配其注册日期。我们可以使用条件表达式和update（）方法来完成此操作
+>>> a_month_ago = date.today() - timedelta(days=30)
+>>> a_year_ago = date.today() - timedelta(days=365)
+>>> # Update the account_type for each Client from the registration date
+>>> Client.objects.update(
+...     account_type=Case(
+...         When(registered_on__lte=a_year_ago,
+...              then=Value(Client.PLATINUM)),
+...         When(registered_on__lte=a_month_ago,
+...              then=Value(Client.GOLD)),
+...         default=Value(Client.REGULAR)
+...     ),
+... )
+>>> Client.objects.values_list('name', 'account_type')
+<QuerySet [('Jane Doe', 'G'), ('James Smith', 'R'), ('Jack Black', 'P')]>
+```
+
+- aggregation
+
+```shell
+# 如果我们想知道每个account_type有多少客户端怎么办？我们可以使用聚合函数的filter参数来实现这个目的
+>>> # Create some more Clients first so we can have something to count
+>>> Client.objects.create(
+...     name='Jean Grey',
+...     account_type=Client.REGULAR,
+...     registered_on=date.today())
+>>> Client.objects.create(
+...     name='James Bond',
+...     account_type=Client.PLATINUM,
+...     registered_on=date.today())
+>>> Client.objects.create(
+...     name='Jane Porter',
+...     account_type=Client.PLATINUM,
+...     registered_on=date.today())
+>>> # Get counts for each value of account_type
+>>> from django.db.models import Count
+>>> Client.objects.aggregate(
+...     regular=Count('pk', filter=Q(account_type=Client.REGULAR)),
+...     gold=Count('pk', filter=Q(account_type=Client.GOLD)),
+...     platinum=Count('pk', filter=Q(account_type=Client.PLATINUM)),
+... )
+{'regular': 2, 'gold': 1, 'platinum': 3}
+```
+
+类似SQL
+
+```sql
+SELECT count(CASE WHEN account_type=1 THEN id ELSE null) as regular,
+       count(CASE WHEN account_type=2 THEN id ELSE null) as gold,
+       count(CASE WHEN account_type=3 THEN id ELSE null) as platinum
+FROM clients;
+```
+
+#### Subquery
+
+```python
+class Subquery(queryset, output_field=None)
+```
+
+可以使用Subquery表达式向QuerySet添加显式子查询
+
+```shell
+# 要使用该帖子上最新评论的作者的电子邮件地址来注释每个帖子
+>>> from django.db.models import OuterRef, Subquery
+>>> newest = Comment.objects.filter(post=OuterRef('pk')).order_by('-created_at')
+>>> Post.objects.annotate(newest_commenter_email=Subquery(newest.values('email')[:1]))
+```
+
+- OuterRef
+
+```
+class OuterRef(field)
+```
+
+当子查询中的查询集需要引用外部查询中的字段时，请使用OuterRef。它的作用类似于F表达式，除了在解析外部查询集之前不会检查它是否引用有效字段。OuterRef的实例可以与子查询的嵌套实例结合使用，以引用不是直接父级的包含查询集。
+
+```shell
+# 此查询集需要位于嵌套的子查询实例对中才能解析纠正
+>>> Book.objects.filter(author=OuterRef(OuterRef('pk')))
+```
+
+- 将子查询限制为单个列
+
+有时必须从子查询返回单个列，例如，使用子查询作为__in查找的目标
+
+```shell
+# 要返回上一天发布的帖子的所有评论
+>>> from datetime import timedelta
+>>> from django.utils import timezone
+>>> one_day_ago = timezone.now() - timedelta(days=1)
+>>> posts = Post.objects.filter(published_at__gte=one_day_ago)
+>>> Comment.objects.filter(post__in=Subquery(posts.values('pk')))
+```
+
+- 将子查询限制为单行
+
+```shell
+# 使用[:1]来从多行中获得单行的子查询
+>>> subquery = Subquery(newest.values('email')[:1])
+>>> Post.objects.annotate(newest_commenter_email=subquery)
+# 使用get()而不是切片会失败，因为在子查询中使用查询集之前无法解析OuterRef。
+```
+
+- Exists
+
+```python
+class Exists(queryset)
+```
+
+Exists是一个使用SQL EXISTS语句的子查询子类。在许多情况下，它将比子查询执行得更好，因为数据库能够在找到第一个匹配行时停止对子查询的评估。
+
+```shell
+# 使用是否在最后一天内发表评论来对每个帖子进行注释
+>>> from django.db.models import Exists, OuterRef
+>>> from datetime import timedelta
+>>> from django.utils import timezone
+>>> one_day_ago = timezone.now() - timedelta(days=1)
+>>> recent_comments = Comment.objects.filter(
+...     post=OuterRef('pk'),
+...     created_at__gte=one_day_ago,
+... )
+>>> Post.objects.annotate(recent_comment=Exists(recent_comments))
+```
+
+没有必要强制Exists引用单个列，因为列被丢弃并返回布尔结果。同样，由于在SQL EXISTS子查询中排序并不重要，只会降低性能，因此会自动删除
+
+- filter
+
+```shell
+# 直接操作，有误
+>>> Post.objects.filter(Exists(recent_comments))
+...
+TypeError: 'Exists' object is not iterable
+# annotate
+>>> Post.objects.annotate(
+...     recent_comment=Exists(recent_comments),
+... ).filter(recent_comment=True)
+```
+
+- aggregate
+
+聚合可以在子查询中使用，但它们需要`filter()，values()和annotate()`的特定组合才能使子查询分组正确。
+
+```shell
+# 假设两个模型都有一个长度字段，找到帖子长度大于所有组合评论总长度的帖子
+>>> from django.db.models import OuterRef, Subquery, Sum
+>>> comments = Comment.objects.filter(post=OuterRef('pk')).order_by().values('post')
+>>> total_comments = comments.annotate(total=Sum('length')).values('total')
+>>> Post.objects.filter(length__gt=Subquery(total_comments))
+```
+
+#### RawSQL
+
+```
+class RawSQL(sql, params, output_field=None)
+```
+
+有时数据库表达式不能轻易表达复杂的WHERE子句。在这些边缘情况下，使用Raw SQL表达式。
+
+```shell
+>>> from django.db.models.expressions import RawSQL
+>>> queryset.annotate(val=RawSQL("select col from sometable where othercol = %s", (someparam,)))
+```
+
+#### Window
+
+窗口函数提供了一种在分区上应用函数的方法。与计算由组定义的每个集合的最终结果的常规聚合函数不同，窗口函数对帧和分区进行操作，并计算每行的结果。
+
+您可以在同一查询中指定多个窗口，这些窗口在Django ORM中等效于在QuerySet.annotate（）调用中包含多个表达式。ORM不使用命名窗口，而是它们是所选列的一部分
+
+```python
+class Window(expression, partition_by=None, order_by=None, frame=None, output_field=None)
+# Window类是OVER子句的主要表达式。
+
+# 属性
+filterable  # 默认为False。SQL标准不允许在WHERE子句中引用窗口函数，Django在构造可以执行此操作的QuerySet时引发异常。
+template  # 默认%(expression)s OVER (%(window)s)'。如果仅提供表达式参数，则window子句将为空。
+# 参数
+expression  # 可以是window函数、aggregate函数、窗口子句中兼容的表达式
+partition_by  # 是一个表达式列表（列名应包含在F对象中），用于控制行的分区。分区会缩小哪些行用于计算结果集。
+output_field  # 指定为参数或表达式
+order_by  # order_by参数接受一系列表达式，您可以在其上调用asc()和desc()。排序控制表达式的应用顺序
+frame  # 指定应在计算中使用的其他行
+```
+
+例如，用相同类型的同一个工作室为电影的平均评级注释每部电影，然后发布
+
+```shell
+>>> from django.db.models import Avg, F, Window
+>>> from django.db.models.functions import ExtractYear
+>>> Movie.objects.annotate(
+>>>     avg_rating=Window(
+>>>         expression=Avg('rating'),
+>>>         partition_by=[F('studio'), F('genre')],
+>>>         order_by=ExtractYear('released').asc(),
+>>>     ),
+>>> )
+```
+
+在同一窗口上应用多个表达式，即相同的分区和帧。
+
+```shell
+# 您可以通过在同一查询中使用三个窗口函数来修改前一个示例，以包括每个电影组（同一工作室，流派和发行年份）中的最佳和最差评级。将前一个示例中的分区和排序提取到字典中以减少重复
+>>> from django.db.models import Avg, F, Max, Min, Window
+>>> from django.db.models.functions import ExtractYear
+>>> window = {
+>>>    'partition_by': [F('studio'), F('genre')],
+>>>    'order_by': ExtractYear('released').asc(),
+>>> }
+>>> Movie.objects.annotate(
+>>>     avg_rating=Window(
+>>>         expression=Avg('rating'), **window,
+>>>     ),
+>>>     best=Window(
+>>>         expression=Max('rating'), **window,
+>>>     ),
+>>>     worst=Wsindow(
+>>>         expression=Min('rating'), **window,
+>>>     ),
+>>> )
+```
+
+- Frames
+
+对于窗口框架，您可以选择基于范围的行序列或普通的行序列。
+
+```python
+class ValueRange(start=None, end=None)
+# 属性
+frame_type  # 设置到'RANGE'
+class RowRange(start=None, end=None)
+# 属性
+frame_type  # 设置为'ROWS'
+
+# 两个类均返回如下样式SQL
+%(frame_type)s BETWEEN %(start)s AND %(end)s
+```
+
+示例
+
+```shell
+# 如果电影的“同伴”被描述为同一个同一个工作室在同一年中发布的电影，则此RowRange示例使用电影的两个先前和后两个对等体的平均评级来注释每个电影
+>>> from django.db.models import Avg, F, RowRange, Window
+>>> from django.db.models.functions import ExtractYear
+>>> Movie.objects.annotate(
+>>>     avg_rating=Window(
+>>>         expression=Avg('rating'),
+>>>         partition_by=[F('studio'), F('genre')],
+>>>         order_by=ExtractYear('released').asc(),
+>>>         frame=RowRange(start=-2, end=2),
+>>>     ),
+>>> )
+
+# 如果数据库支持它，则可以根据分区中表达式的值指定起点和终点。如果电影模型的已发布字段存储每部电影的发布月份，则此ValueRange示例使用每部电影之前12个月和之后12个月之间发布的电影同伴的平均评级来注释每部电影。
+>>> from django.db.models import Avg, ExpressionList, F, ValueRange, Window
+>>> Movie.objects.annotate(
+>>>     avg_rating=Window(
+>>>         expression=Avg('rating'),
+>>>         partition_by=[F('studio'), F('genre')],
+>>>         order_by=F('released').asc(),
+>>>         frame=ValueRange(start=-12, end=12),
+>>>     ),
+>>> )
+```
+
+
 
 ###  查询相关的类
 
@@ -1558,135 +1959,6 @@ e.entrydetail = ed
 答案在`app registry` 中。当Django 启动时，它导入`INSTALLED_APPS`中列出的每个应用，然后导入每个应用中的`models` 模块。每创建一个新的模型时，Django 添加反向的关系到所有关联的模型。如果关联的模型还没有导入，Django 将保存关联关系的记录并在最终关联的模型导入时添加这些关联关系。
 
 由于这个原因，你使用的所有模型都定义在`INSTALLED_APPS` 列出的应用中就显得特别重要。否则，反向的关联关系将不能正确工作。
-
-### 关联管理器
-
-`relateManager`时在一对多或多对多的关联上下文中使用的管理器，存在如下两种
-
-```python
-# 1. ForeignKey关系的另一边
-from django.db import models
-class Reporter(models.Model):
-    # ...
-    pass
-class Article(models.Model):
-    reporter = models.ForeignKey(Reporter, on_delete=models.CASCADE)
-# 管理器可以使用reporter.article_set方法
-
-# 2. ManyToManyField关系的两边
-class Topping(models.Model):
-    # ...
-    pass
-class Pizza(models.Model):
-    toppings = models.ManyToManyField(Topping)
-# 管理器将会拥有topping.pizza_set 和pizza.toppings两个方法
-```
-
-- 方法
-
-| name     | Desc                                                         |
-| -------- | ------------------------------------------------------------ |
-| `add`    | 把指定的模型对象添加到关联对象集中                           |
-| `create` | 创建一个新的对象，保存对象，并将它添加到关联对象集之中。返回新创建的对象 |
-| `remove` | 从关联对象集中移除执行的模型对象                             |
-| `clear`  | 从关联对象集中移除一切对象                                   |
-| `set`    | 更新model对象的关联对象                                      |
-
-注意对于所有类型的关联字段，`add()`、`create()`、`remove()`、`clear()`和`set`都会马上更新数据库。换句话说，在关联的任何一端，都不需要再调用`save()`方法。
-
-如果你再多对多关系中使用了*中间模型*，`add,create,remove,set`方法会被禁用。
-
-如果使用了`prefetch_related()`，`add,remove,clear,set`方法会清除预取缓存。
-
-add
-
-```python
-add(obj1[,obj2,...])
-# 把指定的模型对象添加到关联对象集中
->>> b = Blog.objects.get(id=1)
->>> e = Entry.objects.get(id=234)
->>> b.entry_set.add(e) # Associates Entry e with Blog b.
-
-# 对于ForeignKey关系，e.save()由关联管理器调用，执行更新操作。然而，在多对多关系中使用add()并不会调用任何 save()方法，而是由QuerySet.bulk_create()创建关系。如果你需要在关系被创建时执行一些自定义的逻辑，请监听m2m_changed信号。
-```
-
-create
-
-```python
-create(**kwargs)
-# 创建一个新的对象，保存对象，并将它添加到关联对象集之中。返回新创建的对象
-# 要注意我们并不需要指定模型中用于定义关系的关键词参数。在上面的例子中，我们并没有传入blog参数给create()。Django会明白新的 Entry对象blog 数据字段应该被设置为b。
->>> b = Blog.objects.get(id=1)
->>> e = b.entry_set.create(
-...     headline='Hello',
-...     body_text='Hi',
-...     pub_date=datetime.date(2005, 1, 1)
-... )
-
-# No need to call e.save() at this point -- it's already been saved.
-
-# 等价于
->>> b = Blog.objects.get(id=1)
->>> e = Entry(
-...     blog=b,
-...     headline='Hello',
-...     body_text='Hi',
-...     pub_date=datetime.date(2005, 1, 1)
-... )
->>> e.save(force_insert=True)
-```
-
-remove
-
-```python
-remove(obj1[,obj2,...])
-# 从关联对象集中移除执行的模型对象
->>> b = Blog.objects.get(id=1)
->>> e = Entry.objects.get(id=234)
->>> b.entry_set.remove(e) # Disassociates Entry e from Blog b.
-
-# 和add()相似，上面的例子中，e.save()会执行更新操作。但是，多对多关系上的remove()，会使用QuerySet.delete()删除关系，意思是并不会有任何模型调用save()方法：如果你想在一个关系被删除时执行自定义的代码，请监听m2m_changed信号。
-
-# 对于ForeignKey对象，这个方法仅在null=True时存在。如果关联的字段不能设置为None (NULL)，则这个对象在添加到另一个关联之前不能移除关联。在上面的例子中，从b.entry_set()移除e等价于让e.blog = None，由于blog的ForeignKey没有设置null=True，这个操作是无效的。
-# 对于ForeignKey对象，该方法接受一个bulk参数来控制它如何执行操作。如果为True（默认值），QuerySet.update()会被使用。而如果bulk=False，会在每个单独的模型实例上调用save()方法。这会触发pre_save和post_save，它们会消耗一定的性能。
-```
-
-clear
-
-```shell
-clear()
-# 从关联对象集中移除一切对象
->>> b = Blog.objects.get(id=1)
->>> b.entry_set.clear()
-
-# 注意这样不会删除对象 —— 只会删除他们之间的关联。
-
-# 就像 remove() 方法一样，clear()只能在 null=True的ForeignKey上被调用，也可以接受bulk关键词参数。
-```
-
-set
-
-```shell
-set(objs, bulk=True, clear=False)
-# 更新model对象的关联对象
->>> new_list = [obj1, obj2, obj3]
->>> e.related_set.set(new_list)
-
-# clear参数来控制如何执行操作。如果为False（默认值），则使用remove()删除新集中缺少的元素，并仅添加新的元素。如果clear = True，则调用clear()方法，并立即添加整个集合。
-# bulk参数传递给add（）。
-# 请注意，由于set()是复合操作，因此它受竞争条件的限制。例如，可以在对clear（）的调用和对add（）的调用之间向数据库添加新对象。
-```
-
-
-
-过赋值一个新的可迭代的对象，关联对象集可以被整体替换掉。
-
-```
->>> new_list = [obj1, obj2, obj3]
->>> e.related_set = new_list
-```
-
-如果外键关系满足`null=True`，关联管理器会在添加`new_list`中的内容之前，首先调用`clear()`方法来解除关联集中一切已存在对象的关联。否则， `new_list`中的对象会在已存在的关联的基础上被添加。
 
 ### 通过关联的对象进行查询
 

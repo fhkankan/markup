@@ -8,7 +8,19 @@
 
 
 
+## 事务
+
+
+
+
+
 ## 聚合
+
+
+
+## 自定义字段
+
+
 
 
 
@@ -16,11 +28,255 @@
 
 
 
-## 查询表达式
 
 
+## 多数据库
 
-## 条件表达式
+### 定义数据库
+
+在Django中使用多个数据库的第一步是告诉Django 你将要使用的数据库服务器。这通过使用[`DATABASES`](https://yiyibooks.cn/__trs__/xx/django_182/ref/settings.html#std:setting-DATABASES) 设置完成。该设置映射数据库别名到一个数据库连接设置的字典，这是整个Django 中引用一个数据库的方式
+
+你可以为数据库选择任何别名。然而，`default`这个别名具有特殊的含义，且必须定义。当没有选择其它数据库时，Django 使用具有`default` 别名的数据库。
+
+若视图访问没有在DATABASE设置中定义的数据库，Django将抛出`django.db.utils.ConnectionDoesNotExist`异常
+
+```python
+DATABASES = {
+    'default': {
+        'NAME': 'app_data',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'USER': 'postgres_user',
+        'PASSWORD': 's3krit'
+    },
+    # 或default为空字典
+    # 'default':{},
+    'users': {
+        'NAME': 'user_data',
+        'ENGINE': 'django.db.backends.mysql',
+        'USER': 'mysql_user',
+        'PASSWORD': 'priv4te'
+    }
+}
+```
+
+### 同步数据库
+
+`migrate`管理命令一次操作一个数据库。默认情况下，它在`default`数据库上操作，但可以通过提供一个`—database`参数，告诉`migrate`同步一个不同的数据库
+
+```
+./manage.py migrate  # default数据库
+./manage.py migrate --database=users  # users数据库
+```
+
+若是不想每个应用都被同步到同一台数据库，可以定义一个数据库路由，它实现一个策略来控制特定模型的访问性。
+
+### 自动路由
+
+使用多数据库最简单的方法是建立一个数据库路由模式。默认的路由模式确保对象’粘滞‘在它们原始的数据库上（例如，从`foo` 数据库中获取的对象将保存在同一个数据库中）。默认的路由模式还确保如果没有指明数据库，所有的查询都回归到`default`数据库中。
+
+你不需要做任何事情来激活默认的路由模式 —— 它在每个Django项目上’直接‘提供。然而，如果你想实现更有趣的数据库分配行为，你可以定义并安装你自己的数据库路由。
+
+- 数据库路由
+
+数据库路由是一个类，提供4个方法
+
+```python
+db_for_read(model, **hints)
+# 建议model类型的对象的读操作应该使用的数据库。若是没有建议，则返回None
+# 如果一个数据库操作能够提供其它额外的信息可以帮助选择一个数据库，它将在hints字典中提供
+db_for_write(model, **hints)
+# 建议Model 类型的对象的写操作应该使用的数据库。若是没有建议，则返回None
+# 如果一个数据库操作能够提供其它额外的信息可以帮助选择一个数据库，它将在hints字典中提供。
+allow_relation(obj1, obj2, **hints)
+# 如果obj1和obj2之间应该允许关联则返回True，如果应该防止关联则返回False，如果路由无法判断则返回None。这是纯粹的验证操作，外键和多对多操作使用它来决定两个对象之间是否应该允许一个关联。
+allow_migrate(db, app_label, model_name=None, **hints)
+# 定义迁移操作是否允许在别名为db的数据库上运行。如果操作应该运行则返回True ，如果不应该运行则返回False，如果路由无法判断则返回None。
+# 参数  app_label  # 正在迁移的应用的标签；hints		# 用于某些操作来传递额外的信息给路由
+
+hints
+# Hint 由数据库路由接收，用于决定哪个数据库应该接收一个给定的请求。
+# 目前，唯一一个提供的hint 是instance，它是一个对象实例，与正在进行的读或者写操作关联。这可能是保存环节的实例，或者在多对多关系中添加环节的实例。在一些情况下，将不会提供hints实例。路由将检查hint实例是否存在，并决定这个hint是否应该用做路由行为的提示
+```
+
+- 使用路由
+
+数据库路由使用`DATABASE_ROUTERS`设置安装。这个设置定义一个类名的列表，其中每个类表示一个路由，它们将被主路由（`django.db.router`）使用。
+
+```python
+# settings.py
+DATABASES_ROUTERS=[]
+```
+
+Django 的数据库操作使用主路由来分配数据库的使用。每当一个查询需要知道使用哪一个数据库时，它将调用主路由，并提供一个模型和一个Hint （可选）。随后 Django 依次测试每个路由直至找到一个数据库的建议。如果找不到建议，它将尝试Hint 实例的当前`_state.db`。如果没有提供Hint 实例，或者该实例当前没有数据库状态，主路由将分配`default` 数据库
+
+- 示例
+
+数据库设置
+
+```python
+
+DATABASES = {
+    'auth_db': {
+        'NAME': 'auth_db',
+        'ENGINE': 'django.db.backends.mysql',
+        'USER': 'mysql_user',
+        'PASSWORD': 'swordfish',
+    },
+    'primary': {
+        'NAME': 'primary',
+        'ENGINE': 'django.db.backends.mysql',
+        'USER': 'mysql_user',
+        'PASSWORD': 'spam',
+    },
+    'replica1': {
+        'NAME': 'replica1',
+        'ENGINE': 'django.db.backends.mysql',
+        'USER': 'mysql_user',
+        'PASSWORD': 'eggs',
+    },
+    'replica2': {
+        'NAME': 'replica2',
+        'ENGINE': 'django.db.backends.mysql',
+        'USER': 'mysql_user',
+        'PASSWORD': 'bacon',
+    },
+}
+```
+
+路由设置
+
+```python
+# 一个路由，知道发送auth应用的查询到auth_db
+class AuthRouter(object):
+    """
+    A router to control all database operations on models in the
+    auth application.
+    """
+    def db_for_read(self, model, **hints):
+        """
+        Attempts to read auth models go to auth_db.
+        """
+        if model._meta.app_label == 'auth':
+            return 'auth_db'
+        return None
+
+    def db_for_write(self, model, **hints):
+        """
+        Attempts to write auth models go to auth_db.
+        """
+        if model._meta.app_label == 'auth':
+            return 'auth_db'
+        return None
+
+    def allow_relation(self, obj1, obj2, **hints):
+        """
+        Allow relations if a model in the auth app is involved.
+        """
+        if obj1._meta.app_label == 'auth' or \
+           obj2._meta.app_label == 'auth':
+           return True
+        return None
+
+    def allow_migrate(self, db, app_label, model=None, **hints):
+        """
+        Make sure the auth app only appears in the 'auth_db'
+        database.
+        """
+        if app_label == 'auth':
+            return db == 'auth_db'
+        return None
+      
+# 一个路由，它发送所有其它应用的查询到primary/replica 配置，并随机选择一个replica 来读取
+import random
+
+class PrimaryReplicaRouter(object):
+    def db_for_read(self, model, **hints):
+        """
+        Reads go to a randomly-chosen replica.
+        """
+        return random.choice(['replica1', 'replica2'])
+
+    def db_for_write(self, model, **hints):
+        """
+        Writes always go to primary.
+        """
+        return 'primary'
+
+    def allow_relation(self, obj1, obj2, **hints):
+        """
+        Relations between objects are allowed if both objects are
+        in the primary/replica pool.
+        """
+        db_list = ('primary', 'replica1', 'replica2')
+        if obj1._state.db in db_list and obj2._state.db in db_list:
+            return True
+        return None
+
+    def allow_migrate(self, db, app_label, model=None, **hints):
+        """
+        All non-auth models end up in this pool.
+        """
+        return True
+```
+
+设置路由配置
+
+```python
+DATABASE_ROUTERS = ['path.to.AuthRouter', 'path.to.PrimaryReplicaRouter']
+
+# 注意：路由处理的顺序非常重要。路由的查询将按照DATABASE_ROUTERS设置中列出的顺序进行。在这个例子中，AuthRouter在PrimaryReplicaRouter之前处理，因此auth中的模型的查询处理在其它模型之前。如果DATABASE_ROUTERS设置按其它顺序列出这两个路由，PrimaryReplicaRouter.allow_migrate() 将先处理。PrimaryReplicaRouter 中实现的捕获所有的查询，这意味着所有的模型可以位于所有的数据库中。
+```
+
+### 手动选择
+
+- QuerySet
+
+```shell
+>>> # This will run on the 'default' database.
+>>> Author.objects.all()
+
+>>> # So will this.
+>>> Author.objects.using('default').all()
+
+>>> # This will run on the 'other' database.
+>>> Author.objects.using('other').all()
+```
+
+- save
+
+```shell
+>>> my_object.save(using='legacy_users')
+# 若不指定，则将保存到路由分配的默认数据库中
+```
+
+将对象从一个数据库移动到另一个数据库
+
+```shell
+# 错误操作
+>>> p = Person(name='Fred')
+>>> p.save(using='first')  # (statement 1)  # p没有主键，django发出insert,创建主键，赋值给p
+>>> p.save(using='second') # (statement 2)  # 使用p的主键，若新数据库中无此主键则ok，若有此主键，原值会被新值覆盖
+# 正确操作：方法一
+>>> p = Person(name='Fred')
+>>> p.save(using='first')
+>>> p.pk = None # Clear the primary key.
+>>> p.save(using='second') # Write a completely new object.
+# 正确操作：方法二
+>>> p = Person(name='Fred')
+>>> p.save(using='first')
+>>> p.save(using='second', force_insert=True)
+```
+
+- delete
+
+默认情况下，删除一个已存在对象的调用将在与获取对象时使用的相同数据库上执行
+
+```shell
+>>> u = User.objects.using('legacy_users').get(username='fred')
+>>> u.delete() # will delete from the `legacy_users` database
+```
+
+
 
 
 

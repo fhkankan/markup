@@ -974,3 +974,5 @@ request.session.set_expiry(value)
   - 如果value为None，那么会话永不过期。
 ```
 
+## 发送短信
+
