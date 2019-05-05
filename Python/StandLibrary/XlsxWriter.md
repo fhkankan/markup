@@ -136,13 +136,15 @@ worksheet.write_url()
 workbook.close()
 ```
 
-## API
+## [API](xlsxwriter.readthedocs.io/workbook.html)
 
 ### Workbook
 
 ```python
-Workbook(filename[,options])
+Workbook(filename[,options])  
 
+# 创建一个新的XlsxWriter Workbook对象
+# 返回一个workbook对象
 # 参数
 filename(string)  # Excel文件名
 options(dict)  # workbook参数
@@ -155,11 +157,70 @@ options
 | `constant_memory`     | 减少存储在内存中的数据量，以便有效地写入大文件。一旦此模式处于活动状态，数据应按顺序行顺序写入。因此，`add_table()`和`merge_range()`工作表方法在此模式下不起作用 | `workbook = xlsxwriter.Workbook(filename, {'constant_memory': True})` |
 | `tmpdir`              | 在汇编最终的XLSX文件之前，将工作簿数据存储在临时文件中。临时文件在系统的临时目录中创建。如果应用程序无法访问默认临时目录，或者包含的空间不足，则可以使用tmpdir选项指定备用位置 | `workbook = xlsxwriter.Workbook(filename, {'tmpdir': '/home/user/tmp'})` |
 | `in_memory`           | 为了避免在最终XLSX文件的程序集中使用临时文件，例如在不允许临时文件的服务器上，设置为`True`。这项会覆盖`constant_memory` | `workbook = xlsxwriter.Workbook(filename, {'in_memory': True})` |
-| `strings_to_numbers`  |                                                              |                                                              |
-| `strings_to_formulas` |                                                              |                                                              |
-| `strings_to_urls`     |                                                              |                                                              |
-| `nan_inf_to_errors`   |                                                              |                                                              |
-| `default_date_format` |                                                              |                                                              |
-| `remove_timezone`     |                                                              |                                                              |
-| `date_1904`           |                                                              |                                                              |
+| `strings_to_numbers`  | 启用`workheet.write()`方法，尽可能使用`float()`将字符串转换为数字，以避免出现有关“存储为文本的数字”的Excel警告。默认值为False。 | `workbook = xlsxwriter.Workbook(filename, {'strings_to_numbers': True})` |
+| `strings_to_formulas` | 启用`worksheet.write()`方法将字符串转换为公式。默认值为True  | `workbook = xlsxwriter.Workbook(filename, {'strings_to_formulas': False})` |
+| `strings_to_urls`     | 启用`worksheet.write()`方法将字符串转换为URL。默认值为True。 | `workbook = xlsxwriter.Workbook(filename, {'strings_to_urls': False})` |
+| `nan_inf_to_errors`   | 启用`worksheet.write()`和`write_number()`方法将`nan，inf和-inf`转换为Excel错误。Excel不会将`NAN / INF`作为数字处理，因此解决方法将它们映射到产生错误代码`#NUM！和＃DIV/0！`的公式。默认值为False。 | `workbook = xlsxwriter.Workbook(filename, {'nan_inf_to_errors': True})` |
+| `default_date_format` | 此选项用于指定默认日期格式字符串，以便在未给出显式格式时与`worksheet.write_datetime()`方法一起使用。 | `xlsxwriter.Workbook(filename, {'default_date_format': 'dd/mm/yy'})` |
+| `remove_timezone`     | Excel不支持日期时间/时间的时区，用户应该根据他们的要求以某种有意义的方式转换和删除时区。或者，remove_timezone选项可用于从datetime值中删除时区。默认值为False。 | `workbook = xlsxwriter.Workbook(filename, {'remove_timezone': True})` |
+| `date_1904`           | Excel for Windows使用默认纪元1900而Excel for Mac使用1904纪元。但是，任一平台上的Excel都将在一个系统和另一个系统之间自动转换。默认情况下，XlsxWriter以1900格式存储日期。如果要更改此设置，可以使用date_1904工作簿选项。此选项主要用于增强与Excel的兼容性，通常不需要经常使用 | `workbook = xlsxwriter.Workbook(filename, {'date_1904': True})` |
+
+示例
+
+```python
+# with
+with xlsxwriter.Workbook('hello_world.xlsx') as workbook:
+    worksheet = workbook.add_worksheet()
+    worksheet.write('A1', 'Hello world')
+    
+# 使用BytesIO将文件写入内存中的字符串
+from io import BytesIO
+
+output = BytesIO()
+workbook = xlsxwriter.Workbook(output)
+worksheet = workbook.add_worksheet()
+
+worksheet.write('A1', 'Hello')
+workbook.close()
+
+xlsx_data = output.getvalue()
+```
+
+### add_worksheet
+
+```python
+add_worksheet([name])  
+
+# 将新工作表添加到工作簿
+# 返回一个worksheet对象
+# 参数
+name(string)  # 可选工作表名，缺省则默认为Sheet1等
+```
+
+示例
+
+```python
+worksheet1 = workbook.add_worksheet()           # Sheet1
+worksheet2 = workbook.add_worksheet('Foglio2')  # Foglio2
+worksheet3 = workbook.add_worksheet('Data')     # Data
+worksheet4 = workbook.add_worksheet()           # Sheet4
+```
+
+### add_format
+
+```python
+add_format([properties])  
+
+# 创建一个新的Format对象以格式化工作表中的单元格
+# 返回一个format对象
+# 参数
+properties(dict)  # 可选的格式属性字典
+```
+
+示例
+
+```python
+format1 = workbook.add_format(props)  # Set properties at creation.
+format2 = workbook.add_format()       # Set properties later.
+```
 
