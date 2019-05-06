@@ -136,9 +136,20 @@ worksheet.write_url()
 workbook.close()
 ```
 
-## [API](xlsxwriter.readthedocs.io/workbook.html)
+## [API](https://xlsxwriter.readthedocs.io/contents.html)
+
+| Class Name                                                   | Desc                                                         |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| [Workbook](https://xlsxwriter.readthedocs.io/workbook.html)  | Workbook类是XlsxWriter模块公开的主类，它是您需要直接实例化的唯一类。Workbook类表示在Excel中看到的整个电子表格，在内部表示Excel文件写在磁盘上。 |
+| [Worksheet](https://xlsxwriter.readthedocs.io/worksheet.html) | 工作表类表示Excel工作表。它处理诸如将数据写入单元格或格式化工作表布局等操作.工作表对象不直接实例化。而是通过从Workbook()对象调用add_worksheet()方法来创建新工作表 |
+| [Foramt](https://xlsxwriter.readthedocs.io/format.html)      | 可用于在Excel中格式化单元格的方法和属性。可以格式化的单元格的属性包括：字体，颜色，图案，边框，对齐和数字格式。 |
+| [Chart](https://xlsxwriter.readthedocs.io/chart.html)        | Chart模块是在XlsxWriter中实现图表的模块的基类。本节中的信息适用于所有可用的图表子类，例如Area，Bar，Column，Donut，Line，Pie，Scatter，Stock和Radar。通过Workbook add_chart()方法创建图表对象，其中指定了图表类型 |
+| [Chartsheet](https://xlsxwriter.readthedocs.io/chartsheet.html) | 在Excel中，图表是一个仅包含图表的工作表.Chartsheet类具有数据工作表的一些功能，例如选项卡选择，页眉，页脚，边距和打印属性，但其主要目的是显示单个图表。这使得它与可以具有一个或多个嵌入图表的普通数据工作表不同.与数据工作表一样，图表表对象不直接实例化。而是通过从Workbook对象调用add_chartsheet()方法来创建新的图表. |
+| [Exception](https://xlsxwriter.readthedocs.io/exceptions.html) | Exception类包含XlsxWriter可以引发的各种异常。通常，XlsxWriter仅针对不可恢复的错误或导致文件损坏的错误（例如创建具有相同名称的两个工作表）引发异常。 |
 
 ### Workbook
+
+#### Constructor
 
 ```python
 Workbook(filename[,options])  
@@ -186,7 +197,7 @@ workbook.close()
 xlsx_data = output.getvalue()
 ```
 
-### add_worksheet
+#### add_worksheet
 
 ```python
 add_worksheet([name])  
@@ -206,7 +217,7 @@ worksheet3 = workbook.add_worksheet('Data')     # Data
 worksheet4 = workbook.add_worksheet()           # Sheet4
 ```
 
-### add_format
+#### add_format
 
 ```python
 add_format([properties])  
@@ -222,5 +233,93 @@ properties(dict)  # 可选的格式属性字典
 ```python
 format1 = workbook.add_format(props)  # Set properties at creation.
 format2 = workbook.add_format()       # Set properties later.
+```
+
+#### add_chart
+
+```python
+add_chart(options)
+
+# 创建可以添加到工作表的图表对象
+# 返回一个图表对象
+# 参数
+options(dict)  # 图表类型选项的字典
+```
+
+options
+
+| name    | desc                          | value                                                        |
+| ------- | ----------------------------- | ------------------------------------------------------------ |
+| type    | 必选                          | area,bar,column,doughnut,line,pie,radar,scatter,stock        |
+| subtype | 可选,用于定义可用的图表子类型 | area: stacked, percent_stacked  <br>bar: stacked,percent_stacked<br>column:stacked,percent_stacked  <br>scatter:straight_with_markers,straight ,smooth_with_markers,smooth  <br>radar: with_markers,filled |
+
+示例
+
+```python
+chart = workbook.add_chart({'type': 'column'})
+workbook.add_chart({'type': 'bar', 'subtype': 'stacked'})
+```
+
+#### add_chartsheet
+
+```python
+add_chartsheet([sheetname])
+
+# 将新的add_chartsheet添加到工作簿
+# 返回一个chartsheet对象
+# 参数
+sheetname(string)  # 可选的图表表名称，默认为Chart1等
+```
+
+#### close
+
+```python
+close()
+
+# 关闭Workbook对象并编写XLSX文件
+```
+
+示例
+
+```python
+workbook.close()
+
+# with中不必显式声明
+With xlsxwriter.Workbook('hello_world.xlsx') as workbook:
+    worksheet = workbook.add_worksheet()
+    worksheet.write('A1', 'Hello world')
+```
+
+#### set_size
+
+```python
+set_size(width, height)
+
+# 设定workbook窗口的尺寸
+# 参数
+width(int)  # 窗口宽度的像素值
+height(int)  # 窗口高度的像素值
+```
+
+示例
+
+```
+workbook.set_size(1200, 800)
+```
+
+#### set_tab_ratio
+
+```python
+set_tab_ration(tab_ratio)
+
+# 设置工作表选项卡和水平滑块之间的比率
+# 参数
+tab_ratio(float)  # 比率值在0～100之间,默认60
+```
+
+示例
+
+```
+workbook.set_tab_ratio(75)  
 ```
 

@@ -34,7 +34,7 @@
 
 ### 定义数据库
 
-在Django中使用多个数据库的第一步是告诉Django 你将要使用的数据库服务器。这通过使用[`DATABASES`](https://yiyibooks.cn/__trs__/xx/django_182/ref/settings.html#std:setting-DATABASES) 设置完成。该设置映射数据库别名到一个数据库连接设置的字典，这是整个Django 中引用一个数据库的方式
+在Django中使用多个数据库的第一步是告诉Django 你将要使用的数据库服务器。这通过使用`DATABASES`设置完成。该设置映射数据库别名到一个数据库连接设置的字典，这是整个Django 中引用一个数据库的方式
 
 你可以为数据库选择任何别名。然而，`default`这个别名具有特殊的含义，且必须定义。当没有选择其它数据库时，Django 使用具有`default` 别名的数据库。
 
@@ -275,6 +275,121 @@ DATABASE_ROUTERS = ['path.to.AuthRouter', 'path.to.PrimaryReplicaRouter']
 >>> u = User.objects.using('legacy_users').get(username='fred')
 >>> u.delete() # will delete from the `legacy_users` database
 ```
+
+要指定删除一个模型时使用的数据库，可以对`Model.delete()`方法使用`using` 关键字参数。这个参数的工作方式与`save()`的`using`关键字参数一样。
+
+```shell
+# 正在从legacy_users 数据库到new_users 数据库迁移一个User
+>>> user_obj.save(using='new_users')
+>>> user_obj.delete(using='legacy_users')
+```
+
+- 多数据库上使用管理器
+
+在管理器上使用`db_manager()`方法来让管理器访问非默认的数据库。
+
+你有一个自定义的管理器方法，它访问数据库时候用`User.objects.create_user()`。因为`create_user()`是一个管理器方法，不是一个`QuerySet`方法，你不可以使用`User.objects.using('new_users').create_user()`。（`create_user()` 方法只能在`User.objects`上使用，而不能在从管理器得到的`QuerySet`上使用）。解决办法是使用`db_manager()`
+
+```python
+# db_manager() 返回一个绑定在你指定的数据上的一个管理器。
+User.objects.db_manager('new_users').create_user(...)
+```
+
+- 多数据库上使用get_queryset
+
+如果你正在覆盖你的管理器上的`get_queryset()`，请确保在其父类上调用方法（使用`super()`）或者正确处理管理器上的`_db`属性（一个包含将要使用的数据库名称的字符串）
+
+```python
+# 如果你想从get_queryset 方法返回一个自定义的 QuerySet 类
+class MyManager(models.Manager):
+    def get_queryset(self):
+        qs = CustomQuerySet(self.model)
+        if self._db is not None:
+            qs = qs.using(self._db)
+        return qs
+```
+
+### 管理站点
+
+Django 的管理站点没有对多数据库的任何显式的支持。如果你给数据库上某个模型提供的管理站点不想通过你的路由链指定，你将需要编写自定义的`ModelAdmin`类用来将管理站点导向一个特殊的数据库。
+
+`ModelAdmin` 对象具有5个方法，它们需要定制以支持多数据库
+
+```python
+class MultiDBModelAdmin(admin.ModelAdmin):
+    # A handy constant for the name of the alternate database.
+    using = 'other'
+
+    def save_model(self, request, obj, form, change):
+        # Tell Django to save objects to the 'other' database.
+        obj.save(using=self.using)
+
+    def delete_model(self, request, obj):
+        # Tell Django to delete objects from the 'other' database
+        obj.delete(using=self.using)
+
+    def get_queryset(self, request):
+        # Tell Django to look for objects on the 'other' database.
+        return super(MultiDBModelAdmin, self).get_queryset(request).using(self.using)
+
+    def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
+        # Tell Django to populate ForeignKey widgets using a query
+        # on the 'other' database.
+        return super(MultiDBModelAdmin, self).formfield_for_foreignkey(db_field, request=request, using=self.using, **kwargs)
+
+    def formfield_for_manytomany(self, db_field, request=None, **kwargs):
+        # Tell Django to populate ManyToMany widgets using a query
+        # on the 'other' database.
+        return super(MultiDBModelAdmin, self).formfield_for_manytomany(db_field, request=request, using=self.using, **kwargs)
+```
+
+这里提供的实现实现了一个多数据库策略，其中一个给定类型的所有对象都将保存在一个特定的数据库上（例如，所有的`User`保存在`other` 数据库中）。如果你的多数据库的用法更加复杂，你的`ModelAdmin`将需要反映相应的策略。
+
+Inlines 可以用相似的方式处理。它们需要3个自定义的方法
+
+```python
+class MultiDBTabularInline(admin.TabularInline):
+    using = 'other'
+
+    def get_queryset(self, request):
+        # Tell Django to look for inline objects on the 'other' database.
+        return super(MultiDBTabularInline, self).get_queryset(request).using(self.using)
+
+    def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
+        # Tell Django to populate ForeignKey widgets using a query
+        # on the 'other' database.
+        return super(MultiDBTabularInline, self).formfield_for_foreignkey(db_field, request=request, using=self.using, **kwargs)
+
+    def formfield_for_manytomany(self, db_field, request=None, **kwargs):
+        # Tell Django to populate ManyToMany widgets using a query
+        # on the 'other' database.
+        return super(MultiDBTabularInline, self).formfield_for_manytomany(db_field, request=request, using=self.using, **kwargs)
+```
+
+一旦你写好你的模型管理站点的定义，它们就可以使用任何Admin实例来注册
+
+```python
+from django.contrib import admin
+
+# Specialize the multi-db admin objects for use with specific models.
+class BookInline(MultiDBTabularInline):
+    model = Book
+
+class PublisherAdmin(MultiDBModelAdmin):
+    inlines = [BookInline]
+
+admin.site.register(Author, MultiDBModelAdmin)
+admin.site.register(Publisher, PublisherAdmin)
+
+othersite = admin.AdminSite('othersite')
+othersite.register(Publisher, MultiDBModelAdmin)
+```
+
+
+
+### 使用原始游标
+
+### 局限
 
 
 
