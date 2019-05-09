@@ -385,15 +385,51 @@ othersite = admin.AdminSite('othersite')
 othersite.register(Publisher, MultiDBModelAdmin)
 ```
 
-
-
 ### 使用原始游标
+
+如果你正在使用多个数据库，你可以使用`django.db.connections`来获取特定数据库的连接（和游标）：`django.db.connections`是一个类字典对象，它允许你使用别名来获取一个特定的连接
+
+```python
+from django.db import connections
+cursor = connections['my_db_alias'].cursor()
+```
 
 ### 局限
 
+- 跨数据库关联
 
+Django 目前不提供跨多个数据库的外键或多对多关系的支持。如果你使用一个路由来路由分离到不同的数据库上，这些模型定义的任何外键和多对多关联必须在单个数据库的内部。
 
+这是因为引用完整性的原因。为了保持两个对象之间的关联，Django 需要知道关联对象的主键是合法的。如果主键存储在另外一个数据库上，判断一个主键的合法性不是很容易。
 
+如果你正在使用Postgres、Oracle或者MySQL 的InnoDB，这是数据库完整性级别的强制要求 —— 数据库级别的主键约束防止创建不能验证合法性的关联。
+
+然而，如果你正在使用SQLite 或MySQL的MyISAM 表，则没有强制性的引用完整性；结果是你可以‘伪造’跨数据库的外键。但是Django 官方不支持这种配置。
+
+- Contrib应用的行为
+
+有几个Contrib 应用包含模型，其中一些应用相互依赖。因为跨数据库的关联是不可能的，这对你如何在数据库之间划分这些模型带来一些限制：
+
+```
+- `contenttypes.ContentType`、`sessions.Session`和`sites.Site` 可以存储在分开存储在不同的数据库中，只要给出合适的路由
+- `auth`模型 —— `User`、`Group`和`Permission` —— 关联在一起并与`ContentType`关联，所以它们必须与`ContentType`存储在相同的数据库中。
+- `admin`依赖`auth`，所以它们的模型必须与`auth`在同一个数据库中。
+- `flatpages`和`redirects`依赖`sites`，所以它们必须与`sites`在同一个数据库中。
+```
+
+另外，migrate在数据库中创建一张表后，一些对象在该表中自动创建：
+
+```
+- 一个默认的`Site`，
+- 为每个模型创建一个`ContentType`（包括没有存储在同一个数据库中的模型），
+- 为每个模型创建3个`Permission` （包括不是存储在同一个数据库中的模型）。
+```
+
+对于常见的多数据库架构，将这些对象放在多个数据库中没有什么用处。常见的数据库架构包括primary/replica 和连接到外部的数据库。因此，建议写一个数据库路由，它只允许同步这3个模型到一个数据中。对于不需要将表放在多个数据库中的Contrib 应用和第三方应用，可以使用同样的方法。
+
+警告
+
+如果你将Content Types 同步到多个数据库中，注意它们的主键在数据库之间可能不一致。这可能导致数据损坏或数据丢失。
 
 ## 数据库函数
 

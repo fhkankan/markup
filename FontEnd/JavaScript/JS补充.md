@@ -1033,16 +1033,60 @@ b.html
 
 目前，所有浏览器都支持该功能(IE8+：IE8/9需要使用XDomainRequest对象来支持CORS）)，CORS也已经成为主流的跨域解决方案。
 
-**前端设置**
+整个CORS通信过程，都是浏览器自动完成，不需要用户参与。对于开发者来说，CORS通信与同源的AJAX通信没有差别，代码完全一样。浏览器一旦发现AJAX请求跨源，就会自动添加一些附加的头信息，有时还会多出一次附加的请求，但用户不会有感觉。因此，实现CORS通信的关键是服务器。只要服务器实现了CORS接口，就可以跨源通信。
 
-- 原生ajax
+**请求方式**
 
-```javascript
-// 前端设置是否带cookie
-xhr.withCredentials = true;
+- 简单请求
+
+指只使用 GET, HEAD 或者 POST 请求方法。 如果使用 POST 向服务器端传送数据，则数据类型(Content-Type)只能是 application/x-www-form-urlencoded, multipart/form-data 或 text/plain中的一种。 不会使用自定义请求头（类似于 X-Modified 这种）
+
+服务器设置
+
+```python
+Access-Control-Allow-Origin:*  # 允许任何站点的跨域
+Access-Control-Allow-Origin: http://foo.example  # 允许特定网址的跨域
 ```
 
-示例代码
+- 预请求
+
+不同于上面讨论的简单请求，“预请求”要求必须先发送一个 OPTIONS 请求给目的站点，来查明这个跨站请求对于目的站点是不是安全可接受的。 这样做，是因为跨站请求可能会对目的站点的数据造成破坏。
+
+当请求具备以下条件，就会被当成预请求处理
+
+```
+1、请求以 GET, HEAD 或者 POST 以外的方法发起请求。或者，使用 POST，但请求数据为 
+application/x-www-form-urlencoded, multipart/form-data 或者 text/plain 
+以外的数据类型。比如说，用 POST 发送数据类型为 application/xml 或者 text/xml 的 XML 数据的请求。 
+2、使用自定义请求头（比如添加诸如 X-PINGOTHER）
+```
+
+request
+
+```python
+OPTIONS /resources/post-here/ HTTP/1.1  # options预请求
+Access-Control-Request-Method: POST  # 提醒服务器跨站请求将使用POST方法
+Access-Control-Request-Headers: X-PINGOTHER  # 告知服务器该跨站请求将携带一个自定义请求头X-PINGOTHER
+# 服务器就可以决定，在当前情况下，是否接受该跨站请求访问
+```
+
+response
+
+```python
+# 该响应表明，服务器接受了客服端的跨站请求
+Access-Control-Allow-Origin: http://foo.example  # 请求服务器的站点
+Access-Control-Allow-Methods: POST, GET, OPTIONS  # 服务器可以接受POST, GET和 OPTIONS的请求方法
+Access-Control-Allow-Headers: X-PINGOTHER  # 表示服务器接受自定义请求头X-PINGOTHER，允许以逗号分隔，传递一个可接受的自定义请求头列表。
+Access-Control-Max-Age: 1728000  # 本次“预请求”的响应结果有效时间是多久。1728000秒代表着20天内，浏览器在处理针对该服务器的跨站请求，都可以无需再发送“预请求”，只需根据本次结果进行判断处理。
+```
+
+- 带cookie的请求
+
+一般而言，对于跨站请求，浏览器是不会发送凭证信息的。但如果将XMLHttpRequest的一个特殊标志位设置为true，浏览器就将允许该请求的发送。
+
+> 前端设置
+
+原生ajax
 
 ```javascript
 var xhr = new XMLHttpRequest(); // IE8/9需用window.XDomainRequest兼容
@@ -1061,7 +1105,7 @@ xhr.onreadystatechange = function() {
 };
 ```
 
-- jQuery
+jQuery
 
 ```javascript
 $.ajax({
@@ -1074,7 +1118,7 @@ $.ajax({
 });
 ```
 
-- vue
+vue
 
 ```javascript
 // axios
@@ -1084,20 +1128,20 @@ axios.defaults.withCredentials = true
 Vue.http.options.credentials = true
 ```
 
-**后端设置**
+> 后端设置
 
-若后端设置成功，前端浏览器控制台则不会出现跨域报错信息，反之，说明没设成功
+注意：如果要发送Cookie，Access-Control-Allow-Origin就不能设为星号，必须指定明确的、与请求网页一致的域名。同时，Cookie依然遵循同源政策，只有用服务器域名设置的Cookie才会上传，其他域名的Cookie并不会上传，且（跨源）原网页代码中的document.cookie也无法读取服务器域名下的Cookie。
 
-- python
+python
 
 ```python
-response["Access-Control-Allow-Origin"] = "*"
+response["Access-Control-Allow-Origin"] = "http://www.domain1.com"  # 不能为*
 response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
 response["Access-Control-Max-Age"] = "1000"
 response["Access-Control-Allow-Headers"] = "*"
 ```
 
-- java
+java
 
 ```java
 /*
@@ -1115,7 +1159,7 @@ response.setHeader("Access-Control-Allow-Credentials", "true");
 response.setHeader("Access-Control-Allow-Headers", "Content-Type,X-Requested-With");
 ```
 
-- nodejs
+nodejs
 
 ```javascript
 var http = require('http');
