@@ -149,3 +149,6 @@ def _upload_file_view(request):
     ... # Process request
 ```
 
+## File对象
+django.core.files模块及其子模块包含了一些用于基本文件处理的内建类
+
