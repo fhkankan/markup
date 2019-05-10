@@ -29,4 +29,4 @@ SELECT COUNT(*) AS __count FROM print_frequency WHERE (print_frequency.cls_id = 
 整合加盟预警系统用户登陆、请求、退出信息记录函数
 
 # 5.10
-
+ 整合加盟管理中短信验证码登录和用户登录信息记录功能，调整逻辑，修复bug
