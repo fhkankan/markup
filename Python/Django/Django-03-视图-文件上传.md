@@ -2,6 +2,7 @@
 当Django在处理文件上传的时候，文件数据被保存在request. FILES
 注意:接受来自不被信任用户的文件上传是有安全风险的
 ## 基本文件上传
+### 概述
 考虑一个简单的表单，它含有一个FileField：
 ```python
 # forms.py
@@ -119,8 +120,49 @@ class FileFieldView(FormView):
         else:
             return self.form_invalid(form)
 ```
+### API
+```python
+class UploadedFile
+
+# 在文件上传期间，实际文件数据存储在request.FILES中。此字典中的每个条目都是UploadedFile对象（或子类） - 上传文件的简单包装器
+```
+
+方法
+
+| name                               | desc                                                         |
+| ---------------------------------- | ------------------------------------------------------------ |
+| `read()`                           | 从文件中读取整个上传的数据。小心这种方法：如果上传的文件是巨大的，如果你尝试读取它到内存中，它可以压倒你的系统。您可能想使用`chunks()` |
+| `multiple_chunks(chunk_size=None)` | 如果上传的文件足够大，需要在多个块中读取，则返回`True`。默认情况下，这将是任何大于2.5兆字节的文件，但这是可配置的 |
+| `chunks(chunk_size=None)`          | 一个生成器返回文件的块。如果`multiple_chunks()`是`True`，您应该在循环中使用此方法，而不是`read()`。 |
+
+属性
+
+| name                 | desc                                                         |
+| -------------------- | ------------------------------------------------------------ |
+| `name`               | 已上传文件的名称                                             |
+| `size`               | 上传文件的大小                                               |
+| `content_type`       | 随文件上传的内容类型标题（例如*text / plain*或*application / pdf*）。与用户提供的任何数据一样，您不应该相信上传的文件实际上是此类型。您仍然需要验证该文件包含内容类型标题声明的内容 - “信任但验证 |
+| `content_type_extra` | 包含传递到`content-type`标头的额外参数的字典。这通常由服务（例如Google App Engine）提供，代表您拦截和处理文件上传。因此，您的处理程序可能不会收到上传的文件内容，而是一个URL或其他指向文件的指针 |
+| `charset`            | 对于*text / **内容类型，字符集（即，`utf8`）。再次，“信任，但验证”是这里的最好的政策 |
+
+子类
+
+```python
+class TemporaryUploadedFile
+# 上传到临时位置的文件流到磁盘
+# 此类由TemporaryFileUploadHandler使用。
+# 方法
+1. UploadedFile的方法
+2. TemporaryUploadedFile.temporary_file_path()  # 返回临时上传文件的完整路径
+
+class  InMemoryUploadedFile
+# 上传到存储器中的文件（即，流到存储器）
+# 此类由MemoryFileUploadHandler使用
+```
 
 ## 上传处理器
+
+### 概述
 
 当用户上传一个文件的时候，Django会把文件数据传递给上传处理器 – 一个小型的类，会在文件数据上传时处理它。上传处理器在FILE_UPLOAD_HANDLERS中定义，默认为：
 ```python
@@ -187,6 +229,16 @@ def upload_file_view(request):
 @csrf_protect
 def _upload_file_view(request):
     ... # Process request
+```
+
+### API
+
+- 内置上传处理程序
+
+`MemoryFileUploadHandler`和`TemporaryFileUploadHandler`一起提供Django的默认文件上传行为，将小文件读入内存，大文件读入磁盘。它们位于`django.core.files.uploadhandler`中
+
+```
+
 ```
 
 
