@@ -237,13 +237,223 @@ def _upload_file_view(request):
 
 `MemoryFileUploadHandler`和`TemporaryFileUploadHandler`一起提供Django的默认文件上传行为，将小文件读入内存，大文件读入磁盘。它们位于`django.core.files.uploadhandler`中
 
+```python
+class MemoryFileUploadHandler
+# 文件上传处理程序将流上传到内存（用于小文件）。
+
+class TemporaryFileUploadHandler
+# 使用TemporaryUploadedFile将数据流传输到临时文件的上传处理程序。
 ```
 
+- 自定义删除处理程序
+
+```python
+class FileUploadHandler
+# 所有文件上传处理程序应该是django.core.files.uploadhandler.FileUploadHandler的子类。你可以定义上传处理程序，无论你想要什么。
 ```
 
+需要定义的方法
 
+```python
+FileUploadHandler.receive_data_chunk(raw_data, start)
+# 从文件上传接收一个“数据块”的数据。
+# 如果您产生StopUpload或SkipFile异常，上传将中止或文件将被完全跳过。
+# 参数
+raw_data  # 是包含上传数据的字节字符串。
+start  # 是文件中raw_data块开始的位置。
+# 返回值
+返回的数据将送入后续的上传处理程序的receive_data_chunk方法。这样，一个处理程序可以是用于其他处理程序的“过滤器”。
+从receive_data_chunk返回None，以便让剩余的上传处理程序获取此块。如果您自己存储上传的数据，并且不希望未来的处理程序存储数据副本，那么此功能非常有用。
+
+
+FileUploadHandler.file_complete(file_size)
+# 文件完成上传时调用。
+# 返回值
+处理程序应返回将存储在request.FILES中的UploadedFile对象。处理程序也可以返回None以指示UploadedFile对象应来自后续的上传处理程序。
+```
+
+可选方法或属性
+
+```python
+FileUploadHandler.chunk_size
+# Django应该存储到内存并馈入处理程序的“块”的大小（以字节为单位）。也就是说，此属性控制送入FileUploadHandler.receive_data_chunk的块的大小。
+为了获得最佳性能，块大小应可由4整除，且大小不应超过2 GB（2 31字节）。当有多个处理程序提供多个块大小时，Django将使用任何处理程序定义的最小块大小。
+默认值为64 * 2 10字节，或64 KB。
+
+FileUploadHandler.new_file(field_name, file_name, content_type, content_length, charset, content_type_extra)
+# 回调信号表示新文件上传正在开始。这在任何数据被馈送到任何上传处理程序之前被调用。
+# 此方法可能会引发StopFutureHandlers异常，以防止未来的处理程序处理此文件。
+# 参数
+field_name  # 是文件<input>字段的字符串名称。
+file_name  # 是浏览器提供的unicode文件名。
+content_type  # 是浏览器提供的MIME类型，例如'image/jpeg'。
+content_length  # 是浏览器给出的图像的长度。有时这将不提供，将None。
+charset  # 是字符集（即utf8）。像content_length，有时不会提供。
+content_type_extra  # 是来自content-type标头的有关文件的额外信息。请参阅UploadedFile.content_type_extra。
+
+FileUploadHandler.upload_complete()
+# 回调信号表示整个上传（所有文件）已完成。
+
+FileUploadHandler.handle_raw_input(input_data, META, content_length, boundary, encoding)
+# 允许处理程序完全覆盖原始HTTP输入的解析。
+# 如果您想要继续上传处理，或返回（POST， FILES）的元组，请返回None以直接返回适合该请求的新数据结构。
+# 参数
+input_data  # 是支持read()的类文件对象。
+META  # 与request.META具有相同的对象。
+content_length  # 是input_data中数据的长度。不要从input_data读取超过content_length个字节。
+boundary  # 是此请求的MIME边界。
+encoding  # 是请求的编码。
+```
 
 ## File对象
 
-django.core.files模块及其子模块包含了一些用于基本文件处理的内建类
+`django.core.files`模块及其子模块包含了一些用于基本文件处理的内建类
+
+### File
+
+```python
+class File(file_object)
+
+# File类是Python file对象的一个简单封装，并带有Django特定的附加功能。需要表示文件的时候，Django内部会使用这个类。
+```
+
+属性和方法
+
+| name                               | desc                                                         |
+| ---------------------------------- | ------------------------------------------------------------ |
+| `name`                             | 含有`MEDIA_ROOT`相对路径的文件名称                           |
+| `size`                             | 文件的字节数。                                               |
+| `file`                             | 这个类所封装的，原生的file 对象                              |
+| `mode`                             | 文件的读写模式。                                             |
+| `open(mode=None)`                  | 打开或者重新打开文件（同时会执行`File.seek(0)`）。 `mode`参数的值和Python内建的`open()`相同。重新打开一个文件时，无论文件原先以什么模式打开，`mode`都会覆盖；`None`的意思是以原先的模式重新打开。 |
+| `__iter()__`                       | 迭代整个文件，并且每次生成一行                               |
+| `chunks(chunk_size=None)`          | 迭代整个文件，并生成指定大小的一部分内容。`chunk_size`默认为64 KB。处理大文件时这会非常有用，因为这样可以把他们从磁盘中读取出来，而避免将整个文件存到内存中。 |
+| `multiple_chunks(chunk_size=None)` | 如果文件足够大，需要按照提供的`chunk_size`切分成几个部分来访问到所有内容，则返回`True` 。 |
+| `close()`                          | 关闭文件                                                     |
+
+此外，File沿用了file对象的以下属性和方法
+
+```python
+encoding
+fileno
+flush
+isatty 
+newlines
+read 
+readinto
+readline
+readlines 
+seek
+tell
+truncate
+write 
+writelines
+readable()
+writable()
+seekable()
+```
+
+### ContentFile
+
+```python
+class ContentFile(File)
+# ContentFile类继承自File，但是并不像File那样，它操作字符串的内容（也支持字节集），而不是一个实际的文件。
+from __future__ import unicode_literals
+from django.core.files.base import ContentFile
+
+f1 = ContentFile("esta sentencia está en español")
+f2 = ContentFile(b"these are bytes")
+```
+
+### ImageFile
+
+```python
+class ImageFile(file_object)
+# Django特地为图像提供了这个内建类。django.core.files.images.ImageFile继承了 File的所有属性和方法，并且额外提供了以下的属性：
+width  # 图像的像素单位宽度。
+height  # 图像的像素单位高度。
+```
+
+### 附加到对象的文件的额外方法
+
+任何关联到一个对象（比如下面的`Car.photo`）的`File`都会有一些额外的方法
+
+```python
+File.save(name, content, save=True)
+# 使用给定的名字和内容来保存一个新的文件。这样不会替换已存在的文件，但是会创建新的文件，并且更新对象来指向它。如果save为True，模型的save()方法会在文件保存之后调用。这就是说，下面两行：
+>>> car.photo.save('myphoto.jpg', content, save=False)
+>>> car.save()
+等价于：
+>>> car.photo.save('myphoto.jpg', content, save=True)
+要注意content参数必须是File或者 File的子类的实例，比如ContentFile。
+
+File.delete([save=True])
+# 从模型实例中移除文件，并且删除内部的文件。如果save是True，模型的save() 方法会在文件删除之后调用。
+```
+
+## 文件存储API
+
+### 获取当前的存储类
+
+Django提供了两个便捷的方法来获取当前的储存类
+
+```python
+class DefaultStorage
+# DefaultStorage提供对当前的默认储存系统的延迟访问，类似于DEFAULT_FILE_STORAGE中定义的那样。DefaultStorage 内部使用了get_storage_class()。
+
+get_storage_class([import_path=None])
+# 返回一个类或者模块，这个类或者模块实现了存储API。
+# 参数
+当没有带着import_path参数调用的时候， get_storage_class 会返回当前默认的储存系统，类似于DEFAULT_FILE_STORAGE中定义的那样。
+如果提供了import_path， get_storage_class会尝试从提供的路径导入类或者模块，并且如果成功的话返回它。如果导入不成功会抛出异常。
+```
+
+### FileSystemStorage
+
+```python
+class FileSystemStorage(location=None, base_url=None, file_permissions_mode=None, directory_permissions_mode=None)
+# FileSystemStorage类在本地文件系统上实现了基本的文件存储功能。它继承自Storage ，并且提供父类的所有公共方法的实现。
+# 参数
+location  # 储存文件的目录的绝对路径。默认为MEDIA_ROOT设置的值。
+base_url  # 在当前位置提供文件储存的URL。默认为MEDIA_URL设置的值。
+file_permissions_mode  # 文件系统的许可，当文件保存时会接收到它。默认为FILE_UPLOAD_PERMISSIONS。
+directory_permissions_mode  # 文件系统的许可，当目录保存时会接收到它。默认为FILE_UPLOAD_DIRECTORY_PERMISSIONS。
+```
+
+方法
+
+```python
+delete()
+# 在提供的文件名称不存在的时候并不会抛出任何异常
+get_created_time(name)
+# 返回系统的ctime的日期时间，即os.path.getctime()。在某些系统（如Unix）上，这是最后一次元数据更改的时间，而在其他系统（如Windows）上，则是文件的创建时间。
+```
+
+### Storage
+
+```python
+class Storage
+# Storage类为文件的存储提供了标准化的API，并带有一系列默认行为，所有其它的文件存储系统可以按需继承或者复写它们。
+# 注意
+对于返回原生datetime对象的方法，所使用的有效时区为os.environ['TZ']的当前值。要注意它总是可以通过Django的TIME_ZONE来设置。
+```
+
+方法
+
+| name                                        | desc                                                         |
+| ------------------------------------------- | ------------------------------------------------------------ |
+| `delete(name)`                              | 删除`name`引用的文件。如果目标储存系统不支持删除操作，会抛出`NotImplementedError`异常。 |
+| `exists(name)`                              | 如果提供的名称所引用的文件在文件系统中存在，则返回`True`，否则如果这个名称可用于新文件，返回`False`。 |
+| `get_accessed_time(name)`                   | 返回包含文件的最后访问时间的原生`datetime`对象。对于不能够返回最后访问时间的储存系统，会抛出`NotImplementedError`异常。如果`USE_TZ`为True，则返回一个知晓的日期时间，否则在本地时区返回一个天真的日期时间。 |
+| `get_available_name(name, max_length=None)` |                                                              |
+| `get_created_time(name)`                    |                                                              |
+| `get_modified_time(name)`                   |                                                              |
+| `get_valid_name(name)`                      |                                                              |
+| `generate_filename(filename)`               |                                                              |
+| `listdir(path)`                             |                                                              |
+| `open(name, mode='rb')`                     |                                                              |
+| `path(name)`                                |                                                              |
+| `save(name, content, max_length=None)`      |                                                              |
+| `size(name)`                                |                                                              |
+| `url(name)`                                 |                                                              |
 
