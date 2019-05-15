@@ -1,4 +1,4 @@
-#Pillow
+# Pillow
 
 PIL：Python Imaging Library，已经是Python平台事实上的图像处理标准库了。PIL功能非常强大，但API却非常简单易用。
 
@@ -8,7 +8,7 @@ PIL：Python Imaging Library，已经是Python平台事实上的图像处理标�
 
 <https://pillow.readthedocs.org/>
 
-##安装Pillow
+## 安装Pillow
 
 如果安装了Anaconda，Pillow就已经可用了。否则，需要在命令行下通过pip安装：
 
