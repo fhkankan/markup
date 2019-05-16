@@ -205,9 +205,88 @@ for element in ET.iterparse(request):
 class QueryDict
 ```
 
+在`HttpRequest`对象中，`GET` 和`POST` 属性是`django.http.QueryDict` 的实例，它是一个自定义的类似字典的类，用来处理同一个键带有多个值。这个类的需求来自某些HTML 表单元素传递多个值给同一个键，`<selectmultiple>` 是一个显著的例子。
 
+`request.POST` 和`request.GET` 的`QueryDict` 在一个正常的请求/响应循环中是不可变的。若要获得可变的版本，需要使用`.copy()`。
 
 ### 方法
+
+`QueryDict`实现了字典的所有标准方法，因为它是字典的子类。下面是其不同点
+
+| name                                                        | desc                                                         |
+| ----------------------------------------------------------- | ------------------------------------------------------------ |
+| `__init__(query_string=None, mutable=False, encoding=None)` | 基于`query_string` 实例化`QueryDict` 一个对象                |
+| `fromkeys`(iterable, value='',mutable=False,encoding=None)` |                                                              |
+| `__getitem__(key)`                                          | 返回给出的key的值。如果key具有多个值，返回最新的值。如果key 不存在，则引发`django.utils.datastructures.MultiValueDictKeyError`。是Python 标准`KeyError` 的一个子类，可以捕获KeyError |
+| `__setitem__(key,value)`                                    | 设置给出的key 的值为`value`（一个Python 列表，它具有唯一一个元素`value`）。注意，这和其它具有副作用的字典函数一样，只能在可变的`QueryDict` 上调用（如通过`copy()` 创建的字典）。 |
+| `__contains__(key)`                                         | 如果给出的key 已经设置，则返回`True`。它让你可以做`if "foo" in request.GET`这样的操作。 |
+| `get(key, default=None)`                                    | 使用与上面`__getitem__()` 相同的逻辑，但是当key 不存在时返回一个默认值 |
+| `setdefault(key, default=None)`                             | 类似标准字典的`setdefault()` 方法，只是它在内部使用的是`__setitem__()` |
+| `update(other_dict)`                                        | 接收一个`QueryDict` 或标准字典。类似标准字典的`update()` 方法，但是它附加到当前字典项的后面，而不是替换掉它们 |
+| `items()`                                                   | 类似标准字典的`items()` 方法，但是它使用的是和`__getitem__` 一样返回最新的值的逻辑。 |
+| `values()`                                                  | 类似标准字典的`values()` 方法，但是它使用的是和`__getitem__` 一样返回最新的值的逻辑 |
+| `copy()`                                                    | 返回对象的副本，使用Python 标准库中的`copy.deepcopy()`。此副本是可变的即使原始对象是不可变的 |
+| `getlist(key, default=None)`                                | 以Python 列表形式返回所请求的键的数据。如果键不存在并且没有提供默认值，则返回空列表。它保证返回的是某种类型的列表，除非默认值不是列表 |
+| `setlist(key, list_)`                                       | 设置给定的键为`list_`（与`__setitem__()` 不同)               |
+| `appendlist(key, item)`                                     | 将项追加到内部与键相关联的列表中                             |
+| `setlist(key, item)`                                        |                                                              |
+| `appendlist(key, item)`                                     |                                                              |
+| `setlistdefault(key, default_list=None)`                    | 类似`setdefault`，除了它接受一个列表而不是单个值             |
+| `lists()`                                                   | 类似`items`，只是它将字典中的每个成员作为列表                |
+| `pop(key)`                                                  | 返回给定键的值的列表，并从字典中移除它们。如果键不存在，将引发`KeyError` |
+| `popitem()`                                                 | 删除字典任意一个成员（因为没有顺序的概念），并返回二值元组，包含键和键的所有值的列表。在一个空的字典上调用时将引发`KeyError` |
+| `dict()`                                                    | 返回`QueryDict` 的`dict` 表示形式。对于`QueryDict` 中的每个(key, list)对 ，`dict`将有(key, item) 对，其中item 是列表中的一个元素，使用与`QueryDict.__getitem__()`相同的逻辑 |
+| `urlencode(safe=None)`                                      | 在查询字符串格式返回数据的字符串形式                         |
+
+`__init__`
+
+```python
+# 示例
+>>> QueryDict('a=1&a=2&c=3')
+<QueryDict: {'a': ['1', '2'], 'c': ['3']}>
+  
+# 参数
+若query_string 没被传入,QueryDict 的结果是空的(将没有键和值).
+
+你所遇到的大部分对象都是不可修改的，例如request.POST和request.GET。如果需要实例化你自己的可以修改的对象，通过往它的__init__()方法来传递参数 mutable=True 可以实现。
+
+设置键和值的字符串都将从encoding 转换为unicode。如果没有指定编码,默认设置为DEFAULT_CHARSET
+```
+
+`update`
+
+```python
+>>> q = QueryDict('a=1', mutable=True)
+>>> q.update({'a': '2'})
+>>> q.getlist('a')
+['1', '2']
+>>> q['a'] # returns the last
+['2']
+```
+
+`items`
+
+```python
+>>> q = QueryDict('a=1&a=2&a=3')
+>>> q.items()
+[('a', '3')]
+```
+
+`values`
+
+```python
+>>> q = QueryDict('a=1&a=2&a=3')
+>>> q.values()
+['3']
+```
+
+`list`
+
+```
+
+```
+
+
 
 ## HttpResponse
 
