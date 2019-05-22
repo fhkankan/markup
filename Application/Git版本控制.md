@@ -767,5 +767,9 @@ git pull			# 获取并整合另外的仓库或一个本地分支
 git push  								# 更新远程引用和相关对象
 git push --set-upstream origin f1  # 若远程不存在此分支,创建新的远程分支，并追踪push和pull
 git puh origin f1  # 方法二，只追踪push
+
+git remote update  # 更新本地追踪显示的远程分支
+git remote prune origin --dry-run  # 查看远程哪些分支需要清理
+git remote prune origin		# 清除无效的远程追踪分支
 ```
 
