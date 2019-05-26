@@ -211,6 +211,7 @@ brew install mysql
 # 服务端
 # 启动
 brew services start mysql  # 开机启动
+brew services restart mysql  # 重启
 mysql.server start  # 临时启动
 
 mysqld -u 用户名
@@ -229,6 +230,9 @@ mysql -h192.168.5.140 -uroot -pxxx -P5317
 - 修改密码
 
 ```
+# 设置密码
+mysql_secure_installation
+
 # 关闭服务
 sudo $PATH/support-files/mysql.server stop
 cd $PATH/bin

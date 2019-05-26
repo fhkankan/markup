@@ -90,7 +90,7 @@ collate hebrew_general_ci
 
 # 安全管理
 
-```
+```python
 # 管理用户
 use mysql;
 select user from user;

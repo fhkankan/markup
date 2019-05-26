@@ -1,4 +1,4 @@
-# 基础方法
+# IO与像素
 
 ## 安装使用
 
@@ -9,16 +9,25 @@ pip install python-opencv
 import cv2 as cv
 ```
 
-## 基础使用
+## I/O处理
+
+### 图像
 
 - 载入
 
 ```python
-cv.imread(path)
+cv.imread(path, [desc])
 # 将图片载入到内存中
 # 返回ndarry类型的图像数据
 # 参数
 path	图片路径
+desc	图片描述
+			cv.IMREAD_UNCHANGED = -1
+  		cv.IMREAD_GRAYSACLE = 0
+    	cv.IMREAD_COLOR = 1
+      cv.IMREAD_ANYDEPTH = 2
+      cv.IMREAD_ANYCOLOR = 4
+			cv.IMREAD_LOAD_GDAL = 8
 ```
 
 - 显示
@@ -34,12 +43,13 @@ cv.imshow(name, img)
 cv.iwrite(path, img,)
 # 将图像img写入到硬盘的path路径中
 ```
--  图像属性
+-  暂停
 ```python
-img.shape  # 图像高、宽、通道数组成的元组
-img.size  # 图像高*宽*通道数
-img.dtype  # unit8
+cv.waitKey(0) 
+# 暂停
+# 返回键值
 ```
+
 示例
 
 ```python
@@ -70,16 +80,60 @@ cv.waitKey (0)
 cv.destroyAllWindows()  # 销毁所有窗口
 ```
 
+### 视频
+
 ## 像素处理
-###  像素操作
-像素的访问和访问numpy中ndarray的方法完全一样
+
+### 图像表示
+
+图像在opencv-python中以ndarry表示
+
 ```python
+img = numpy.zeros([3, 3], dtype=numpy.unit8)
+# 每个像素都由一个8位证书来表示，值范围0～255
+img = arrray([[0, 0, 0],
+							[0, 0, 0],
+							[0, 0, 0]], dtype=uint8)
+							
+# 转换为BGR格式
+img = cv.cvtColor(img, cv.COLOR_GRAY2BGR)
+# 每个像素都由一个三元数组表示，每个整型向量分别表示一个B、G和R通道
+img = arrray([[[0, 0, 0],
+							 [0, 0, 0],
+							 [0, 0, 0]], 
+							[[0, 0, 0],
+							 [0, 0, 0],
+							 [0, 0, 0]],
+              [[0, 0, 0],
+							 [0, 0, 0],
+							 [0, 0, 0]], dtype=uint8)
+```
+
+属性
+
+```python
+img.shape  # 图像高、宽、通道数组成的元组,若图像是单色或灰度的，则不包含通道
+img.size  # 图像像素的大小
+img.dtype  # 图像的数据类型(无符号整数类型的变量和该类型占的位数，如uint8)
+```
+
+###  像素操作
+读取与设置
+```python
+# 方法一：
 # 灰度图
 img[j, i] = 255  # j,i分别表示图像的行和列
+
 # BGR图像
 img[j,i,0]= 255  # 0通道
 img[j,i,1]= 255  # 1通道
 img[j,i,2]= 255  # 2通道
+# 或
+img[j, i] = [255, 255, 255]
+
+# 方法二
+img.item(j, i, 0)  # 读取0通道
+img.itemset((j, i, 0), 255)  # 设置
 ```
 像素取反
 
@@ -269,83 +323,3 @@ cv2.imshow("Red", r)
 cv2.imshow("Green", g)
 cv2.waitKey(0)
 ```
-## 图像转换
-
-- 色彩空间
-
-BGR
-
-```
-
-```
-
-灰度化
-
-```
-
-```
-
-HSV
-
-```
-H:0~180
-S:0~255
-V:0~255
-```
-
-|      | 黑   | 灰   | 白   | 红   | 红   | 橙   | 黄   | 绿   | 青   | 蓝   | 紫   |
-| ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
-| hmin | 0    | 0    | 0    | 0    | 156  | 11   | 26   | 35   | 78   | 100  | 125  |
-| hmax | 180  | 180  | 180  | 10   | 180  | 25   | 34   | 77   | 99   | 124  | 155  |
-| smin | 0    | 0    | 0    | 43   | 43   | 43   | 43   | 43   | 43   | 43   | 43   |
-| smax | 255  | 43   | 30   | 255  | 255  | 255  | 255  | 255  | 255  | 255  | 255  |
-| vmin | 0    | 46   | 221  | 46   | 46   | 46   | 46   | 46   | 46   | 46   | 46   |
-| vmax | 46   | 220  | 255  | 255  | 255  | 255  | 255  | 255  | 255  | 255  | 255  |
-
-YUV
-
-```
-
-```
-
-YCrCb
-
-```
-
-```
-
-API
-
-```python
-# BGR转灰度
-gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)  
-# BGR转HSV
-hsv = cv.cvtColor(image, cv.COLOR_BGR2HSV)  
-# BGR转YUV  
-yuv = cv.cvtColor(image, cv.COLOR_BGR2YUV)  
-# BGR转YCrCb
-Ycrcb = cv.cvtColor(image, cv.COLOR_BGR2YCrCb)  
-```
-
-示例
-
-```python
-# 视频中绿色图像追踪
-def extrace_object_demo():
-    capture = cv.VideoCapture("D:/vcprojects/images/video_006.mp4")
-    while(True):
-        ret, frame = capture.read()
-        if ret == False:
-            break;
-        hsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)  # 转换程HSV
-        lower_hsv = np.array([35, 43, 46])  # 低经验值
-        upper_hsv = np.array([77, 255, 255])  # 高经验值
-        mask = cv.inRange(hsv, lowerb=lower_hsv, upperb=upper_hsv)  # 绿色对象提取追踪
-        dst = cv.bitwise_and(frame, frame, mask=mask)  # 将二值化后的图像与原图相加，求取绿色图像
-        cv.imshow("video", frame)
-        cv.imshow("mask", dst)
-        c = cv.waitKey(40)
-        if c == 27:
-            break
-```
-

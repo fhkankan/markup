@@ -154,8 +154,6 @@ Type：套接字类型，可以是 SOCK_STREAM（流式套接字，主要用于 
 
 # TCP编程
 
-![1521072763226](C:\Users\ADMINI~1\AppData\Local\Temp\1521072763226.png)
-
 ```
 TCP协议，传输控制协议（英语：Transmission Control Protocol，缩写为 TCP）是一种面向连接的、可靠的、基于字节流的传输层通信协议，由IETF的RFC 793定义。
 
@@ -179,11 +177,9 @@ TCP与UDP的不同点
 
 ```
 
-![1521041852128](C:\Users\ADMINI~1\AppData\Local\Temp\1521041852128.png)
-
 ## 客户端
 
-```
+```python
 from socket import *
 
 # 创建socket
@@ -217,45 +213,57 @@ tcp_client_socket.close()
 
 如果想要完成一个tcp服务器的功能，需要的流程如下：
 
+```
 1. socket创建一个套接字
 2. bind绑定ip和port
 3. listen使套接字变为可以被动链接
 4. accept等待客户端的链接
 5. recv/send接收发送数据
-
 ```
+
+示例
+
+```python
 from socket import *
+import threading
 
 # 创建socket
 tcp_server_socket = socket(AF_INET, SOCK_STREAM)
-
 # 释放端口
 tcp_server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, True)
 
 # ip地址和端口号，ip一般不用写，表示本机的任何一个ip
 address = ('', 7788)
-
 # 绑定地址
 tcp_server_socket.bind(address)
-
 # 使用socket创建的套接字默认的属性是主动的，使用listen将其变为被动的，这样就可以接收别人的链接了，
 # 128是等待accept处理的最大链接数
 tcp_server_socket.listen(128)
 
-# 如果有新的客户端来链接服务器，那么就产生一个新的套接字专门为这个客户端服务
-# client_socket用来为这个客户端服务
-# tcp_server_socket就可以省下来专门等待其他新客户端的链接
-client_socket, clientAddr = tcp_server_socket.accept()
+while True:
+		# 如果有新的客户端来链接服务器，那么就产生一个新的套接字专门为这个客户端服务
+		# client_socket用来为这个客户端服务
+		# tcp_server_socket就可以省下来专门等待其他新客户端的链接
+		client_socket, clientAddr = tcp_server_socket.accept()
+    
+    # 创建新的线程来处理TCP连接
+    t = threading.Thread(target=tcplink(client_socket, clientAddr))
 
-# 接收对方发送过来的数据
-recv_data = client_socket.recv(1024)  # 接收1024个字节
-print('接收到的数据为:', recv_data.decode('gbk'))
-
-# 发送一些数据到客户端
-client_socket.send("thank you !".encode('gbk'))
-
-# 关闭为这个客户端服务的套接字，只要关闭了，就意味着为不能再为这个客户端服务了，如果还需要服务，只能再次重新连接
-client_socket.close()
+# 关闭监听套接字
+# tcp_server_socket.close()
+    
+def tplink(client_socket, clientAddr):
+    print('Accept new connection from %s:%s...' % clientAddr)
+  	while True:
+				# 接收对方发送过来的数据
+				recv_data = client_socket.recv(1024)  # 接收1024个字节
+				print('接收到的数据为:', recv_data.decode('gbk'))
+				if recv_data=='exit' or not recv_data:
+          break	
+		# 发送一些数据到客户端
+		client_socket.send("thank you !".encode('gbk'))
+		# 关闭为这个客户端服务的套接字，只要关闭了，就意味着为不能再为这个客户端服务了，如果还需要服务，只能再次重新连接
+		client_socket.close()
 ```
 
 ## 长短连接
@@ -298,11 +306,6 @@ listen后的套接字是被动套接字，用来接收新的客户端的链接�
 
 # UDP编程
 
-<<<<<<< HEAD
-![1521072696968](C:\Users\ADMINI~1\AppData\Local\Temp\1521072696968.png)
-
-=======
->>>>>>> 7f34c3097d9ce6c09b8420739d7f1470ff789437
 创建一个基于udp的网络程序流程很简单，具体步骤如下：
 
 1. 创建客户端套接字
@@ -311,7 +314,7 @@ listen后的套接字是被动套接字，用来接收新的客户端的链接�
 
 ## 发送数据
 
-```
+```python
 from socket import *
 
 # 1. 创建udp套接字
@@ -334,7 +337,7 @@ udp_socket.close()
 
 ## 发送接收数据
 
-```
+```python
 #coding=utf-8
 
 from socket import *
@@ -367,7 +370,7 @@ udp_socket.close()
 
 ## 服务端绑定端口
 
-```
+```python
 #coding=utf-8
 
 from socket import *
