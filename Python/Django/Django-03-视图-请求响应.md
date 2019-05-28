@@ -58,7 +58,7 @@ POST 请求可以带有空的POST字典 —— 如果通过HTTP POST方法请求
 
 # FILES
 `FILES` 中的每个键为`<input type="file" name="" />` 中的`name`
-注意，FILES 只有在请求的方法为POST 且提交的<form> 带有enctype="multipart/form-data" 的情况下才会包含数据。否则，FILES 将为一个空的类似于字典的对象。
+注意，FILES 只有在请求的方法为POST 且提交的<form> 带有content_type="multipart/form-data" 的情况下才会包含数据。否则，FILES 将为一个空的类似于字典的对象。
 
 # META
 具体的头部信息取决于客户端和服务器，下面是一些示例：
