@@ -82,6 +82,28 @@ cv.destroyAllWindows()  # 销毁所有窗口
 
 ### 视频
 
+调用摄像头
+
+```python
+import cv2 as cv
+ 
+ 
+#打开摄像头获取图片
+def video_demo():
+    capture = cv.VideoCapture(0)#打开摄像头，0代表的是设备id，如果有多个摄像头，可以设置其他数值
+    while True:
+        ret, frame = capture.read() #读取摄像头,它能返回两个参数，第一个参数是bool型的ret，其值为True或False，代表有没有读到图片；第二个参数是frame，是当前截取一帧的图片
+        frame = cv.flip(frame, 1)#翻转 0:上下颠倒，大于0:水平颠倒，小于0:180旋转
+        cv.imshow("video", frame)
+        if cv.waitKey(10) & 0xFF == ord('q'): #键盘输入q退出窗口，不按q点击关闭会一直关不掉 也可以设置成其他键。
+            break
+        # if cv.waitKey(40) == 27: break  # 按ESC退出
+ 
+ 
+video_demo()
+cv.destroyAllWindows()
+```
+
 ## 像素处理
 
 ### 图像表示
@@ -271,8 +293,6 @@ print(m)
 print(dev)
 ```
 
-
-
 ### 通道分离
 
 可以使用OpenCV自带的split函数(推荐)，也可以直接操作numpy数组来分离通道
@@ -323,3 +343,52 @@ cv2.imshow("Red", r)
 cv2.imshow("Green", g)
 cv2.waitKey(0)
 ```
+
+## 图像操作
+
+### 剪切
+
+```python
+import numpy as np
+import cv2 as cv
+
+img = cv.imread("players.png")
+roi = img[0:375, 240:480] // 左上角为原点，0:375表示图像竖直方向(ndarray的行)0到375，240:480表示图像水平方向(ndarry的列)从240到480
+cv.imshow("roi", roi)
+```
+
+### 缩放
+
+```python
+size = img_gray.shape
+temping = cv.resize(img_gray,((int)(size[1]*0.1),(int)(size[0]*0.5)),interpolation=cv.INTER_LINEAR)
+# 等同上述一行代码
+temping = cv.resize(img_gray,None, fx=0.5, fy=0.5, interpolation=cv.INTER_LINEAR)
+cv.imshow('img_gray2',temping)
+```
+
+### 平移
+
+```python
+rows,cols = img_gray.shape
+
+M = np.float32([[1,0,100],[0,1,50]])
+dst = cv.warpAffine(img,M,(cols,rows))
+
+cv.imshow('img_gray3',dst)
+cv.waitKey(0)
+cv.destroyAllWindows()
+```
+
+### 旋转
+
+```python
+rows,cols = img_gray.shape
+
+M = cv.getRotationMatrix2D((cols/2,rows/2),90,1)
+dst = cv.warpAffine(img,M,(cols,rows))
+
+cv.imshow('img_gray4',dst)
+```
+
+## 

@@ -747,6 +747,22 @@ Get it from http://aka.ms/vcpython27
 2.在cmd下跳转到下载MySQL_python-1.2.5-cp27-none-win_amd64.whl的目录下,然后在命令行执行pip install MySQL_python-1.2.5-cp27-none-win_amd64.whl
 ```
 
+## jupyter
+
+安装
+
+```
+pip install jupyter
+```
+
+使用
+
+```
+$jupyter notebook
+```
+
+
+
 # Anaconda
 
 ## 安装
