@@ -1,6 +1,6 @@
 # 安装
 
-## nojs
+## nodejs
 
 方法一：官网，适用于各平台
 
@@ -97,3 +97,76 @@ $ open https://npm.taobao.org/sync/connect
 ```
 $ cnpm info connect
 ```
+
+# nvm
+
+在一台机器上进行多个node版本之间切换管理
+
+## 安装
+
+- mac
+
+安装包
+
+```shell
+# 方法一：
+brew install nvm
+# 方法二
+curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.34.0/install.sh | bash
+或
+wget -qO- https://raw.githubusercontent.com/creationix/nvm/v0.34.0/install.sh | bash
+```
+
+配置环境变量
+
+```shell
+mkdir .nvm
+vim ~/.bash_profile
+# 添加
+export NVM_DIR="$HOME/.nvm"
+  [ -s "/usr/local/opt/nvm/nvm.sh" ] && . "/usr/local/opt/nvm/nvm.sh"  # This loads nvm
+  [ -s "/usr/local/opt/nvm/etc/bash_completion" ] && . "/usr/local/opt/nvm/etc/bash_completion"  # This loads nvm bash_completio
+```
+
+## 使用
+
+安装node
+
+```shell
+nvm install node  # 最新版本
+nvm install 6.14.4  # 特定版本
+```
+
+展示列表
+
+```shell
+nvm ls-remote  # 展示远程版本列表
+nvm ls  # 展示本地列表
+```
+
+切换版本
+
+```shell
+nvm use node  # 使用最新版本
+nvm use 6.14.4  # 使用特定版本
+nvm run 6.14.4 --version  # 运行特定版本
+nvm exec 6.14.4 node --version  # 在当前终端子进程中运行特定版本
+```
+
+确认路径
+
+```shell
+nvm which 7.3.0
+```
+
+别名
+
+```shell
+# 设置别名
+nvm alias latest 11.1.0
+# 使用别名
+nvm user latest
+# 取消别名
+nvm unalias latest
+```
+

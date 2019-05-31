@@ -369,8 +369,8 @@ git commit -m "注释"
 
 3. 推送分支到服务器
 # 推送的分支远程服务器不存在
-git push origin f1(方法一)
-git push --set-upstream origin f1(方法二)
+git push --set-upstream origin f1(方法一，同时建立了push和pull)
+git push origin f1(方法二,只建立了push，未建立pull)
 # 推送的分支远程服务器存在
 git push
    
@@ -551,7 +551,54 @@ git add .gitignore  # 添加入库文件
 git commit -m '标签' # 添加至本地仓库
 ```
 
-# 使用多平台git
+# 命令行操作
+
+## 设置
+
+- 项目初始化
+
+```shell
+git init 		# 创建一个空的git仓库或重新初始化一个已经存在的仓库
+git clone xxx		# 克隆一个仓库到一个新的目录
+```
+
+- 单平台公私钥
+
+密钥
+
+```shell
+# 查看秘钥对(.ssh)
+cd ~/.ssh/
+
+# 创建
+# 三次回车，生成.ssh目录，id_rsa （私钥）和id_rsa.pub （公钥）
+ssh-keygen -t rsa -C youremail@example.com
+       
+# 查看id_rsa.pub公钥
+cat ~/.ssh/id_rsa.pub
+
+# 配置到远程仓库的后台ssh
+
+# 验证是否配置成功
+ssh -T git@github.com
+# 第一次，需要输入“yes”, 若返回类似 “Hi islet1010! You've successfully authenticated”，则配置成功。
+```
+
+签名
+
+```shell
+# 系统级别签名
+git config --globaluser.name [AAA]
+git config --global user.email [邮箱地址]
+cat .gitconfig
+# 项目级别签名
+cd 项目文件夹
+git config user.name [AAA]
+git config user.email [邮箱地址]
+cat .git/config
+```
+
+- 多平台公私钥
 
 生成不同名称
 
@@ -587,7 +634,7 @@ Host github.com
 # IdentityFile : 指明上面User对应的identityFile路径
 ```
 
-取消全局，进入项目文件夹单独设置
+签名
 
 ```shell
 # 查看全局设置
@@ -607,65 +654,122 @@ git remote rm origin
 git remote add origin git@ieit.github.com
 ```
 
-# 综合命令行操作
+## 查看
 
-## 全局设定
+查看分支
 
-```
-git config --global user.name "fu_hang"
-git config --global user.email "ex-fuhang001@pingan.com.cn"
-```
-
-## 创建网络仓库
-
-```
-git clone http://ip:12808/EX-FUHANG001/robotQA.git
-git clone git@ip:EX-FUHANG001/robotQA.git
-cd robotQA
-touch README.md
-git add README.md
-git commit -m "add README"
-git push -u origin master
+```shell
+git branch  			# 本地分支
+git branch -r  		# 远程分支
+git branch -a			# 所有分支
+git remote show origin  # 查看远程分支详细情况
 ```
 
-## 本地文件—>网络仓库
+查看状态
 
-```
-cd existing_folder
-git init
-git remote add origin http://ip:12808/EX-FUHANG001/robotQA.git
-git remote add origin git@ip:EX-FUHANG001/robotQA.git
-git add .
-git commit -m "Initial commit"
-git push -u origin master
+```shell
+git status  # 显示工作区状态
 ```
 
-## 本地仓库—>网络仓库
+产看其他
 
 ```
-cd existing_repo
-git remote rename origin old-origin
-git remote add origin http://ip:12808/EX-FUHANG001/robotQA.git
-git remote add origin git@ip:EX-FUHANG001/robotQA.git
-git push -u origin --all
-git push -u origin --tags
+git bisect	# 通过二分法查找定位引入bug的提交
+git grep		# 输出和模式匹配的行
+git show		# 显示各种类型的对象
 ```
 
-## 本地与远程交互
+查看日志
+
+```shell
+git log 
+git log --pretty=oneline
+git log --oneline
+git reflog (HEAD@{移动到当前版本需要多少步})
+```
+
+查看差异
+
+```shell
+git diff [文件名]  # 将工作区中的文件和暂存区的进行比较
+git diff [本地库历史版本] [文件名]  # 将工作区中的文件和本地库历史记录比较，不带文件名的话，会比较多个文件
+```
+
+## 切换
+
+```shell
+git checkout f1			# 切换本地已存在的分支f1
+git checkout -b f1  # 创建并切换到新分支f1
+git checkout -b f1 origin/f1  # 跟踪拉去远程分支f1，在本地起名为f1，并切换至分支f1
+```
+
+## 变更
+
+- 添加
+
+```shell
+git add path1  						# 添加文件内容至索引
+git add .  								# 添加所有变动的文件至索引
+```
+
+- 移动
+
+```shell
+git mv		# 移动或重命名一个文件、目录或符号链接
+```
+
+- 删除
 
 ```
-git init //初始化
-git add main.cpp //将某一个文件添加到暂存区
-git add .          //将文件夹下的所有的文件添加到暂存区
-git commit -m ‘note’ //将暂存区中的文件保存成为某一个版本
-git log             //查看所有的版本日志
-git status          //查看现在暂存区的状况
-git diff            //查看现在文件与上一个提交-commit版本的区别
-git reset --hard HEAD^ //回到上一个版本
-git reset --hard XXXXX //XXX为版本编号，回到某一个版本
-git pull origin master //从主分支pull到本地
-git push -u origin master //从本地push到主分支
-git pull                //pull默认主分支
-git push                //push默认主分支
+git rm 		# 从工作区和索引中删除文件
+```
+
+- 回退
+
+```
+git reset --hard <commit-id>  # 撤销上次commit的内容
+git reset --hard HEAD^		# 后退1步(一个^表示后退一步)
+git reset --hard HEAD~2		# 后退2步(~后的数字n摆哦是后退n步)
+```
+
+- 记录
+
+```shell
+git commit -m '修改注释'    # 记录变更到仓库
+```
+
+- 合并
+
+```shell
+git checkout dev	# 切换至要合并到的分支dev
+git merge f1			# 合并需要合并的分支f1
+```
+
+- 转移
+
+```
+git rebase		# 本地提交转移至更新后的上游分支中
+```
+
+- 标记
+
+```
+git tag			# 	创建、列出、删除或校验一个GPG签名的标签对象
+```
+
+## 协同
+
+```shell
+git fetch			# 从另外一个仓库下载对象和引用
+
+git pull			# 获取并整合另外的仓库或一个本地分支
+
+git push  								# 更新远程引用和相关对象
+git push --set-upstream origin f1  # 若远程不存在此分支,创建新的远程分支，并追踪push和pull
+git puh origin f1  # 方法二，只追踪push
+
+git remote update  # 更新本地追踪显示的远程分支
+git remote prune origin --dry-run  # 查看远程哪些分支需要清理
+git remote prune origin		# 清除无效的远程追踪分支
 ```
 

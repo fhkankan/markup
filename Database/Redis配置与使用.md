@@ -536,3 +536,55 @@ if __name__=="__main__":
     except Exception as e:
         print e
 ```
+
+## 与Django的交互
+
+### 缓存
+
+- 安装
+
+```
+pip install django-redis
+```
+
+- 配置
+
+```python
+# project/settings
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/0",  # redis://:[password@]host:port/db
+      	"TIMEOUT": 86400, # 1day,设置成0缓存将失效
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
+```
+
+- 测试
+
+pyshell
+
+```shell
+$python manage.py shell
+>>> from django.core.cache import cache
+>>> cache.set('user', 'Aaron', 600) # 缓存有效时间为600秒，即10分钟
+True
+>>> cache.get('user')
+'Aaron'
+```
+
+redis-cli
+
+```
+127.0.0.1:6379> select 0  # 选择数据库0，默认也是0
+OK
+127.0.0.1:6379> keys *    # 显示所有的key
+1) ":1:user"              # 刚刚在python shell里设置的key
+127.0.0.1:6379> get :1:user # get(key)
+"\x80\x04\x95\t\x00\x00\x00\x00\x00\x00\x00\x8c\x05Aaron\x94."
+```
+

@@ -72,7 +72,7 @@ sudo apt-get update
 | Thunderbird          | 加仓     | 邮件客户端        |
 | gimp                 | 加仓     | 图片编辑器        |
 | indicator-sysmonitor | 加仓     | 电脑监控客户端    |
-| remarkable           | 加仓     | 编辑器            |
+| remarkable           | deb      | 编辑器            |
 | Nodepadqq            | 加仓     | 编辑器            |
 | pycharm              | deb      | pythonIDE         |
 | visualStudioCode     | deb      | 编辑器            |
@@ -173,14 +173,6 @@ sudo add-apt-repository ppa:fossfreedom/indicator-sysmonitor
 sudo apt-get update 
 sudo apt-get install indicator-sysmonitor
 ```
-remarkable
-
-```
-wget https://remarkableapp.github.io/files/remarkable_1.87_all.deb
-sudo dpkg -i remarkable_1.87_all.deb
-sudo apt-get -f install 
-```
-
 Nodepadqq
 
 ```
@@ -216,6 +208,14 @@ wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
 sudo apt-get install libappindicator1 libindicator7 
 ```
 
+remarkable
+
+```
+wget https://remarkableapp.github.io/files/remarkable_1.87_all.deb
+sudo dpkg -i remarkable_1.87_all.deb
+sudo apt-get -f install 
+```
+
 - 安装
 ```
 sudo dpkg -i 安装包名字
@@ -236,8 +236,13 @@ postman
 
 pycharm
 
-```
+```sh
 # 设置快捷键
+# 方法一：建立命令行快捷
+cd ~
+vim .bashrc
+alias pycharm="bash /home/application/pycharm-2019.3.2/bin/pycharm.sh"
+source .bashrc
 # 方法一：建立软链接(可添加启动器)
 sudo ln -s bin/pycharm.sh的文件目录 /usr/bin/pycharm
 # 方法二：使用快捷图标(可添加启动器)
@@ -396,3 +401,18 @@ sudo apt-get install ntpdate
 sudo ntpdate time.windows.com
 sudo hwclock --localtime --systohc
 ```
+
+# 系统镜像
+
+cubic
+
+```
+可对官方镜像做软件的删除、增加，再生成iso
+```
+
+systemback
+
+```
+可对当前系统做备份和封装成iso安装镜像
+```
+

@@ -90,7 +90,7 @@ collate hebrew_general_ci
 
 # 安全管理
 
-```
+```python
 # 管理用户
 use mysql;
 select user from user;
@@ -376,6 +376,7 @@ group_concat([DISTINCT] 要连接的字段 [Order BY ASC/DESC 排序字段] [Sep
 select min(字段名) from 表名;
 select max(字段名) from 表名;
 select avg(字段名) from 表名;
+select round(avg(字段名), 2) from 表名;
 select count(字段名) from 表名;
 select sum(字段名) from 表名;
 ```

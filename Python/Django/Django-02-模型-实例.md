@@ -1,0 +1,533 @@
+# 模型-实例
+
+## 实例方法
+
+### 创建对象
+
+要创建模型的新实例，只需像其他任何Python类一样实例化它
+
+```python
+class Model(**kwargs)
+
+# 关键字参数只是在模型上定义的字段的名称。
+# 注意：实例化模型不会触及数据库，为此,需要save()
+```
+
+- 自定义创建模型
+
+```python
+# 您可能会试图通过重写__ init __方法来定制模型。 但是，如果您这样做，请注意不要更改调用签名，因为任何更改都可能会阻止保存模型实例。 不要重写__ init __，请尝试使用以下方法之一：
+
+# 方法一：在模型类上添加一个classmethod
+from django.db import models
+
+class Book(models.Model):
+    title = models.CharField(max_length=100)
+
+    @classmethod
+    def create(cls, title):
+        book = cls(title=title)
+        # do something with the book
+        return book
+
+book = Book.create("Pride and Prejudice")
+
+# 方法二：在自定义管理器中添加一个方法（通常是首选）
+class BookManager(models.Manager):
+    def create_book(self, title):
+        book = self.create(title=title)
+        # do something with the book
+        return book
+
+class Book(models.Model):
+    title = models.CharField(max_length=100)
+
+    objects = BookManager()
+
+book = Book.objects.create_book("Pride and Prejudice")
+```
+
+- 自定义模型加载
+
+从数据库加载时，可以使用`from_db()`方法来自定义模型实例创建。
+
+```python
+classmethod Model.from_db(db, field_names, values)
+
+# 参数
+db  # 参数包含模型加载数据库的数据库别名，
+field_names  # 包含所有加载字段的名称，
+values  # 包含每个`field_names`字段中的加载值。 `field_names`的顺序与`值`的顺序相同。 
+# 也就是说，实例可以由`cls（* values）`创建。 如果任何字段被延迟，它们将不会出现在`field_names`中。 在这种情况下，为每个缺少的字段分配一个`django.db.models.DEFERRED`值。
+```
+
+除了创建新模型之外，`from_db()`方法还必须在新实例的`_state`属性中设置`adding`和`db`标志。
+
+```python
+from django.db.models import DEFERRED
+
+@classmethod
+def from_db(cls, db, field_names, values):
+    # Default implementation of from_db() (subject to change and could
+    # be replaced with super()).
+    if len(values) != len(cls._meta.concrete_fields):
+        values = list(values)
+        values.reverse()
+        values = [
+            values.pop() if f.attname in field_names else DEFERRED
+            for f in cls._meta.concrete_fields
+        ]
+    instance = cls(*values)
+    instance._state.adding = False
+    instance._state.db = db
+    # customization to store the original field values on the instance
+    instance._loaded_values = dict(zip(field_names, values))
+    return instance
+
+def save(self, *args, **kwargs):
+    # Check how the current values differ from ._loaded_values. For example,
+    # prevent changing the creator_id of the model. (This example doesn't
+    # support cases where 'creator_id' is deferred).
+    if not self._state.adding and (
+            self.creator_id != self._loaded_values['creator_id']):
+        raise ValueError("Updating the value of creator isn't allowed")
+    super().save(*args, **kwargs)
+```
+
+### 刷新对象
+
+如果从模型实例中删除一个字段，则再次访问该字段会重新从数据库中载入值
+
+```shell
+>>> obj = MyModel.objects.first()
+>>> del obj.field
+>>> obj.field  # Loads the field from the database
+```
+
+如果需要从数据库重新加载模型的值，可以使用`refresh_from_db()`方法。
+
+```python
+Model.refresh_from_db(using=None, fields=None)
+
+# 当这个方法在没有参数的情况下被调用时，会进行以下操作：
+# 1. 模型中的所有未延迟字段都会更新为数据库中当前存在的值。
+# 2. 先前加载的关系值不再有效的相关实例将从重新加载的实例中删除。 例如，如果您有一个重载实例的外键来自另一个名为Author的模型，那么如果obj.author_id ！= obj.author.id，obj.author将被丢弃，当下次访问时，它将被重载为obj.author_id的值。
+
+# 只有模型的字段从数据库重新加载。 其他与数据库相关的值（如注释）不会重新加载。 任何@cached_property属性都不会被清除。
+
+# 重新加载发生在实例从数据库加载的数据库中，或者如果未从数据库加载实例，则从默认数据库中加载。 using参数可用于强制指定用于重新加载的数据库。
+
+# 可以使用fields参数强制加载字段集。
+```
+
+要测试`update()` 调用是否得到预期的更新，可以编写类似下面的测试
+
+```python
+def test_update_result(self):
+    obj = MyModel.objects.create(val=1)
+    MyModel.objects.filter(pk=obj.pk).update(val=F('val') + 1)
+    # At this point obj.val is still 1, but the value in the database
+    # was updated to 2. The object's updated value needs to be reloaded
+    # from the database.
+    obj.refresh_from_db()
+    self.assertEqual(obj.val, 2)
+```
+
+如何在重新加载一个延迟字段时重新加载所有的实例字段
+
+```python
+class ExampleModel(models.Model):
+    def refresh_from_db(self, using=None, fields=None, **kwargs):
+        # fields contains the name of the deferred field to be
+        # loaded.
+        if fields is not None:
+            fields = set(fields)
+            deferred_fields = self.get_deferred_fields()
+            # If any deferred field is going to be loaded
+            if fields.intersection(deferred_fields):
+                # then load all of them
+                fields = fields.union(deferred_fields)
+        super().refresh_from_db(using, fields, **kwargs)
+```
+
+### 验证对象
+
+验证一个模型涉及三个步骤
+
+```
+1. 验证模型的字段-Model.clean_fields()
+2. 验证模型的完整型-Model.clean()
+3. 验证模型的唯一性-Model.validate_unique()
+```
+
+当调用`full_clean()`时，三个方法都将执行
+
+Full_clean
+
+```python
+Model.full_clean(exclude=None, validate_unique=True)
+
+# 该方法按顺序调用Model.clean_fields()、Model.clean() 和Model.validate_unique()（如果validate_unique 为True），并引发一个ValidationError，该异常的message_dict 属性包含三个步骤的所有错误。
+# 可选的exclude参数用来提供一个可以从验证和清除中排除的字段名称的列表。ModelForm 使用这个参数来排除表单中没有出现的字段，使它们不需要验证，因为用户无法修正这些字段的错误
+# 注意，当你调用模型的save() 方法时，full_clean()不会 自动调用。如果你想一步就可以为你手工创建的模型运行验证，你需要手工调用它
+from django.core.exceptions import ValidationError
+try:
+    article.full_clean()
+except ValidationError as e:
+    # Do something based on the errors contained in e.message_dict.
+    # Display them to a user, or handle them programmatically.
+    pass
+```
+
+Clean_fields
+
+```python
+Model.clean_fields(exclude=None)
+
+# 这个方法将验证模型的所有字段。可选的exclude 参数让你提供一个字段名称列表来从验证中排除。如果有字段验证失败，它将引发一个ValidationError
+```
+
+clean
+
+```python
+Model.clean()
+
+# 应该用这个方法来提供自定义的模型验证，以及修改模型的属性。
+# 可以使用它来给一个字段自动提供值，或者用于多个字段需要一起验证的情形
+import datetime
+from django.core.exceptions import ValidationError
+from django.db import models
+
+class Article(models.Model):
+    ...
+    def clean(self):
+        # Don't allow draft entries to have a pub_date.
+        if self.status == 'draft' and self.pub_date is not None:
+            raise ValidationError('Draft entries may not have a publication date.')
+        # Set the pub_date for published items if it hasn't been set already.
+        if self.status == 'published' and self.pub_date is None:
+            self.pub_date = datetime.date.today()
+```
+
+Validate_unique
+
+```python
+Model.validate_unique(exclude=None)
+
+# 该方法与clean_fields() 类似，只是验证的是模型的所有唯一性约束而不是单个字段的值。可选的exclude 参数允许你提供一个字段名称的列表来从验证中排除。如果有字段验证失败，将引发一个 ValidationError。
+
+# 注意，如果你提供一个exclude 参数给validate_unique()，任何涉及到其中一个字段的unique_together 约束将不检查
+```
+
+### 保存对象
+
+将一个对象保存到数据库，需要调用 `save()`方法
+
+```
+Model.save([force_insert=False, force_update=False, using=DEFAULT_DB_ALIAS, update_fields=None])
+```
+
+- 自增的主键
+
+如过模型具有一个AutoField，该自增的值将在第一次调用对象的`save()`时计算并保存
+
+```shell
+>>> b2 = Blog(name='Cheddar Talk', tagline='Thoughts on cheese.')
+>>> b2.id     # Returns None, because b doesn't have an ID yet.
+>>> b2.save()
+>>> b2.id     # Returns the ID of your new object.
+```
+
+在调用`save()` 之前无法知道ID 的值，因为这个值是通过数据库而不是Django 计算。
+
+为了方便，默认情况下每个模型都有一个`AutoField`叫做`id`，除非你显式指定模型某个字段的 `primary_key=True`。更多细节参见`AutoField`的文档。
+
+- pk
+
+无论你是自己定义还是让Django 为你提供一个主键字段， 每个模型都将具有一个属性叫做`pk`。它的行为类似模型的一个普通属性，但实际上是模型主键字段属性的别名。你可以读取并设置它的值，就和其它属性一样，它会更新模型中正确的值。
+
+如果模型具有一个`AutoField`，但是你想在保存时显式定义一个新的对象ID，你只需要在保存之前显式指定它而不用依赖ID 自动分配的值
+
+```shell
+>>> b3 = Blog(id=3, name='Cheddar Talk', tagline='Thoughts on cheese.')
+>>> b3.id     # Returns 3.
+>>> b3.save()
+>>> b3.id     # Returns 3.
+```
+
+注意：请确保不要使用一个已经存在的主键值！如果你使用数据库中已经存在的主键值创建一个新的对象，Django 将假设你正在修改这个已存在的记录而不是创建一个新的记录
+
+- 执行步骤
+
+当保存一个对象时，Django执行以下步骤
+
+```
+1. 发出一个pre-save信号
+2. 预处理数据
+3. 准备数据库数据
+4. 插入数据到数据库中
+5. 发出一个post-save信号
+```
+
+- update/insert
+
+Django 数据库对象使用同一个`save()` 方法来创建和改变对象。Django 对`INSERT` 和`UPDATE` SQL 语句的使用进行抽象。当你调用`save()`时，Django 使用下面的算法
+
+```
+- 如果对象的主键属性为一个求值为True 的值（例如，非None 值或非空字符串），Django 将执行UPDATE。
+
+- 如果对象的主键属性没有设置或者UPDATE没有更新任何记录，Django 将执行INSERT。
+```
+
+现在应该明白了，当保存一个新的对象时，如果不能保证主键的值没有使用，你应该注意不要显式指定主键值
+
+- 基于已存在字段值的属性更新
+
+```shell
+>>> product = Product.objects.get(name='Venezuelan Beaver Cheese')
+>>> product.number_sold += 1
+>>> product.save()
+
+# 避免竞态且更快
+>>> from django.db.models import F
+>>> product = Product.objects.get(name='Venezuelan Beaver Cheese')
+>>> product.number_sold = F('number_sold') + 1
+>>> product.save()
+```
+
+- 指定要保存的字段
+
+如果传递给`save()` 的`update_fields` 关键字参数一个字段名称列表，那么将只有该列表中的字段会被更新
+
+```
+product.name = 'Name changed again'
+product.save(update_fields=['name'])
+```
+
+### 删除对象
+
+```
+Model.delete(using=DEFAULT_DB_ALIAS)
+```
+
+发出一个SQL `DELETE` 操作。它只在数据库中删除这个对象；其Python 实例仍将存在并持有各个字段的数据
+
+### 其他模型实例方法
+
+| name                            | desc                                                         |
+| ------------------------------- | ------------------------------------------------------------ |
+| `__str__()`                     | 无论何时调用对象上的`str()`，都会调用`__str__()`方法。 Django在很多地方使用`str（obj）`。 最值得注意的是，在Django管理站点中显示对象，并在显示对象时将其作为插入到模板中的值。 因此，您应该始终从`__str__()`方法返回一个漂亮的，人类可读的模型表示。 |
+| `__eq__()`                      | 定义这个方法是为了让具有相同主键的相同实类的实例是相等的。对于代理模型而言，实类被定义为该模型的第一个非代理父类；而对于其它模型而言，实类就是该模型的类 |
+| `__hash()__`                    | `__hash__()`方法基于实例的主键值。 它实际上是`hash(obj.pk)`。 如果实例没有主键值，那么将引发一个`TypeError`（否则`__hash__()`方法将在实例保存之前和之后返回不同的值，但在Python中禁止更改实例的`__hash__()`值。 |
+| `get_absolute_url()`            | 定义一个`get_absolute_url()`方法来告诉Django如何计算一个对象的规范URL。 对于调用者来说，这个方法似乎应该返回一个可以用来通过HTTP引用对象的字符串。 |
+| `get_FOO_display()`             | 对于设置了`choice`的每个字段，对象都有一个`get_FOO_display()`方法，其中`FOO`是该字段的名称。 该方法返回该字段的“人类可读”值 |
+| `get_next_by_FOO(**kwargs)`     | 对于没有null = True的每个DateField和DateTimeField，该对象将具有get_next_by_FOO（）和get_previous_by_FOO（）方法+... |
+| `get_previous_by_FOO(**kwargs)` | ...+其中FOO是字段的名称。这将返回与日期字段相关的下一个和上一个对象，并在适当时引发DoesNotExist异常。 |
+
+- str
+
+```python
+# __str__
+from django.db import models
+
+class Person(models.Model):
+    first_name = models.CharField(max_length=50)
+    last_name = models.CharField(max_length=50)
+
+    def __str__(self):
+        return '%s %s' % (self.first_name, self.last_name)
+```
+
+- eq
+
+```python
+# __eq__
+from django.db import models
+
+class MyModel(models.Model):
+    id = models.AutoField(primary_key=True)
+
+class MyProxyModel(MyModel):
+    class Meta:
+        proxy = True
+
+class MultitableInherited(MyModel):
+    pass
+
+# Primary keys compared
+MyModel(id=1) == MyModel(id=1)
+MyModel(id=1) != MyModel(id=2)
+# Primay keys are None
+MyModel(id=None) != MyModel(id=None)
+# Same instance
+instance = MyModel(id=None)
+instance == instance
+# Proxy model
+MyModel(id=1) == MyProxyModel(id=1)
+# Multi-table inheritance
+MyModel(id=1) != MultitableInherited(id=1)
+```
+
+- Get_absolute_url
+
+```
+# get_absolute_url
+def get_absolute_url(self):
+    return "/people/%i/" % self.id
+  
+def get_absolute_url(self):
+    from django.urls import reverse
+    return reverse('people.views.details', args=[str(self.id)])
+```
+
+- Get_FOO_display
+
+```
+from django.db import models
+
+class Person(models.Model):
+    SHIRT_SIZES = (
+        ('S', 'Small'),
+        ('M', 'Medium'),
+        ('L', 'Large'),
+    )
+    name = models.CharField(max_length=60)
+    shirt_size = models.CharField(max_length=2, choices=SHIRT_SIZES)
+    
+# 使用
+>>> p = Person(name="Fred Flintstone", shirt_size="L")
+>>> p.save()
+>>> p.shirt_size
+'L'
+>>> p.get_shirt_size_display()
+'Large'
+```
+
+## 关联管理器
+
+`relateManager`时在一对多或多对多的关联上下文中使用的管理器，存在如下两种
+
+```python
+# 1. ForeignKey关系的另一边
+from django.db import models
+class Reporter(models.Model):
+    # ...
+    pass
+class Article(models.Model):
+    reporter = models.ForeignKey(Reporter, on_delete=models.CASCADE)
+# 管理器可以使用reporter.article_set方法
+
+# 2. ManyToManyField关系的两边
+class Topping(models.Model):
+    # ...
+    pass
+class Pizza(models.Model):
+    toppings = models.ManyToManyField(Topping)
+# 管理器将会拥有topping.pizza_set 和pizza.toppings两个方法
+```
+
+- 方法
+
+| name     | Desc                                                         |
+| -------- | ------------------------------------------------------------ |
+| `add`    | 把指定的模型对象添加到关联对象集中                           |
+| `create` | 创建一个新的对象，保存对象，并将它添加到关联对象集之中。返回新创建的对象 |
+| `remove` | 从关联对象集中移除执行的模型对象                             |
+| `clear`  | 从关联对象集中移除一切对象                                   |
+| `set`    | 更新model对象的关联对象                                      |
+
+注意对于所有类型的关联字段，`add()`、`create()`、`remove()`、`clear()`和`set`都会马上更新数据库。换句话说，在关联的任何一端，都不需要再调用`save()`方法。
+
+如果你再多对多关系中使用了*中间模型*，`add,create,remove,set`方法会被禁用。
+
+如果使用了`prefetch_related()`，`add,remove,clear,set`方法会清除预取缓存。
+
+add
+
+```python
+add(obj1[,obj2,...])
+# 把指定的模型对象添加到关联对象集中
+>>> b = Blog.objects.get(id=1)
+>>> e = Entry.objects.get(id=234)
+>>> b.entry_set.add(e) # Associates Entry e with Blog b.
+
+# 对于ForeignKey关系，e.save()由关联管理器调用，执行更新操作。然而，在多对多关系中使用add()并不会调用任何 save()方法，而是由QuerySet.bulk_create()创建关系。如果你需要在关系被创建时执行一些自定义的逻辑，请监听m2m_changed信号。
+```
+
+create
+
+```python
+create(**kwargs)
+# 创建一个新的对象，保存对象，并将它添加到关联对象集之中。返回新创建的对象
+# 要注意我们并不需要指定模型中用于定义关系的关键词参数。在上面的例子中，我们并没有传入blog参数给create()。Django会明白新的 Entry对象blog 数据字段应该被设置为b。
+>>> b = Blog.objects.get(id=1)
+>>> e = b.entry_set.create(
+...     headline='Hello',
+...     body_text='Hi',
+...     pub_date=datetime.date(2005, 1, 1)
+... )
+
+# No need to call e.save() at this point -- it's already been saved.
+
+# 等价于
+>>> b = Blog.objects.get(id=1)
+>>> e = Entry(
+...     blog=b,
+...     headline='Hello',
+...     body_text='Hi',
+...     pub_date=datetime.date(2005, 1, 1)
+... )
+>>> e.save(force_insert=True)
+```
+
+remove
+
+```python
+remove(obj1[,obj2,...])
+# 从关联对象集中移除执行的模型对象
+>>> b = Blog.objects.get(id=1)
+>>> e = Entry.objects.get(id=234)
+>>> b.entry_set.remove(e) # Disassociates Entry e from Blog b.
+
+# 和add()相似，上面的例子中，e.save()会执行更新操作。但是，多对多关系上的remove()，会使用QuerySet.delete()删除关系，意思是并不会有任何模型调用save()方法：如果你想在一个关系被删除时执行自定义的代码，请监听m2m_changed信号。
+
+# 对于ForeignKey对象，这个方法仅在null=True时存在。如果关联的字段不能设置为None (NULL)，则这个对象在添加到另一个关联之前不能移除关联。在上面的例子中，从b.entry_set()移除e等价于让e.blog = None，由于blog的ForeignKey没有设置null=True，这个操作是无效的。
+# 对于ForeignKey对象，该方法接受一个bulk参数来控制它如何执行操作。如果为True（默认值），QuerySet.update()会被使用。而如果bulk=False，会在每个单独的模型实例上调用save()方法。这会触发pre_save和post_save，它们会消耗一定的性能。
+```
+
+clear
+
+```shell
+clear()
+# 从关联对象集中移除一切对象
+>>> b = Blog.objects.get(id=1)
+>>> b.entry_set.clear()
+
+# 注意这样不会删除对象 —— 只会删除他们之间的关联。
+
+# 就像 remove() 方法一样，clear()只能在 null=True的ForeignKey上被调用，也可以接受bulk关键词参数。
+```
+
+set
+
+```shell
+set(objs, bulk=True, clear=False)
+# 更新model对象的关联对象
+>>> new_list = [obj1, obj2, obj3]
+>>> e.related_set.set(new_list)
+
+# clear参数来控制如何执行操作。如果为False（默认值），则使用remove()删除新集中缺少的元素，并仅添加新的元素。如果clear = True，则调用clear()方法，并立即添加整个集合。
+# bulk参数传递给add（）。
+# 请注意，由于set()是复合操作，因此它受竞争条件的限制。例如，可以在对clear（）的调用和对add（）的调用之间向数据库添加新对象。
+```
+
+通过赋值一个新的可迭代的对象，关联对象集可以被整体替换掉。
+
+```
+>>> new_list = [obj1, obj2, obj3]
+>>> e.related_set = new_list
+```
+
+如果外键关系满足`null=True`，关联管理器会在添加`new_list`中的内容之前，首先调用`clear()`方法来解除关联集中一切已存在对象的关联。否则， `new_list`中的对象会在已存在的关联的基础上被添加。
+
+### 

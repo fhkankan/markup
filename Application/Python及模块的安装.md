@@ -217,6 +217,8 @@ sudo pip3 install ipython
 
 ## virtualenv-虚环境
 
+依赖系统python环境，基于固定系统文件夹创建python环境
+
 安装
 
 ```
@@ -357,7 +359,122 @@ mkvirtualenv --python=c:\python36\python.exe 虚拟环境名
 删除虚拟环境----rmvirtualenv 文件名
 ```
 
+## pipenv
+
+依赖系统中python环境，基于项目文件夹创建python环境
+
+集成pip与virtualenv，替代virtualenv和pyenv
+
+> 安装
+
+将pipenv安装在用户主目录下
+
+```
+pip install pipenv --user [username]
+```
+
+> 创建虚环境
+
+```
+cd projectPath
+
+pipenv --two		# 使用系统中的python2创建虚环境
+pipenv --three		# 使用系统中的python3创建虚环境
+pipenv --python3.6	# 创建特定版本的虚环境
+pipenv install		# 若是项目中无配置文件，创建一个默认虚环境
+```
+
+pipenv install 是安装已经提供的包并将它们加入到Pipfile中，同时创建了项目的虚拟环境
+
+Pipfile是python包依赖文件，列出了项目中所有包的依赖，这是pipenv相当大的创新，对应的是Pipfile.lock文件，两者构成虚拟环境的管理工作。
+
+pipenv install的时候有三种逻辑：
+
+- 如果目录下没有Pipfile和Pipfile.lock文件，表示创建一个新的虚拟环境；
+- 如果有，表示使用已有的Pipfile和Pipfile.lock文件中的配置创建一个虚拟环境；
+
+- 如果后面带诸如django这一类库名，表示为当前虚拟环境安装第三方库。
+
+> 激活虚环境
+
+```
+pipenv shell
+```
+
+> 退出虚环境
+
+```
+exit
+```
+
+> 安装卸载第三方库
+
+```
+cd projectPath
+pipenv install django	# 安装第三方最新库
+pipenv install django==2.0.5	# 安装特定版本第三方库
+pipenv uninstall django	# 卸载第三方库
+```
+
+> 开发环境管理 
+
+Pipenv使用--dev标志区分两个环境(开发和生产)，实现在同一个虚环境中管理两种开发环境
+
+```
+pipenv install --dev django
+```
+
+项目克隆其他位置后，可使用如下命令分别安装相关依赖
+
+```
+pipenv install		# 安装生产环境依赖
+pipenv install --dev	# 安装开发环境依赖
+```
+
+> pipenv虚拟环境运行python命令
+
+```
+pipenv run python your_script.py
+```
+
+> 其他命令
+
+```
+$ pipenv
+Usage: pipenv [OPTIONS] COMMAND [ARGS]...
+
+Options:
+  --update         更新Pipenv & pip
+  --where          显示项目文件所在路径
+  --venv           显示虚拟环境实际文件所在路径
+  --py             显示虚拟环境Python解释器所在路径
+  --envs           显示虚拟环境的选项变量
+  --rm             删除虚拟环境
+  --bare           最小化输出
+  --completion     完整输出
+  --man            显示帮助页面
+  --three / --two  使用Python 3/2创建虚拟环境（注意本机已安装的Python版本）
+  --python TEXT    指定某个Python版本作为虚拟环境的安装源
+  --site-packages  附带安装原Python解释器中的第三方库
+  --jumbotron      不知道啥玩意....
+  --version        版本信息
+  -h, --help       帮助信息
+  
+Commands:
+  check      检查安全漏洞
+  graph      显示当前依赖关系图信息
+  install    安装虚拟环境或者第三方库
+  lock       锁定并生成Pipfile.lock文件
+  open       在编辑器中查看一个库
+  run        在虚拟环境中运行命令
+  shell      进入虚拟环境
+  uninstall  卸载一个库
+  update     卸载当前所有的包，并安装它们的最新版本
+```
+
 ## pyenv
+
+在系统中安装多版本python环境
 
 > mac
 
@@ -491,117 +608,6 @@ pyenv virtualenv-delete env364
 # 启动自动激活 -> pyenv activate env364
 pyenv local env364
 pyenv uninstall env364 # 删除 env364 这个虚拟环境
-```
-
-## pipenv
-
-集成pip与virtualenv，替代virtualenv和pyenv
-
-> 安装
-
-将pipenv安装在用户主目录下
-
-```
-pip install pipenv --user [username]
-```
-
-> 创建虚环境
-
-```
-cd projectPath
-
-pipenv --two		# 使用系统中的python2创建虚环境
-pipenv --three		# 使用系统中的python3创建虚环境
-pipenv --python3.6	# 创建特定版本的虚环境
-pipenv install		# 若是项目中无配置文件，创建一个默认虚环境
-```
-
-pipenv install 是安装已经提供的包并将它们加入到Pipfile中，同时创建了项目的虚拟环境
-
-Pipfile是python包依赖文件，列出了项目中所有包的依赖，这是pipenv相当大的创新，对应的是Pipfile.lock文件，两者构成虚拟环境的管理工作。
-
-pipenv install的时候有三种逻辑：
-
-- 如果目录下没有Pipfile和Pipfile.lock文件，表示创建一个新的虚拟环境；
-- 如果有，表示使用已有的Pipfile和Pipfile.lock文件中的配置创建一个虚拟环境；
-
-- 如果后面带诸如django这一类库名，表示为当前虚拟环境安装第三方库。
-
-> 激活虚环境
-
-```
-pipenv shell
-```
-
-> 退出虚环境
-
-```
-exit
-```
-
-> 安装卸载第三方库
-
-```
-cd projectPath
-pipenv install django	# 安装第三方最新库
-pipenv install django==2.0.5	# 安装特定版本第三方库
-pipenv uninstall django	# 卸载第三方库
-```
-
-> 开发环境管理 
-
-Pipenv使用--dev标志区分两个环境(开发和生产)，实现在同一个虚环境中管理两种开发环境
-
-```
-pipenv install --dev django
-```
-
-项目克隆其他位置后，可使用如下命令分别安装相关依赖
-
-```
-pipenv install		# 安装生产环境依赖
-pipenv install --dev	# 安装开发环境依赖
-```
-
-> pipenv虚拟环境运行python命令
-
-```
-pipenv run python your_script.py
-```
-
-> 其他命令
-
-```
-$ pipenv
-Usage: pipenv [OPTIONS] COMMAND [ARGS]...
-
-Options:
-  --update         更新Pipenv & pip
-  --where          显示项目文件所在路径
-  --venv           显示虚拟环境实际文件所在路径
-  --py             显示虚拟环境Python解释器所在路径
-  --envs           显示虚拟环境的选项变量
-  --rm             删除虚拟环境
-  --bare           最小化输出
-  --completion     完整输出
-  --man            显示帮助页面
-  --three / --two  使用Python 3/2创建虚拟环境（注意本机已安装的Python版本）
-  --python TEXT    指定某个Python版本作为虚拟环境的安装源
-  --site-packages  附带安装原Python解释器中的第三方库
-  --jumbotron      不知道啥玩意....
-  --version        版本信息
-  -h, --help       帮助信息
-  
-Commands:
-  check      检查安全漏洞
-  graph      显示当前依赖关系图信息
-  install    安装虚拟环境或者第三方库
-  lock       锁定并生成Pipfile.lock文件
-  open       在编辑器中查看一个库
-  run        在虚拟环境中运行命令
-  shell      进入虚拟环境
-  uninstall  卸载一个库
-  update     卸载当前所有的包，并安装它们的最新版本
 ```
 
 ## Django--web框架
@@ -740,6 +746,22 @@ Get it from http://aka.ms/vcpython27
 
 2.在cmd下跳转到下载MySQL_python-1.2.5-cp27-none-win_amd64.whl的目录下,然后在命令行执行pip install MySQL_python-1.2.5-cp27-none-win_amd64.whl
 ```
+
+## jupyter
+
+安装
+
+```
+pip install jupyter
+```
+
+使用
+
+```
+$jupyter notebook
+```
+
+
 
 # Anaconda
 
