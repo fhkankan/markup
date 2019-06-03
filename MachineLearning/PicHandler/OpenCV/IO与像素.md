@@ -40,8 +40,14 @@ cv.imshow(name, img)
 - 保存
 
 ```python
-cv.iwrite(path, img,)
-# 将图像img写入到硬盘的path路径中
+cv.iwrite(path, img, [type, value])
+# 将图像img以一定的形式写入到硬盘的path路径中
+# 参数
+path  路径
+img		data
+type	形式
+			cv2.IMWRITE_JPEG_QUALITY  图像质量 有损压缩0～100
+  		cv2.IMWRITE_PNG_COMPRESSION  压缩比 jpg0～100，png0~9
 ```
 -  暂停
 ```python
@@ -173,13 +179,13 @@ def access_pixels(image):
             for c in range(channels):
                 pv = image[row, col, c]
                 image[row, col, c] = 255 - pv
-    cv.imshow("pixels_demo", image
+    cv.imshow("pixels_demo", image)
               
 # 方法二：
 def inverse(image):
     """像素取反内部api，速度快"""
     dst = cv.bitwise_not(image)
-    cv.imshow("inverse demo", dst
+    cv.imshow("inverse demo", dst)
 ```
 
 创建图像
@@ -344,51 +350,3 @@ cv2.imshow("Green", g)
 cv2.waitKey(0)
 ```
 
-## 图像操作
-
-### 剪切
-
-```python
-import numpy as np
-import cv2 as cv
-
-img = cv.imread("players.png")
-roi = img[0:375, 240:480] // 左上角为原点，0:375表示图像竖直方向(ndarray的行)0到375，240:480表示图像水平方向(ndarry的列)从240到480
-cv.imshow("roi", roi)
-```
-
-### 缩放
-
-```python
-size = img_gray.shape
-temping = cv.resize(img_gray,((int)(size[1]*0.1),(int)(size[0]*0.5)),interpolation=cv.INTER_LINEAR)
-# 等同上述一行代码
-temping = cv.resize(img_gray,None, fx=0.5, fy=0.5, interpolation=cv.INTER_LINEAR)
-cv.imshow('img_gray2',temping)
-```
-
-### 平移
-
-```python
-rows,cols = img_gray.shape
-
-M = np.float32([[1,0,100],[0,1,50]])
-dst = cv.warpAffine(img,M,(cols,rows))
-
-cv.imshow('img_gray3',dst)
-cv.waitKey(0)
-cv.destroyAllWindows()
-```
-
-### 旋转
-
-```python
-rows,cols = img_gray.shape
-
-M = cv.getRotationMatrix2D((cols/2,rows/2),90,1)
-dst = cv.warpAffine(img,M,(cols,rows))
-
-cv.imshow('img_gray4',dst)
-```
-
-## 

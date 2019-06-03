@@ -411,16 +411,41 @@ git pull
 
 ## 忽略特殊文件
 
-[https://git-scm.com/book/zh/v2](https://git-scm.com/book/zh/v2)
+- 概述
 
-- 某些文件需要放到Git工作目录中，但又不能提交它们，比如保存了数据库密码的配置文件等。
-- 每次git status都会显示 “Untracked files ...”
-- 以下文件应该忽略：
+某些文件需要放到Git工作目录中，但又不能提交它们，以下文件应该忽略：
 
-  - 操作系统自动生成的文件，比如缩略图Thumbs.db等
-  - 忽略编译生成的中间文件、可执行文件等，比如Java编译产生的.class文件
-  - 有敏感信息的配置文件，比如存放口令的配置文件
-- 不需要从头写.gitignore文件，GitHub已经为我们准备了各种配置文件，只需要组合一下就可以使用了。所有配置文件可以直接在线浏览：[https://github.com/github/gitignore](https://github.com/github/gitignore)：
+```
+- 操作系统自动生成的文件，比如缩略图Thumbs.db等
+- 忽略编译生成的中间文件、可执行文件等，比如Java编译产生的.class文件
+- 有敏感信息的配置文件，比如存放口令的配置文件
+```
+
+不需要从头写.gitignore文件，GitHub已经为我们准备了各种配置文件，只需要组合一下就可以使用了。所有配置文件可以直接在线浏览：[https://github.com/github/gitignore](https://github.com/github/gitignore)：
+
+- 忽略规则：
+
+在git中如果想忽略掉某个文件，不让这个文件提交到版本库中，可以使用修改根目录中 .gitignore 文件的方法（如果没有这个文件，则需自己手工建立此文件）。这个文件每一行保存了一个匹配的规则例如：
+
+```
+# 此为注释 – 将被 Git 忽略
+*.sample 　　 # 忽略所有 .sample 结尾的文件
+!lib.sample 　　 # 但 lib.sample 除外
+/TODO 　　 # 仅仅忽略项目根目录下的 TODO 文件，不包括 subdir/TODO
+build/ 　　 # 忽略 build/ 目录下的所有文件
+doc/*.txt 　　# 会忽略 doc/notes.txt 但不包括 doc/server/arch.txt
+```
+
+- 规则不生效的解决办法
+
+把某些目录或文件加入忽略规则，按照上述方法定义后发现并未生效，原因是.gitignore只能忽略那些原来没有被追踪的文件，如果某些文件已经被纳入了版本管理中，则修改.gitignore是无效的。那么解决方法就是先把本地缓存删除（改变成未被追踪状态），然后再提交：
+
+```
+git rm -r --cached .
+git add .
+git commit -m 'update .gitignore'
+```
+
 - 示例： `.gitignore`文件
 
 ```
@@ -538,19 +563,6 @@ venv.bak/
 # mac
 .DS_Store
 ```
-- 操作
-
-```shell
-git init  # 初次提交
-git add . # 全部添加
-cd git工作区根目录  # 进入到git根目录下
-touch .gitignore  # 创建.fitignore文件  
-vim .gitignore  # 编辑.gitignore文件，写入忽略的文件类型
-git reset .  # 若添加了不需要的类型文件，需重置文件状态
-git add .gitignore  # 添加入库文件
-git commit -m '标签' # 添加至本地仓库
-```
-
 # 命令行操作
 
 ## 设置
