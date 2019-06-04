@@ -45,12 +45,20 @@ def numpy_mult(n):
 %timeit numpy_multi(10000)
 ```
 
+帮助
+
+```python
+np.random?
+
+help(np.random)
+```
+
 ## ndarry创建
 
 NumPy数组是一个多维的数组对象（矩阵），称为ndarray。数组的元素一般是同质的，但可以有异质数组元素存在(即结构数组)
 注意：ndarray的下标从0开始
 
-### 常见函数
+常见函数
 
 | 函数                             | 说明                                                         |
 | -------------------------------- | ------------------------------------------------------------ |
@@ -88,6 +96,16 @@ np.random.seed(666)
 np.random.randint(4, 8, size=(3, 5))
 ```
 
+示例
+
+```python
+np.random.randint(4, 8, size=10)
+np.random.random((3, 4))
+np.random.normal(0,1, (3,4))
+```
+
+
+
 ### 序列创建
 
 | 函数                                 | 参数                                                         | 说明                                                         |
@@ -100,6 +118,20 @@ np.random.randint(4, 8, size=(3, 5))
 | `np.linspace(star, end, n)`          | 指定区间[star, end]，个数n                                   | 在star和end之间等量截取n个数据形成ndarray数组                |
 | `ndarry.reshape()`                   | 总大小不变，指定新数组的维度大小                             | 重新调整数组的维度                                           |
 | `np.random.shuffle(ndarry)`          | 参数为数组                                                   | 打乱数组序列（随机重新排列）                                 |
+
+示例
+
+```python
+np.ones((3, 5))
+np.zeros((3,5))
+np.zeros((3, 5), dtype=int)
+np.full((3, 5), 12)
+np.arange(0, 20, 2)
+np.arange(0, 1, 0.2)
+np.linspace(0, 20, 10)
+```
+
+
 
 ## 向量
 
