@@ -456,7 +456,7 @@ akima
 
 ### 处理重复值
 
-```
+```python
 # 判断某列中是否有重复数据,返回bool类型的series/dataframe
 df_obj.duplacited('column_label')
 
@@ -466,7 +466,7 @@ df_obj.drop_duplicates('column_label')
 
 ### 进行替换值
 
-```
+```python
 # Series
 # 1.单值替换：将所有的参数1的值替换为参数2的值
 print(ser_obj.replace(1, 100))
@@ -679,7 +679,7 @@ pandas提供了如下函数对pandas的数据对象进行合并
 
 - np.concatenate
 
-```
+```python
 import numpy as np
 import pandas as pd
 arr1 = np.random.randint(0, 10, (3, 4))

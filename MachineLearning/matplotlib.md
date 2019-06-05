@@ -16,8 +16,9 @@ Matplotlib 是一个 Python 的 2D绘图库，通过 Matplotlib，开发者可�
 
 > 引用
 
-```
-import matplotlib.pyplot as plt
+```python
+import matplotlib as mpl  # 绘制复杂图形
+import matplotlib.pyplot as plt  # 绘制简单图形
 ```
 
 > 交互模式下测试
@@ -107,7 +108,44 @@ plt.show()
 
 ### 线型图
 
-`plt.plot()`
+```python
+plt.plot(arr1, color="r", marker="o", linestyle="--", markerfacecolor="yellow", markersize=10, alpha=0.4, label="苹果")
+
+# 参数
+arr1						特征数据
+color						线条颜色
+marker					标记
+linestyle				线型
+markerfacecolor	标记的颜色
+markersize			标记大小
+alpha						透明度
+label						标签（通过legend()显示）
+```
+
+画布属性
+
+```python
+# 坐标的范围
+plt.xlim(-5, 15)  # x轴坐标的范围
+plt.ylim(-1, 1)  # y轴坐标的范围
+plt.axis([-5, 15, -1, 1])  # x,y轴坐标的范围
+# 标签：表示x轴和y轴的名称
+plt.xlabel("月份", fontsize=15)
+plt.ylabel("销售额/万", fontsize=15)
+# 题目
+plt.title("2017年水果销售额汇总", fontsize=20)
+# 图示
+plt.plot(arr1, "ro-",  label="苹果")
+plt.legend()
+# 刻度
+plt.xticks(
+    [0,1,2,3,4,5,6,7,8,9,10,11],
+    ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"]
+)
+plt.yticks([],[])
+```
+
+示例
 
 ```python
 # 指定为黑体中文字体
@@ -129,16 +167,12 @@ arr2 = np.random.randint(30, 50, 12)
 # 梨子 今年每个月的销售额
 arr3 = np.random.randint(50, 60, 12)
 
-# 绘制线型图以及相关的属性
-#                颜色       标记         线型           标记的颜色                标记大小       透明度     标签（通过legend()显示）
-# plt.plot(arr1, color="r", marker="o", linestyle="--", markerfacecolor="yellow", markersize=10, alpha=0.4, label="苹果")  # label 表示每个线的标签，通过legend() 图例显示出来
 # 颜色、标记、线型 可以简写
 plt.plot(arr1, "ro-", markerfacecolor="yellow", markersize=5, alpha=0.4, label="苹果")  # label 表示每个线的标签，通过legend() 图例显示出来
 plt.plot(arr2, "ko-", markerfacecolor="yellow", markersize=5, alpha=0.4, label="香蕉") 
 plt.plot(arr3, "go-", markerfacecolor="yellow", markersize=5, alpha=0.4, label="梨子") 
 
 # 添加画布图像的属性和参数(所有绘图图形共享)
-
 # 1.标题
 plt.title("2017年水果销售额汇总", fontsize=20)
 # 2.刻度：在指定客堵上绘制文字
@@ -222,7 +256,17 @@ plt.show()
 
 ### 散点图
 
-`plt.scatter()`
+```python
+plt.scatter(x_data, y_data, c="r", alpha=0.4, s=100)
+# 参数
+x_data		特征数据1
+y_data		特征数据2
+c					颜色	
+alpha			透明度
+s 				散点大小
+```
+
+示例
 
 ```python
 x_data = np.arange(100)
@@ -230,7 +274,7 @@ x_data = np.arange(100)
 y_data = x_data * np.random.randn(100)
 plt.figure(figsize=(8, 6), dpi=100)
 # 两组数据分别表示x轴和y轴的值，元素个数必须相同
-# s表示每个三点的大小
+# s表示每个散点的大小
 plt.scatter(x_data, y_data, c="r", alpha=0.4, s=100)
 plt.show()
 ```
@@ -613,7 +657,7 @@ setp(line, 'linewidth', 1.5)
 
 可以使用`matplotlib.pyplot.locator_params()`控制刻度定位器的行为。尽管刻度位置通常会自动被确定下来，还是可以控制刻度的数目、在plot比较小时使用一个紧凑视图(tight view)
 
-```
+```python
 from pylab import *
 
 # get current axis
@@ -645,7 +689,7 @@ matplotlib用浮点值表示日期，其值从0001-01-01 UTC起的天数加1。0
 
 示例
 
-```
+```python
 from pylab import *
 import matplotlib as mpl
 import datetime
@@ -688,7 +732,7 @@ show()
 
 > 图例与注解
 
-```
+```python
 from matplotlib.pyplot import *
 
 # generate different normal distributions
@@ -726,7 +770,7 @@ show()
 
 
 
-```
+```python
 import matplotlib.pyplot as plt
 import numpy as np
 
