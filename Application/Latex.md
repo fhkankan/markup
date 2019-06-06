@@ -121,6 +121,10 @@ LaTeX 的数学模式有两种：行内模式 (inline) 和行间模式 (display)
 > 无编号的行间公式也可以使用 `\begin{displaymath} ... \end{displaymath}` 或者 `\begin{equation*} ... \end{equation*}` 来插入，但略显麻烦。（`equation*` 中的 `*` 表示环境不编号）
 > 也有 plainTeX 风格的 `$$ ... $$` 来插入不编号的行间公式。但是在 LaTeX 中这样做会改变行文的默认行间距，不推荐。
 
+### 上下标
+
+
+
 
 
 ## 图片
