@@ -195,7 +195,7 @@ from sklearn.metrics import r2_score
 
 ## 网格搜索
 
-[API]()
+[API](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html#sklearn.model_selection.GridSearchCV)
 
 - 交叉验证
 
