@@ -159,7 +159,7 @@ print(result.shape)
 
 ## 算法评价
 
-- KNN
+### 分类
 
 准确度
 
@@ -167,7 +167,57 @@ print(result.shape)
 from sklearn.metrics import accuracy_score
 ```
 
-- 线性回归
+混淆矩阵
+
+```python
+from sklearn.metrics import confusion_matrix
+
+confusion_matrix(y_test, y_predict)
+```
+
+精准率
+
+```python
+from sklearn.metrics import precision_score
+
+precision_score(y_test, y_predict)
+```
+
+召回率
+
+```python
+from sklearn.metics import recall_score
+
+recall_score(y_test, y_predict)
+```
+
+F1 Score
+
+```python
+from sklearn.metics import f1_score
+
+f1_score(y_test, y_predict)
+```
+
+precision-recall曲线
+
+```python
+from sklearn.metrics import precision_recall_curve
+
+precisions, recalls, thresholds = precision_recall_curve(y_test, decision_scores)
+```
+
+ROC曲线
+
+```python
+from sklearn.metrics import roc_curve
+from sklearn.metrics import roc_auc_score
+
+fprs, tprs, thresholds = roc_curve(Y_test, decision_scores)
+roc_auc_score(y_test, decision_scores)
+```
+
+### 回归
 
 均方误差
 

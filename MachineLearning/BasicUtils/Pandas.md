@@ -14,10 +14,16 @@ Pandas是一个强大的分析结构化数据的工具集，基于NumPy构建，
 
 <http://pandas.pydata.org>
 
-> 引用
+引用
 
 ```python
 import pandas as pd
+```
+
+帮助
+
+```python
+help(pandas.read_csv)
 ```
 
 ## 数据结构
@@ -117,9 +123,9 @@ df_pbj2 = pd.DataFrame(arr, index= ['A', 'B', 'C'], columns=['a', 'b', 'c', 'd']
 df_obj.info()
 
 # 查看数据的前n行(默认5行)
-df_obj.head()
+df_obj.head(n)
 # 查看数据的后n行
-df_obj.tail()
+df_obj.tail(n)
 
 # 查看实例的值
 df_obj.values
@@ -132,8 +138,9 @@ df_obj.columns
 # 通过索引获取列数据
 df_obj[col_idx]
 df_obj.col_idx
-
 ```
+
+## 文件读写
 
 - 文件导入
 
@@ -179,11 +186,19 @@ jddf = pd.read_csv(
 | `to_sql`       | 输出为sql格式            |
 | `to_clipboard` | 输出到剪贴板中           |
 
+示例
+
+```python
+
+```
+
 ## 索引操作
 
 ### 查看数据
 
-- Series
+- 直接索引
+
+Series
 
 ```python
 # 指定行索引名
@@ -211,7 +226,7 @@ ser_obj1[(ser_obj1 > 10) & (ser_obj1 < 14)]
 ser_obj1[~(ser_obj1 == 12)]
 ```
 
-- DataFrame
+DataFrame
 
 ```python
 # DataFrame对象本身也支持一些索引取值操作，但是通常情况下，会使用规范良好的高级索引方法。
@@ -242,7 +257,7 @@ df_obj[df_obj["column_label] >= 2]
 有3种：标签索引 loc、位置索引 iloc，混合索引ix
 Series结构简单，一般不需要高级索引取值，主要用于DataFrame对象
 
-loc
+> loc
 
 ```python
 # Series
@@ -277,7 +292,7 @@ print(df_obj.loc[df_obj["a"] > -1])
 print(df_obj.loc[df_obj["a"] > -1, ["b", "d"]])
 ```
 
-iloc
+> iloc
 
 作用和loc一样，不过是基于索引编号来索引
 
@@ -293,7 +308,7 @@ print(df_obj.iloc[0:2, 1:3])
 print(df_obj.iloc[[0, 2], [0, 3]])
 ```
 
-ix
+> ix
 
 ix是以上二者的综合，既可以使用索引编号，又可以使用自定义索引，但是如果索引既有数字又有英文，容易导致定位的混乱。目前官方已不推荐使用
 
@@ -348,13 +363,31 @@ df_obj.rename(
 )
 ```
 
-## 算数运算与数据对齐
+## 算术运算
 
 Pandas可以对不同索引的对象进行算术运算(add, sub,div,mul等)，如果存在不同的索引，结果的索引就是所有索引的并集。
 
 如果索引相同，按索引对齐进行运算。如果没对齐的位置则补NaN；但是可以通过指定数据填充缺失值，再参与对齐运算。
 
-- Series
+- +/-/*//
+
+```python
+ser_obj1 = pd.Series(range(10, 15), index=list("ABCDE"))
+ser_obj2 = pd.Series(range(10, 15), index=list("CDEFG"))
+
+ser_obj1 + 5
+ser_obj1 - 5
+ser_obj1 * 5
+ser_obj1 / 5
+ser_obj1 + ser_obj2
+ser_obj1 - ser_obj2
+ser_obj1 * ser_obj2
+ser_obj1 / ser_obj2
+```
+
+- add/sub/div/mul
+
+Series
 
 ```python
 #  Series 按行、索引对齐
@@ -366,7 +399,7 @@ ser_obj3 = ser_obj1.add(ser_obj2)
 ser_obj4 = ser_obj1.add(ser_obj2, fill_value=100)
 ```
 
-- DataFrame
+DataFrame
 
 ```python
 df_obj1 = pd.DataFrame(np.random.randint(-5, 10, (3, 4)), index=list("ABC"), columns=list("abcd"))
@@ -375,10 +408,53 @@ df_obj3 = df_obj1.add(df_obj2)
 df_obj4 = df_obj1.add(df_obj2, fill_value=100)
 ```
 
+## 统计计算
+
+```python
+# 常用的统计计算
+# axis=0 按列统计，axis=1按行统计
+# skipna默认为True，表示计算时排除NaN值
+df_obj.sum(df_obj)
+df_obj.mean(skipna=False)
+df_obj.max(skipna=False)
+df_obj.min(skipna=False)
+
+# 常用的统计描述
+df_obj.describe()
+
+# 特征间关系
+df_obj.pivot_table(index="Pclass", values="Survived", aggfunc=np.mean)
+```
+
+| 方法          | 说明                                         |
+| ------------- | -------------------------------------------- |
+| count         | 非NA值得数量                                 |
+| describe      | 针对Series或各DataFrame列计算汇总统计        |
+| min,max       | 计算最小值和最大值                           |
+| argmin,argmax | 计算能够获取到最小值和最大值的索引位置(整数) |
+| idxmin,idxmax | 计算能够获取到最小值和最大值的索引值         |
+| quantile      | 计算样本的分位数(0到1)                       |
+| sum           | 值的总和                                     |
+| mean          | 值的平均数                                   |
+| median        | 值的算数中位数                               |
+| mad           | 根据平均值计算平均绝对离差                   |
+| var           | 样本值的方差                                 |
+| std           | 样本值的标准差                               |
+| skew          | 样本值的偏度(三阶矩)                         |
+| kurt          | 样本值的峰度(四阶矩)                         |
+| cumsum        | 样本值的累计和                               |
+| cummin/cummax | 样本值的累计最大值和累计最小值               |
+| cumprod       | 样本值的累计积                               |
+| diff          | 计算一阶差分(对事件序列很有用)               |
+| pct_change    | 计算百分数变化                               |
+
+
+
 ## 数据清洗
 
-- 数据的质量直接关乎最后数据分析出来的结果，如果数据有错误，在计算和统计后，结果也会有误。所以在进行数据分析前，我们必须对数据进行清洗。需要考虑数据是否需要修改、如何修改调整才能适用于之后的计算和分析等。
-- 数据清洗也是一个迭代的过程，实际项目中可能需要不止一次地执行这些清洗操作。
+数据的质量直接关乎最后数据分析出来的结果，如果数据有错误，在计算和统计后，结果也会有误。所以在进行数据分析前，我们必须对数据进行清洗。需要考虑数据是否需要修改、如何修改调整才能适用于之后的计算和分析等。
+
+数据清洗也是一个迭代的过程，实际项目中可能需要不止一次地执行这些清洗操作。
 
 ### 处理缺失值
 
@@ -487,9 +563,9 @@ print(df_obj3.replace([6, 7], 1000))
 print(df_obj3.replace(6, 600))
 ```
 
-## 函数应用
+## 自定义函数
 
-### Numpy
+- Numpy
 
 numpy的ufunc也可以用于pandas对象，即可将函数应用到Series中的每一个元素
 
@@ -503,7 +579,7 @@ reversef = lambda x: -x
 reversef(def_obj)
 ```
 
-### apply
+- apply
 
 使用apply应用自定义函数到DataFrame的对象的每一行/每一列上
 
@@ -515,7 +591,7 @@ print(df.apply(lambda x : x.max()))
 print(df.apply(lambda x : x.max(), axis=1))
 ```
 
-### applymap
+- applymap
 
 通过applymap将函数应用到DataFrame的每个元素
 
@@ -527,22 +603,22 @@ print(df.applymap(lambda x : '%.2f' % x))
 
 ## 排序排名
 
-### 排序
+- 排序
 
 ```python
 # 按索引排序
 ser_obj.sort_index()
 # 默认为行索变动排序，排序规则为升序,
 # axis=0表示列变动，ascending=False表示降序
-print(df_obj.sort_index())
-
+df_obj.sort_index()
+ 
 # 按值排序
 # by参数指定需要排序的列名(数字、字符串)
 # 若有重名的列，不能参与排序
 df_obj.sort_values(by='column_name', ascending=False))
 ```
 
-### 排名
+- 排名
 
 排名即ranking，从1开始一直到数据中有效数据的数量为止，返回数据在排序中的位置
 
@@ -571,14 +647,16 @@ rrank.rank(method='max')
 
 ## 层级索引与数据重构
 
-### 索引对象
+索引对象
 
+```
 - Index，自定义索引
 - RangeIndex，序列索引
 - Int64Index，整数索引
 - MultiIndex，层级索引
+```
 
-### 层级索引
+- 层级索引
 
 ```python
 # 选层
@@ -606,7 +684,7 @@ ser_obj2 = ser_obj.swaplevel()
 print(ser_obj.swaplevel().sortlevel())
 ```
 
-### 数据重构
+- 数据重构
 
 ```python
 # unstack()
@@ -624,43 +702,6 @@ df_obj.stack()
 # 将行和列索引互相调换
 df_obj.T
 ```
-
-## 统计计算和描述
-
-```python
-# 常用的统计计算
-# axis=0 按列统计，axis=1按行统计
-# skipna默认为True，表示计算时排除NaN值
-df_obj.sum(df_obj)
-df_obj.mean(skipna=False)
-df_obj.max(skipna=False)
-df_obj.min(skipna=False)
-
-# 常用的统计描述
-df_obj.describe()
-```
-
-| 方法          | 说明                                         |
-| ------------- | -------------------------------------------- |
-| count         | 非NA值得数量                                 |
-| describe      | 针对Series或各DataFrame列计算汇总统计        |
-| min,max       | 计算最小值和最大值                           |
-| argmin,argmax | 计算能够获取到最小值和最大值的索引位置(整数) |
-| idxmin,idxmax | 计算能够获取到最小值和最大值的索引值         |
-| quantile      | 计算样本的分位数(0到1)                       |
-| sum           | 值的总和                                     |
-| mean          | 值的平均数                                   |
-| median        | 值的算数中位数                               |
-| mad           | 根据平均值计算平均绝对离差                   |
-| var           | 样本值的方差                                 |
-| std           | 样本值的标准差                               |
-| skew          | 样本值的偏度(三阶矩)                         |
-| kurt          | 样本值的峰度(四阶矩)                         |
-| cumsum        | 样本值的累计和                               |
-| cummin/cummax | 样本值的累计最大值和累计最小值               |
-| cumprod       | 样本值的累计积                               |
-| diff          | 计算一阶差分(对事件序列很有用)               |
-| pct_change    | 计算百分数变化                               |
 
 ## 数据合并
 
@@ -898,7 +939,7 @@ student_profile['Height_Group'] = pd.cut(student_profile.Height,
 
 ### 创建时间序列
 
-生成pandas中的时间序列，就是哟啊生成以时间序列为主要特征的索引。pandas提供了类Timestamp，类Period以及to_timestamp,to_datetime,date_range,period_range等方法来创建或将其他数据类型转换为时间序列
+生成pandas中的时间序列，就需要生成以时间序列为主要特征的索引。pandas提供了类Timestamp，类Period以及to_timestamp,to_datetime,date_range,period_range等方法来创建或将其他数据类型转换为时间序列
 
 ```python
 # 将当前时间转换为时间戳

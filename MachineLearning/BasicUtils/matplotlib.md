@@ -79,10 +79,20 @@ xticks/yicks：为x,y轴的主刻度和次刻度设置颜色、大小、方向�
 
 ## figure对象
 
-- 在Matplotlib中，整个图像为一个figure对象
-- Matplotlib 的图像均位于figure对象中
-- 创建figure：`fig = plt.figure()`
-- 如果不创建figure对象，matplotlib会自动创建一个figure对象。
+在Matplotlib中，整个图像为一个figure对象
+
+Matplotlib 的图像均位于figure对象中
+
+```python
+# 创建figure
+fig = plt.figure()
+# 参数
+figsize=(a,b),figure的大小，a表示width，b表示height
+
+#  如果不创建figure对象，matplotlib会自动创建一个figure对象。
+```
+
+示例
 
 ```python
 import numpy as np
@@ -104,6 +114,135 @@ plt.savefig("./test.png")
 plt.show()
 ```
 
+## 画布设置
+
+```python
+import matplotlib.pyplot as plt
+
+# 坐标的范围
+plt.xlim(-5, 15)  # x轴坐标的范围
+plt.ylim(-1, 1)  # y轴坐标的范围
+plt.axis([-5, 15, -1, 1])  # x,y轴坐标的范围
+
+# 标签：表示x轴和y轴的名称
+plt.xlabel("月份", fontsize=15)
+plt.ylabel("销售额/万", fontsize=15)
+
+# 题目
+plt.title("2017年水果销售额汇总", fontsize=20)
+
+# 图示
+plt.plot(arr1, "ro-",  label="苹果")
+plt.legend(loc="best")  # 在最合适的位置显示图例
+
+# 刻度
+plt.xticks(
+    [0,1,2,3,4,5,6,7,8,9,10,11],
+    ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"]
+)
+plt.yticks([],[])
+plt.xticks(rotation=45)  # 逆时针旋转45度
+```
+
+## 网格列表
+
+```python
+plt.subplots(rows,colums,num)
+# 返回新创建的figure和subplot对象数组
+```
+
+示例
+
+```python
+# 生成2行2列subplot
+fig, subplot_arr = plt.subplots(2,2)
+# bins 为显示个数，一般小于等于数值个数
+subplot_arr[1,0].hist(np.random.randn(100), bins=10, color='b', alpha=0.3)
+plt.show()
+```
+
+样例
+
+```python
+from matplotlib.pyplot import *
+
+# 样本数据
+x = [1,2,3,4]
+y = [5,4,3,2]
+# 创建画布
+figure()
+# 创建网格子图
+subplot(231)
+plot(x, y)
+
+subplot(232)
+bar(x, y)
+
+subplot(233)
+barh(x, y)
+
+subplot(234)
+bar(x, y)
+y1 = [7,8,5,3]
+bar(x, y1, bottom=y, color = 'r')
+
+subplot(235)
+boxplot(x)
+
+subplot(236)
+scatter(x,y)
+
+show()
+```
+
+## 分割子图
+
+subplot命令是将图片窗口划分成若干区域,按照一定顺序使得图形在每个小区域内呈现其图形。
+
+在figure对象中可以包含一个或者多个Axes对象。
+
+每个Axes(ax)对象都是一个拥有自己坐标系统的绘图区域
+
+plot 绘图的区域是最后一次指定subplot的位置 (jupyter notebook里不能正确显示)
+
+```python
+fig.add_subplot(a, b, c)
+
+# 参数
+a, b 表示将fig分割成 a * b 的区域
+c 表示当前选中要操作的区域，
+# 注意：从1开始编号（不是从0开始）
+```
+
+示例
+
+```python
+# 分隔子图需要保留画布
+fig = plt.figure(figsize=(8, 6), dpi=100)
+arr1 = np.random.randn(100)
+arr2 = np.random.randn(100)
+arr3 = np.random.randn(100)
+arr4 = np.random.randint(-5, 10, (10, 10))
+# 分布位置
+ax1 = fig.add_subplot(2,2,1)
+# ax1 = fig.add_subplot(221)
+ax2 = fig.add_subplot(222)
+ax3 = fig.add_subplot(223)
+ax4 = fig.add_subplot(224)
+# 绘图
+ax1.plot(arr1)
+ax1.set_title("ax1线型图")
+ax2.hist(arr2)
+ax2.set_title("ax2直方图")
+ax3.pie(arr3)
+ax3.set_title("ax3饼图")
+ax4_im = ax4.imshow(arr4)
+ax4.set_title("ax4混淆矩阵图")
+plt.colorbar(ax4_im)
+# 显示
+plt.show()
+```
+
 ## 常用图表
 
 ### 线型图
@@ -120,29 +259,6 @@ markerfacecolor	标记的颜色
 markersize			标记大小
 alpha						透明度
 label						标签（通过legend()显示）
-```
-
-画布属性
-
-```python
-# 坐标的范围
-plt.xlim(-5, 15)  # x轴坐标的范围
-plt.ylim(-1, 1)  # y轴坐标的范围
-plt.axis([-5, 15, -1, 1])  # x,y轴坐标的范围
-# 标签：表示x轴和y轴的名称
-plt.xlabel("月份", fontsize=15)
-plt.ylabel("销售额/万", fontsize=15)
-# 题目
-plt.title("2017年水果销售额汇总", fontsize=20)
-# 图示
-plt.plot(arr1, "ro-",  label="苹果")
-plt.legend()
-# 刻度
-plt.xticks(
-    [0,1,2,3,4,5,6,7,8,9,10,11],
-    ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"]
-)
-plt.yticks([],[])
 ```
 
 示例
@@ -239,8 +355,16 @@ show()
 
 ### 直方图
 
-`plt.hist()`
-
+```python
+plt.hist(arr, bins=100, range(4, 5), color="r", alpha=0.4)
+# 参数
+arr	x轴表示值大小，y轴表示每个值的个数
+bins	直方的个数
+range()	显示x值的范围
+color 颜色
+alpha	透明度
+```
+示例
 ```python
 # 解决负号显示问题
 plt.rcParams["axes.unicode_minus"] = False
@@ -248,8 +372,7 @@ plt.rcParams["axes.unicode_minus"] = False
 # arr = np.randint(-5, 10, 100)
 arr = np.random.uniform(-5, 10, 100)
 plt.figure(figsize=(8, 6), dpi=100)
-# x轴表示值大小，y轴表示每个值的个数
-# bins表示直方的个数
+
 plt.hist(arr, bins=100, color="r", alpha=0.4)
 plt.show()
 ```
@@ -274,16 +397,36 @@ x_data = np.arange(100)
 y_data = x_data * np.random.randn(100)
 plt.figure(figsize=(8, 6), dpi=100)
 # 两组数据分别表示x轴和y轴的值，元素个数必须相同
-# s表示每个散点的大小
+
 plt.scatter(x_data, y_data, c="r", alpha=0.4, s=100)
 plt.show()
 ```
 
 ### 柱形图
 
-> 纵向
+```python
+# 纵向
+plt.bar(x, y, width, color="blue", alpha=0.5, label="男")
+# 参数
+x	表示该组每个柱子的x轴刻度位置
+y	表示该组的每个数据y轴刻度位置
+width	表示该组柱子的宽度
+color	颜色
+alpha	透明度
+label	标签
 
-`plt.bar()`
+# 横向
+plt.barh(x, y, width, color="blue", alpha=0.5, label="男")
+# 参数
+x	表示该组每个柱子的x轴刻度位置
+y	表示该组的每个数据y轴刻度位置
+width	表示该组柱子的宽度
+color	颜色
+alpha	透明度
+label	标签
+```
+
+纵向
 
 ```python
 plt.figure(figsize=(8, 6), dpi=100)
@@ -295,9 +438,6 @@ y1 = np.random.randint(10, 50, 4)
 y2 = np.random.randint(10, 50, 4)
 # 柱子的宽度
 width = 0.25
-# 参数1：表示该组每个柱子的x轴刻度位置
-# 参数2：表示该组的每个数据y轴刻度位置
-# 参数3：表示改组柱子的宽度
 plt.bar(x, y1, width, color="blue", alpha=0.5, label="男")
 # 每绘制一组新的数据，x轴必须右移避免形状重叠，y轴不用修改
 # x轴右移宽度 小于 柱子宽度，配合alpha可以做到板重叠效果
@@ -316,9 +456,7 @@ plt.grid()
 plt.show()
 ```
 
-> 横向
-
-`plt.barh()`
+横向
 
 ```python
 plt.figure(figsize=(8, 6), dpi=100)
@@ -346,7 +484,11 @@ plt.show()
 
 ### 混淆矩阵
 
-`plt.imshow()`
+```python
+plt.imshow()
+```
+
+示例
 
 ```python
 plt.figure(figsize=(8, 6), dpi=100)
@@ -363,7 +505,11 @@ plt.show()
 
 ### 饼图
 
-`plt.pie()`
+```
+plt.pie()
+```
+
+示例
 
 ```python
 arr = np.random.randint(10, 100, 5)
@@ -390,95 +536,29 @@ plt.legend()
 plt.show()
 ```
 
-### 分割子图
+### 盒图
 
-- subplot命令是将图片窗口划分成若干区域,按照一定顺序使得图形在每个小区域内呈现其图形。
-- 在figure对象中可以包含一个或者多个Axes对象。
-- 每个Axes(ax)对象都是一个拥有自己坐标系统的绘图区域
-- `fig.add_subplot(a, b, c)`
-  - a, b 表示将fig分割成 a * b 的区域
-  - c 表示当前选中要操作的区域，
-  - 注意：从1开始编号（不是从0开始）
-- plot 绘图的区域是最后一次指定subplot的位置 (jupyter notebook里不能正确显示)
+```
+plt.boxplot()
+```
+
+示例
 
 ```python
-# 分隔子图需要保留画布
-fig = plt.figure(figsize=(8, 6), dpi=100)
-arr1 = np.random.randn(100)
-arr2 = np.random.randn(100)
-arr3 = np.random.randn(100)
-arr4 = np.random.randint(-5, 10, (10, 10))
-# 分布位置
-ax1 = fig.add_subplot(2,2,1)
-# ax1 = fig.add_subplot(221)
-ax2 = fig.add_subplot(222)
-ax3 = fig.add_subplot(223)
-ax4 = fig.add_subplot(224)
-# 绘图
-ax1.plot(arr1)
-ax1.set_title("ax1线型图")
-ax2.hist(arr2)
-ax2.set_title("ax2直方图")
-ax3.pie(arr3)
-ax3.set_title("ax3饼图")
-ax4_im = ax4.imshow(arr4)
-ax4.set_title("ax4混淆矩阵图")
-plt.colorbar(ax4_im)
-# 显示
+# 单个盒图
+fig, ax = plt.subplots()
+ax.boxplot(norm_revews['RT_user_norm'])
+ax.set_xticklabels(['Rotten Tomatoes'])
+ax.set_ylim(0, 5)
 plt.show()
-```
 
-### 网格列表
-
-```
-plt.subplots(rows,colums,num)
-```
-
-同时返回新创建的`figure`和`subplot`对象数组
-
-生成2行2列subplot:`fig, subplot_arr = plt.subplots(2,2)`
-
-在jupyter里可以正常显示，推荐使用这种方式创建多个图表
-
-```
-fig, subplot_arr = plt.subplots(2,2)
-# bins 为显示个数，一般小于等于数值个数
-subplot_arr[1,0].hist(np.random.randn(100), bins=10, color='b', alpha=0.3)
+# 多个盒图
+num_cols = ['RT_user_norm', 'Metacritic_user_normal', 'IMDB_norm', 'Fandango_Ratingvalue']
+fig, ax = plt.subplots()
+ax.boxplot(norm_revews[num_cols].values)
+ax.set_xticklabels(num_cols, rotation=90)
+ax.set_ylim(0, 5)
 plt.show()
-```
-
-样例
-
-```python
-from matplotlib.pyplot import *
-
-# 样本数据
-x = [1,2,3,4]
-y = [5,4,3,2]
-# 创建画布
-figure()
-# 
-subplot(231)
-plot(x, y)
-
-subplot(232)
-bar(x, y)
-
-subplot(233)
-barh(x, y)
-
-subplot(234)
-bar(x, y)
-y1 = [7,8,5,3]
-bar(x, y1, bottom=y, color = 'r')
-
-subplot(235)
-boxplot(x)
-
-subplot(236)
-scatter(x,y)
-
-show()
 ```
 
 ## 设置样式
