@@ -93,7 +93,7 @@ print(score)
 
 ```python
 # 对估计器的指定参数值进行详尽搜索
-sklearn.model_selection.GridSearchCV(estimator, param_grid=None,cv=None)
+sklearn.model_selection.GridSearchCV(estimator, param_grid=None,cv=None)
 
 # 输入
 estimator：估计器对象
@@ -190,7 +190,7 @@ alpha：拉普拉斯平滑系数
 由于样本数较少，会出现p(A|B)的概率为0，防止此情况出现，使用拉普莱斯平滑
 
 拉普拉斯平滑系数ɑ, 默认为1
-p=Ni/N	---> p=(Ni+a)/(N+am)
+p=Ni/N    ---> p=(Ni+a)/(N+am)
 m为训练文档中特征词个数，Ni为xi在分类ci下出现的次数，N为分类ci下词频总数。
 ```
 
@@ -274,7 +274,6 @@ C4.5算法
 
 CART 算法
 基尼(gini)系数   最小的准则：若属性基尼系数越小，该属性优先判断
-
 ```
 
 ### 决策树
@@ -283,7 +282,7 @@ CART 算法
 
 ```python
 # 决策树分类器
-class sklearn.tree.DecisionTreeClassifier(criterion=’gini’, max_depth=None,random_state=None)
+class sklearn.tree.DecisionTreeClassifier(criterion=’gini’, max_depth=None,random_state=None)
 
 # 输入
 criterion:默认是’gini’系数，信息增益’entropy’
@@ -294,7 +293,7 @@ random_state:随机数种子
 可视化
 
 ```
-1、sklearn.tree.export_graphviz() 该函数能够导出DOT格式
+1、sklearn.tree.export_graphviz() 该函数能够导出DOT格式
 tree.export_graphviz(estimator,out_file='tree.dot’,feature_names=[‘’,’’])
 
 
@@ -362,7 +361,6 @@ score = dtc.score(x_test, y_test)
 print(score)
 ```
 
-
 ## 随机森林
 
 在机器学习中，随机森林是一个包含多个决策树的分类器，并且其输出的类别是由个别树输出的类别的众数而定。
@@ -379,7 +377,7 @@ print(score)
 
 ```python
 # 随机森林分类器
-class sklearn.ensemble.RandomForestClassifier(n_estimators=10, criterion=’gini’, max_depth=None,bootstrap=True, random_state=None)
+class sklearn.ensemble.RandomForestClassifier(n_estimators=10, criterion=’gini’, max_depth=None,bootstrap=True, random_state=None)
 
 # 输入
 n_estimators：integer，optional（default = 10） 森林里的树木数量
@@ -526,14 +524,14 @@ $$
 函数
 
 ```python
-sklearn.metrics.confusion_matrix(y_true, y_pred,)
+sklearn.metrics.confusion_matrix(y_true, y_pred,)
 
 # 输入
 y_true：真实目标值
 y_pred：估计器预测目标值
 
 
-sklearn.metrics.classification_report(y_true, y_pred, target_names=None)
+sklearn.metrics.classification_report(y_true, y_pred, target_names=None)
 
 # 输入
 y_true：真实目标值

@@ -338,6 +338,13 @@ df_obj.drop(["f"], axis=1)
 df_obj.drop(["C", "D"], inplace=True)
 ```
 
+### 修改数据
+
+```python
+titanic.log[titanic["Sex"] == "male", "Sex"] = 0
+titanic.log[titanic["Sex"] == "female", "Sex"] = 1
+```
+
 ### 类型转换
 
 ```python

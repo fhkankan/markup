@@ -4,7 +4,7 @@ Support Vector Machine
 
 SVM尝试寻找一个最优的决策边界
 
-距离两个类别的最近的样本最远
+距离两个类别的最近的样本距离最远
 
 SVM要最大化margin=2d
 

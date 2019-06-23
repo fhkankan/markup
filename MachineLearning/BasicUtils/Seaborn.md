@@ -563,6 +563,8 @@ g.add_legend()
 
 ### 热力图
 
+用于特征与特征之间的相关程度
+
 ```python
 sns.heatmap(corrmat, square=True, linewidths=.5, annot=True)
 ```
@@ -578,9 +580,21 @@ np.random.seed(0)
 sns.set()
 
 uniform_data = np.random.rand(3, 3)
-heatmap=sns.heatmap(uniform_data)
-
-
+heatmap = sns.heatmap(uniform_data)
+# 设置最大最小值范围显示
+ax = sns.heatmap(uniform_data, vmin=0.2, vmax=0.5)
+# 设置中心值
+normal_data = np.random.randn(3, 3)
+ax = sns.heatmap(normal_data, center=0)
+# 矩阵转换显示
+fights = sns.load_dataset("flights")
+flights.head()
+fligths = fights.pivot("month", "year", "passengers")
+ax = sns.heatmap(flights)
+ax = sns.heatmap(flights, annot=True, fmt="d")  # 热力图上显示数字
+ax = sns.heatmap(flights, linewidth=.5)  # 指定间距
+ax = sns.heatmap(flights, cmap="YlGnBu")  # 指定调色板
+ax = sns.heatmap(flights, cbar=False)  # 隐藏显示条
 ```
 
 ## 常见分析
