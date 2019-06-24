@@ -165,6 +165,68 @@ $$
 
 ---
 
+## 时序图
+
+```sequence
+title:this is the title
+participant A
+participant B 
+participant C
+
+A -> B:同步消息
+B -->> C:异步消息
+C ->> C:自指
+A --> A:
+Note left of A:left A
+Note over B: over B
+NOte right of C: right C
+Note over B,C: over both B and C
+```
+
+## 流程图
+
+元素与结构
+
+```python
+# 元素类别
+start：流程图开始
+end：流程图结束
+operation：操作
+subroutine：子进程
+condition：判断条件
+inputoutput：输入输出
+
+# 基本代码结构
+tag=>type: content:>url
+```
+
+
+
+```flow
+st=>start: Start 
+e=>end: End
+op=>operation: Operation
+sub=>subroutine: Subroutine
+cond=>condition: Yes or No?
+io=>inputoutput: catch somenthing...
+
+st->op->cond
+cond(yes)->io->e
+cond(no)->sub(right)->op
+```
+
+## mermaid
+
+```mermaid
+graph TD
+client1-->|read / write|SVN((SVN server))
+client2-->|read only|SVN
+client3-->|read / write|SVN
+client4-->|read only|SVN
+client5(...)-->SVN
+SVN---|store the data|sharedrive
+```
+
 # 特征元素
 
 ## 链接
@@ -173,7 +235,7 @@ $$
 
 ctr+单击，打开链接
 
-### 超链接
+- 超链接
 
 用[]括住要超链接的内容，紧接着用()括住超链接源+名字，超链接源后面+超链接命名
 
@@ -187,11 +249,9 @@ This is [an example](http://example.com/ "Title") inline link.
 
 [This link](http://example.net/) has no title attribute.
 
-### 内链接
+- 内链接
 
-
-
-### 相关链
+- 相关链
 
 使用[+超链接文字+]+[+标签+]，创建可定义链接
 

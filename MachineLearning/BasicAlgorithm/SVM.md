@@ -10,6 +10,8 @@ SVM要最大化margin=2d
 
 有Hard Margin SVM(数据线性可分)和Soft Margin SVM两种
 
+低纬度不可分数据转换为高维度可分
+
 ## 原理
 
 ### Hard Margin SVM
@@ -89,6 +91,12 @@ min\frac{1}{2}||w||^2 \\
 st.y^{(i)}(w^Tx^{(i)} + b)\geq{1}
 $$
 
+求解
+
+```
+拉格朗日乘子法
+```
+
 ### Soft Margin SVM
 
 C越小，容错空间越大，C越大，容错空间越小
@@ -99,13 +107,13 @@ min\frac{1}{2}||w||^2 + C\sum_{i=1}^m\zeta_i\\
 st.y^{(i)}(w^Tx^{(i)} + b)\geq{1}-\zeta_i \\
 \zeta_i\geq{0}
 $$
-  L2正则
+ L2正则
 $$
 min\frac{1}{2}||w||^2 + C\sum_{i=1}^m\zeta_i^2\\
 st.y^{(i)}(w^Tx^{(i)} + b)\geq{1}-\zeta_i \\
 \zeta_i\geq{0}
 $$
-转换为
+转换为(拉格朗日乘子法+求偏导)
 $$
 max\sum_{i=1}^m\alpha_i - \frac{1}{2}\sum_{i=1}^m\sum_{i=1}^m\alpha_i\alpha_jy_iy_jx_ix_j\\
 st. 0\leq\alpha_i\leq{C} \\
@@ -120,6 +128,8 @@ $$
 
 ### 核函数
 
+理论上将低维数据转换到高维数据，原本不可分数据变为可分，但是点乘数据计算时间复杂度过高，发现高维数据点乘数据等价于低维数据点乘的平方，故计算时间复杂度降低，不需真实映射到高维空间，如使用高斯核函数，可将线性不可分数据变为非线性可分
+
 二次多项式核函数
 $$
 K(x, y) = (x\cdot{y}+1)^2 \\
@@ -133,7 +143,7 @@ $$
 $$
 K(x, y) = x\cdot{y}\\
 $$
-高斯核函数(RBF核)
+高斯核函数(RBF核，径向基函数)
 $$
 K(x, y) = e^{-\gamma||x-y||^2}
 $$
