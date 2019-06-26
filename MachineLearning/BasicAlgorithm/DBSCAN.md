@@ -47,3 +47,24 @@ if p
 sklearn中效率很慢(数据消减策略)
 ```
 
+## sklearn
+
+```python
+from sklearn.cluster import DBSCAN
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import silhouette_score
+
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+db = DBSCAN(eps=10, min_samples=2).fix(X)
+db_scaled = DBSCAN(eps=10, min_samples=2).fix(X_scaled)
+
+lables = db.labels_
+lables_scaled = db_scaled.labels_
+
+score = silhouette_score(X, labels)
+score_scaled = silhouette_score(X, labels_scaled)
+print(score, score_scaled)
+```
+

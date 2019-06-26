@@ -243,6 +243,16 @@ R方
 from sklearn.metrics import r2_score
 ```
 
+### 聚类
+
+轮廓系数
+
+```python
+from sklearn.metrics import silhouette_score
+```
+
+
+
 ## 网格搜索
 
 [API](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html#sklearn.model_selection.GridSearchCV)
