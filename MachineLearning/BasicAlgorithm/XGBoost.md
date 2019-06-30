@@ -2,7 +2,25 @@
 
 XGBoost属于有监督学习，是Gradient Boosting模型的一种改进版
 
-安装
+## 原理
+
+$$
+\hat{y_i} = \sum_j{w_jx_{ij}}
+$$
+
+目标函数
+$$
+l(y_i,\hat{y}_i) = (y_i - \hat{y}_i)^2
+$$
+集成算法表示
+$$
+\hat{y}_i = \sum_{k=1}^K{f_k(x_i)}, f_k\in
+$$
+
+
+## 安装
+
+源码编译安装
 
 ```bash
 cd Destop/
@@ -17,6 +35,12 @@ cd python-package
 sudo python setup.py install
 # 检验
 import xgboost as sgb
+```
+
+pip安装
+
+```shell
+pip install xgboost
 ```
 
 ## 模型参数

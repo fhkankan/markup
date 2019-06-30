@@ -121,6 +121,8 @@ df_pbj2 = pd.DataFrame(arr, index= ['A', 'B', 'C'], columns=['a', 'b', 'c', 'd']
 ```python
 # 产看DataFrame对象的详细信息
 df_obj.info()
+# 查看常见统计信息
+df_obj.descibe()
 
 # 查看数据的前n行(默认5行)
 df_obj.head(n)
@@ -138,6 +140,12 @@ df_obj.columns
 # 通过索引获取列数据
 df_obj[col_idx]
 df_obj.col_idx
+
+# 列数据中的不重复的值
+df_obj.col_idx.unique()
+
+# 统计列数据出现的频次
+df_obj[col_idx].value_counts()
 ```
 
 ## 文件读写
@@ -452,10 +460,8 @@ df_obj.pivot_table(index="Pclass", values="Survived", aggfunc=np.mean)
 | cumsum        | 样本值的累计和                               |
 | cummin/cummax | 样本值的累计最大值和累计最小值               |
 | cumprod       | 样本值的累计积                               |
-| diff          | 计算一阶差分(对事件序列很有用)               |
+| diff          | 计算一阶差分(对时间序列很有用)               |
 | pct_change    | 计算百分数变化                               |
-
-
 
 ## 数据清洗
 
@@ -481,6 +487,9 @@ df_obj.pivot_table(index="Pclass", values="Survived", aggfunc=np.mean)
 # 判断数据集是否有缺失值,返回bool类型的DataFrame
 df_obj.isnull()
 df_obj.notnull()
+
+# 统计缺失值的个数,返回每列特征对应缺失值的个数
+df_objisnull().sum()
 ```
 
 - 处理
@@ -539,13 +548,42 @@ akima
 
 ### 处理重复值
 
+列中行数据重复
+
 ```python
 # 判断某列中是否有重复数据,返回bool类型的series/dataframe
 df_obj.duplacited('column_label')
 
 # 删除重复数据的行
 df_obj.drop_duplicates('column_label')
+df_obj[['column_label']].drop_duplicates()
 ```
+
+列只有唯一值
+
+```python
+# 若列只有唯一值和缺失值，则没有有效信息，可删除此列特征
+orig_columns = df_obj.columns
+drop_columns = []
+for col in orig_columns:
+  	col_series = df_obj[col].dropna().unique()
+    if len(col_series) == 1:
+      	drop_columns.append(col)
+df_obj = df_obj.drop(drop_columns, axis=1)
+```
+
+行数据重复检测
+
+```python
+# 对数据是否只出现一次
+all_cols_unique_players = df.groupby('playerShort').agg({
+  col:'numique' for col in players_cols
+})  # 将行中是否出现重复的playerShort数据以出现次数的形式展示
+all_cols_unique_players[all_cols_unique_players > 1].dropna().head()  # 显示重复的前几项
+all_cols_unique_players[all_cols_unique_players > 1].dropna().shape[0] == 0  # 返回bool，表示是否无重复
+```
+
+
 
 ### 进行替换值
 
@@ -568,6 +606,18 @@ print(df_obj3.replace({6: 600, 7:700}))
 print(df_obj3.replace([6, 7], 1000))
 # 替换指定值
 print(df_obj3.replace(6, 600))
+
+# 示例
+df_obj = df_obj[(df_obj["loan_status"] == "Fully Paid")|(df_obj["loan_status"] == "Charged Off")]
+status_repace = {"loan_status":{"Fully Paid":1, "Charged Off": 0}}
+df_obj = df_obj.replace(status_repace)
+```
+
+### 过滤列的数据类型
+
+```python
+object_columns_df = df_obj.select_dtype(include=["object"])
+print(object_columns_df.iloc[0])
 ```
 
 ## 自定义函数
@@ -724,6 +774,7 @@ pandas提供了如下函数对pandas的数据对象进行合并
 | `update`        |      |
 | `merge_ordered` |      |
 | `merge_asof`    |      |
+| `crosstab`      |      |
 
 - np.concatenate
 
@@ -856,6 +907,14 @@ df_obj8 = pd.DataFrame({"data" : np.random.randint(-5, 10, 6)},
 new_df = pd.merge(df_obj7, df_obj8, left_on="key", right_index=True, how="outer", suffixes=["_left", "_right"])
 ```
 
+- pd.crosstab
+
+对数据进行交叉比对(横纵均是离散值)
+
+```python
+pd.crosstab(players.rater1, players.rater2)
+```
+
 ## 数据分组
 
 - 对数据集进行分组，然后对每组进行统计分析
@@ -916,6 +975,8 @@ print(dict(list(grouped1)))
 
 pandas中可以把DataFrame实例对象的数据转化为Categorical类型的数据，以实现类似于一般统计分析软件中的值标签功能，便于分析结果的展示
 
+categories
+
 ```python
 student_profile = pd.DataFrame({
     'Name':{'Morgan Wang'},
@@ -931,14 +992,25 @@ student_profile['Gender_Value'].cat.categories = ['Female', 'Male', 'Unconfirmed
 
 # 删除与增加值标签，或将类别设置为预定的尺度
 student_profile['Gender_Value'].cat.se_categories = ['Male', 'Female', 'Unconfirmed']
+```
 
+Cut/qcut
+
+```python
 # 对数值类型数据分段标签
 labels = ["{0}-{1}".fromat(i, i+10) for i in range(160, 200, 10)]   # 指定标签形式
-student_profile['Height_Group'] = pd.cut(student_profile.Height,
-                                         range(160, 205, 10),
-                                         right=False,
-                                         labels=labels)
+student_profile['Height_Group'] = pd.cut(
+  student_profile.Height, range(160, 205, 10), right=False, labels=labels
+)
+
+# 让数据按照排序分段标签
+height_categories = ["vlow_height", "low_height", "mid_height", "high_height", "vhigh_height"]
+players["heightclass"] = pd.qcut(
+	players['height'], len(height_categories), height_categories
+)
 ```
+
+
 
 ## 时间序列
 
@@ -949,8 +1021,11 @@ student_profile['Height_Group'] = pd.cut(student_profile.Height,
 生成pandas中的时间序列，就需要生成以时间序列为主要特征的索引。pandas提供了类Timestamp，类Period以及to_timestamp,to_datetime,date_range,period_range等方法来创建或将其他数据类型转换为时间序列
 
 ```python
-# 将当前时间转换为时间戳
+# 时间戳
 pd.Timestamp('now')
+pd.Timestamp('2017-07-06')
+pd.Timestamp('2017-07-06 10')
+pd.Timestamp('2017-07-06 10:15')
 
 # 用时间戳转换为时间序列
 dates = [pd.Timestamp('2017-07-05'), pd.Timestamp('2017-07-06'), pd.Timestamp('2017-07-07')
@@ -960,6 +1035,7 @@ ts.index
 
 # date_range创建
 dates = pd.date_range('2017-07-05', '2017-07-07')
+# dates = pd.date_range('2017/07/01', periods=10, freq='M')  # M:月,D:天,H:小时
 ts = ps.Series(np.random.randn(3), dates)
 ts.index
 
@@ -973,6 +1049,11 @@ ts.index
 jd_ts = jddf.set_index(pd.to_datetime(jddf['time']))
 jd_ts.index
 jd_ts.head()
+
+# to_period
+# 将时间戳转换为时间周期
+ts = pd.Series(range(10), pd.date_range('07-10-16 8:00', periods=10, freq='H'))
+ts_period = ts.to_period()
 ```
 
 ### 索引与切片
@@ -982,11 +1063,22 @@ jd_ts.head()
 如按指定时间范围对数据进行切片，只需在索引号中传入可以解析成日期的字符串即可，这些字符串可以是表示年月日及其组合的内容
 
 ```python
+# 指定索引
+rng = pd.date_range('2016 Jul 1', periods = 10, freq = 'D')
+pd.Series(range(len(rng)), index = rng)
+periods = [pd.Period('2016-01'), pd.Period('2016-02'), pd.Period('2016-03')]
+ts = pd.Series(np.random.randn(len(periods)), index = periods)
+
+
 jd_ts['2017-02']  # 提取2017年2月份的数据
 jd_ts['2017-02-10':'2017-02-20']  # 提取2017年2月10日至20日数据
 
-jd_ts.truncate(after='2017-01-06')  # 2017年1月6日前的所有数据
-jd_ts.truncate(after='2017-01-20',before='2017-01-13')  # 2017年1月20日前,2017年1月13日后的所有数据
+
+sample = pd.Series(np.random.randn(20), index=pd.date_range(dt.datetime(2016,1,1),periods=20))
+sample.truncate(before='2016-1-10')  # 2016-1-10之前的数据排除，保留当前和之后的
+sample.truncate(after='2016-1-10')  # 2016-1-10之后的数据排除，保留之前的当前的
+sample.truncate(after='2017-01-06')  # 2017年1月6日前的所有数据
+sample.truncate(after='2017-01-20',before='2017-01-13')  # 2017年1月20日前,2017年1月13日后的所有数据
 ```
 
 ### 范围与偏移
@@ -1050,7 +1142,7 @@ pd.date_range('2017/07/07', periods=10, freq=ts_offset)
 
 ### 时间移动及运算
 
-时序数据可以进行时间上的移动。即，沿着十斤啊轴将数据进行前移或后移，其索引保持不变。pandas中的Series和DataFrame都可通过shift方法来进行移动
+时序数据可以进行时间上的移动。即，沿着x轴将数据进行前移或后移，其索引保持不变。pandas中的Series和DataFrame都可通过shift方法来进行移动
 
 ```python
 sample = jd_ts['2017-01-01':'2017-01-10'][['opening_price', 'closing_price']]
@@ -1081,12 +1173,13 @@ sample.asfreq(freq='D')
 
 - 重采样
 
-重采样(resample)也可将时间序列从一个频率转换到另一个频率，但在转换过程中，可以指定提取出原时序数据中的一些信息，其实质就是按照时间索引进行的数据分组。重采样主要有上采样(upsampling)和下采样(downsampling)两种。该两种方式累哦数据处理过程中的上卷和下钻
+重采样(resample)也可将时间序列从一个频率转换到另一个频率，但在转换过程中，可以指定提取出原时序数据中的一些信息，其实质就是按照时间索引进行的数据分组。重采样主要有上采样(upsampling)和下采样(downsampling)两种。该两种方式也称数据处理过程中的上卷和下钻
 
 pandas对象可采用resample方法对时序进行重采样，通过指定方法的参数fill_method进行采样，指定参数how进行下采样
 
 ```python
 # 按照半天频率进行上采样或升采样，并制定缺失值按当日最后一个有效观测值来填充，即指定插值方式
+# 插值方法：ffill为空值取前面的值，bfill为空值取后面的值，interpolate线性取值
 sample.resample('12H', fill_method='ffill')
 
 # 按照4天频率进行下采样或降采样，how可以指定采样过程中的运算函数(默认mean)
@@ -1100,7 +1193,19 @@ sample.groupby(lambda x: x.week).mean()
 jd_ts[['opening_price', 'closing_price']].groupy(lambda x:x.month).mean()
 ```
 
+### 滑动窗口
 
+```python
+df = pd.Series(np.random.randn(600), index=pd.date_range('7/1/2016', freq='D', periods=600))
+r = df.rolling(window=10)  # 窗口大小，默认从左到右
+r.max  # 最大值
+r.median  # 中位数
+r.std  # 标准差
+r.skew  # 倾斜度
+r.sum  # 总和
+r.var  # 方差
+r.mean()  # 均
+```
 
 ## 数据聚合
 
@@ -1149,6 +1254,13 @@ dict_map = {
     "data2": ["max", "min", ("max-min", func1)]
 }
 print(df_obj.groupby(df_obj["key1"]).agg(dict_map))
+
+# 对数据是否只出现一次
+all_cols_unique_players = df.groupby('playerShort').agg({
+  col:'numique' for col in players_cols
+})  # 将行中是否出现重复的playerShort数据以出现次数的形式展示
+all_cols_unique_players[all_cols_unique_players > 1].dropna().head()  # 显示重复的前几项
+all_cols_unique_players[all_cols_unique_players > 1].dropna().shape[0] == 0  # 返回bool，表示是否无重复
 ```
 
 ## 分组聚合后的数据合并
