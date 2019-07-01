@@ -298,6 +298,10 @@ print(df_obj.loc[["A","D"], ["a", "d"]])
 print(df_obj.loc[df_obj["a"] > -1])
 # 根据某列的数据进行判断，返回为True的行，再取出指定的多列
 print(df_obj.loc[df_obj["a"] > -1, ["b", "d"]])
+
+# 删除某一列
+data = data.loc[~data.variable.str.contains('exploitable'), :]
+data = data.loc[~(data.variable == 'exploitable')]
 ```
 
 > iloc
