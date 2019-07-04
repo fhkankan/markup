@@ -1,3 +1,321 @@
+# JSON
+
+从MySQL5.7.8开始，MySQL支持原生的JSON数据类型
+
+[参考](http://www.lnmp.cn/mysql-57-new-features-json.html)
+
+[参考](http://dev.mysql.com/doc/refman/5.7/en/json-search-functions.html)
+
+## 创建
+
+类似 varchar，设置 JSON 主要将字段的 type 是 json, 不能设置长度，可以是 NULL  但不能有默认值。
+```mysql
+mysql> CREATE TABLE lnmp (
+    `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+    `category` JSON,
+    `tags` JSON,
+    PRIMARY KEY (`id`)
+);
+```
+
+## 插入
+
+- 字符串
+
+就是插入 json 格式的字符串，可以是对象的形式，也可以是数组的形式
+
+```mysql
+mysql> INSERT INTO `lnmp` (category, tags) VALUES ('{"id": 1, "name": "lnmp.cn"}', '[1, 2, 3]');
+Query OK, 1 row affected (0.01 sec)
+```
+
+- 函数
+
+MySQL 也有专门的函数` JSON_OBJECT`，`JSON_ARRAY `生成 json 格式的数据
+
+```mysql
+mysql> INSERT INTO `lnmp` (category, tags) VALUES (JSON_OBJECT("id", 2, "name", "php.net"), JSON_ARRAY(1, 3, 5));
+Query OK, 1 row affected (0.00 sec)
+```
+
+## 查询
+
+- 查询结果
+
+查询 json 中的数据用` column->path `的形式，其中对象类型 path 这样表示 `$.path`, 而数组类型则是` $[index]`
+
+```mysql
+mysql> SELECT id, category->'$.id', category->'$.name', tags->'$[0]', tags->'$[2]' FROM lnmp;
++----+------------------+--------------------+--------------+--------------+
+| id | category->'$.id' | category->'$.name' | tags->'$[0]' | tags->'$[2]' |
++----+------------------+--------------------+--------------+--------------+
+|  1 | 1                | "lnmp.cn"          | 1            | 3            |
+|  2 | 2                | "php.net"          | 1            | 5            |
++----+------------------+--------------------+--------------+--------------+
+2 rows in set (0.00 sec)
+```
+
+可以看到对应字符串类型的 `category->'$.name' `中还包含着双引号，这其实并不是想要的结果，
+
+可以用 `JSON_UNQUOTE` 函数将双引号去掉，从 MySQL 5.7.13 起也可以通过这个操作符` ->> `这个和 `JSON_UNQUOTE` 是等价的
+
+```mysql
+mysql> SELECT id, category->'$.name', JSON_UNQUOTE(category->'$.name'), category->>'$.name' FROM lnmp;
++----+--------------------+----------------------------------+---------------------+
+| id | category->'$.name' | JSON_UNQUOTE(category->'$.name') | category->>'$.name' |
++----+--------------------+----------------------------------+---------------------+
+|  1 | "lnmp.cn"          | lnmp.cn                          | lnmp.cn             |
+|  2 | "php.net"          | php.net                          | php.net             |
++----+--------------------+----------------------------------+---------------------+
+2 rows in set (0.00 sec)
+```
+
+- 下面说下 JSON 作为条件进行搜索。
+
+> 字段比较
+
+因为 JSON 不同于字符串，所以如果用字符串和 JSON 字段比较，是不会相等的
+
+```mysql
+mysql> SELECT * FROM lnmp WHERE category = '{"id": 1, "name": "lnmp.cn"}';
+Empty set (0.00 sec)
+```
+
+这时可以通过 CAST 将字符串转成 JSON 的形式
+
+```python
+mysql> SELECT * FROM lnmp WHERE category = CAST('{"id": 1, "name": "lnmp.cn"}' as JSON);
++----+------------------------------+-----------+
+| id | category                     | tags      |
++----+------------------------------+-----------+
+|  1 | {"id": 1, "name": "lnmp.cn"} | [1, 2, 3] |
++----+------------------------------+-----------+
+1 row in set (0.00 sec)
+```
+
+> 查询
+
+对象的`column->path`
+
+通过 JSON 中的元素进行查询, 对象型的查询同样可以通过 `column->path`
+
+```python
+mysql> SELECT * FROM lnmp WHERE category->'$.name' = 'lnmp.cn';
++----+------------------------------+-----------+
+| id | category                     | tags      |
++----+------------------------------+-----------+
+|  1 | {"id": 1, "name": "lnmp.cn"} | [1, 2, 3] |
++----+------------------------------+-----------+
+1 row in set (0.00 sec)
+```
+
+上面有提到` column->path` 形式从 select 中查询出来的字符串是包含双引号的，但作为条件这里其实没什么影响，`-> `和 `->> `结果是一样的
+
+```python
+mysql> SELECT * FROM lnmp WHERE category->>'$.name' = 'lnmp.cn';
++----+------------------------------+-----------+
+| id | category                     | tags      |
++----+------------------------------+-----------+
+|  1 | {"id": 1, "name": "lnmp.cn"} | [1, 2, 3] |
++----+------------------------------+-----------+
+1 row in set (0.00 sec)
+```
+
+要特别注意的是，JSON 中的元素搜索是严格区分变量类型的，比如说整型和字符串是严格区分的
+
+```python
+mysql> SELECT * FROM lnmp WHERE category->'$.id' = '1';
+Empty set (0.00 sec)
+# 搜索字符串 1 和整型 1 的结果是不一样的。
+mysql> SELECT * FROM lnmp WHERE category->'$.id' = 1;
++----+------------------------------+-----------+
+| id | category                     | tags      |
++----+------------------------------+-----------+
+|  1 | {"id": 1, "name": "lnmp.cn"} | [1, 2, 3] |
++----+------------------------------+-----------+
+1 row in set (0.00 sec)
+```
+
+`JSON_CONTAINS`
+
+除了用 `column->path`的形式搜索，还可以用`JSON_CONTAINS` 函数，但和 `column->path` 的形式有点相反的是，`JSON_CONTAINS `第二个参数是不接受整数的，无论 json 元素是整型还是字符串，否则会出现这个错误
+
+```python
+mysql> SELECT * FROM lnmp WHERE JSON_CONTAINS(category, 1, '$.id');
+ERROR 3146 (22032): Invalid data type for JSON data in argument 2 to function json_contains; a JSON string or JSON type is required.
+  
+# 这里必须是要字符串 1
+mysql> SELECT * FROM lnmp WHERE JSON_CONTAINS(category, '1', '$.id');
++----+------------------------------+-----------+
+| id | category                     | tags      |
++----+------------------------------+-----------+
+|  1 | {"id": 1, "name": "lnmp.cn"} | [1, 2, 3] |
++----+------------------------------+-----------+
+1 row in set (0.01 sec)
+```
+
+对于数组类型的 JSON 的查询，比如说 tags 中包含有 2 的数据，同样要用 `JSON_CONTAINS `函数，同样第二个参数也需要是字符串
+
+```python
+mysql> SELECT * FROM lnmp WHERE JSON_CONTAINS(tags, '2');
++----+------------------------------+-----------+
+| id | category                     | tags      |
++----+------------------------------+-----------+
+|  1 | {"id": 1, "name": "lnmp.cn"} | [1, 2, 3] |
++----+------------------------------+-----------+
+1 row in set (0.00 sec)
+```
+
+## 更新
+
+- 如果是整个 json 更新的话，和插入时类似的。
+
+```mysql
+mysql> UPDATE lnmp SET tags = '[1, 3, 4]' WHERE id = 1;
+Query OK, 1 row affected (0.00 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+```
+
+- 但如果要更新 JSON 下的元素
+
+MySQL 并不支持` column->path`的形式
+
+``` mysql                                                  
+mysql> UPDATE lnmp SET category->'$.name' = 'lnmp', tags->'$[0]' = 2 WHERE id = 1;
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '->'$.name' = 'lnmp', tags->'$[0]' = 2 WHERE id = 1' at line 1
+```
+
+则可能要用到以下几个函数
+
+| name             | Desc                             |
+| ---------------- | -------------------------------- |
+| `JSON_INSERT()`  | 插入新值，但不会覆盖已经存在的值 |
+| `JSON_SET()`     | 插入新值，并覆盖已经存在的值     |
+| `JSON_REPLACE()` | 只替换存在的值                   |
+| `JSON_REMOVE()`  | 删除 JSON 元素                   |
+| ``               |                                  |
+| ``               |                                  |
+
+示例
+
+```mysql
+# JSON_INSERT()
+mysql> UPDATE lnmp SET category = JSON_INSERT(category, '$.name', 'lnmp', '$.url', 'www.lnmp.cn') WHERE id = 1;
+Query OK, 1 row affected (0.00 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+# JSON_SET()
+mysql> UPDATE lnmp SET category = JSON_SET(category, '$.host', 'www.lnmp.cn', '$.url', 'http://www.lnmp.cn') WHERE id = 1;
+Query OK, 1 row affected (0.00 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+# JSON_REPLACE()
+mysql> UPDATE lnmp SET category = JSON_REPLACE(category, '$.name', 'php', '$.url', 'http://www.php.net') WHERE id = 2;
+Query OK, 1 row affected (0.01 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+# JSON_REMOVE()
+mysql> UPDATE lnmp SET category = JSON_REMOVE(category, '$.url', '$.host') WHERE id = 1;
+Query OK, 1 row affected (0.01 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+```
+
+## 空数组
+
+```
+JSON类型的数，可以支持null，{}, []，{'k':'v'}，这些类型。
+
+null：默认值就是null，可以单独设置null；
+
+{}：空的键值对，可以用cast('{}' as JSON)来设置；
+
+[]：空的数组，可以用cast('[] as JSON')来设置，注意这里并不是集合的概念，里面的值是允许重复的；
+
+{'k':'v'}：有键值对的数组，可以用cast来设置；
+```
+
+示例
+
+```mysql
+mysql> select * from test_json;
++----+------------------------------------+---------+
+| id | j                                  | name    |
++----+------------------------------------+---------+
+|  1 | {"url": "lnmp.cn", "name": "lnmp"} |         |
+|  2 | NULL                               |         |
+|  3 | {}                                 |         |
+|  4 | NULL                               | brother |
+|  5 | [100, 100, 200]                    | sister  |
++----+------------------------------------+---------+
+rows in set (0.00 sec)
+```
+
+## key为int
+
+- key需将int转换为string
+
+添加子key为int类型的数据，直接添加int型的子key是有问题的
+
+```mysql
+insert into test_json (j) values(cast('{0:"100",1:"200"}' as JSON));
+ERROR 3141 (22032): Invalid JSON text in argument 1 to function cast_as_json: "Missing a name for object member." at position 1.
+```
+
+添加子key为string类型，但是值为数字型的数据
+
+```mysql
+mysql> insert into test_json (j) values(cast('{"0":"100","1":"200"}' as JSON));
+Query OK, 1 row affected (0.01 sec)
+
+mysql> select * from test_json;
++----+------------------------------------+---------+
+| id | j                                  | name    |
++----+------------------------------------+---------+
+|  1 | {"url": "lnmp.cn", "name": "lnmp"} |         |
+|  2 | NULL                               |         |
+|  3 | {}                                 |         |
+|  4 | NULL                               | brother |
+|  5 | [100, 100, 200]                    | sister  |
+|  6 | {"100": "100", "200": "200"}       |         |
+|  7 | {"0": "100", "1": "200"}           |         |
++----+------------------------------------+---------+
+rows in set (0.00 sec)
+```
+
+结论：如果要添加数字型的子key，必须包含引号，int型转成string型才可以
+
+- 按照key查找条目
+
+```mysql
+mysql> select * from test_json where JSON_CONTAINS(j, '"100"', '$."0"');
++----+--------------------------+------+
+| id | j                        | name |
++----+--------------------------+------+
+|  7 | {"0": "100", "1": "200"} |      |
++----+--------------------------+------+
+row in set (0.00 sec)
+```
+
+注意：
+
+```
+1. 是第二个参数必须是带印号，
+2. 是第三个参数的键值名称必须带双引号，而不是之前的'$.name'这样的方式。
+```
+
+- select中带有子key
+
+```mysql
+mysql> select j->'$."0"' from test_json where id=7;
++------------+
+| j->'$."0"' |
++------------+
+| "100"      |
++------------+
+row in set (0.00 sec)
+```
+
+
+
+
+
 # 视图
 
 ```python

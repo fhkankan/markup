@@ -640,6 +640,112 @@ function onprogress(evt){
 
 ## 下载文件
 
+### 单文件
+
+- a标签
+
+```html
+<a href="/path/to/img" download="name.png">下载图片</a>
+```
+
+抛开浏览器兼容性，还有几点限制：
+
+1. `href` 所指向的地址，必须与当前网站[同源](https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy)，否则
+
+   1.1 chrome 65.0.3325.181 下测试，只能下载不能改名
+
+   1.2 chrome 69.0.3497.92 中已经严格遵循同源策略的限制，如果加载了非同源的内容，download 属性将失效，等效导航功能。
+
+   1.3 Firefox 61.0.1同上
+
+2. [其它限制](https://developer.mozilla.org/zh-CN/docs/Web/HTML/Element/a)
+
+通过 js 动态创建 `<a>` 并设置 `download` 属性
+
+原理和限制同上，代码如下：（不支持IE）
+
+```javascript
+function download(url, name) {
+    const aLink = document.createElement('a')
+    aLink.download = name 
+    aLink.href = url 
+    aLink.dispatchEvent(new MouseEvent('click', {}))
+}
+```
+
+以导出 canvas 图片为例：
+
+```html
+<canvas id="canvas"></canvas>
+```
+
+```javascript
+const canvas = document.getElementById('canvas')
+download(canvas.toDataURL('image/png'), 'name.png')
+```
+
+- frame
+
+限制
+
+```
+- document.execCommand('SaveAs') 中 SaveAs 是个非标准值，主要用来兼容 ie 不支持 <a> 标签 download 属性的场景
+- window.frames["iframeName"].document 受到同源策略的影响，如果图片地址跨域，是无法访问的 <frame> 的属性和方法
+```
+
+示例
+
+```javascript
+$(function(){
+	//二维码
+	(function(){
+		var img_src = $('.qr_img')[0].src;
+		if(browserIsIe()){//假如是ie浏览器
+			$('.down_qr').on('click',function(){
+				img_src = $('.qr_img')[0].src;
+				DownLoadReportIMG(img_src);
+			});
+		}else{
+			$('.down_qr').attr('download',img_src);
+			$('.down_qr').attr('href',img_src);
+ 
+			$('.sutmit_btn').on('click',function(){
+				$('.down_qr').attr('download',img_src);
+				$('.down_qr').attr('href',img_src);
+			});
+		}
+		
+	})();
+});
+ 
+function DownLoadReportIMG(imgPathURL) {
+    //如果隐藏IFRAME不存在，则添加
+    if (!document.getElementById("IframeReportImg"))
+        $('<iframe style="display:none;" id="IframeReportImg" name="IframeReportImg" onload="DoSaveAsIMG();" width="0" height="0" src="about:blank"></iframe>').appendTo("body");
+    if (document.all.IframeReportImg.src != imgPathURL) {
+        //加载图片
+        document.all.IframeReportImg.src = imgPathURL;
+    }
+    else {
+        //图片直接另存为
+        DoSaveAsIMG();
+    }
+}
+function DoSaveAsIMG() {
+    if (document.all.IframeReportImg.src != "about:blank")
+        window.frames["IframeReportImg"].document.execCommand("SaveAs");
+}
+//判断是否为ie浏览器
+function browserIsIe() {
+    if (!!window.ActiveXObject || "ActiveXObject" in window)
+        return true;
+    else
+        return false;
+}
+```
+
+- 下载文件流
+
 文件格式
 
 ```js
@@ -698,6 +804,46 @@ function downFile(blob, fileName) {
     }
 }
 ```
+
+### 批文件
+
+- iframe
+
+勾选多个文件点击本地下载，一次性弹出所有下载窗口
+
+```javascript
+$('body').on('click', "#Download",function(){//点击下载按钮
+    let triggerDelay = 100;
+    let removeDelay = 1000;
+    let url_arr=[];
+    //多个file文件选择checkbox
+    $('input[name="filePath"]:checked').each(function(){
+        url_arr.push($(this).val());//取到下载url
+    });
+    url_arr.forEach(function(item,index){
+        _createIFrame(item, index * triggerDelay, removeDelay);
+    })
+    function _createIFrame(url, triggerDelay, removeDelay) {
+        //动态添加iframe，设置src，然后删除
+        setTimeout(function() {
+            var frame = $('<iframe style="display: none;" class="multi-download"></iframe>');
+            frame.attr('src', url);
+            $(document.body).after(frame);
+            setTimeout(function() {
+                frame.remove();
+            }, removeDelay);
+        }, triggerDelay);
+    }
+  }
+```
+
+- 压缩为单文件
+
+```
+在页面把要下载文件的ID传给后台，后台用这些ID，找到文件，生成一个压缩包，然后把压缩包返回给浏览器。如果文件比较大，这里可以考虑做成异步得。
+```
+
+
 
 # 跨域
 
