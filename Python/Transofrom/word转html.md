@@ -1,5 +1,7 @@
 # Mammoth
 
+[官方](https://github.com/mwilliamson/python-mammoth#mammothtransformsparagraphtransform_paragraph)
+
 Mammoth可用于将.docx文档（比如由Microsoft Word创建的）转换为HTML。Mammoth致力于通过文档中的语义信息生成简洁的HTML，而忽略一些其他细节。例如，Mammoth会把带有“Heading 1”样式的所有段落转换为“h1”元素，而不是试图精确地复制标题的所有样式（字体、字号、颜色等）。
 
 .docx使用的结构与HMTL的结构有很多不匹配的地方，这意味着复杂文档的转换很难达到完美。但如果你仅使用样式进行文档的语义化标记，Mammoth将会工作得很好。
@@ -44,6 +46,7 @@ mammoth document.docx output.html
 ```
 如果未指定输出文件，则输出将写入stdout。
 输出是一个HTML片段，而不是用UTF-8编码的完整HTML文档。由于未在片段中显式设置编码，因此如果浏览器未默认为UTF-8，则在Web浏览器中打开输出文件可能会导致Unicode字符被错误地呈现。
+
 #### images
 
 默认情况下，图像包含在输出HTML中。如果使用了`--output-dir`指定了输出目录，则会将图像写入单独的文件。若是文件已存在则被重写覆盖。例如：
@@ -321,13 +324,13 @@ runs = mammoth.transforms.get_descendants_of_type(paragraph, documents.Run)
 p[style-name='Heading 1'] => h1:fresh
 ```
 
-然后两个连续的“Heading 1”段落会被转换为两个独立的“h1”元素。
+然后两个连续的`Heading 1`段落会被转换为两个独立的“h1”元素。
 
-当生成较为复杂的HTML结构的时候，重用元素就比较有用。例如，假设你的.docx文档包含旁注。每个旁注可能包含一个标题和一些正文文本，它们应该被包含在一个单独的“div.aside”元素中。这种情况下，类似于`“p[style-name='Aside Heading'] => div.aside > h2:fresh”`和`“p[style-name='Aside Text'] => div.aside > p:fresh”`的样式映射可能会有帮助。
+当生成较为复杂的HTML结构的时候，重用元素就比较有用。例如，假设你的.docx文档包含旁注。每个旁注可能包含一个标题和一些正文文本，它们应该被包含在一个单独的“div.aside”元素中。这种情况下，类似于`p[style-name='Aside Heading'] => div.aside > h2:fresh`和`p[style-name='Aside Text'] => div.aside > p:fresh`的样式映射可能会有帮助。
 
 ### 文档元素匹配器
 
-- 段落和内联文本
+- 段落、内联文本和表格
 
 匹配所有段落：
 
@@ -341,13 +344,25 @@ p
 r
 ```
 
-要匹配带有指定样式的段落和内联文本，你可以通过名称引用样式，即显示在Microsoft Word或LibreOffice中的样式名称。比如，要匹配一个带有样式名“Heading 1”的段落：
+匹配所有表格
+
+```
+table
+```
+
+要匹配带有指定样式的段落、内联文本和表格，你可以通过名称引用样式，即显示在Microsoft Word或LibreOffice中的样式名称。比如，要匹配一个带有样式名`Heading 1`的段落：
 
 ```
 p[style-name='Heading 1']
 ```
 
-也可以通过样式ID引用样式，即在.docx文件内部使用的ID。要匹配一个带有指定样式ID的段落或内联文本，追加一个点，后跟样式ID即可。比如，要匹配一个带有样式ID“Heading1”的段落：
+您还可以通过前缀匹配样式名称。例如，要匹配样式名称以标题开头的段落
+
+```
+p[style-name^='Heading']
+```
+
+也可以通过样式ID引用样式，即在.docx文件内部使用的ID。要匹配一个带有指定样式ID的段落或内联文本，追加一个点，后跟样式ID即可。比如，要匹配一个带有样式ID`Heading1`的段落：
 
 ```
 p.Heading1
@@ -393,6 +408,16 @@ strike
 
 注意，这只会匹配显式地应用了删除线样式的文本，而不会匹配由于其所属段落或内联文本的样式而带有删除线的文本。
 
+- 小型大写文字
+
+明确匹配小型大写文字：
+
+```
+small-caps
+```
+
+请注意，这与已明确应用了小型大写字母的文本相匹配。由于其段落或运行样式，它不会匹配任何小型大写字母。
+
 ### HTML路径
 
 #### 单一元素
@@ -421,6 +446,22 @@ h1:fresh
 h1.section-title:fresh
 ```
 
+#### 分离器
+
+要指定放置在折叠在一起的段落内容之间的分隔符，请使用`:separator('SEPARATOR STRING')`。
+
+例如，假设一个文档包含一段代码，其中每行代码都是一个带有代码块样式的段落。我们可以编写一个样式映射来将这些段落映射到`<pre>`元素：
+
+```
+p[style-name='Code Block'] => pre
+```
+
+  由于`pre`未标记为`:fresh`，因此连续的``pre`元素将被折叠在一起。但是，这会导致代码全部在一行上。我们可以使用`separator`在每行代码之间插入一个换行符：
+
+```
+p[style-name='Code Block'] => pre:separator('\n')
+```
+
 #### 嵌套元素
 
 使用“>”指定嵌套元素。比如，要指定“h2”在“div.aside”中：
@@ -430,17 +471,3 @@ div.aside > h2
 ```
 
 你可以嵌套任意深度的元素。
-
-## 缺失的特性
-
-与Mammoth的JavaScript和Python实现相比，如下特性暂缺：
-
-```
-- 自定义图片处理程序
-- CLI
-- 对嵌入样式映射配置的支持
-- Markdown支持
-- 文档变换
-```
-
-## 
