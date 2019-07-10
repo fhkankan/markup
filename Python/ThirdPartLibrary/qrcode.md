@@ -2,11 +2,12 @@
 
 **by: GanZiQim**
 
-------
 
 功能描述：[qrcode](https://github.com/lincolnloop/python-qrcode)模块是Github上的一个开源项目，提供了生成二维码的接口。qrcode默认使用PIL库用于生成图像。
 
-------
+```
+pip install qrcode
+```
 
 ## 预装pillow
 
@@ -17,8 +18,6 @@ It is recommended to use the [pillow](https://pypi.python.org/pypi/Pillow) fork 
 ```
 pip install pillow
 ```
-
-------
 
 ## 函数形式生成二维码
 
@@ -37,10 +36,12 @@ img.save('hello.png')1234
 
 ## 类实例形式生成二维码
 
-QRCode(version=None, error_correction=constants.ERROR_CORRECT_M, box_size=10, border=4, image_factory=None)
+QRCode是qrcode模块的一个内置类
 
-QRCode是qrcode模块的一个内置类。QRCode的实例使用QRCode.add_data(data)函数添加数据。使用QRCode.make(fit=True)函数生成图片。使用QRCode.make_image(image_factory=None)函数得到Image对象。
+```python
+qr = QRCode(version=None, error_correction=constants.ERROR_CORRECT_M, box_size=10, border=4, image_factory=None)
 
+# 参数
 1. version参数为一个取值范围1-40的整数（或字符串），用于控制二维码的尺寸。最小的尺寸1是一个21格*21格的矩阵。该值设置为None（默认），并且调用make函数时fit参数为True（默认）时，模块会自己决定生成二维码的尺寸。
 2. error_correction参数用于控制二维码的错误纠正程度。可以取以下四个保存在模块中的常量：
    - ERROR_CORRECT_L：大约7%或者更少的错误会被更正。
@@ -51,11 +52,19 @@ QRCode是qrcode模块的一个内置类。QRCode的实例使用QRCode.add_data(d
 4. border参数控制边框（二维码四周留白）包含的格子数（默认为4，是标准规定的最小值）。
 5. image_factory参数是一个继承于qrcode.image.base.BaseImage的类，用于控制make_image函数返回的图像实例。image_factory参数可以选择的类保存在模块根目录的image文件夹下。image文件夹里面有五个.py文件，其中一个为__init__.py，一个为base.py。还有pil.py提供了默认的qrcode.image.pil.PilImage类。pure.py提供了qrcode.image.pure.PymagingImage类。svg.py提供了SvgFragmentImage、SvgImage和SvgPathImage三个类。
 
-**注：实际上make函数也是通过实例化一个QRCode对象来生成二维码的。调用make的时候也可以传入初始化参数。**
+qr.add_data(data)
+# 添加数据信息
 
-**QRCode.make_image函数可以通过改变fill_color和back_color参数改变生成图片的背景颜色和格子颜色。**
+qr.make(fit=True)
+# 生成图片
 
+qr.make_image(image_factory=None)
+# 得到image对象
+# 通过改变fill_color和back_color参数改变生成图片的背景颜色和格子颜色
 ```
+示例
+
+```python
 import qrcode
 qr = qrcode.QRCode(
     version=1,
@@ -111,8 +120,6 @@ from qrcode.image.pure import PymagingImage
 img = qrcode.make('Some data here', image_factory=PymagingImage)123
 ```
 
-------
-
 ## 命令行模式
 
 qrcode还提供了通过命令行生成二维码的程序。在命令行中使用`qr [--factory] [--error-correction]`命令即可。
@@ -126,8 +133,6 @@ qr --factory=svg-fragment "Some text" > test4.svg
 
 qr --factory=pymaging "Some text" > test5.png1234567
 ```
-
-------
 
 ## 在二维码中放入LOGO
 
@@ -173,13 +178,9 @@ img.paste(icon,(w,h),icon)
 img.save('D:/createlogo.jpg')
 ```
 
-------
-
 ## 总结
 
 qrcode模块提供了生成各种二维码图像的接口，还提供了通过命令行生成二维码的方法，使用起来非常方便。不过模块内部还有很多细节无法一一细讲，还是那句话，希望有能力有精力的读者可以去阅读一下源码。
-
-------
 
 **参考资料：**
 
