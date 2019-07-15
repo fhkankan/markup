@@ -39,6 +39,85 @@ node -v
 npm -v
 ```
 
+# npm
+
+## 常用命令
+
+本地安装
+
+将安装包放在 ./node_modules 下（运行 npm 命令时所在的目录），如果没有 node_modules 目录，会在当前执行 npm 命令的目录下生成 node_modules 目录。
+
+可以通过 require() 来引入本地安装的包。
+
+```javascript
+$ npm install [name]
+```
+
+全局安装
+
+将安装包放在 /usr/local 下或者你 node 的安装目录。
+
+可以直接在命令行里使用
+
+```
+$ npm install [name] -g
+```
+
+查看版本信息
+
+```
+npm -v
+```
+
+查看安装包信息
+
+```javascript
+// 全局安装
+npm list -g
+
+// 本地安装
+npm list
+
+// 某个模块
+npm list [name]
+```
+
+卸载
+
+```
+npm uninstall name
+```
+
+清空本地缓存
+
+```
+npm cache clear
+```
+
+更新
+
+```
+npm update name
+```
+
+搜索
+
+```
+npm search name
+```
+
+发布
+
+```
+npm publish
+```
+
+帮助
+
+```
+npm help
+```
+
 # cnpm
 
 由于国内npm速度过慢，采用[cnpm](http://npm.taobao.org)替代
@@ -72,7 +151,7 @@ $ echo '\n#alias for cnpm\nalias cnpm="npm --registry=https://registry.npm.taoba
 
 从 [registry.npm.taobao.org](http://registry.npm.taobao.org/) 安装所有模块. 当安装的时候发现安装的模块还没有同步过来, 淘宝 NPM 会自动在后台进行同步, 并且会让你从官方 NPM [registry.npmjs.org](http://registry.npmjs.org/) 进行安装. 下次你再安装这个模块的时候, 就会直接从 淘宝 NPM 安装了.
 
-```
+```javascript
 $ cnpm install [name]
 ```
 

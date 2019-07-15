@@ -22,22 +22,18 @@ apidoc -i myapp/ -o apidoc/ -t mytemplate/
 
 命令参数
 
-| 参数                  | 描述                                                         |
-| --------------------- | ------------------------------------------------------------ |
-| -h, --help            | 查看帮助文档                              |
-| -f, --file-filters    | 指定读取文件的文件名过滤正则表达式(可指定多个) <br/>例如: `apidoc -f ".*\\.js$" -f ".*\\.ts$"` 意为只读取后缀名为js和ts的文件 默认值:`.clj .cls .coffee .cpp .cs .dart .erl .exs?`  `.go .groovy .ino? .java .js .jsx .kt .litcoffee lua .p .php? .pl .pm .py .rb .scala .ts .vue` |
-|  -e, --exclude-filters  | 指定不读取的文件名过滤正则表达式(可指定多个)<br/>例如:`apidoc -e ".*\\.js$"` 意为不读取后缀名为js的文件默认:`''` |
-| -i, --input | 指定读取源文件的目录<br/>例如：`apidoc -i myapp/` 意为读取`myapp/`目录下面的源文件
-默认值:`./` |
-| -o, --output | 指定输出文档的目录<br/> 例如：`apidoc -o doc/` 意为输出文档到`doc`目录下 默认值:`./doc/` |
-| -t, --template | 指定输出的模板文件<br/>例如:`apidoc -t mytemplate/`
-默认:`path.join(__dirname, '../template/')(使用默认模板)` |
-| -c, --config | 指定包含配置文件(apidoc.json)的目录<br/>例如:`apidoc -c config/`
-默认:`./` |
-| -p, --private | 输出的文档中是否包含私有api<br/>例如:`apidoc -p true` 
-默认:`false` |
-| -v, --verbose | 是否输出详细的debug信息<br/>例如:`apidoc -v true`
-默认:`false` |
+|           参数           |                                                                                                                                     描述                                                                                                                                     |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `-h, —help`             | 查看帮助文档                                                                                                                                                                                                                                                                  |
+| `-f, --file-filters`    | 指定读取文件的文件名过滤正则表达式(可指定多个) <br/>例如: `apidoc -f ".*\\.js$" -f ".*\\.ts$"` 意为只读取后缀名为js和ts的文件 默认值:`.clj .cls .coffee .cpp .cs .dart .erl .exs?`  `.go .groovy .ino? .java .js .jsx .kt .litcoffee lua .p .php? .pl .pm .py .rb .scala .ts .vue` |
+| `-e, --exclude-filters` | 指定不读取的文件名过滤正则表达式(可指定多个)<br/>例如:`apidoc -e ".*\\.js$"` 意为不读取后缀名为js的文件默认:`''`                                                                                                                                                                      |
+| `-i, --input `          | 指定读取源文件的目录<br/>例如：`apidoc -i myapp/` 意为读取`myapp/`目录下面的源文件,默认值:`./`                                                                                                                                                                                      |
+| `-o, --output`          | 指定输出文档的目录<br/> 例如：`apidoc -o doc/` 意为输出文档到`doc`目录下, 默认值:`./doc/`                                                                                                                                                                                          |
+| `-t, --template`        | 指定输出的模板文件<br/>例如:`apidoc -t mytemplate/`, 默认:`path.join(__dirname, '../template/')(使用默认模板)`                                                                                                                                                                  |
+| `-c, --config`          | 指定包含配置文件(apidoc.json)的目录<br/>例如:`apidoc -c config/`, 默认:`./`                                                                                                                                                                                                     |
+| `-p, --private`         | 输出的文档中是否包含私有api<br/>例如:`apidoc -p true`, 默认:`false`                                                                                                                                                                                                             |
+| `-v, --verbose`         | 是否输出详细的debug信息<br/>例如:`apidoc -v true`, 默认:`false`                                                                                                                                                                                                                |
+
 ## 配置
 
 每次导出接口文档都必须要让apidoc读取到`apidoc.json`文件(如果未添加配置文件，导出报错)，你可以在你项目的根目录下添加`apidoc.json`文件，这个文件主要包含一些项目的描述信息，比如标题、简短的描述、版本等，你也可以加入一些可选的配置项，比如页眉、页脚、模板等
@@ -721,7 +717,7 @@ Configuration parameter sampleUrl is not set
  */
 ```
 
-### 3.20@apiUse
+#### @apiUse
 
 ```
 @apiUse name
