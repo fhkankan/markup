@@ -1,4 +1,4 @@
-# 视图-Request/Response
+# 视图-Request
 
 Django 使用Request 对象和Response 对象在系统间传递状态， 定义在`django.http`模块中。
 
@@ -282,39 +282,46 @@ class QueryDict
 
 `list`
 
+```shell
+>>> q = QueryDict('a=1&a=2&a=3')
+>>> q.lists()
+[('a', ['1', '2', '3'])]
 ```
 
+`pop`
+
+```shell
+>>> q = QueryDict('a=1&a=2&a=3', mutable=True)
+>>> q.pop('a')
+['1', '2', '3']
 ```
 
+`popitem`
 
+```shell
+>>> q = QueryDict('a=1&a=2&a=3', mutable=True)
+>>> q.popitem()
+('a', ['1', '2', '3'])
+```
 
-## HttpResponse
+`dict`
 
-### 使用
+```shell
+>>> q = QueryDict('a=1&a=3&a=5')
+>>> q.dict()
+{'a': '5'}
+```
 
+`urlencode`
 
-
-### 属性
-
-
-
-### 方法
-
-
-
-### 子类
-
-## JsonResponse
-
-### 序列化非字典对象
-
-### 改变默认JSON编码
-
-## StreamingHttpResponse
-
-### 属性
-
-
-
-## FileResponse
-
+```shell
+# 以查询字符串格式返回数据的字符串
+>>> q = QueryDict('a=2&b=3&b=5')
+>>> q.urlencode()
+'a=2&b=3&b=5'
+# 使用safe参数传递不需要编码的字符
+>>> q = QueryDict(mutable=True)
+>>> q['next'] = '/a&b/'
+>>> q.urlencode(safe='/')
+'next=/a%26b/'
+```
