@@ -112,6 +112,12 @@ restart		重启
 status		状态
 ```
 
+登陆
+
+```
+docker login --username=xxxx
+```
+
 ### 镜像管理
 
 镜像是一个只读文件，是一个能被docker运行起来的一个程序。通过运行这个程序完成各种应用的部署。
