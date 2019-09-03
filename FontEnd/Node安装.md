@@ -213,6 +213,7 @@ export NVM_DIR="$HOME/.nvm"
 
 ```shell
 nvm install node  # 最新版本
+nvm install stable  # 安装稳定版本
 nvm install 6.14.4  # 特定版本
 ```
 
@@ -243,9 +244,16 @@ nvm which 7.3.0
 ```shell
 # 设置别名
 nvm alias latest 11.1.0
+nvm alias default 11.1.0
 # 使用别名
 nvm user latest
 # 取消别名
 nvm unalias latest
+```
+
+卸载
+
+```
+nvm uninstall 11.1.0  # 卸载指定版本
 ```
 

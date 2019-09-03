@@ -1,4 +1,4 @@
-# Git版本库（本地仓库）
+Git版本库（本地仓库）
 
 ```
 - Directory：根目录，由Git管理的一个目录，包含我们的工作区和Git仓库信息。
@@ -567,13 +567,6 @@ venv.bak/
 
 ## 设置
 
-- 项目初始化
-
-```shell
-git init 		# 创建一个空的git仓库或重新初始化一个已经存在的仓库
-git clone xxx		# 克隆一个仓库到一个新的目录
-```
-
 - 单平台公私钥
 
 密钥
@@ -664,6 +657,39 @@ git config user.email "your@email.com"
 ```shell
 git remote rm origin
 git remote add origin git@ieit.github.com
+```
+
+## 初始
+
+- 新建仓库
+
+```shell 
+git clone xxx  # xxx表示地址
+touch README.md
+git add README.md
+git commit -m "add README"
+git push -u origin master
+```
+
+- 已存在的文件夹
+
+```shell
+cd existing_folder
+git init
+git remote add origin xxx  # xxx表示地址
+git add .
+git commit -m "Initial commit"
+git push -u origin master
+```
+
+- 已存在仓库
+
+```shell
+cd existing_repo
+git remote rename origin old-origin
+git remote add origin xxx  # xxx表示地址
+git push -u origin --all
+git push -u origin --tags
 ```
 
 ## 查看
