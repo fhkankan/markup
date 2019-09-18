@@ -16,6 +16,14 @@ npm install apidoc -g
 
 ## 运行
 
+示例
+
+```
+apidoc -i ../cms/apps/ -o ../cms/static/apidoc/
+```
+
+说明
+
 ```
 apidoc -i myapp/ -o apidoc/ -t mytemplate/
 ```
