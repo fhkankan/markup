@@ -91,7 +91,7 @@ sudo apt-get update
 
 ## 常规安装
 ```
-sudo apt-get install git vpnc vlc unrar gparted nginx mongodb bleachbit htop openssh-server meld
+sudo apt-get install git vpnc vlc unrar gparted nginx mongodb bleachbit htop openssh-server meld filezilla
 ```
 
 ## 添加仓库
@@ -189,7 +189,17 @@ sudo apt update
 sudo apt install pycharm-community
 ```
 
+HandBrake
+
+```
+sudo add-apt-repository ppa:stebbins/handbrake-releases
+sudo apt-get update
+apt-get install handbrake-gtk
+apt-get install handbrake-cli   
+```
+
 ## 安装deb
+
 - 下载deb
 > 官网下载
 
@@ -414,5 +424,45 @@ systemback
 
 ```
 可对当前系统做备份和封装成iso安装镜像
+```
+
+# 开启ftp服务
+
+```shell
+# 给服务器创建一个目录
+mkdir ~/ftp
+# 创建存放用户上传的文件的目录
+cd ~/ftp
+mkdir anonymous
+chomd 777 anonymous
+# 安装ftp服务器
+sudo apt-get install vsftpd
+# 配置vsftpd.conf文件
+sudo vi /etc/vsftpd.conf
+# 重启服务器，使其重新加载配置项
+sudo /etc/init.d/vsftpd restart
+```
+
+修改如下设置，允许匿名用户(可在最后直接添加)
+
+```
+anonymous_enable=YES
+anon_root=/home/……/ftp
+no_anon_password=YES
+write_enable=YES
+anon_upload_enable=YES
+anon_mkdir_write_enable=YES
+```
+
+上传下载
+
+```shell
+# 1.登录，按照提示输入用户名和密码
+cd testFile  # 进入上传下载文件夹
+ftp 127.0.0.1  # 连接ftp服务器
+# 2.上传下载文件
+ls	# 显示远程服务器中文件
+get filename1  # 下载远程文件至本地
+put filename2  # 上传本地文件至远程
 ```
 
