@@ -85,20 +85,45 @@ np.random.randint(4, 8, size=(3, 5))
 
 ### 序列创建
 
+numpy中创建数组的函数主要有
+
+```python
+array
+# 将输入数据(列表、元组、数组或其他序列)转换程ndarray
+asarray
+# 将输入转换为ndarray，如果输入数据本身时ndarray就不进行复制
+arange
+# 类似python内置的arange，但返回一个ndarray而不是列表
+linspace
+# 通过指定初始值、终止值和元素个数创建等差数列一维数组，可以通过endpoint参数指定是否包含终止值，默认为True，即包含终止值
+logspace 
+# 与linspace类似，创建的数组时等比数列。基数可以通过base参数指定，默认值为10
+ones
+# 根据指定形状和dtype创建一个数据全部为1的数组
+ones_like
+# 以另一个数组为参考，并根据其形状和dtype创建一个数组
+zeros、zeros_like
+# 与ones和ones_like类似，产生数据全部为0的数组
+empty、empty_like
+# 创建一个只分配内存空间但不填充任何值的数组
+eye、identity
+# 创建单位阵
+frombuffer、fromstring、fromfile
+# 可以从字节序列或文件创建数组
+fromfunction
+# 通过指定的函数创建数组
+```
+
 | 函数                                 | 参数                                                         | 说明                                                         |
 | ------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | `np.array(list, dtype)`              | list 为 序列型对象(list)、嵌套序列对象(list of list)，dtype表示数据类型 （int、float、str） | 将序列对象转换为数组                                         |
-| `np.asarray()`                       |                                                              | 将输入转换为ndarry，如果输入数据本身是ndarray就不进行复制    |
 | `np.arange(star, end, step)`         | 可以指定区间[star, end)，步长可以为浮点数                    | arange() 类似 python 的 range() ，用来创建一个一维 ndarray 数组，结果等同于 np.array(range()) |
 | `np.linspace(star, end, n)`          | 指定区间[star, end]，个数n                                   | 在star和end之间等量截取n个数据形成ndarray数组，可以通过endpoint参数指定是否包含终止值，默认true |
-|                                      |                                                              |                                                              |
 | `np.zeros()`                         | 第一个参数是元组，用来指定大小，如(3, 4)，第二个参数可以指定类型，如int，默认为float | 指定大小的全0数组                                            |
 | `np.ones()`                          | 第一个参数是元组，用来指定大小，如(3, 4)，第二个参数可以指定类型，如int，默认为float | 指定大小的全1数组                                            |
 | `np.full(shape=(a,b), fill_value=c)` | 第一个参数是元组，用来指定大小，如(3, 4)，第二个参数可以指定类型 | 创建所有值均为c的a行b列的数组                                |
-|                                      |                                                              |                                                              |
-
 | `ndarry.reshape()`                   | 总大小不变，指定新数组的维度大小                             | 重新调整数组的维度                                           |
-|                                      |                                                              |                                                              |
+
 
 示例
 
@@ -133,7 +158,7 @@ from math inport e
 np.logspace(1, 20, 10, endpoint=False, base=e)
 
 # zeros
-np.zerops(20, np.int)
+np.zeros(20, np.int)
 # empty
 np.empty(20, np.int)
 

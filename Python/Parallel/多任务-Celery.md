@@ -241,6 +241,27 @@ print(r.result)  # 获取结果
 print(r.get())  # 获取异步任务结果，默认阻塞
 ```
 
+- 常用命令
+
+```shell
+# 后台启动 celery worker进程 
+celery multi start work_1 -A appcelery  
+# work_1 为woker的名称，可以用来进行对该进程进行管理
+
+# 多进程相关
+celery multi stop WOERNAME      # 停止worker进程,有的时候这样无法停止进程，就需要加上-A 项目名，才可以删掉
+celery multi restart WORKNAME        # 重启worker进程
+
+# 查看进程数
+celery status -A celery_task       # 查看该项目运行的进程数   celery_task同级目录下
+
+执行完毕后会在当前目录下产生一个二进制文件，celerybeat-schedule 。
+该文件用于存放上次执行结果：
+　　1、如果存在celerybeat-schedule文件，那么读取后根据上一次执行的时间，继续执行。
+　　2、如果不存在celerybeat-schedule文件，那么会立即执行一次。
+　　3、如果存在celerybeat-schedule文件，读取后，发现间隔时间已过，那么会立即执行。
+```
+
 ### 配置文件
 
 Celery 的配置比较多，可以在 官方配置文档：http://docs.celeryproject.org/en/latest/userguide/configuration.html  查询每个配置项的含义。
@@ -260,7 +281,8 @@ tasks.py  # 任务函数
 celery.py
 
 ```python
-from __future__ import absolute_import
+# 拒绝隐式引入，因为celery.py的名字和celery的包名冲突，需要使用这条语句让程序正确地运行
+from __future__ import absolute_import  
 from celery import Celery
  
 app = Celery('proj', include=['proj.tasks'])
@@ -466,28 +488,23 @@ celery worker -Q videos --loglevel=info
 celery worker -Q images --loglevel=info
 ```
 
-
-
-
-
 ### 定时任务
 
-- shceduler
-
 在celery中执行定时任务非常简单，只需要设置celery对象的CELERYBEAT_SCHEDULE属性即可
+
+- timedelta
 
 config.py
 
 ```python
 from __future__ import absolute_import
-
+from datetime import timedelta
  
+    
 CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/5'
 BROKER_URL = 'redis://127.0.0.1:6379/6'
 # 配置时区
 CELERY_TIMEZONE = 'Asia/Shanghai'
-
-from datetime import timedelta
 
 # 每隔30秒执行add函数
 CELERYBEAT_SCHEDULE = {
@@ -521,6 +538,11 @@ CELERYBEAT_SCHEDULE = {
 启动时需加`-B`参数
 
 ```python
+# 在celery_task同级目录下执行   celery worker/beat xxx
+celery -A celery_task beat  # 发布任务
+celery -A celery_task worker --loglevel=info  # 执行任务
+celery -B -A celery_task worker --loglevel=info  # 合并成一条
+
 celery -A proj worker -B -l info
 ```
 
@@ -532,6 +554,7 @@ config.py
 
 ```python
 from __future__ import absolute_import
+from celery.schedules import crontab
 
  
 CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/5'
@@ -551,11 +574,7 @@ CELERYBEAT_SCHEDULE = {
 }
 ```
 
-
-
-
-
-django中使用
+- django中使用
 
 ```python
 # 创建和开启任务
@@ -585,6 +604,152 @@ from celery_tasks.sum_two import sum_two
 result = sum_two.delay(5,7)
 result.get()
 ```
+
+- 一个案例
+
+目录结构
+
+```
+shylin@shylin:~/Desktop$ tree celery_task
+celery_task
+├── celeryconfig.py    # celeryconfig配置文件
+├── celeryconfig.pyc
+├── celery.py   # celery对象
+├── celery.pyc
+├── epp_scripts   # 任务函数
+│   ├── __init__.py
+│   ├── __init__.pyc
+│   ├── test1.py
+│   ├── test1.pyc
+│   ├── test2.py
+│   └── test2.pyc
+├── __init__.py
+└── __init__.pyc
+```
+
+cleeryconfig.py
+
+```python
+from __future__ import absolute_import # 拒绝隐式引入，因为celery.py的名字和celery的包名冲突，需要使用这条语句让程序正确地运行
+from celery.schedules import crontab
+
+broker_url = "redis://127.0.0.1:6379/5"  
+result_backend = "redis://127.0.0.1:6379/6"
+
+broker_url = "redis://127.0.0.1:6379/2"   # 使用redis存储任务队列
+result_backend = "redis://127.0.0.1:6379/6"  # 使用redis存储结果
+
+task_serializer = 'json'
+result_serializer = 'json'
+accept_content = ['json']
+timezone = "Asia/Shanghai"  # 时区设置
+worker_hijack_root_logger = False  # celery默认开启自己的日志，可关闭自定义日志，不关闭自定义日志输出为空
+result_expires = 60 * 60 * 24  # 存储结果过期时间（默认1天）
+
+# 导入任务所在文件
+imports = [
+    "celery_task.epp_scripts.test1",  # 导入py文件
+    "celery_task.epp_scripts.test2",
+]
+
+
+# 需要执行任务的配置
+beat_schedule = {
+    "test1": {
+        "task": "celery_task.epp_scripts.test1.celery_run",  #执行的函数
+        "schedule": crontab(minute="*/1"),   # every minute 每分钟执行 
+        "args": ()  # # 任务函数参数
+    },
+
+    "test2": {
+        "task": "celery_task.epp_scripts.test2.celery_run",
+        "schedule": crontab(minute=0, hour="*/1"),   # every minute 每小时执行
+        "args": ()
+    },
+
+}
+
+"schedule": crontab（）与crontab的语法基本一致
+"schedule": crontab(minute="*/10",  # 每十分钟执行
+"schedule": crontab(minute="*/1"),   # 每分钟执行
+"schedule": crontab(minute=0, hour="*/1"),    # 每小时执行
+```
+
+celery初始化文件
+
+```python
+# coding:utf-8
+from __future__ import absolute_import # 拒绝隐式引入，因为celery.py的名字和celery的包名冲突，需要使用这条语句让程序正确地运行
+from celery import Celery
+
+# 创建celery应用对象
+app = Celery("celery_demo")
+
+# 导入celery的配置信息
+app.config_from_object("celery_task.celeryconfig")
+
+```
+
+任务函数（epp_scripts目录下）
+
+```python
+# test1.py
+from celery_task.celery import app
+
+def test11():
+    print("test11----------------")
+
+def test22():
+    print("test22--------------")
+    test11()
+
+@app.task
+def celery_run():
+    test11()
+    test22()
+
+if __name__ == '__main__':
+    celery_run()
+------------------------------------------------------------
+# test2.py
+from celery_task.celery import app
+
+def test33():
+    print("test33----------------")
+    # print("------"*50)
+
+def test44():
+    print("test44--------------")
+    # print("------" * 50)
+    test33()
+
+@app.task
+def celery_run():
+    test33()
+    test44()
+
+
+if __name__ == '__main__':
+    celery_run()
+```
+
+发布任务
+
+```shell
+# 在celery_task同级目录下执行
+celery -A celery_task beat
+```
+
+执行任务
+
+```shell
+# 在celery_task同级目录下执行
+celery -A celery_task worker --loglevel=info
+```
+
+
+
+
 
 ### 任务监控
 
