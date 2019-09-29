@@ -1,4 +1,4 @@
-# Git版本库（本地仓库）
+Git版本库（本地仓库）
 
 ```
 - Directory：根目录，由Git管理的一个目录，包含我们的工作区和Git仓库信息。
@@ -567,13 +567,6 @@ venv.bak/
 
 ## 设置
 
-- 项目初始化
-
-```shell
-git init 		# 创建一个空的git仓库或重新初始化一个已经存在的仓库
-git clone xxx		# 克隆一个仓库到一个新的目录
-```
-
 - 单平台公私钥
 
 密钥
@@ -664,6 +657,39 @@ git config user.email "your@email.com"
 ```shell
 git remote rm origin
 git remote add origin git@ieit.github.com
+```
+
+## 初始
+
+- 新建仓库
+
+```shell 
+git clone xxx  # xxx表示地址
+touch README.md
+git add README.md
+git commit -m "add README"
+git push -u origin master
+```
+
+- 已存在的文件夹
+
+```shell
+cd existing_folder
+git init
+git remote add origin xxx  # xxx表示地址
+git add .
+git commit -m "Initial commit"
+git push -u origin master
+```
+
+- 已存在仓库
+
+```shell
+cd existing_repo
+git remote rename origin old-origin
+git remote add origin xxx  # xxx表示地址
+git push -u origin --all
+git push -u origin --tags
 ```
 
 ## 查看
@@ -783,5 +809,47 @@ git puh origin f1  # 方法二，只追踪push
 git remote update  # 更新本地追踪显示的远程分支
 git remote prune origin --dry-run  # 查看远程哪些分支需要清理
 git remote prune origin		# 清除无效的远程追踪分支
+```
+
+## 高级
+
+压缩合并多次记录
+
+```shell
+# 查看提交历史
+git log
+# 1.对commit进行rebase操作
+git rebase -i HEAD~4  # 最近的4个进行合并
+git rebase -i commitId  # 指明需要合并的commit位于哪个commitId后
+# 2.对弹窗commands处理
+pick：正常选中
+reword：选中，并且修改提交信息；
+edit：选中，rebase时会暂停，允许你修改这个commit
+squash：选中，会将当前commit与上一个commit合并
+fixup：与squash相同，但不会保存当前commit的提交信息
+exec：执行其他shell命令
+# 3.编辑后保存退出，git 会自动压缩提交历史，
+esc
+:
+wq
+# 4.如果有冲突，记得解决冲突后，使用 
+git rebase --continue # 重新回到当前的 git 压缩过程；
+git rebase --abort		# 放弃压缩命令
+# 5. 推送到远程仓库
+git push -f
+```
+
+删除某次记录
+
+```shell
+# 查看提交历史
+git log
+# 1.对commit进行rebase操作
+git rebase -i HEAD~1  # 对最近1次commit进行处理
+git rebase -i 9fbf10  # 对某次id为9fbf10之后的commit进行rebase
+# 2.对弹窗commands处理
+将需要删除的commit设置操作指令drop
+# 3.保存退出
+
 ```
 

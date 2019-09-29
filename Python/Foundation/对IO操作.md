@@ -634,6 +634,70 @@ for pdf1 in pdfs:
         pass
 ```
 
+# 上传下载
+
+## 文件上传
+
+```python
+header={"ct":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"}
+files = {'file':open('D:\\test_data\\summer_test_data_05.txt','rb')}#此处是重点！我们操作文件上传的时候，把目标文件以open打开，然后存储到变量file里面存到一个字典里面
+upload_data={"parentId":"","fileCategory":"personal","fileSize":179,"fileName":"summer_text_0920.txt","uoType":1}
+upload_res=requests.post(upload_url,upload_data,files=files,headers=header)##此处是重点！我们操作文件上传的时候，接口请求参数直接存到upload_data变量里面，在请求的时候，直接作为数据传递过去
+```
+
+
+
+## 文件下载
+
+Python开发中时长遇到要下载文件的情况，最常用的方法就是通过Http利用urllib或者urllib2模块。
+
+当然你也可以利用ftplib从ftp站点下载文件。此外Python还提供了另外一种方法requests。
+
+下面来看看三种方法是如何来下载zip文件的：
+
+方法一：
+
+```python
+import urllib 
+import urllib2 
+import requests
+print "downloading with urllib" 
+url = 'http://www.pythontab.com/test/demo.zip'  
+print "downloading with urllib"
+urllib.urlretrieve(url, "demo.zip")
+```
+
+方法二：
+
+```python
+import urllib2
+print "downloading with urllib2"
+url = 'http://www.pythontab.com/test/demo.zip' 
+f = urllib2.urlopen(url) 
+data = f.read() 
+with open("demo2.zip", "wb") as code:     
+    code.write(data)
+```
+
+方法三：
+
+```python
+import requests 
+print "downloading with requests"
+url = 'http://www.pythontab.com/test/demo.zip' 
+r = requests.get(url) 
+with open("demo3.zip", "wb") as code:
+     code.write(r.content)
+```
+
+看起来使用urllib最为简单，一句语句即可。当然你可以把urllib2缩写成：
+
+```python
+f = urllib2.urlopen(url) 
+with open("demo2.zip", "wb") as code:
+   code.write(f.read())
+```
+
 # 文件和目录
 
 ## os

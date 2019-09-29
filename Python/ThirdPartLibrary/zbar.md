@@ -12,7 +12,7 @@ windows只支持32位,64位python最后会出现"**ImportError: DLL load failed:
 
 ## 简单图片扫描
 
-```
+```python
 # -*- coding:utf-8 -*-
 import zbar
 from PIL import Image
@@ -39,7 +39,7 @@ print data
 
 代码二
 
-```
+```python
 #!/usr/bin/env python  
 # coding: u8  
   
@@ -75,7 +75,7 @@ del(image)
 
 ## 视频检测
 
-```
+```python
 #!/usr/bin/python  
 from sys import argv  
 import zebra  

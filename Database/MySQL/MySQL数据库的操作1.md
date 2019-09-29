@@ -282,6 +282,29 @@ AND UserId > 2
 ```python
 # 改特定的行和列
 update students set gender=0,hometown='北京' where id=5;
+
+# 批量改
+# 单个字段
+UPDATE mytable
+  SET myfield = CASE other_field
+    WHEN 1 THEN 'value'
+    WHEN 2 THEN 'value'
+    WHEN 3 THEN 'value'
+  END
+WHERE id IN (1,2,3)
+# 多个字段
+UPDATE categories
+  SET display_order = CASE id
+    WHEN 1 THEN 3
+    WHEN 2 THEN 4
+    WHEN 3 THEN 5
+  END,
+  title = CASE id
+    WHEN 1 THEN 'New Title 1'
+    WHEN 2 THEN 'New Title 2'
+    WHEN 3 THEN 'New Title 3'
+  END
+WHERE id IN (1,2,3)
 ```
 
 ## 删
