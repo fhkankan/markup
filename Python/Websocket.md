@@ -249,7 +249,7 @@ def create_socket():
         
         magic_key = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
         sec_key = header_dict['Sec-WebSocket-Key'] + magic_key
-        key = base64.b64encode(hashlib.sha1(bytes(sec_key, encodeing='utf-8')).digest())
+        key = base64.b64encode(hashlib.sha1(bytes(sec_key, encoding='utf-8')).digest())
         key_str = str(key)[2:30]
         logging.debug(key_str)
         response = 'HTTP/1.1 101 Switching Protocols\r\n'\
