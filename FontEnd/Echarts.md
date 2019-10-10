@@ -85,3 +85,74 @@ myChart.setOption(option);
 |        |                |
 |        |                |
 
+## 保存图片
+
+方法一
+
+```javascript
+// 工具栏
+toolbox: 
+{
+    show: true,
+    feature: {
+        dataZoom: {
+            yAxisIndex: 'none'
+        }, //区域缩放，区域缩放还原
+        dataView: {
+            readOnly: false
+        }, //数据视图
+        magicType: {
+            type: ['line', 'bar']
+        },  //切换为折线图，切换为柱状图
+        restore: {},  //还原
+        saveAsImage: {}   //保存为图片
+    }
+},
+```
+方法二
+```javascript
+// 自定义方法
+exportpic(val)
+{
+    let myChart = this.$echarts.init(document.getElementById(val));
+    let picInfo=myChart.getDataURL({
+        type: 'png',
+        pixelRatio: 1.5,  //放大两倍下载，之后压缩到同等大小展示。解决生成图片在移动端模糊问题
+        backgroundColor: '#fff'
+    });//获取到的是一串base64信息
+ 
+    const elink = document.createElement('a');
+    elink.download = '统计图';
+    elink.style.display = 'none';
+    elink.href = picInfo;
+    document.body.appendChild(elink);
+    elink.click();
+    URL.revokeObjectURL(elink.href); // 释放URL 对象
+    document.body.removeChild(elink)
+},
+```
+
+方法三
+
+```javascript
+// 基于准备好的dom，初始化echarts实例
+var myChart = echarts.init(document.getElementById('dailyCurveCharts'));
+// 获取echarts中的canvas
+var mycanvas = $("#dailyCurveCharts").find("canvas")[0];
+// 点击按钮到处图片
+$("#exportExcel").click(function () {
+    var mycanvas = $("#dailyCurveCharts").find("canvas")[0];
+ 
+    var image = mycanvas.toDataURL("image/jpeg");
+ 
+    var $a = document.createElement('a');
+    $a.setAttribute("href", image);
+    $a.setAttribute("download", "");
+    $a.click();
+ 
+//    window.location.href=image; // it will save locally
+});
+// 设置到处图片的名称
+$a.setAttribute("download", "echarts图片下载");
+```
+
