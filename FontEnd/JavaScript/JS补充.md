@@ -840,7 +840,113 @@ $('body').on('click', "#Download",function(){//点击下载按钮
 - 压缩为单文件
 
 ```
-在页面把要下载文件的ID传给后台，后台用这些ID，找到文件，生成一个压缩包，然后把压缩包返回给浏览器。如果文件比较大，这里可以考虑做成异步得。
+在页面把要下载文件的ID传给后台，后台用这些ID，找到文件，生成一个压缩包，然后把压缩包返回给浏览器。如果文件比较大，这里可以考虑做成异步。
+```
+
+## 判断文件下载成功
+
+[参考](https://www.cnblogs.com/chugexin/p/7654897.html)
+
+最近在做的一个项目碰到一个问题，就是需要检测什么时候导出成功并根据导出成功进行提示操作。开始是直接使用location.href,但是无法检测到是否下载成功。
+
+经过查找资料下载文件使用iframe可以做到，但是onload可以检测到页面加载 成功，无法检测到下载加载成功。经过搜索资料发现一个解决，方案。原理如下：
+
+在点击下载按钮时获得一个时间戳并把时间戳发送给后台，后台响应成功后把发送的时间戳设置为cookie值，前端实时监测cookie值和前端的时间戳是否相等，相等就说明文件下载成功。
+
+```javascript
+function exportExcelForm(obj){
+            var timer,flag=0;
+            var _self=obj._self;
+            var downloadToken=obj.time,
+                    url=obj.url,
+                    triggerDelay = 1000;
+            _self.classList.add('disabled');
+            _self.innerHTML='导出中...';
+            timer=setTimeout(function() {
+                function checkToken(){
+                    var timerll=setInterval(function(){
+                        var sertoken=getCookie(obj.key);
+                        if(sertoken&&(sertoken==downloadToken)){
+                            clearTimeout( downloadTimer );
+                            clearInterval( timerll );
+                            frame.remove();
+                            _self.classList.remove('disabled');
+                            _self.innerHTML=obj.text;
+                            clearCookie(obj.key);
+                            flag=0;
+                        }else if(sertoken){
+                            alert(obj.text+'失败');
+                            clearTimeout( downloadTimer );
+                            clearInterval( timerll );
+                            clearCookie(obj.key);
+                            _self.classList.remove('disabled');
+                            _self.innerHTML=obj.text;
+                        }
+                    },100);
+                }
+                if(!flag){
+                    flag=1;
+                    var frame=$('<iframe />').attr('src', url).attr('id','iframe_download_report').hide().appendTo('body');
+                    var downloadTimer=setTimeout(checkToken,1000);
+                }
+
+            }, triggerDelay);
+        }
+　　　　　　
+
+　　　　$('#exportNewStock').on('click',function(){
+                var _self=this;
+                var downloadToken=+new Date();
+                var url =maochao+'stock/exportFinalStockExcelAllotNew.xlsx?brandname='+brandName+'&statisticsdate='+time+'&stockoutDay='+ditchCode+'&value='+downloadToken;
+                var obj={
+                    _self:_self,
+                    time:downloadToken,
+                    url:url,
+                    text:'导出新仓调拨模板',
+                    key:'excel_new'
+                }
+                exportExcelForm(obj);
+            });
+```
+
+[参考二](https://www.cnblogs.com/qianlegeqian/p/4409565.html)
+
+```javascript
+_iframeDownLoad:function(){
+            var timer,_this=this,flag=0;
+            $(document).on('click','.J_DownLog',function(){
+                var downloadToken=_this._setFormToken(),
+                    url=this.href+"&downloadToken="+downloadToken,
+                    triggerDelay = 1000,
+                    btn=$(this);
+
+                _this._disableLink(btn,"导出中...");
+                clearTimeout(timer);
+                
+                timer=setTimeout(function() {
+                    function checkToken(){
+                        sertoken=_this._getCookie( "downloadToken" );
+                        if(sertoken==downloadToken){
+                                clearTimeout( downloadTimer );
+                                _this._expireCookie( "downloadToken" );
+                                frame.remove();
+                                _this._enableLink(btn,"导出日志");
+                                flag=0;
+                        }else{
+                            checkToken();
+                        }
+                    }
+                    if(!flag){
+                        flag=1;
+                        var frame=$('<iframe />').attr('src', url).attr('id','iframe_download_report').hide().appendTo('body'); 
+                        var downloadTimer=setTimeout(checkToken,1000);                        
+                    }
+
+                }, triggerDelay);
+                return false;
+                
+            });
+        }
 ```
 
 
