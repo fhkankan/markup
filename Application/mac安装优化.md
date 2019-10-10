@@ -80,7 +80,7 @@ defaults write com.apple.finder AppleShowAllFiles FALSE
 killall Finder
 ```
 
-## zsh
+## zsh/bash
 
 切换zsh
 
@@ -93,11 +93,37 @@ chsh -s /bin/zsh
 chsh -s /bin/bash
 ```
 
-安装oh my zsh
+oh my zsh
 
 ```
+# 安装
 curl -L https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh | sh
+# 卸载
+uninstall oh-my-zsh
 ```
+
+更改终端提示符
+
+```shell
+vim /etc/bashrc
+vim /etc/zshrc
+
+#更改PS1
+# bash
+\u			# 用户名
+\h			# 主机名
+\W			# 当前工作目录
+\$			# 显示$提示符
+
+# zsh
+%n			# 用户名
+%m			# 主机名
+%c			# 目录base
+%/			# 完整目录
+%%		  # 显示%
+```
+
+
 
 ## macVIM
 
