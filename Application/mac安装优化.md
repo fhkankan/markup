@@ -123,8 +123,6 @@ vim /etc/zshrc
 %%		  # 显示%
 ```
 
-
-
 ## macVIM
 
 配置文件

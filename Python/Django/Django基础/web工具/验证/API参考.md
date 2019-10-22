@@ -1,683 +1,177 @@
-自定义Django中的认证
-Django自带的认证系统足够应付大多数情况，但你可能有特殊的需求，现成的默认认证系统不能满足。 自定义自己的项目的权限系统需要了解Django中哪些部分是能够扩展或替换的。 这个文档提供了如何定制权限系统的细节。
+# `django.contrib.auth`
 
-认证后端系统是可扩展的，可用于User模型存储的用户名和密码与Django的默认不同的服务进行认证。
+这份文档提供Django 认证系统组件的API 参考资料。 对于这些组件的用法以及如何自定义认证和授权请参照[authentication topic guide](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/auth/index.html)。
 
-你可为你的模型提供自定义权限，它们可以通过Django认证系统进行检查。
 
-你可以扩展默认的User模型，或用完全自定义的模型替换。
 
-其他认证来源
-有时候你需要挂接到其他认证资源 -- 另一包含用户名，密码的数据源或者其他认证方法。
+## `User`模型
 
-例如，你的公司可能已经建立一个LDAP，存储每一位员工的用户名和密码。 对于一个在LDAP和Django网站都拥有账号的用户来说，如果他/她不能使用LDAP账号登录Django网站，对他/她以及网站管理员来说都是一件麻烦事。
 
-为了解决类似情形，django的认证系统允许你添加其他认证方式。 你可以覆盖Django默认的基于数据库的方案，也可以让默认认证系统与其它认证系统串在一起使用。
 
-有关Django附带的认证后端的信息，请参阅认证后端参考。
+### 字段
 
-指定认证后端
-在底层，Django维护一个“认证后端”的列表。 当调用django.contrib.auth.authenticate()时 — 如何登入一个用户中所描述的 — Django 会尝试所有的认证后端进行认证。 如果第一个认证方法失败，Django 将尝试第二个，以此类推，直至试完所有的认证后台。
+- *class* `models.``User`
 
-使用的认证后台通过AUTHENTICATION_BACKENDS 设置指定。 这应该是指向Python类的Python路径名的列表，它们知道如何进行身份验证。 这些类可以位于Python 路径上任何地方。
+  [`User`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User) 对象具有如下字段：`username`必选。 150个字符以内。 用户名可能包含字母数字，`_`，`@`，`+` `.` 和`-`个字符。对于许多用例，`max_length`应该是足够的。 如果您需要较长的长度，请使用[custom user model](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/auth/customizing.html#specifying-custom-user-model)。 如果您使用具有`utf8mb4`编码（推荐用于正确的Unicode支持）的MySQL，请至少指定`max_length=191`，因为MySQL只能创建具有191个字符的唯一索引，默认。用户名和UnicodeDjango最初只接受用户名中的ASCII字母和数字。 虽然这不是一个故意的选择，Unicode字符一直被接受使用Python 3时。 Django 1.10在用户名中正式添加了Unicode支持，在Python 2中保留了仅适用于ASCII的行为，可以使用[`User.username_validator`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User.username_validator)自定义行为的选项。**在Django更改1.10：**`max_length`从30个字符增加到150个字符。`first_name`可选（[`blank=True`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/models/fields.html#django.db.models.Field.blank)）。 少于等于30个字符。`last_name`可选（[`blank=True`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/models/fields.html#django.db.models.Field.blank)）。 少于等于30个字符。`email`可选（[`blank=True`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/models/fields.html#django.db.models.Field.blank)）。 邮箱地址。`password`必选。 密码的哈希及元数据。 （Django 不保存原始密码）。 原始密码可以无限长而且可以包含任意字符。 参见[password documentation](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/auth/passwords.html)。`groups`与[`Group`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.Group) 之间的多对多关系。`user_permissions`与[`Permission`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.Permission) 之间的多对多关系。`is_staff`布尔值。 指示用户是否可以访问Admin 站点。`is_active`布尔值。 指示用户的账号是否激活。 我们建议您将此标志设置为`False`而不是删除帐户；这样，如果您的应用程序对用户有任何外键，则外键不会中断。它不是用来控制用户是否能够登录。 不需要验证后端来检查`is_active`标志，而是默认后端（[`ModelBackend`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.backends.ModelBackend)）和[`RemoteUserBackend`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.backends.RemoteUserBackend)。 如果要允许非活动用户登录，您可以使用[`AllowAllUsersModelBackend`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.backends.AllowAllUsersModelBackend)或[`AllowAllUsersRemoteUserBackend`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.backends.AllowAllUsersRemoteUserBackend)。 在这种情况下，您还需要自定义[`LoginView`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/auth/default.html#django.contrib.auth.views.LoginView)使用的[`AuthenticationForm`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/auth/default.html#django.contrib.auth.forms.AuthenticationForm)，因为它拒绝了非活动用户。 请注意，诸如[`has_perm()`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User.has_perm)等权限检查方法，Django管理员中的身份验证全部返回为非活动用户的`False`。**在Django更改1.10：**在旧版本中，[`ModelBackend`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.backends.ModelBackend)和[`RemoteUserBackend`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.backends.RemoteUserBackend)允许非活动用户进行身份验证。`is_superuser`布尔值。 指定这个用户拥有所有的权限而不需要给他们分配明确的权限。`last_login`用户最后一次登录的时间。`date_joined`账户创建的时间。 当账号创建时，默认设置为当前的date/time。
 
-默认情况下，AUTHENTICATION_BACKENDS 设置为：
 
-['django.contrib.auth.backends.ModelBackend']
-这个基本的认证后台会检查Django 的用户数据库并查询内建的权限。 它不会通过任何的速率限制机制防护暴力破解。 你可以在自定义的认证后端中实现自己的速率控制机制，或者使用大部分Web 服务器提供的机制。
 
-AUTHENTICATION_BACKENDS 的顺序很重要，所以如果用户名和密码在多个后台中都是合法的，Django 将在第一个匹配成功后停止处理。
+### 属性
 
-如果后台引发PermissionDenied 异常，认证将立即失败。 Django 不会检查后面的认证后台。
+- *class* `models.``User`
 
-注
+  `is_authenticated`始终为`True`（与`AnonymousUser.is_authenticated`相对，始终为`False`）的只读属性。 这是区分用户是否已经认证的一种方法。 这并不表示任何权限，也不会检查用户是否处于活动状态或是否具有有效的会话。 即使正常情况下，您将在`request.user`上检查此属性，以了解它是否已由[`AuthenticationMiddleware`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/middleware.html#django.contrib.auth.middleware.AuthenticationMiddleware)填充（表示当前登录的用户），您应该知道对于任何[`User`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User)实例，此属性为`True`。**在Django更改1.10：**在旧版本中，这是一种方法。 使用它作为方法的向后兼容性支持将在Django 2.0中被删除。不要使用`is`操作符进行比较！为了允许`is_authenticated`和`is_anonymous`属性也可以作为方法，属性是`CallableBool`对象。 因此，直到Django 2.0中的弃用期结束为止，您不能使用`is`运算符来比较这些属性。 也就是说，`request.user.is_authenticated is True`总是求值得`False`。`is_anonymous`始终为`False`的只读属性。 这是区别[`User`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User) 和[`AnonymousUser`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.AnonymousUser) 对象的一种方法。 一般来说，您应该优先使用[`is_authenticated`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User.is_authenticated)到此属性。**在Django更改1.10：**在旧版本中，这是一种方法。 使用它作为方法的向后兼容性支持将在Django 2.0中被删除。`username_validator`**Django中的新功能1.10。**指向用于验证用户名的验证器实例。 Python 3上的默认值为[`validators.UnicodeUsernameValidator`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.validators.UnicodeUsernameValidator)和Python 3上的[`validators.ASCIIUsernameValidator`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.validators.ASCIIUsernameValidator)。要更改默认用户名验证器，可以将`User`模型子类化，并将此属性设置为不同的验证器实例。 例如，要在Python 3上使用ASCII用户名：`from django.contrib.auth.models import 用户 from django.contrib.auth.validators import ASCIIUsernameValidator class CustomUser(User):    username_validator = ASCIIUsernameValidator()     class Meta:        proxy = True  # If no new field is added. `
 
-一旦用户被认证过，Django会在用户的session中存储他使用的认证后端，然后在session有效期中一直会为该用户提供此后端认证。 这种高效意味着验证源被缓存基于per-session基础, 所以如果你改变 AUTHENTICATION_BACKENDS, 如果你需要迫使用户重新认证，需要清除掉 session 数据. 一个简单的方式是使用这个方法： Session.objects.all().delete().
 
-编写认证后端
-认证后端是一个类，它实现两个必需方法：get_user(user_id)和authenticate(request, **credentials)，以及一组可选的与权限相关的认证方法。
 
-get_user方法使用一个user_id，可以是用户名，数据库ID等等，但必须是用户对象的主键，并返回一个用户对象。
+### 方法
 
-authenticate方法需要一个request参数和一些凭据作为关键字参数。 大多数情况下，代码如下︰
+- *class* `models.``User`
 
-class MyBackend(object):
-    def authenticate(self, request, username=None, password=None):
-        # Check the username/password and return a user.
-        ...
-当然，它也可以接收token的方式作为参数，例如:
+  `get_username`()返回这个User 的username。 由于可以将`User`模型交换出来，您应该使用此方法，而不是直接引用用户名属性。`get_full_name`()返回[`first_name`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User.first_name) 和[`last_name`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User.last_name)，之间带有一个空格。`get_short_name`()返回[`first_name`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User.first_name)。`set_password`(*raw_password*)设置用户的密码为给定的原始字符串，并负责密码的哈希。 不会保存[`User`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User) 对象。当`None` 为`raw_password` 时，密码将设置为一个不可用的密码，和使用[`set_unusable_password()`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User.set_unusable_password) 的效果一样。`check_password`(*raw_password*)Returns `True` if the given raw string is the correct password for the user. （它负责在比较时密码的哈希）。`set_unusable_password`()标记用户为没有设置密码。 它与密码为空的字符串不一样。 [`check_password()`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User.check_password) 对这种用户永远不会返回`True`。 不会保存[`User`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User) 对象。如果你的认证发生在外部例如LDAP 目录时，可能需要这个函数。`has_usable_password`()如果对这个用户调用过[`set_unusable_password()`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User.set_unusable_password)，则返回`False`。`get_group_permissions`(*obj=None*)返回一个用户当前拥有的权限的set，通过用户组如果传入`obj`，则仅返回此特定对象的组权限。http://python.usyiyi.cn/translate/django_182/ref/contrib/auth.html#`get_all_permissions`(*obj=None*)通过组和用户权限返回用户拥有的一组权限字符串。如果传入`obj`，则仅返回此特定对象的权限。`has_perm`(*perm*, *obj=None*)如果用户具有指定的权限，则返回`True`，其中perm的格式为`"."`。 （请参阅有关[permissions](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/auth/default.html#topic-authorization)）。 如果用户没有激活，这个方法将永远返回 `False`。如果传入`obj`，此方法将不会检查模型的权限，而是检查此特定对象。`has_perms`(*perm_list*, *obj=None*)Returns `True` if the user has each of the specified permissions, where each perm is in the format `"."`. 如果用户没有激活，这个方法将永远返回 `False`。如果传入`obj`，此方法将不会检查模型的权限，而是检查特定对象。`has_module_perms`(*package_name*)如果用户具有给出的package_name（Django应用的标签）中的任何一个权限，则返回`True`。 如果用户没有激活，这个方法将永远返回`False`。`email_user`(*subject*, *message*, *from_email=None*, ***kwargs*)发生邮件给这个用户。 如果`None` 为`from_email`，Django 将使用[`DEFAULT_FROM_EMAIL`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/settings.html#std:setting-DEFAULT_FROM_EMAIL)。 任何`**kwargs` 都将传递给底层的[`send_mail()`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/email.html#django.core.mail.send_mail) 调用。
 
-class MyBackend(object):
-    def authenticate(self, request, token=None):
-        # Check the token and return a user.
-        ...
-无论哪种方式，authenticate()应该检查它获得的凭据，如果凭据有效，则返回与这些凭据匹配的用户对象。 如果不合法，则返回 None.
 
-request is an HttpRequest and may be None if it wasn’t provided to authenticate() (例如密码在后端).
 
-Django管理员与Django User object紧密耦合。 处理这种情况的最好方法是为您的后端存在的每个用户创建一个Django User对象（例如，在LDAP目录，外部SQL数据库等中） 你可以先写一个脚本来做这件事, 或者用你的 authenticate 方法在用户登陆的时候完成这件事。
+### 管理器方法
 
-这里有一个例子，后台对你定义在 settings.py 文件里的用户和密码进行验证，并且在用第一次验证的时候创建一个 User 对象:
+- *class* `models.``UserManager`
 
-from django.conf import settings
-from django.contrib.auth.hashers import check_password
-from django.contrib.auth.models import User
+  [`User`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User) 模型有一个自定义的管理器，它具有以下辅助方法（除了[`BaseUserManager`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/auth/customizing.html#django.contrib.auth.models.BaseUserManager) 提供的方法之外）：`create_user`(*username*, *email=None*, *password=None*, ***extra_fields*)创建、保存并返回一个[`User`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User)。[`username`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User.username) 和[`password`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User.password) 设置为给出的值。 [`email`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User.email) 的域名部分将自动转换成小写，返回的[`User`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User) 对象将设置[`is_active`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User.is_active) 为`True`。如果没有提供password，将调用 [`set_unusable_password()`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User.set_unusable_password)。The `extra_fields` keyword arguments are passed through to the [`User`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User)’s `__init__` method to allow setting arbitrary fields on a [custom user model](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/auth/customizing.html#auth-custom-user).参见[Creating users](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/auth/default.html#topics-auth-creating-users) 中的示例用法。`create_superuser`(*username*, *email*, *password*, ***extra_fields*)与[`create_user()`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.UserManager.create_user) 相同，但是设置[`is_staff`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User.is_staff) 和[`is_superuser`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User.is_superuser) 为`True`。
 
-class SettingsBackend(object):
-    """
-    Authenticate against the settings ADMIN_LOGIN and ADMIN_PASSWORD.
 
-    Use the login name and a hash of the password. 像这样：
 
-    ADMIN_LOGIN = 'admin'
-    ADMIN_PASSWORD = 'pbkdf2_sha256$30000$Vo0VlMnkR4Bk$qEvtdyZRWTcOsCnI/oQ7fVOu1XAURIZYoOZ3iq8Dr4M='
-    """
+## `AnonymousUser`对象
 
-    def authenticate(self, request, username=None, password=None):
-        login_valid = (settings.ADMIN_LOGIN == username)
-        pwd_valid = check_password(password, settings.ADMIN_PASSWORD)
-        if login_valid and pwd_valid:
-            try:
-                user = User.objects.get(username=username)
-            except User.DoesNotExist:
-                # Create a new user. There's no need to set a password
-                # because only the password from settings.py is checked.
-                user = User(username=username)
-                user.is_staff = True
-                user.is_superuser = True
-                user.save()
-            return user
-        return 没有
+- *class* `models.``AnonymousUser`
 
-    def get_user(self, user_id):
-        try:
-            return User.objects.get(pk=user_id)
-        except User.DoesNotExist:
-            return 没有
-在Django1.11上的改变：
-request参数添加到authenticate()，在Django 2.1中不支持它的后端将被移除。
+  [`django.contrib.auth.models.AnonymousUser`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.AnonymousUser) 类实现了[`django.contrib.auth.models.User`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User) 接口，但具有下面几个不同点：[id](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/db/models.html#automatic-primary-key-fields) 永远为`None`。[`username`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User.username) 永远为空字符串。[`get_username()`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User.get_username) 永远返回空字符串。[`is_anonymous`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User.is_anonymous)是`True`而不是`False`。[`is_authenticated`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User.is_authenticated)是`False`，而不是`True`。[`is_staff`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User.is_staff) 和[`is_superuser`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User.is_superuser) 永远为`False`。[`is_active`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User.is_active) 永远为 `False`。[`groups`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User.groups) 和[`user_permissions`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User.user_permissions) 永远为空。[`set_password()`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User.set_password)、[`check_password()`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User.check_password)、[`save()`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/models/instances.html#django.db.models.Model.save) 和[`delete()`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/models/instances.html#django.db.models.Model.delete) 引发[`NotImplementedError`](https://docs.python.org/3/library/exceptions.html#NotImplementedError)。
 
-在自定义后端处理授权
-自定义验证后端能提供自己的权限。
+在实际应用中，你自己可能不需要使用[`AnonymousUser`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.AnonymousUser) 对象，它们用于Web 请求，在下节会讲述。
 
-当认证后端完成了这些功能 (get_group_permissions(), get_all_permissions(), has_perm(), and has_module_perms()) 那么user model就会给它授予相对应的许可。
 
-提供给用户的权限将是所有后端返回的所有权限的超集。 也就是说，只要任意一个backend授予了一个user权限，django就给这个user这个权限。
 
-如果后端在has_perm()或has_module_perms()中引发PermissionDenied异常，授权将立即失败，Django不会检查接下来的后端认证。
+## `Permission`模型
 
-上述的简单backend可以相当容易的完成授予admin权限。
+- *class* `models.``Permission`
 
-class SettingsBackend(object):
-    ...
-    def has_perm(self, user_obj, perm, obj=None):
-        return user_obj.username == settings.ADMIN_LOGIN
-在上例中，授予了用户所有访问权限。 注意， 由于django.contrib.auth.models.User 同名函数将接收同样的参数，认证后台接收到的 user_obj，有可能是匿名用户 anonymous
+  
 
-一个完整的认证过程，可以参考 auth_permission类，它位于django/contrib/auth/backends.py，ModelBackend是默认的认证后台，并且大多数情况下会对ModelBackend表进行查询。 如果你想对后台API提供自定义行为，你可以利用Python继承的优势，继承ModelBackend并自定义后台API
 
-授权匿名用户
-匿名用户是指不经过身份验证即他们有没有提供有效的身份验证细节。 然而，这并不一定意味着他们不被授权做任何事情。 在最基本的层面上，大多数网站授权匿名用户浏览大部分网站，许多网站允许匿名发表评论等。
 
-Django 的权限框架没有一个地方来存储匿名用户的权限。 然而，传递给身份验证后端的用户对象可能是 django.contrib.auth.models.AnonymousUser 对象，该对象允许后端指定匿名用户自定义的授权行为。 这对可重用应用的作者是很有用的, 因为他可以委托所有的请求, 例如控制匿名用户访问,给这个认证后端, 而不需要设置它
+### 字段
 
-授权非活动用户
-非活动用户是将is_active字段设置为False的用户。 ModelBackend和RemoteUserBackend身份验证后端禁止这些用户进行身份验证。 如果自定义用户模型没有is_active字段，则所有用户都将被允许进行身份验证。
+[`Permission`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.Permission) 对象有以下字段:
 
-如果要让非活动用户进行身份验证，可以使用AllowAllUsersModelBackend或AllowAllUsersRemoteUserBackend。
+- *class* `models.``Permission`
 
-对权限系统中的匿名用户的支持允许匿名用户具有执行某些操作的权限的情况，而未被认证的用户不具有。
+  `name`必选。 255个字符或者更少. 例如: `'Can vote'`.`content_type`必选。 对`django_content_type`数据库表的引用，其中包含每个已安装模型的记录。`codename`必选。 小于等于100个字符. 例如: `'can_vote'`.
 
-不要忘记在自己的后端权限方法中测试用户的is_active属性。
 
-在Django更改1.10：
-在旧版本中，ModelBackend允许非活动用户进行身份验证。
 
-处理对象权限
-django的权限框架对对象权限有基础的支持, 尽管在它的核心没有实现它. 这意味着对象权限检查将始终返回 False 或空列表 （取决于检查的行为）。 一个认证后端将传递关键字参数obj 和 user_obj 给每一个对象相关的认证方法, 并且能够返回适当的对象级别的权限.
+### 方法
 
-自定义权限
-要为给定模型对象创建自定义权限，请使用permissions model Meta attribute。
+[`Permission`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.Permission)对象具有类似任何其他[Django model](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/models/instances.html)的标准数据访问方法。
 
-此示例任务模型创建三个自定义权限，即用户是否可以对您的应用程序任务实例执行操作：
 
-class Task(models.Model):
-    ...
-    class Meta:
-        permissions = (
-            ("view_task", "Can see available tasks"),
-            ("change_task_status", "Can change the status of tasks"),
-            ("close_task", "Can remove a task by setting its status as closed"),
-        )
-唯一的做法是在运行manage.py migrate时创建这些额外的权限（创建权限的功能连接到post_migrate信号）。 当用户尝试访问应用程序提供的功能（查看任务，更改任务状态，关闭任务）时，您的代码负责检查这些权限的值。 继续上面的示例，以下检查用户是否可以查看任务：
 
-user.has_perm('app.view_task')
-扩展现有的User模型
-有两种方法来扩展默认的User模型，而不用替换你自己的模型。 如果你需要的只是行为上的改变，而不需要对数据库中存储的内容做任何改变，你可以创建基于User 的proxy model。 代理模型提供的功能包括默认的排序、自定义管理器以及自定义模型方法。
+## `Group`模型
 
-如果您希望存储与User相关的信息，则可以使用OneToOneField到包含其他信息字段的模型。 这种 one-to-one 模型一般被称为资料模型(profile model)，它通常被用来存储一些有关网站用户的非验证性（ non-auth ）资料。 例如，你可以创建一个员工模型 (Employee model)：
+- *class* `models.``Group`
 
-from django.contrib.auth.models import User
+  
 
-class Employee(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    department = models.CharField(max_length=100)
-假设一个员工Fred Smith 既有User 模型又有Employee 模型，你可以使用Django 标准的关联模型访问相关联的信息：
 
->>> u = User.objects.get(username='fsmith')
->>> freds_department = u.employee.department
-要将个人资料模型的字段添加到管理后台的用户页面中，请在应用程序的UserAdmin定义一个InlineModelAdmin（对于本示例，我们将使用StackedInline )并将其添加到admin.py类并向User类注册的：
 
-from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from django.contrib.auth.models import User
+### 字段
 
-from my_user_profile_app.models import Employee
+[`Group`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.Group) 对象有以下字段:
 
-# Define an inline admin descriptor for Employee model
-# which acts a bit like a singleton
-class EmployeeInline(admin.StackedInline):
-    model = Employee
-    can_delete = False
-    verbose_name_plural = 'employee'
+- *class* `models.``Group`
 
-# Define a new User admin
-class UserAdmin(BaseUserAdmin):
-    inlines = (EmployeeInline, )
+  `name`必选。 80个字符以内。 允许任何字符. 例如: `'Awesome Users'`.`permissions`多对多字段到[`Permission`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.Permission)：`group.permissions.set([permission_list]) group.permissions.add(permission, permission, ...) group.permissions.remove(permission, permission, ...) group.permissions.clear() `
 
-# Re-register UserAdmin
-admin.site.unregister(User)
-admin.site.register(User, UserAdmin)
-这些配置文件模型在任何情况下都不是特别的 - 它们只是Django模型，与用户模型发生一对一的链接。 因此，当创建用户时，它们不会自动创建，但可以使用django.db.models.signals.post_save来适当地创建或更新相关模型。
 
-使用相关模型会产生其他查询或联接来检索相关数据。 根据您的需求，包含相关字段的自定义用户模型可能是您更好的选择，但是，与项目应用程序中的默认用户模型的现有关系可能有助于额外的数据库加载。
 
-替换User模型
-某些类型的项目可能有特殊的认证需求，Django内建的User模型不可能总是适用。 例如，在某些网站上使用邮件地址而不是用户名作为身份的标识可能更合理。
+## 验证
 
-通过提供一个值给AUTH_USER_MODEL设置，指向自定义的模型，Django允许你覆盖默认的User模型：
+- *class* `validators.``ASCIIUsernameValidator`
 
-AUTH_USER_MODEL = 'myapp.MyUser'
-这个点式路径包含Django应用的名称（必须位于你的INSTALLED_APPS中），和要用作User模型的Django模型的名称。
+  **Django中的新功能1.10。**仅允许使用ASCII字母和数字的字段验证器，除`@`之外， `.`，`+`，`-`和`_`。 Python 2上的`User.username`的默认验证器。
 
-在项目开始时使用自定义User模型
-如果你正在开始一个新项目，强烈建议你设置一个自定义用户模型，即使默认的User模型对你已经足够可用。 下面的模型的行为与默认的用户模型相同，但是将来如果需要你可以自定义它：
+- *class* `validators.``UnicodeUsernameValidator`
 
-from django.contrib.auth.models import AbstractUser
+  **Django中的新功能1.10。**允许Unicode字符的字段验证器，除`@`之外， `.`，`+`，`-`和`_`。 Python 3上的`User.username`的默认验证器。
 
-class User(AbstractUser):
-    pass
-不要忘记将AUTH_USER_MODEL指向它。 在创建任何迁移或首次运行manage.py migrate之前执行此操作。
 
-另外，在应用程序的admin.py中注册该模型：
 
-from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
-from .models import User
+## 登入和登出信号
 
-admin.site.register(User, UserAdmin)
-在项目中期修改为自定义的User模型
-创建数据库表之后，更改AUTH_USER_MODEL是非常困难的，因为它会影响外键和多对多关系。
+auth框架使用以下[signals](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/signals.html)，可用于在用户登录或注销时通知。
 
-此更改无法自动完成，需要手动修复模式、从旧用户表移动数据、并可能需要手动重新应用某些迁移。 有关步骤的概述，请参见#25313。
+- `user_logged_in`()
 
-由于Django对于可交换模型的动态依赖特性的限制，必须在其应用的第一次迁移（通常称为0001_initial）中创建AUTH_USER_MODEL引用的模型；否则你会有依赖问题。
+  当用户成功登录时发送。与此信号一起发送的参数：`sender`刚刚登录的用户的类。`request`当前的[`HttpRequest`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/request-response.html#django.http.HttpRequest)实例。`user`刚刚登录的用户实例。
 
-另外，当运行迁移时，你可能遇到一个CircularDependencyError，因为Django将无法自动中断由于动态依赖关系的依赖关系循环。 如果看到此错误，应该通过将你的用户模型所依赖的模型移动到第二次迁移中来打破循环。 (You can try making two normal models that have a ForeignKey to each other and seeing how makemigrations resolves that circular dependency if you want to see how it’s usually done.)
+- `user_logged_out`()
 
-可重用的应用和AUTH_USER_MODEL
-可重用的应用不应实现自定义用户模型。 一个项目可能使用多个应用，实现自定义用户模型的两个可重用应用不能一起使用。 如果需要在应用中存储用户的信息，请使用ForeignKey或OneToOneField到settings.AUTH_USER_MODEL，如下所述。
+  在调用logout方法时发送。`sender`如上所述：刚刚注销的用户的类或`None`，如果用户未通过身份验证。`request`当前的[`HttpRequest`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/request-response.html#django.http.HttpRequest)实例。`user`如果用户未通过身份验证，刚刚注销的用户实例或`None`。
 
-引用User模型
-如果直接引用User（例如，通过外键引用），在AUTH_USER_MODEL设置已更改为不同用户模型的项目中，代码将不能工作。
+- `user_login_failed`()
 
-get_user_model()[source]
-你应该使用django.contrib.auth.get_user_model() 来引用用户模型，而不要直接引用User。 此方法将返回当前活动的用户模型 — 如果指定了自定义用户模型，否则返回User。
+  当用户登录失败时发送`sender`用于认证的模块的名称。`credentials`包含传递给[`authenticate()`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/auth/default.html#django.contrib.auth.authenticate)或您自己的自定义身份验证后端的用户凭据的关键字参数的字典。 匹配一组“敏感”模式（包括密码）的凭证不会作为信号的一部分发送到清除中。`request`[`HttpRequest`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/request-response.html#django.http.HttpRequest)对象，如果提供给[`authenticate()`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/auth/default.html#django.contrib.auth.authenticate)。**在Django更改1.11：**添加了`request`参数。
 
-在定义到用户模型的外键或多对多关系时，应使用AUTH_USER_MODEL设置指定自定义模型。 像这样：
 
-from django.conf import settings
-from django.db import models
 
-class Article(models.Model):
-    author = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-    )
-当连接到用户模型发送的信号时，应该使用AUTH_USER_MODEL设置指定自定义模型。 像这样：
+## 认证后端
 
-from django.conf import settings
-from django.db.models.signals import post_save
+这一节详细讲述Django自带的认证后端。 关于如何使用它们以及如何编写你自己的认证后端，参见[用户认证指南](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/auth/index.html)中的[其它认证源一节](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/auth/customizing.html#authentication-backends)。
 
-def post_save_receiver(sender, instance, created, **kwargs):
-    pass
 
-post_save.connect(post_save_receiver, sender=settings.AUTH_USER_MODEL)
-一般来说，在导入时执行的代码中，使用AUTH_USER_MODEL设置来引用用户模型是最简单的，但Django也可以调用get_user_model()导入模型，所以你可以使用models.ForeignKey（get_user_model()， ...）。
 
-如果你的应用使用多个用户模型进行测试，例如使用@override_settings(AUTH_USER_MODEL=...)，并将get_user_model()的结果缓存在模块级别变量中，你可能需要监听setting_changed信号以清除缓存。 像这样：
+### 可用的认证后端
 
-from django.apps import apps
-from django.contrib.auth import get_user_model
-from django.core.signals import setting_changed
-from django.dispatch import receiver
+以下是[`django.contrib.auth.backends`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#module-django.contrib.auth.backends)中可以使用的后端：
 
-@receiver(setting_changed)
-def user_model_swapped(**kwargs):
-    if kwargs['setting'] == 'AUTH_USER_MODEL':
-        apps.clear_cache()
-        from myapp import some_module
-        some_module.UserModel = get_user_model()
-在Django 1.11中更改：
-添加在导入时调用get_user_model()的功能。
+- *class* `ModelBackend`
 
-指定自定义用户模型
-模型设计考虑
+  这是Django使用的默认认证后台。 它使用由用户标识和密码组成的凭据进行认证。 对于Django的默认用户模型，用户的标识是用户名，对于自定义的用户模型，它通过USERNAME_FIELD 字段表示（参见[Customizing Users and authentication](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/auth/customizing.html)）。它还处理 [`User`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User) 和[`PermissionsMixin`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/auth/customizing.html#django.contrib.auth.models.PermissionsMixin) 定义的权限模型。[`has_perm()`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.backends.ModelBackend.has_perm), [`get_all_permissions()`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.backends.ModelBackend.get_all_permissions), [`get_user_permissions()`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.backends.ModelBackend.get_user_permissions), 和[`get_group_permissions()`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.backends.ModelBackend.get_group_permissions) 允许一个对象作为特定权限参数来传递, 如果条件是 if `obj is not None`. 后端除了返回一个空的permissions 外，并不会去完成他们。`authenticate`(*request*, *username=None*, *password=None*, ***kwargs*)通过调用[`User.check_password`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User.check_password) 验证`password` 和`username`。 如果`kwargs` 没有提供，它会使用[`CustomUser.USERNAME_FIELD`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/auth/customizing.html#django.contrib.auth.models.CustomUser.USERNAME_FIELD) 关键字从`username` 中获取username。 返回一个认证过的User 或`None`。`request` is an [`HttpRequest`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/request-response.html#django.http.HttpRequest) and may be `None` if it wasn’t provided to [`authenticate()`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/auth/default.html#django.contrib.auth.authenticate) (which passes it on to the backend).**在Django更改1.11：**添加了`request`参数。`get_user_permissions`(*user_obj*, *obj=None*)返回`user_obj`具有的自己用户权限的权限字符串集合。 如果[`is_anonymous`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/auth/customizing.html#django.contrib.auth.models.AbstractBaseUser.is_anonymous)或[`is_active`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/auth/customizing.html#django.contrib.auth.models.CustomUser.is_active)是`False`，则返回空集。`get_group_permissions`(*user_obj*, *obj=None*)返回`user_obj`从其所属组的权限中获取的权限字符集。 如果[`is_anonymous`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/auth/customizing.html#django.contrib.auth.models.AbstractBaseUser.is_anonymous)或[`is_active`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/auth/customizing.html#django.contrib.auth.models.CustomUser.is_active)是`False`，则返回空集。`get_all_permissions`(*user_obj*, *obj=None*)返回`user_obj`的权限字符串集，包括用户权限和组权限。 如果[`is_anonymous`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/auth/customizing.html#django.contrib.auth.models.AbstractBaseUser.is_anonymous)或[`is_active`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/auth/customizing.html#django.contrib.auth.models.CustomUser.is_active)是`False`，则返回空集。`has_perm`(*user_obj*, *perm*, *obj=None*)使用[`get_all_permissions()`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.backends.ModelBackend.get_all_permissions)检查`user_obj`是否具有权限字符串`perm`。 如果用户不是[`is_active`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/auth/customizing.html#django.contrib.auth.models.CustomUser.is_active)，则返回`False`。`has_module_perms`(*user_obj*, *app_label*)返回`user_obj`是否对应用`app_label`有任何权限。`user_can_authenticate`()**Django中的新功能1.10。**返回是否允许用户进行身份验证。 To match the behavior of [`AuthenticationForm`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/auth/default.html#django.contrib.auth.forms.AuthenticationForm) which [`prohibits inactive users from logging in`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/auth/default.html#django.contrib.auth.forms.AuthenticationForm.confirm_login_allowed), this method returns `False` for users with [`is_active=False`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User.is_active). 不允许使用[`is_active`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/auth/customizing.html#django.contrib.auth.models.CustomUser.is_active)字段的自定义用户模型。
 
-在处理自定义用户模型中与认证无直接关系的信息时请仔细考虑。
+- *class* `AllowAllUsersModelBackend`
 
-将用户与特定应用有关的信息存储在与用户模型相关联的模型中可能会更好。 这使得每一个应用指定自己的用户数据需求，而不用担心与其他应用冲突。 但是另一方面，获得这个相关信息的查询将涉及数据库连接，这可能对性能有影响。
+  **Django 1.10中新增。**与[`ModelBackend`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.backends.ModelBackend)相同，但是不会拒绝非激活的用户，因为[`user_can_authenticate()`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.backends.ModelBackend.user_can_authenticate)始终返回`True`。使用此后端时，你可能会需要覆盖[`confirm_login_allowed()`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/auth/default.html#django.contrib.auth.forms.AuthenticationForm.confirm_login_allowed)方法来自定义[`LoginView`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/auth/default.html#django.contrib.auth.views.LoginView)使用的[`AuthenticationForm`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/auth/default.html#django.contrib.auth.forms.AuthenticationForm)，因为它拒绝了非激活的用户。
 
-Django希望你的自定义用户模型符合一些最低要求。
+- *class* `RemoteUserBackend`
 
-如果使用默认身份验证后端，那么您的模型必须有一个唯一的唯一字段，可以用于识别目的。 可以是一个用户名，电子邮件地址，或任何其它独特属性。 如果您使用可以支持它的自定义身份验证后端，则允许使用非唯一用户名字段。
-你的模型必须提供一种方法可以在"short"and"long"form可以定位到用户。 最普遍的方法是用用户的名来作为简称,用用户的全名来作为全称。 然而，对这两种方式没有特定的要求,如果你想，他们可以返回完全相同的值。
-构建兼容自定义用户模型的最简单方法是继承自AbstractBaseUser。 AbstractBaseUser提供用户模型的核心实现，包括散列密码和令牌化密码重置。 然后，您必须提供一些关键的实施细节：
+  使用这个后端来处理Django的外部认证。 它使用在[`request.META['REMOTE_USER'\]`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/request-response.html#django.http.HttpRequest.META)中传递的用户名进行身份验证。 请参阅[REMOTE_USER的认证](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/howto/auth-remote-user.html)文档。如果你需要更多的控制，你可以创建你自己的验证后端，继承这个类，并重写这些属性或方法：
 
-class models.CustomUser
-USERNAME_FIELD
-一个字符串，表示User模型上用于唯一标识符的字段的名称。 这通常是某种用户名，但它也可以是电子邮件地址或任何其他唯一标识符。 字段必须是唯一的（即在其定义中设置unique=True），除非你使用可以支持非唯一用户名的自定义认证后端。
+- `RemoteUserBackend.``create_unknown_user`
 
-在以下示例中，字段identifier用作标识字段：
+  `True`或`False`。 确定是否创建用户对象（如果尚未在数据库中）默认为`True`。
 
-class MyUser(AbstractBaseUser):
-    identifier = models.CharField(max_length=40, unique=True)
-    ...
-    USERNAME_FIELD = 'identifier'
-USERNAME_FIELD现在支持ForeignKey。由于在createsuperuser命令提示时无法传递模型实例，所以希望用户输入一个现有实例的to_field值（默认为primary_key）。
+- `RemoteUserBackend.``authenticate`(*request*, *remote_user*)
 
-EMAIL_FIELD
-Django 1.11中新增。
-一个字符串，描述User模型上电子邮件字段的名称。 该值由get_email_field_name()返回。
+  作为`remote_user`传递的用户名被认为是可信的。 此方法只需返回具有给定用户名的用户对象，如果[`create_unknown_user`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.backends.RemoteUserBackend.create_unknown_user)为`True`则创建新的用户对象。如果[`create_unknown_user`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.backends.RemoteUserBackend.create_unknown_user)是`User`，并且在数据库中找不到具有给定用户名的`None`对象，则返回`False`。`request` is an [`HttpRequest`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/request-response.html#django.http.HttpRequest) and may be `None` if it wasn’t provided to [`authenticate()`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/auth/default.html#django.contrib.auth.authenticate) (which passes it on to the backend).
 
-REQUIRED_FIELDS
-当通过createsuperuser管理命令创建一个用户时，用于提示的一个字段名称列表。 将会提示用户给列表里面的每一个字段提供一个值。 它必须包含blank为False或者未定义的字段，也可包含你想要在交互地创建一个新的用户时想要展示的其他字段。 REQUIRED_FIELDS在Django的其他部分没有任何影响，例如在admin中创建用户。
+- `RemoteUserBackend.``clean_username`(*username*)
 
-例如，这里是定义两个必需字段的用户模型的部分定义 - 出生日期和高度：
+  在使用它获取或创建用户对象之前，请对`username`执行任何清除（例如剥离LDAP DN信息）。 返回已清除的用户名。
 
-class MyUser(AbstractBaseUser):
-    ...
-    date_of_birth = models.DateField()
-    height = models.FloatField()
-    ...
-    REQUIRED_FIELDS = ['date_of_birth', 'height']
-注
+- `RemoteUserBackend.``configure_user`(*user*)
 
-REQUIRED_FIELDS必须包含用户模型上的所有必填字段，但应该不包含USERNAME_FIELD或password，因为这些字段将始终被提示。
+  配置新创建的用户。 此方法在创建新用户后立即调用，并可用于执行自定义设置操作，例如根据LDAP目录中的属性设置用户的组。 返回用户对象。
 
-REQUIRED_FIELDS现在支持ForeignKey。由于在createsuperuser提示期间无法传递模型实例，所以希望用户默认输入to_field值（primary_key） ）现有实例。
+- `RemoteUserBackend.``user_can_authenticate`()
 
-is_active
-指示用户是否被视为“活动”的布尔属性。 此属性作为AbstractBaseUser上的属性提供，默认为True。 如何选择实施它将取决于您选择的身份验证后端的详细信息。 请参阅is_active attribute on the built-in user model。
+  **Django中的新功能1.10。**返回是否允许用户进行身份验证。 对于[`is_active=False`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User.is_active)的用户，此方法返回`False`。 不允许使用[`is_active`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/auth/customizing.html#django.contrib.auth.models.CustomUser.is_active)字段的自定义用户模型。
 
-get_full_name()
-用户更长且正式的标识. 常见的解释会是用户的完整名称，但它可以是任何字符串，用于标识用户。
+- *class* `AllowAllUsersRemoteUserBackend`
 
-get_short_name()
-一个短的且非正式用户的标识符。 常见的解释会是第一个用户的名称，但它可以是任意字符串，用于以非正式的方式标识用户。 它也可能会返回与django.contrib.auth.models.User.get_full_name()相同的值。
+  **Django 1.10中新增。**与[`ModelBackend`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.backends.RemoteUserBackend)相同，但是不会拒绝非激活的用户，因为[`user_can_authenticate()`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.backends.RemoteUserBackend.user_can_authenticate)始终返回`True`。
 
-导入AbstractBaseUser
 
-AbstractBaseUser and BaseUserManager are importable from django.contrib.auth.base_user so that they can be imported without including django.contrib.auth in INSTALLED_APPS.
 
-以下属性和方法在AbstractBaseUser的任何子类中可以访问：
+## 实用功能
 
-class models.AbstractBaseUser
-get_username()
-返回由USERNAME_FIELD指定的字段的值。
+- `get_user`(*request*)[[source\]](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/_modules/django/contrib/auth.html#get_user)
 
-clean()
-Django中的新功能1.10。
-调用normalize_username()来规范用户名。 如果您覆盖此方法，请确保调用super()以保留规范化。
-
-classmethod get_email_field_name()
-Django中的新功能1.11。
-返回由EMAIL_FIELD属性指定的电子邮件字段的名称。 如果未指定EMAIL_FIELD，则默认为'email'。
-
-classmethod normalize_username(username)
-Django中的新功能1.10。
-将NFKC Unicode规范化应用于用户名，以便具有不同Unicode代码点的视觉相同的字符被认为是相同的。
-
-is_authenticated
-始终为True（与AnonymousUser.is_authenticated相对，始终为False）的只读属性。 这是一种判断用户是否已通过身份验证的方法。 这并不表示任何权限，也不会检查用户是否处于活动状态或是否具有有效的会话。 即使正常情况下，您将在request.user上检查此属性，以了解它是否已由AuthenticationMiddleware填充（表示当前登录的用户），您应该知道对于任何User实例，此属性为True。
-
-在Django更改1.10：
-在旧版本中，这是一种方法。 使用它作为方法的向后兼容性支持将在Django 2.0中被删除。
-
-is_anonymous
-始终为False的只读属性。 这是区分User和AnonymousUser对象的一种方式。 一般来说，您应该优先使用is_authenticated到此属性。
-
-在Django更改1.10：
-在旧版本中，这是一种方法。 使用它作为方法的向后兼容性支持将在Django 2.0中被删除。
-
-set_password(raw_password)
-将用户的密码设置为给定的原始字符串，注意密码哈希。 不保存AbstractBaseUser对象。
-
-当raw_password为None时，密码将被设置为不可用的密码，如同使用set_unusable_password()。
-
-check_password(raw_password)
-如果给定的原始字符串是用户的正确密码，则返回True。 （这将在进行比较时处理密码散列。）
-
-set_unusable_password()
-将用户标记为没有设置密码。 这与为密码使用空白字符串不同。 check_password()此用户将永远不会返回True。 不保存AbstractBaseUser对象。
-
-如果针对现有外部源（例如LDAP目录）进行应用程序的身份验证，则可能需要这样做。
-
-has_usable_password()
-如果set_unusable_password()已为此用户调用，则返回False。
-
-get_session_auth_hash()
-返回密码字段的HMAC。 用于密码更改后会话失效。
-
-AbstractUser继承自AbstractBaseUser：
-
-class models.AbstractUser
-clean()
-Django中的新功能1.11。
-调用BaseUserManager.normalize_email()来规范电子邮件。 如果您覆盖此方法，请确保调用super()以保留规范化。
-
-你还应为用户模型定义自定义管理器。 如果您的用户模型定义了username，email，is_staff，is_active，is_superuser last_login和date_joined字段与Django的默认用户相同，您只需安装Django的UserManager；但是，如果您的用户模型定义了不同的字段，则需要定义一个扩展BaseUserManager的自定义管理器，提供两种附加方法：
-
-class models.CustomUserManager
-create_user(*username_field*, password=None, **other_fields)
-create_user() 原本接受username，以及其它所有必填字段作为参数。 例如，如果你的user模型使用 create_user 作为username字段, 并且使用 email 作为必填字段, 那么date_of_birth 应该定义为：
-
-def create_user(self, email, date_of_birth, password=None):
-    # create user here
-    ...
-create_superuser(*username_field*, password, **other_fields)
-create_superuser()的原型应该接受用户名字段，以及所有必需的字段作为参数。 例如，如果您的用户模型使用create_superuser作为用户名字段，并且email为必填字段，则date_of_birth应定义为：
-
-def create_superuser(self, email, date_of_birth, password):
-    # create superuser here
-    ...
-与create_user()不同，create_superuser() 必须要求调用方提供密码。
-
-BaseUserManager提供以下实用程序方法：
-
-class models.BaseUserManager
-classmethod normalize_email(email)
-通过小写电子邮件地址的域名部分来规范电子邮件地址。
-
-get_by_natural_key(username)
-使用由USERNAME_FIELD指定的字段内容获取一个用户。
-
-make_random_password(length=10, allowed_chars='abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789')
-返回具有给定长度和给定字符串的允许字符的随机密码。 请注意，默认值allowed_chars不包含可能导致用户混淆的字母，包括：
-
-I，i，l和1（小写字母i，小写字母L，大写字母i，第一号）
-0，o和O（小写字母o，大写字母o和零）
-扩展Django默认的User
-如果你对Django的User模型感到非常满意，并且只想添加一些其它信息，则可以简单地继承django.contrib.auth.models.AbstractUser并添加自定义字段，尽管我们建议使用一个单独模型，如在“模型设计注意事项”的注释指定自定义用户模型中所述。 AbstractUser作为一个抽象模型，提供默认User的完整实现。
-
-自定义用户和内置认证表单
-Django的内置表单和视图对用户模型进行了某些假设。
-
-以下表单与AbstractBaseUser的任何子类兼容：
-
-AuthenticationForm：使用USERNAME_FIELD指定的用户名字段。
-SetPasswordForm
-PasswordChangeForm
-AdminPasswordChangeForm
-以下表单对用户模型做出假设，如果满足这些假设可以按原样使用：
-
-PasswordResetForm：假设用户模型具有一个字段存储get_email_field_name()返回的用户电子邮件地址（默认为email），它可用于标识用户；一个名为is_active的布尔字段，以防止禁用的用户重置密码。
-最后，以下表单与User绑定，需要重写或扩展才能使用自定义用户模型：
-
-UserCreationForm
-UserChangeForm
-如果你的自定义用户模型是AbstractUser的简单子类，则可以以下面的方式扩展这些表单：
-
-from django.contrib.auth.forms import UserCreationForm
-from myapp.models import CustomUser
-
-class CustomUserCreationForm(UserCreationForm):
-
-    class Meta(UserCreationForm.Meta):
-        model = CustomUser
-        fields = UserCreationForm.Meta.fields + ('custom_field',)
-自定义User和django.contrib.admin
-如果希望自定义用户模型也可以使用admin，你的用户模型必须定义一些额外的属性和方法。 这些方法允许admin控制用户对admin内容的访问：
-
-class models.CustomUser
-is_staff
-如果允许用户访问管理网站，则返回True。
-
-is_active
-如果用户帐户当前处于活动状态，则返回True。
-
-has_perm(perm, obj=None):
-如果用户具有相应的权限，则返回True。 如果提供obj，则需要针对特定​​对象实例检查权限。
-
-has_module_perms(app_label):
-如果用户有权访问给定应用中的模型，则返回True。
-
-你还需要使用admin注册你的自定义用户模型。 如果自定义用户模型扩展自django.contrib.auth.models.AbstractUser，你可以使用Django现有的django.contrib.auth.admin.UserAdmin类。 但是，如果你的用户模型扩展自AbstractBaseUser，则需要定义一个自定义的ModelAdmin类。 可以继承默认的django.contrib.auth.admin.UserAdmin；但是，django.contrib.auth.models.AbstractUser上有些字段不在你的自定义的用户类上，你需要覆盖任何引用到这些字段的定义。
-
-自定义用户和权限
-为了方便将Django的权限框架包含在您自己的用户类中，Django提供了PermissionsMixin。 这是一个抽象模型，您可以将其包含在用户模型的类层次结构中，为您提供支持Django权限模型所需的所有方法和数据库字段。
-
-PermissionsMixin提供了以下方法和属性：
-
-class models.PermissionsMixin
-is_superuser
-布尔值。 指定此用户具有所有权限，而不显式分配它们。
-
-get_group_permissions(obj=None)
-通过用户的组返回用户拥有的一组权限字符串。
-
-如果传入obj，则仅返回此特定对象的组权限。
-
-get_all_permissions(obj=None)
-通过组和用户权限返回用户拥有的一组权限字符串。
-
-如果传入obj，则仅返回此特定对象的权限。
-
-has_perm(perm, obj=None)
-如果用户具有指定的权限，则返回True，其中perm的格式为“＆lt； app label＆ ＆lt； permission codename＆gt；“（请参阅permissions）。 如果用户处于非活动状态，此方法将始终返回False。
-
-如果传入obj，此方法将不会检查模型的权限，而是检查此特定对象。
-
-has_perms(perm_list, obj=None)
-Returns True if the user has each of the specified permissions, where each perm is in the format "<app label>.<permission codename>". 如果用户处于非活动状态，此方法将始终返回False。
-
-如果传入obj，此方法将不会检查模型的权限，而是检查特定对象。
-
-has_module_perms(package_name)
-如果用户在给定的包（Django应用标签）中有任何权限，则返回True。 如果用户处于非活动状态，此方法将始终返回False。
-
-PermissionsMixin和ModelBackend
-
-如果你不包含PermissionsMixin，则必须确保不要调用ModelBackend上的权限方法。 ModelBackend假定某些字段在你的用户模型上可用。 如果你的用户模型不提供这些字段，则在检查权限时会收到数据库错误。
-
-自定义用户和代理模型
-自定义用户模型的一个限制是安装自定义用户模型会破坏扩展User的任何代理模型。 代理模型必须基于具体的基类；自定义用户模型让Django失去可靠地识别基类的能力。
-
-如果你的项目使用代理模型，则必须要么修改代理以扩展项目中使用的用户模型，要么将代理的行为合并到你的User子类中。
-
-一个完整的例子
-这是一个管理器允许的自定义user 该用户模型使用电子邮件地址作为用户名，并具有所需的出生日期；除了用户帐户上的简单admin标志之外，它不提供权限检查。 该模型将与所有内置的验证表单和视图兼容，除了用户创建表单。 此示例说明大多数组件如何协同工作，但不打算直接复制到项目以供生产使用。
-
-此代码将全部位于自定义身份验证应用程序的models.py文件中：
-
-from django.db import models
-from django.contrib.auth.models import (
-    BaseUserManager, AbstractBaseUser
-)
-
-
-class MyUserManager(BaseUserManager):
-    def create_user(self, email, date_of_birth, password=None):
-        """
-        Creates and saves a User with the given email, date of
-        birth and password.
-        """
-        if not email:
-            raise ValueError('Users must have an email address')
-
-        user = self.model(
-            email=self.normalize_email(email),
-            date_of_birth=date_of_birth,
-        )
-
-        user.set_password(password)
-        user.save(using=self._db)
-        return user
-
-    def create_superuser(self, email, date_of_birth, password):
-        """
-        Creates and saves a superuser with the given email, date of
-        birth and password.
-        """
-        user = self.create_user(
-            email,
-            password=password,
-            date_of_birth=date_of_birth,
-        )
-        user.is_admin = True
-        user.save(using=self._db)
-        return user
-
-
-class MyUser(AbstractBaseUser):
-    email = models.EmailField(
-        verbose_name='email address',
-        max_length=255,
-        unique=True,
-    )
-    date_of_birth = models.DateField()
-    is_active = models.BooleanField(default=True)
-    is_admin = models.BooleanField(default=False)
-
-    objects = MyUserManager()
-
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['date_of_birth']
-
-    def get_full_name(self):
-        # The user is identified by their email address
-        return self.email
-
-    def get_short_name(self):
-        # The user is identified by their email address
-        return self.email
-
-    def __str__(self):              # __unicode__ on Python 2
-        return self.email
-
-    def has_perm(self, perm, obj=None):
-        "Does the user have a specific permission?"
-        # Simplest possible answer: Yes, always
-        return True
-
-    def has_module_perms(self, app_label):
-        "Does the user have permissions to view the app `app_label`?"
-        # Simplest possible answer: Yes, always
-        return True
-
-    @property
-    def is_staff(self):
-        "Is the user a member of staff?"
-        # Simplest possible answer: All admins are staff
-        return self.is_admin
-然后，要使用Django的管理员注册此自定义用户模型，应用程序的admin.py文件中将需要以下代码：
-
-from django import forms
-from django.contrib import admin
-from django.contrib.auth.models import Group
-from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from django.contrib.auth.forms import ReadOnlyPasswordHashField
-
-from customauth.models import MyUser
-
-
-class UserCreationForm(forms.ModelForm):
-    """A form for creating new users. Includes all the required
-    fields, plus a repeated password."""
-    password1 = forms.CharField(label='Password', widget=forms.PasswordInput)
-    password2 = forms.CharField(label='Password confirmation', widget=forms.PasswordInput)
-
-    class Meta:
-        model = MyUser
-        fields = ('email', 'date_of_birth')
-
-    def clean_password2(self):
-        # Check that the two password entries match
-        password1 = self.cleaned_data.get("password1")
-        password2 = self.cleaned_data.get("password2")
-        if password1 and password2 and password1 != password2:
-            raise forms.ValidationError("Passwords don't match")
-        return password2
-
-    def save(self, commit=True):
-        # Save the provided password in hashed format
-        user = super(UserCreationForm, self).save(commit=False)
-        user.set_password(self.cleaned_data["password1"])
-        if commit:
-            user.save()
-        return user
-
-
-class UserChangeForm(forms.ModelForm):
-    """A form for updating users. Includes all the fields on
-    the user, but replaces the password field with admin's
-    password hash display field.
-    """
-    password = ReadOnlyPasswordHashField()
-
-    class Meta:
-        model = MyUser
-        fields = ('email', 'password', 'date_of_birth', 'is_active', 'is_admin')
-
-    def clean_password(self):
-        # Regardless of what the user provides, return the initial value.
-        # This is done here, rather than on the field, because the
-        # field does not have access to the initial value
-        return self.initial["password"]
-
-
-class UserAdmin(BaseUserAdmin):
-    # The forms to add and change user instances
-    form = UserChangeForm
-    add_form = UserCreationForm
-
-    # The fields to be used in displaying the User model.
-    # These override the definitions on the base UserAdmin
-    # that reference specific fields on auth.User.
-    list_display = ('email', 'date_of_birth', 'is_admin')
-    list_filter = ('is_admin',)
-    fieldsets = (
-        (None, {'fields': ('email', 'password')}),
-        ('Personal info', {'fields': ('date_of_birth',)}),
-        ('Permissions', {'fields': ('is_admin',)}),
-    )
-    # add_fieldsets is not a standard ModelAdmin attribute. UserAdmin
-    # overrides get_fieldsets to use this attribute when creating a user.
-    add_fieldsets = (
-        (None, {
-            'classes': ('wide',),
-            'fields': ('email', 'date_of_birth', 'password1', 'password2')}
-        ),
-    )
-    search_fields = ('email',)
-    ordering = ('email',)
-    filter_horizontal = ()
-
-# Now register the new UserAdmin...
-admin.site.register(MyUser, UserAdmin)
-# ... and, since we're not using Django's built-in permissions,
-# unregister the Group model from admin.
-admin.site.unregister(Group)
-最后，使用settings.py中的AUTH_USER_MODEL设置将自定义模型指定为项目的默认用户模型：
-
-AUTH_USER_MODEL = 'customauth.MyUser'
+  返回与给定的`request`会话关联的用户模型实例。它检查存储在会话中的身份验证后端是否存在于[`AUTHENTICATION_BACKENDS`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/settings.html#std:setting-AUTHENTICATION_BACKENDS)中。 如果是这样，它使用后端的`get_user()`方法来检索用户模型实例，然后通过调用用户模型的[`get_session_auth_hash()`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/auth/customizing.html#django.contrib.auth.models.AbstractBaseUser.get_session_auth_hash)方法验证会话。如果存储在会话中的身份验证后端不再在[`AUTHENTICATION_BACKENDS`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/settings.html#std:setting-AUTHENTICATION_BACKENDS)中返回[`AnonymousUser`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.AnonymousUser)的实例，如果后端的`get_user()`
