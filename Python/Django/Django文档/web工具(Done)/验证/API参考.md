@@ -8,23 +8,34 @@ class models.User
 ```
 
 ### 字段
+
+| name           | type     | Option |
+| -------------- | -------- | ------ |
+| `username`     | String   | 必选   |
+| `first_name`   | string   | 可选   |
+| `last_name`    | string   | 可选   |
+| `email`        | string   | 可选   |
+| `password`     | String   | 必选   |
+| `is_staff`     | Boolean  | 必选   |
+| `is_active`    | Boolean  | 必选   |
+| `is_superuser` | Boolean  | 必选   |
+| `last_login`   | Datetime |  可选      |
+| `date_joined`  | Datetime | 必选   |
+
+
+
 > `username`
 
 必选。 150个字符以内。 用户名可能包含字母数字，`_`，`@`，`+` `.` 和`-`个字符。
 对于许多用例，`max_length`应该是足够的。 如果您需要较长的长度，请使用[custom user model](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/auth/customizing.html#specifying-custom-user-model)。 如果您使用具有`utf8mb4`编码（推荐用于正确的Unicode支持）的MySQL，请至少指定`max_length=191`，因为MySQL只能创建具有191个字符的唯一索引，默认。
 >用户名和Unicode
 >Django最初只接受用户名中的ASCII字母和数字。 虽然这不是一个故意的选择，Unicode字符一直被接受使用Python 3时。 Django 1.10在用户名中正式添加了Unicode支持，在Python 2中保留了仅适用于ASCII的行为，可以使用[`User.username_validator`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User.username_validator)自定义行为的选项。
->**在Django更改1.10：**
-
->`max_length`
-
-从30个字符增加到150个字符。
 
 >`first_name`
 
 可选（[`blank=True`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/models/fields.html#django.db.models.Field.blank)）。 少于等于30个字符。
 
->`last_name
+>`last_name`
 
 `可选（[`blank=True`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/models/fields.html#django.db.models.Field.blank)）。 少于等于30个字符。
 
@@ -54,7 +65,7 @@ class models.User
 
 >`is_superuser`
 
-布尔值。 指定这个用户拥有所有的权限而不需要给他们分配明确的权限。
+布尔值。 指定这个用户拥有所有的权限而不需要给他们分配明确的权限。默认为0
 
 >`last_login`
 

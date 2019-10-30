@@ -123,6 +123,132 @@ vim /etc/zshrc
 %%		  # 显示%
 ```
 
+## 环境变量
+
+[参考](https://blog.csdn.net/yilovexing/article/details/78750946)
+
+mac 一般使用bash作为默认shell，其环境变量的配置文件为
+```
+/etc/profile 
+/etc/paths 
+/etc/bashrc
+~/.bash_profile
+~/.bash_login 
+~/.bashrc
+```
+> 执行顺序
+
+其中`/etc/profile,/etc/paths,/etc/bashrc`是系统级别的，变量生效是全局的。系统启动就会依次加载。
+
+后面3个是当前用户级的环境变量，按照从前往后的顺序读取，如果`~/.bash_profile`文件存在，则后面的几个文件就会被忽略不读了，如果`~/.bash_profile`文件不存在，才会以此类推读取后面的文件。`~/.bashrc`没有上述规则，它是bash shell打开的时候载入的。
+
+> 修改原则
+
+前3个中，需要ROOT权限，建议修改`/etc/paths`文件
+
+后3个中，建议修改`~/.bashrc`
+
+- 全局设置
+
+下面的几个文件设置是全局的，修改时需要root权限
+
+> /etc/paths （全局建议修改这个文件 ）
+
+编辑 paths，将环境变量添加到 paths文件中 ，一行一个路径
+
+注意：输入环境变量时，不用一个一个地输入，只要拖动文件夹到 Terminal 里就可以了。
+
+建议：并不修改此文件，而是添加新的文件
+```
+1.创建一个文件：
+sudo touch /etc/paths.d/mysql
+2.用 vim 打开这个文件：
+sudo vim /etc/paths.d/mysql
+3.编辑该文件，键入路径并保存（关闭该 Terminal 窗口并重新打开一个，就能使用 mysql 命令了）
+/usr/local/mysql/bin
+据说，这样可以自己生成新的文件，不用把变量全都放到 paths 一个文件里，方便管理。
+```
+>/etc/profile （建议不修改这个文件 ）
+
+全局（公有）配置，不管是哪个用户，登录时都会读取该文件。
+
+>/etc/bashrc （一般在这个文件中添加系统级环境变量）
+
+全局（公有）配置，bash shell执行时，不管是何种方式，都会读取此文件。
+
+- 单个用户设置
+
+> ~/.bash_profile 或~/.bashrc 
+
+注：Linux 里面是 .bashrc 而 Mac 是 .bash_profile
+
+若bash shell是以login方式执行时，才会读取此文件。该文件仅仅执行一次！
+
+设置命令别名
+
+```
+alias ll="ls -la"
+```
+设置环境变量
+
+```
+export PATH=/opt/local/bin:/opt/local/sbin:$PATH
+```
+
+- 生效
+
+如果想立刻生效，则可执行下面的语句：
+```shell
+source 相应的文件
+```
+一般环境变量更改后，重启后生效。
+
+## 安装破解软件
+
+显示 显示"任何来源"选项在控制台中执行：
+
+```
+sudo spctl --master-disable
+```
+
+不显示"任何来源"选项（macOS 10.12默认为不显示）在控制台中执行：
+
+```
+sudo spctl --master-enable
+```
+
+## 相关服务
+
+安装
+
+```
+brew install mysql
+brew install nginx
+brew install redis
+brew install mosquitto
+```
+
+相关指令
+
+```shell
+# 服务列表
+brew services list
+# 运行服务(无注册登陆)
+brew services run (服务名|--all)
+# 启动服务
+brew services start (服务名|--all)
+# 停止服务
+brew services stop (服务名|--all)
+# 重启服务
+brew services restart (服务名|--all)
+# 删除所有不使用的服务
+brew services cleanup
+```
+
+
+
+
+
 ## macVIM
 
 配置文件
@@ -404,22 +530,6 @@ inoremap <expr> <PageUp>   pumvisible() ? "\<PageUp>\<C-p>\<C-n>" : "\<PageUp>"
 
 nnoremap <leader>jd :YcmCompleter GoToDefinitionElseDeclaration<CR> " 跳转到定义处
 let g:ycm_confirm_extra_conf=0                  " 关闭加载.ycm_extra_conf.py确认提示
-```
-
-
-
-## 安装破解软件
-
-显示 显示"任何来源"选项在控制台中执行：
-
-```
-sudo spctl --master-disable
-```
-
-不显示"任何来源"选项（macOS 10.12默认为不显示）在控制台中执行：
-
-```
-sudo spctl --master-enable
 ```
 
 

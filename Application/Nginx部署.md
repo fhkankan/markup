@@ -85,21 +85,25 @@ sudo sbin/nginx
 
 > Mac
 
-服务启动
+- 方法一
 
+```shell
+# 启动
+brew services start nginx
+# 停止
+brew services stop nginx
+# 重启
+brew services restart nginx
 ```
+
+- 方法二
+
+```shell
+# 启动
 sudo nginx
-```
-
-服务重启
-
-```
+# 重启
 sudo nginx -s reload
-```
-
-服务关闭
-
-```
+# 关闭
 sudo nginx -s stop
 sudo nginx -s quit
 ```

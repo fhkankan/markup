@@ -293,7 +293,6 @@ users.filter(Q(date_joined__gt=live_data) | Q(last_login__gt=live_data))
 
 ```
 模型类.objects.filter(模型类属性名__条件名 = 值)
-
 ```
 
 返回QuerySet对象，包含了所有满足条件的数据。

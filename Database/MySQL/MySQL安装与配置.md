@@ -195,8 +195,6 @@ flush privileges;
 exit;
 ```
 
-
-
 ## Mac
 
 - 安装
@@ -250,6 +248,14 @@ select user();
 set password=password('123456'); 
 flush privileges;
 exit;
+```
+
+- 查找配置文件
+
+```
+mysqld --help --verbose | less
+
+/usr/local/etc/my.cnf
 ```
 
 # Python交互
