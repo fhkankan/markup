@@ -1,7 +1,5 @@
 # 格式本地化
 
-
-
 ## 概述
 
 Django的格式化系统可以在模板中使用当前[locale](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/i18n/index.html#term-locale-name)特定的格式，来展示日期、时间和数字。 它还可以处理表单中的本地化输入。
@@ -10,33 +8,26 @@ Django的格式化系统可以在模板中使用当前[locale](https://yiyibooks
 
 格式化系统默认是禁用的。 需要在你的设置文件中设置[`USE_L10N = True`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/settings.html#std:setting-USE_L10N)来启用它。
 
-注
-
+> 注
 为了方便，[`django-admin startproject`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/django-admin.html#django-admin-startproject) 创建的`settings.py` 文件中，[`USE_L10N = True`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/settings.html#std:setting-USE_L10N)。 但是要注意，要开启千位分隔符的数字格式化，你需要在你的设置文件中设置[`USE_THOUSAND_SEPARATOR = True`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/settings.html#std:setting-USE_THOUSAND_SEPARATOR)。 或者，你也可以在你的模板中使用[`intcomma`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/humanize.html#std:templatefilter-intcomma)来格式化数字。
 
-注
-
+> 注
 [`USE_I18N`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/settings.html#std:setting-USE_I18N) 是另一个独立的并且相关的设置，它控制着Django是否应该开启翻译。 详见[Translation](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/i18n/translation.html)。
-
-
 
 ## 表单中的区域设置感知输入
 
 格式化开启之后，Django可以在表单中使用本地化格式来解析日期、时间和数字。 也就是说，在表单上输入时，它会尝试不同的格式和地区来猜测用户使用的格式。
 
-注
-
+> 注
 Django对于展示数据，使用和解析数据不同的格式。 尤其是，解析日期的格式不能使用`%p`（星期名称的缩写），`%b` （星期名称的全称），`%A` （月份名称的缩写）， `%B`（月份名称的全称），或者`%a`（上午/下午）。
 
 只是使用`localize`参数，就能开启表单字段的本地化输入和输出：
 
-```
+```python
 class CashRegisterForm(forms.Form):
    product = forms.CharField()
    revenue = forms.DecimalField(max_digits=4, decimal_places=2, localize=True)
 ```
-
-
 
 ## 控制模板中的定位
 
@@ -46,11 +37,7 @@ class CashRegisterForm(forms.Form):
 
 DJango提供了`l10n`模板库，包含以下标签和过滤器，来实现对本地化的精细控制。
 
-
-
 ### 模板标签
-
-
 
 #### `localize`
 
@@ -60,7 +47,7 @@ DJango提供了`l10n`模板库，包含以下标签和过滤器，来实现对�
 
 这样做来为一个模板激活或禁用本地化：
 
-```
+```python
 {% load l10n %}
 
 {% localize on %}
@@ -72,17 +59,12 @@ DJango提供了`l10n`模板库，包含以下标签和过滤器，来实现对�
 {% endlocalize %}
 ```
 
-注
-
+> 注
 在 `{% localize %}`代码块内并不遵循 [`USE_L10N`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/settings.html#std:setting-USE_L10N)的值。
 
 对于在每个变量基础上执行相同工作的模板过滤器，参见[`localize`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/i18n/formatting.html#std:templatefilter-localize) 和 [`unlocalize`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/i18n/formatting.html#std:templatefilter-unlocalize)。
 
-
-
 ### 模板过滤器
-
-
 
 #### `localize`
 
@@ -90,7 +72,7 @@ DJango提供了`l10n`模板库，包含以下标签和过滤器，来实现对�
 
 像这样：
 
-```
+```python
 {% load l10n %}
 
 {{ value|localize }}
@@ -98,15 +80,13 @@ DJango提供了`l10n`模板库，包含以下标签和过滤器，来实现对�
 
 使用[`unlocalize`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/i18n/formatting.html#std:templatefilter-unlocalize)来在单一值上禁用本地化。 使用[`localize`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/i18n/formatting.html#std:templatetag-localize) 模板标签来在大块的模板区域内控制本地化。
 
-
-
 #### `unlocalize`
 
 强制单一值不带本地化输出。
 
 像这样：
 
-```
+```python
 {% load l10n %}
 
 {{ value|unlocalize }}
@@ -114,15 +94,13 @@ DJango提供了`l10n`模板库，包含以下标签和过滤器，来实现对�
 
 使用[`localize`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/i18n/formatting.html#std:templatefilter-localize)来强制单一值的本地化。 使用[`localize`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/i18n/formatting.html#std:templatetag-localize) 模板标签来在大块的模板区域内控制本地化。
 
-
-
 ## 创建自定义格式文件
 
 Django为许多地区提供了格式定义，但是有时你可能想要创建你自己的格式，因为你的的确并没有现成的格式文件，或者你想要覆写其中的一些值。
 
 指定你首先放置格式文件的位置来使用自定义格式。 把你的[`FORMAT_MODULE_PATH`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/settings.html#std:setting-FORMAT_MODULE_PATH)设置设置为格式文件存在的包名来使用它，例如：
 
-```
+```python
 FORMAT_MODULE_PATH = [
     'mysite.formats',
     'some_app.formats',
@@ -133,7 +111,7 @@ FORMAT_MODULE_PATH = [
 
 需要这样一个结构来自定义英文格式：
 
-```
+```python
 mysite/
     formats/
         __init__.py
@@ -145,20 +123,14 @@ mysite/
 其中`formats.py`包含自定义的格式定义。 像这样：
 
 ```
-from __future__ import unicode_literals
-
 THOUSAND_SEPARATOR = '\xa0'
 ```
 
 使用非间断空格(Unicode `00A0`)作为千位分隔符，来代替英语中默认的逗号。
 
-
-
 ## 提供的区域设置格式的限制
 
 一些地区对数字使用上下文敏感的格式，Django的本地化系统不能自动处理它。
-
-
 
 ### 瑞士（德语）
 
