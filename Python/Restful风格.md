@@ -39,14 +39,110 @@ http://www.example.com/app/1.2/info
 
 ## 路径
 
-路径表示API的具体网址。每个网址代表一种资源。 资源作为网址，网址中不能有动词只能有名词，一般名词要与数据库的表名对应。而且名词要使用复数。
+路径表示API的具体网址。每个网址代表一种资源。 
+
+- 名词和动词
+
+资源作为网址，网址中不能有动词只能有名词
+
+使用动作动词来以RPC方式公开服务
 
 ```
-#获取单个商品
+getUser(1234) 
+createUser(user) 
+deleteAddress(1234)
+```
+
+RESTful风格，则建议为
+
+```
+GET /users/1234
+POST /users
+DELETE /addressed/1235
+```
+- 单数和复数
+
+虽然一些”语法学家”会告诉你使用复数来描述资源的单个实例是错误的，但实际上为了保持URI格式的一致性建议使用复数形式。
+
+```
+# 获取单个商品
 http://www.example.com/app/goods/1
-#获取所有商品
+# 获取所有商品
 http://www.example.com/app/goods
 ```
+
+本着API提供商更容易实施和API使用者更容易操作的原则，可以不必纠结一些奇怪的复数`person/people，goose/geese`。
+
+但是应该怎么处理层级关系呢？如果一个关系只能存在于另一个资源中，RESTful原则就会提供有用的指导。我们来看一下这个例子。学生有一些课程。这些课程在逻辑上映射到学生终端，如下所示：
+
+```
+#  检索id为3248234的学生学习的所有课程的清单。
+http://api.college.com/students/3248234/courses
+#  检索该学生的物理课程
+http://api.college.com/students/3248234/courses/physics 
+```
+
+- URI结尾不应包含`(/)`
+
+正斜杠`(/)`不会增加语义值，且可能导致混淆。REST API不允许一个尾部的斜杠，不应该将它们包含在提供给客户端的链接的结尾处。
+许多Web组件和框架将平等对待以下两个URI：
+
+```
+http://api.canvas.com/shapes/
+http://api.canvas.com/shapes
+```
+
+但是，实际上URI中的每个字符都会计入资源的唯一身份的识别中。
+
+两个不同的URI映射到两个不同的资源。如果URI不同，那么资源也是如此，反之亦然。因此，REST API必须生成和传递精确的URI，不能容忍任何的客户端尝试不精确的资源定位。
+
+有些API碰到这种情况，可能设计为让客户端重定向到相应没有尾斜杠的URI（也有可能会返回301 - 用来资源重定向）。
+
+- 正斜杠分隔符（/）必须用来指示层级关系
+
+```
+http://api.canvas.com/shapes/polygons/quadrilaterals/squares 
+```
+
+- 应使用连字符来提高URI的可读性
+
+为了使您的URI容易让人们理解，请使用连字符(`-`)字符来提高长路径中名称的可读性。在路径中，应该使用连字符代空格连接两个单词 。
+```
+http://api.example.com/blogs/guy-levin/posts/this-is-my-first-post
+```
+
+- 不得在URI中使用下划线
+
+一些文本查看器为了区分强调URI，常常会在URI下加上下划线。这样下划线`(_)`字符可能被文本查看器中默认的下划线部分地遮蔽或完全隐藏。
+
+为避免这种混淆，请使用连字符`(-)`而不是下划线
+
+- URI路径中首选小写字母
+
+URI路径中首选小写字母，因为大写字母有时会导致一些问题。RFC 3986将URI定义为区分大小写，但scheme 和 host components除外。
+
+```python
+http://api.example.com/my-folder/my-doc
+
+HTTP://API.EXAMPLE.COM/my-folder/my-doc
+# 这个URI很好。URI格式规范（RFC 3986）认为该URI与URI＃1相同。
+
+http://api.example.com/My-Folder/my-doc
+# 而这个URI与URI 1和2不同，这可能会导致不必要的混淆。
+```
+- 文件扩展名不应包含在URI中
+
+在Web上，`(.)`字符通常用于分隔URI的文件名和扩展名。
+REST API不应在URI中包含人造文件扩展名，来指示邮件实体的格式。相反，他们应该依赖通过Content-Type中的header传递media type，来确定如何处理正文的内容。
+```
+http://api.college.com/students/3248234/courses/2005/fall.json
+http://api.college.com/students/3248234/courses/2005/fall
+```
+如上所示：不应使用文件扩展名来表示格式。
+
+应鼓励REST API客户端使用HTTP提供的格式选择机制Accept request header。
+
+为了是链接和调试更简单，REST API应该支持通过查询参数来支持媒体类型的选择。
 
 ## 使用标准HTTP方法
 
@@ -61,13 +157,22 @@ DELETE  DELETE ：从服务器删除资源。
 
 示例：
 
-```
-#获取指定商品的信息
+```python
+# 获取商品列表
+GET http://www.example.com/goods
+# 获取指定商品的信息
 GET http://www.example.com/goods/ID
-#新建商品的信息
+
+# 新建商品的信息
 POST http://www.example.com/goods
-#更新指定商品的信息
+
+# 批量修改商品信息
+PUT http://www.example.com/goods
+# 更新指定商品的信息
 PUT http://www.example.com/goods/ID
+# 修改成员部分属性
+PATCH http://www.example.com/goods/ID  
+  
 #删除指定商品的信息
 DELETE http://www.example.com/goods/ID
 ```
@@ -84,6 +189,7 @@ http://www.example.com/goods?offset=10
 #指定第几页，以及每页数据的数量
 http://www.example.com/goods?page=2&per_page=20
 ```
+
 
 ## 状态码
 
