@@ -1,6 +1,18 @@
 # 视图-URL
 
-为了给一个应用设计URL，你需要创建一个Python模块，通常称为路由选择模块或路由解析模块**URLconf**（URL configuration）。该模块是一个纯粹的Python模块，是URL模式（简单的正则表达式）到Python 函数（你的视图）之间的简单映射。根据你的需要，这个映射可短可长。它也可以引用其它的映射。而且，由于它是纯粹的Python 代码，所以可以被动态地构造。
+一个干净、优雅的URL方案是高质量Web应用程序中的一个重要细节。 Django 让你随心所欲设计你的URL，不受框架束缚。
+
+不要求有 `.php` 或 `.cgi` ，更不会要求类似`0,2097,1-1-1928,00` 这样无意义的东西。
+
+参见万维网的发明者Berners-Lee 的[Cool URIs don’t change](https://www.w3.org/Provider/Style/URI)，里面有关于为什么URL 应该保持整洁和有意义的卓越论证。
+
+## 概述
+
+为了给一个应用设计URL，你需要创建一个Python模块，通常称为路由选择模块或路由解析模块**URLconf**（URL configuration）。 该模块是一个纯粹的Python模块，是 URL路径表达式 到 Python 函数（你的视图）之间的映射。
+
+根据你的需要，这个映射可短可长。 它也可以引用其它的映射。 而且，由于它是纯粹的Python代码，因此可以动态构建它。
+
+Django还提供了根据活动语言(active language)翻译URL的方法。 更多信息请参考[国际化文档](https://yiyibooks.cn/__trs__/qy/django2/topics/i18n/translation.html#url-internationalization)
 
 ## 处理一个请求
 
@@ -132,7 +144,7 @@ blog_articles 视图需要最外层捕获的参数来反查，在这个例子中
 5. 如果请求的URL没有匹配到任何一个表达式，或者在匹配过程的任何时刻抛出了一个异常，那么Django 将调用适当的错误处理视图进行处理。
 ```
 
-示例
+#### 示例
 
 ```python
 from django.urls import path
@@ -157,9 +169,9 @@ urlpatterns = [
 4. /articles/2003/03/building-a-django-site/ 会匹配到最后一个模式。 Django会调用函数views.article_detail（request, year=2003, month=3, slug ="building-a-django-site"）
 ```
 
-- 路径转换器
+#### 路径转换器
 
-默认可用
+- 默认可用
 
 ```python
 str   # 匹配除了路径分隔符'/'的任意非空字符串。如果表达式中没有包含转换器，那么这将是默认行为。
@@ -169,7 +181,7 @@ uuid  # 匹配一个格式化的UUID. 为了防止多个URL映射到同一页面
 path  # 匹配包含路径分隔符 '/'在内的任意非空字符串。 相对于str，这允许你匹配一个完整的URL路径，而不仅仅是URL路径的一部分。
 ```
 
-自定义
+- 注册自定义路径转换器
 
 ```python
 # 一个转换器的class定义需要包含以下信息:
@@ -187,7 +199,7 @@ class FourDigitYearConverter:
     def to_url(self, value):
         return '%04d' % value
   
-# 使用
+# 使用register_converter()方法在你的URLconf配置文件中注册自定义的转换器
 from django.urls import register_converter, path
 from . import converters, views
 
@@ -200,11 +212,11 @@ urlpatterns = [
 ]
 ```
 
-- 正则表达式
+#### 正则表达式
 
 如果路径和转换器语法不足以定义你的URL pattern，你还可以使用正则表达式。 为了使用正则表达式，请使用`re_path()`，而不要使用`path()`
 
-命名正则
+- 命名正则
 
 ```python
 # 在Python正则表达式中，命名正则表达式组的语法是 `(?P<name>pattern)`， 这里 `name` 是表达式组的名字 而`pattern` 是要匹配的模式。
@@ -220,7 +232,7 @@ urlpatterns = [
 ]
 ```
 
-匿名正则
+- 匿名正则
 
 ```
 除了命名的正则表达式组语法，例如(?P<year>[0-9]{4})， 你还可以使用简短的匿名正则表达式组，例如 ([0-9]{4})。
@@ -230,7 +242,7 @@ urlpatterns = [
 
 无论哪种情况，建议在给定的正则表达式中只使用一种风格。 当两种样式混合使用时，任何匿名的正则表达式组都会被忽略，只有命名正则表达式组被传递给视图函数。
 
-嵌套参数
+- 嵌套参数
 
 ```python
 # 正则表达式允许嵌套参数，Django将解析它们并将它们传递给视图。当反查时，Django将尝试填充所有外部捕获的参数，而忽略任何嵌套的捕获参数。
@@ -615,6 +627,8 @@ URL 模式捕获的命名关键字参数和在字典中传递的额外参数有�
 
 ### include
 
+可以将额外的选项传递给[`include()`](https://yiyibooks.cn/__trs__/qy/django2/ref/urls.html#django.urls.include)，并且包含的URLconf中的每一行都将传递额外的选项
+
 1.8
 
 ```python
@@ -692,6 +706,8 @@ urlpatterns = [
 ]
 ```
 
+请注意，无论行的视图实际上是否接受这些选项，附加选项将始终传递到所包含的URLconf中的每一行。因此，仅当您确定所包含的URLconf中的每个视图都接受您要传递的其他选项时，此技术才有用。
+
 ## 反向解析
 
 Django 提供了一个解决方案使得URL 映射是URL 设计唯一的储存库。你用你的URLconf填充它，然后可以双向使用它
@@ -703,18 +719,17 @@ Django 提供了一个解决方案使得URL 映射是URL 设计唯一的储存�
 
 在需要URL 的地方，对于不同层级，Django 提供不同的工具用于URL 反查
 
-```python
 - 在模板中：使用url 模板标签。
-- 在Python 代码中：1.8使用django.core.urlresolvers.reverse()，2.0使用django.urls.reverse()。
-- 在更高层的与处理Django模型实例相关的代码中：使用get_absolute_url()方法。
-```
+- 在Python 代码中：1.8使用`django.core.urlresolvers.reverse()`，2.0使用`django.urls.reverse()`。
+- 在更高层的与处理Django模型实例相关的代码中：使用`get_absolute_url()`方法
 
-- 示例
+### 示例
 
-1.8
+- 1.8
+
+URLconf
 
 ```python
-# URLconf
 from django.conf.urls import url
 
 from . import views
@@ -724,8 +739,11 @@ urlpatterns = [
     url(r'^articles/([0-9]{4})/$', views.year_archive, name='news-year-archive'),
     #...
 ]
+```
 
-# template
+template
+
+```html
 <a href="{% url 'news-year-archive' 2012 %}">2012 Archive</a>
 
 <ul>
@@ -733,7 +751,11 @@ urlpatterns = [
 <li><a href="{% url 'news-year-archive' yearvar %}">{{ yearvar }} Archive</a></li>
 {% endfor %}
 </ul>
+```
 
+views
+
+```python
 # python
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
@@ -745,10 +767,12 @@ def redirect_to_year(request):
     return HttpResponseRedirect(reverse('news-year-archive', args=(year,)))
 ```
 
-2.0
+- 2.0
+
+
+URLconf
 
 ```python
-# URLconf
 from django.urls import path
 
 from . import views
@@ -758,8 +782,11 @@ urlpatterns = [
     path('articles/<int:year>/', views.year_archive, name='news-year-archive'),
     #...
 ]
+```
 
-# template
+template
+
+```html
 <a href="{% url 'news-year-archive' 2012 %}">2012 Archive</a>
 {# Or with the year in a template context variable: #}
 <ul>
@@ -767,7 +794,11 @@ urlpatterns = [
 <li><a href="{% url 'news-year-archive' yearvar %}">{{ yearvar }} Archive</a></li>
 {% endfor %}
 </ul>
-  
+```
+
+views
+
+```python
 # python
 from django.urls import reverse
 from django.http import HttpResponseRedirect
@@ -781,7 +812,9 @@ def redirect_to_year(request):
 
 ## 命名/命名空间
 
-### 命名
+### 概述
+
+- 命名
 
 为了完成上面例子中的URL 反查，你将需要使用**命名的URL 模式**。URL 的名称使用的字符串可以包含任何你喜欢的字符。并不仅限于合法的Python 名称。
 
@@ -813,7 +846,7 @@ urlpatterns = [
 ]
 ```
 
-### 命名空间
+- 命名空间
 
 因为一个应用的多个实例共享相同的命名URL，命名空间提供了一种区分这些命名URL 的方法
 
@@ -832,11 +865,10 @@ URL 的命名空间使用`':'` 操作符指定。例如，管理站点应用的�
 
 命名空间也可以嵌套。命名URL`'sports:polls:index'`将在命名空间`'polls'`中查找`'index'`，而poll 定义在顶层的命名空间`'sports'` 中。
 
-- 反查带命名空间的URL
+### 反查带命名空间的URL
 
 当解析一个带命名空间的URL（例如`'polls:index'`）时，Django 将切分名称为多个部分，然后按下面的步骤查找
 
-```
 1. 首先，Django 查找匹配的应用命名空间(在这个例子中为'polls'）。这将得到该应用实例的一个列表。
 
 2. 如果有一个当前应用被定义，Django 将查找并返回那个实例的URL 解析器。当前应用可以通过请求上的一个属性指定。预期会具有多个部署的应用应该设置正在处理的request 的current_app 属性。
@@ -847,15 +879,18 @@ URL 的命名空间使用`':'` 操作符指定。例如，管理站点应用的�
 4. 如果没有默认的应用实例，Django 将挑选该应用最后部署的实例，不管实例的名称是什么。
 
 5. 如果提供的命名空间与第1步中的应用命名空间 不匹配，Django 将尝试直接将此命名空间作为一个实例命名空间查找。
-```
 
 如果有嵌套的命名空间，将为命名空间的每个部分重复调用这些步骤直至剩下视图的名称还未解析。然后该视图的名称将被解析到找到的这个命名空间中的一个URL。
 
-示例
+- 示例
+
+为了显示该解决方案的实际作用，请考虑本教程中民意测验应用程序的两个实例的示例：一个称为“ author-polls”，另一个称为“ publisher-polls”。假设我们已经增强了该应用程序，以便在创建和显示民意测验时考虑实例名称空间。
+
+1.8
 
 ```python
 # URLconf
-# 1.8
+
 # urls.py
 from django.conf.urls import include, url
 
@@ -873,8 +908,11 @@ urlpatterns = [
     url(r'^(?P<pk>\d+)/$', views.DetailView.as_view(), name='detail'),
     ...
 ]
+```
 
-# 2.0
+2.0
+
+```python
 # urls.py
 from django.urls import include, path
 
@@ -892,35 +930,54 @@ urlpatterns = [
     path('<int:pk>/', views.DetailView.as_view(), name='detail'),
     ...
 ]
+```
+使用此设置，可以进行以下查找
 
-# 反查
-1.如果其中一个实例是当前实例 —— 如果我们正在渲染'author-polls' 实例的detail 页面 —— 'polls:index' 将解析成'author-polls' 实例的主页面；例如下面两个都将解析成"/author-polls/"。
-# 在基于类的视图的方法
+1. 如果其中一个实例是当前实例 —— 如果我们正在渲染'author-polls' 实例的detail 页面 —— 'polls:index' 将解析成'author-polls' 实例的主页面；例如下面两个都将解析成"/author-polls/"。
+
+在基于类的视图的方法
+
+```python
 reverse('polls:index', current_app=self.request.resolver_match.namespace)
-# 在模板中
+```
+
+在模板中
+```
 {% url 'polls:index' %}
-# 注意，1.8需要在模板中的反查需要添加request的current_app 属性
+```
+> 注意，
+
+1.8需要在模板中的反查需要添加request的current_app 属性
+
+```python
 def render_to_response(self, context, **response_kwargs):
     self.request.current_app = self.request.resolver_match.namespace
     return super(DetailView, self).render_to_response(context, **response_kwargs)
-2. 如果没有当前实例——如果我们在站点的其它地方渲染一个页面 —— 'polls:index' 将解析到最后注册的polls的一个实例。因为没有默认的实例（命名空间为'polls'的实例），将使用注册的polls 的最后一个实例。它将是'publisher-polls'，因为它是在urlpatterns中最后一个声明的。
-3. 'author-polls:index' 将永远解析到 'author-polls' 实例的主页（'publisher-polls' 类似）。
-4. 如果还有一个默认的实例——例如，一个名为'polls'的实例 —— 上面例子中唯一的变化是当没有当前实例的情况（上述第二种情况）。在这种情况下 'polls:index' 将解析到默认实例而不是urlpatterns 中最后声明的实例的主页
 ```
 
-- URL命名空间和被包含的URLconf
+2. 如果没有当前实例——如果我们在站点的其它地方渲染一个页面 —— 'polls:index' 将解析到最后注册的polls的一个实例。因为没有默认的实例（命名空间为'polls'的实例），将使用注册的polls 的最后一个实例。它将是'publisher-polls'，因为它是在urlpatterns中最后一个声明的。
+
+3. 'author-polls:index' 将永远解析到 'author-polls' 实例的主页（'publisher-polls' 类似）。
+
+如果还有一个默认的实例——例如，一个名为'polls'的实例 —— 上面例子中唯一的变化是当没有当前实例的情况（上述第二种情况）。在这种情况下 'polls:index' 将解析到默认实例而不是urlpatterns 中最后声明的实例的主页
+
+### URL命名空间和被包含的URLconf
 
 被包含的URLconf 的命名空间可以通过两种方式指定
 
-1.8
+- 1.8
+
+在构造你的URL模式时，你可以提供应用和实例的命名空间给`include()`作为参数。这将包含polls.urls中定义的URL 到应用命名空间 `polls`中，其实例命名空间`author-polls`
 
 ```python
 # 方法一
-# 在构造你的URL模式时，你可以提供应用和实例的命名空间给include()作为参数。这将包含polls.urls中定义的URL 到应用命名空间 'polls'中，其实例命名空间为'author-polls'
 url(r'^polls/', include('polls.urls', namespace='author-polls', app_name='polls')),
+```
 
+可以include一个包含嵌套命名空间数据的对象,如果你include()一个url() 实例的列表，那么该对象中包含的URL 将添加到全局命名空间。然而，你还可以include() 一个3个元素的元组，这会包含命名的URL模式进入到给定的应用和实例命名空间中
+
+```python
 # 方法二
-# 可以include一个包含嵌套命名空间数据的对象,如果你include()一个url() 实例的列表，那么该对象中包含的URL 将添加到全局命名空间。然而，你还可以include() 一个3个元素的元组，这会包含命名的URL模式进入到给定的应用和实例命名空间中
 polls_patterns = [
     url(r'^$', views.IndexView.as_view(), name='index'),
     url(r'^(?P<pk>\d+)/$', views.DetailView.as_view(), name='detail'),
@@ -928,7 +985,9 @@ polls_patterns = [
 url(r'^polls/', include((polls_patterns, 'polls', 'author-polls'))),  # (<list of url() instances>, <application namespace>, <instance namespace>)
 ```
 
-2.0
+- 2.0
+
+首先，您可以在包含的URLconf模块中将app_name属性设置为与urlpatterns属性相同的级别。您必须将实际模块或对该模块的字符串引用传递给`include()`，而不是urlpatterns本身的列表。
 
 ```python
 # 方法一
@@ -942,12 +1001,23 @@ urlpatterns = [
     path('<int:pk>/', views.DetailView.as_view(), name='detail'),
     ...
 ]
+
 # urls.py
 from django.urls import include, path
 
 urlpatterns = [
     path('polls/', include('polls.urls')),
 ]
+```
+
+`polls.urls`中定义的URL将具有应用程序名称空间`polls`。
+
+其次，您可以包括一个包含嵌入式名称空间数据的对象。如果你`include()`一系列`path()`或`re_path()`实例，则该对象中包含的URL将被添加到全局名称空间中。但是，您还可以`include()`一个2元组，其中包含
+```python
+(<list of path()/re_path() instances>, <application namespace>)
+```
+例如
+```python
 # 方法二
 from django.urls import include, path
 from . import views
@@ -962,3 +1032,6 @@ urlpatterns = [
 ]
 ```
 
+这会将提名的URL模式包括到给定的应用程序名称空间中。
+
+可以使用`include()`的namespace参数指定实例名称空间。如果未指定实例名称空间，它将默认为包含的URLconf的应用程序名称空间。这意味着它将也是该名称空间的默认实例。
