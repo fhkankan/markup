@@ -155,6 +155,14 @@ PUT     UPDATE ：在服务器更新资源。
 DELETE  DELETE ：从服务器删除资源。
 ```
 
+不常用HTTP动词
+
+```
+PATCH(UPDATE):在服务器更新(更新)资源(客户端提供改变的属性)。 
+HEAD:获取资源的元数据。
+OPTIONS:获取信息，关于资源的哪些属性是客户端可以改变的。
+```
+
 示例：
 
 ```python
@@ -190,6 +198,7 @@ http://www.example.com/goods?offset=10
 http://www.example.com/goods?page=2&per_page=20
 ```
 
+参数的设计允许存在冗余，即允许API路径和URL参数偶尔有重复。比如，`GET /zoos/ID/animals` 与` GET /animals?zoo_id=ID` 的含义是相同的。 
 
 ## 状态码
 
@@ -232,7 +241,28 @@ POST   http://www.example.com/goods
 DELETE http://www.example.com/goods
 ```
 
-## 使用链接关联相关的资源
+## 超媒体
+
+RESTful API最好做到Hypermedia(即返回结果中提供链接，连向其他API方法)，使得用户不查文 
+
+档，也知道下一步应该做什么。 比如，Github的API就是这种设计，访问api.github.com会得到一个所有可用API的网址列表。 
+
+```
+{
+	"current_user_url":"https://api.github.com/user",
+	"authorization_url":"https://api.github.com/authorizations",
+	// ...
+}
+```
+
+从上面可以看到，如果想获取当前用户的信息，应该去访问api.github.com/user，然后就得到了下面结 果。 
+
+```
+{
+	"message": "Requires authentication",
+	"documentation_url": "https://developer.github.com/v3"
+}
+```
 
 在返回响应结果时提供链接其他API的方法，使客户端很方便的获取相关联的信息。
 

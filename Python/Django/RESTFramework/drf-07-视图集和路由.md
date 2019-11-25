@@ -132,5 +132,37 @@ urlpatterns = [
 
 这并不意味着它始终是正确的方法。当使用基于类的视图而不是基于函数的视图时，需要考虑类似的一组权衡。使用视图集不如单独构建视图那么明确。
 
+```
+ViewSet
+		ViewSetMixin
+		ViewSet
+		GenericViewSet
+		ReadOnlyModelViewSet
+		ModelViewSet
 
+APIView
+		GenericAPIView
+		CreateAPIView
+		ListAPIView
+		RetrieveAPIView
+		DestroyAPIView
+		UpdateAPIView
+		ListCreateAPIView
+		RetrieveUpdateAPIView
+		RetrieveDestroyAPIView
+		RetrieveUpdateDestroyAPIView						
+						
+Mixin
+		CreateModelMixin
+		ListModeMixin
+		UpdateModelMixin
+		RetrieveModeMixin
+		DestoryModelMixin
+				
+APIView
+
+View
+```
+
+![视图和视图集](/Users/henry/Markup/Python/Django/视图和视图集.png)
 

@@ -161,5 +161,20 @@ class SnippetDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = SnippetSerializer
 ```
 
+通用试图有如下
+
+```
+GenericAPIView
+CreateAPIView
+ListAPIView
+RetrieveAPIView
+DestroyAPIView
+UpdateAPIView
+ListCreateAPIView
+RetrieveUpdateAPIView
+RetrieveDestroyAPIView
+RetrieveUpdateDestroyAPIView
+```
+
 
 

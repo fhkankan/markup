@@ -29,7 +29,7 @@ pymsql.install_as_mysqldb()
 > mysql-client，支持python2和python3
 
 ```
-替代mysql-python,
+替代mysql-python
 ```
 
 安装驱动
@@ -449,9 +449,15 @@ pip install pymysql			# python3
 pip install mysqlclient # python2,python3
 
 3)、导入mysql包
-在项目或应用的__init__.py中，
+1. 在项目或应用的__init__.py中，
 import pymysql
 pymysql.install_as_MySQLdb()
+2. 修改源码屏蔽版本控制
+(1)在python\Lib\site-packages\django\db\backends\mysql/base.py中注释掉如下代码
+if version < (1, 3, 13): 　　　　　　　　　　
+		raise ImproperlyConfigured(‘mysqlclient 1.3.13 or newer is required; you have %s.’ % Database.version) 　
+(2)在Python\lib\site-packages\django\db\backends\mysql\operations.py”, line 146
+decode修改为encode
 
 4)、重新生成数据库表
 删除掉应用名/migrations目录下所有的迁移文件

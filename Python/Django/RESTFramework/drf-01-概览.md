@@ -179,10 +179,7 @@ python manage.py runserver
 # 浏览器地址行输入
 http://127.0.0.1:8000/users/
 # 点击右上角登陆
-
 ```
-
-
 
 方式二
 

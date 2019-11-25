@@ -36,7 +36,7 @@ Django的基于类的视图提供了许多功能，但是你可能只想使用�
 
 然后，为了生成TemplateResponse，DetailView 使用SingleObjectTemplateResponseMixin，它扩展自TemplateResponseMixin并覆盖上文讨论过的`get_template_names()`。 实际上，它提供比较复杂的选项集合，但是大部分人用到的主要的一个是` <app_label>/<model_name>_detail.html`。` _detail `部分可以通过设置子类的template_name_suffix 来改变。 （例如，generic edit views 使用`_form` 来创建和更新视图，用`_confirm_delete` 来删除视图）。
 
-### ListView：
+### ListView
 
 **使用许多Django对象**
 

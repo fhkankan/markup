@@ -202,8 +202,6 @@ python manager.py shell
 
 ## 模型
 
-
-
 ### 模型使用
 
 - 创建数据库
