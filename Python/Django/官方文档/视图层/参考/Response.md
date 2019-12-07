@@ -114,11 +114,13 @@ charset  # 在response中被编码的字符集。 如果没有给定，将会从
 
 根据首部名称返回其值。 不区分大小写                                             
 
-- `HttpResponse.has_header(header)`                                                                                                     
-通过检查首部中是否有给定的首部名称（不区分大小写），来返回`True` 或 `False` 。       
+- `HttpResponse.has_header(header)` 
 
-- `HttpResponse.setdefault(header, value)`                                                                                              
-设置一个首部，除非该首部 header 已经存在了。                                                                                                               
+通过检查首部中是否有给定的首部名称（不区分大小写），来返回`True` 或 `False` 。
+
+- `HttpResponse.setdefault(header, value)`                                                              
+设置一个首部，除非该首部 header 已经存在了。
+
 - `HttpResponse.set_cookie(key, value='', max_age=None, expires=None,path='/', domain=None, secure=None, httponly=False)`         
 
 设置一个Cookie。 参数与Python 标准库中的`Morsel`Cookie 对象相同                   

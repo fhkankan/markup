@@ -296,14 +296,13 @@ class QueryDict
 你所遇到的大部分对象都是不可修改的，例如request.POST和request.GET。如果需要实例化你自己的可以修改的对象，通过往它的`__init__()`方法来传递参数 mutable=True 可以实现。
 
 设置键和值的字符串都将从encoding 转换为unicode。如果没有指定编码,默认设置为DEFAULT_CHARSET
-```
 
 - `classmethod QUeryDict.fromkeys(iterable, value='', mutable=false, encoding=None)`
 
-Django 1.11新增
+> Django 1.11新增
 
 使用可迭代的键创建一个新的QueryDict，每个值都等于value。例如：
-​```python
+```python
 >>> QueryDict.fromkeys(['a', 'a', 'b'], value='val')
 <QueryDict: {'a': ['val', 'val'], 'b': ['val']}>
 ```

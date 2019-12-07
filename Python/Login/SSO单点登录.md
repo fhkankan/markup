@@ -33,6 +33,10 @@
 
 进一步理解，使用OAuth协议也可以实现单点登录功能，它就是API版本的单点登录。
 
+###  JWT
+
+Session方式来存储用户id，一开始用户的Session只会存储在一台服务器上。对于有多个子域名的站点，每个子域名至少会对应一台不同的服务器，例如：`www.taobao.com`，`nv.taobao.com`，`nz.taobao.com`，`login.taobao.com`。所以如果要实现在`login.taobao.com`登录后，在其他的子域名下依然可以取到Session，这要求我们在多台服务器上同步Session。使用JWT的方式则没有这个问题的存在，因为用户的状态已经被传送到了客户端。
+
 ## 技术细节
 
 [参考](https://www.cnblogs.com/lyzg/p/6132801.html)

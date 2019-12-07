@@ -27,9 +27,9 @@
 
 **替换内容**
 
-由于某些较老的浏览器（尤其是 IE9 之前的 IE 浏览器）或者浏览器不支持 HTML 元素 ``，在这些浏览器上你应该总是能展示替代内容。
+由于某些较老的浏览器（尤其是 IE9 之前的 IE 浏览器）或者浏览器不支持 HTML 元素 `<canvas>`，在这些浏览器上你应该总是能展示替代内容。
 
-支持 `` 的浏览器会只渲染 `` 标签，而忽略其中的替代内容。不支持 `` 的浏览器则 会直接渲染替代内容。
+支持 `<canvas>` 的浏览器会只渲染 `canvas` 标签，而忽略其中的替代内容。不支持 `<canvas>` 的浏览器则 会直接渲染替代内容。
 
 用文本替换：
 
@@ -39,7 +39,7 @@
 </canvas>
 ```
 
-用 `` 替换：
+用 `<img>` 替换：
 
 ```
 <canvas>
@@ -53,9 +53,13 @@
 
 ### 渲染上下文
 
-`<canvas>` 会创建一个固定大小的画布，会公开一个或多个**渲染上下文**(画笔)，使用**渲染上下文**来绘制和处理要展示的内容。
+`<canvas>` 会创建一个固定大小的画布，会公开一个或多个**渲染上下文**(画笔)，使用**渲染上下文**来绘制和处理要展示的内容。上下文是是所有的绘制操作api的入口或者集合。
 
- 我们重点研究 2D 渲染上下文。 其他的上下文我们暂不研究，比如， WebGL 使用了基于 OpenGL ES的3D 上下文 ("experimental-webgl") 。
+ Canvas自身无法绘制任何内容。Canvas的绘图是使用JavaScript操作的。
+
+Context对象就是JavaScript操作Canvas的接口。
+
+使用`[CanvasElement].getContext(‘2d’)`来获取2D绘图上下文。
 
 ```
 var canvas = document.getElementById('tutorial');
@@ -76,7 +80,7 @@ if (canvas.getContext){
 }
 ```
 
-### 代码模板
+### 代码模版
 
 
 ```html
@@ -103,39 +107,6 @@ if (canvas.getContext){
 </script>
 </html>
 ```
-### 一个例子
-
-以下实例绘制两个长方形：
-
-```html
-<html>
-<head>
-    <title>Canvas tutorial</title>
-    <style type="text/css">
-        canvas {
-            border: 1px solid black;
-        }
-    </style>
-</head>
-<canvas id="tutorial" width="300" height="300"></canvas>
-</body>
-<script type="text/javascript">
-    function draw(){
-        var canvas = document.getElementById('tutorial');
-        if(!canvas.getContext) return;
-        var ctx = canvas.getContext("2d");
-        ctx.fillStyle = "rgb(200,0,0)";
-      	//绘制矩形
-        ctx.fillRect (10, 10, 55, 50);
-
-        ctx.fillStyle = "rgba(0, 0, 200, 0.5)";
-        ctx.fillRect (30, 30, 55, 50);
-    }
-    draw();
-</script>
-</html>
-```
-
 ## 绘制形状
 
 ### 栅格和坐标空间
@@ -154,6 +125,7 @@ canvast 提供了三种方法绘制矩形：
 
 | 函数 | 描述 |
 | ---- | ---- |
+| `rect(x,y,width,height)` | 规划矩形的路径，没有填充和描边 |
 | `fillRect(x, y, width, height)`     |  绘制一个填充的矩形    |
 | `strokeRect(x, y, width, height)`    |  绘制一个矩形的边框    |
 | `clearRect(x, y, widh, height)`    |  清除指定的矩形区域，然后这块区域会变的完全透明    |
@@ -196,23 +168,32 @@ ctx.clearRect(15, 15, 50, 25);
 
 一个路径，甚至一个子路径，都是闭合的。
 
-使用路径绘制图形需要一些额外的步骤：
+基本步骤
 
-1. 创建路径起始点
-2. 调用绘制方法去绘制出路径
-3. 把路径封闭
-4. 一旦路径生成，通过描边或填充路径区域来渲染图形。
+```
+第一步：获得上下文=>canvasElem.getContext('2d');
+
+第二步：开始路径规划=>ctx.beginPath()
+
+第三步：移动起始点=>ctx.moveTo(x, y)
+
+第四步：绘制线(矩形、圆形、图片...) =>ctx.lineTo(x, y)
+
+第五步：闭合路径=>ctx.closePath();
+
+第六步：绘制描边=>ctx.stroke();
+```
 
 下面是需要用到的方法：
 
 | 函数 | 描述 |
 | ---- | ---- |
-|  `beginPath()`    |  新建一条路径，路径一旦创建成功，图形绘制命令被指向到路径上生成路径    |
+|  `beginPath()`    | 新建一条路径，路径一旦创建成功，图形绘制命令被指向到路径上生成路径，核心的作用是将 不同绘制的形状进行隔离，可以进行分开样式设置和管理 |
+| `closePath()` | 闭合路径，会自动把最后的线头和开始的线头连在一起。 |
 | `moveTo(x, y)`     |  把画笔移动到指定的坐标`(x, y)`。相当于设置路径的起始点坐标。    |
 |  `closePath()`    |  闭合路径之后，图形绘制命令又重新指向到上下文中    |
-| `stroke()`     |  通过线条来绘制图形轮廓    |
+| `stroke()`     | 通过线条来绘制图形轮廓，路径只是草稿，真正绘制线必须执行stroke |
 |   `fill()`    |  通过填充路径的内容区域生成实心的图形    |
-
 
 ### 绘制线段
 
@@ -242,7 +223,7 @@ function draw(){
     ctx.moveTo(50, 50);
     ctx.lineTo(200, 50);
     ctx.lineTo(200, 200);
-      ctx.closePath(); //虽然我们只绘制了两条线段，但是closePath会closePath，仍然是一个3角形
+    ctx.closePath(); //虽然我们只绘制了两条线段，但是closePath会closePath，仍然是一个3角形
     ctx.stroke(); //描边。stroke不会自动closePath()
 }
 draw();
@@ -491,205 +472,6 @@ draw();
 
 ![img](https://www.runoob.com/wp-content/uploads/2018/12/3947786617-5b74dd8ec8678_articlex.png)
 
-## 添加样式和颜色
-
- 在前面的绘制矩形章节中，只用到了默认的线条和颜色。
-
- 如果想要给图形上色，有两个重要的属性可以做到。
-
-1. `fillStyle = color` 设置图形的填充颜色
-2. `strokeStyle = color` 设置图形轮廓的颜色
-
->  备注：
->
->  color 可以是表示 css 颜色值的字符串、渐变对象或者图案对象。
->
->  默认情况下，线条和填充颜色都是黑色。
->
->  一旦您设置了 strokeStyle 或者 fillStyle 的值，那么这个新值就会成为新绘制的图形的默认值。如果你要给每个图形上不同的颜色，你需要重新设置 fillStyle 或 strokeStyle 的值。
-
-### fillStyle
-
-```
-function draw(){
-  var canvas = document.getElementById('tutorial');
-  if (!canvas.getContext) return;
-  var ctx = canvas.getContext("2d");
-  for (var i = 0; i < 6; i++){
-    for (var j = 0; j < 6; j++){
-      ctx.fillStyle = 'rgb(' + Math.floor(255 - 42.5 * i) + ',' +
-        Math.floor(255 - 42.5 * j) + ',0)';
-      ctx.fillRect(j * 50, i * 50, 50, 50);
-    }
-  }
-}
-draw();
-```
-
-
-
-![img](https://www.runoob.com/wp-content/uploads/2018/12/2505008676-5b74dd8ebad41_articlex.png)
-
-### strokeStyle
-
-```python
-<script type="text/javascript">
-    function draw(){
-        var canvas = document.getElementById('tutorial');
-        if (!canvas.getContext) return;
-        var ctx = canvas.getContext("2d");
-        for (var i = 0; i < 6; i++){
-            for (var j = 0; j < 6; j++){
-                ctx.strokeStyle = `rgb(${randomInt(0, 255)},${randomInt(0, 255)},${randomInt(0, 255)})`;
-                ctx.strokeRect(j * 50, i * 50, 40, 40);
-            }
-        }
-    }
-    draw();
-    /**
-     作者:李振超      4 Jun 2017 12:12
-     返回随机的 [from, to] 之间的整数(包括from，也包括to)
-     */
-    function randomInt(from, to){
-        return parseInt(Math.random() * (to - from + 1) + from);
-    }
-
-</script>
-```
-
-
-
-![img](https://www.runoob.com/wp-content/uploads/2018/12/3288535670-5b74dd8ea12d9_articlex.png)
-
-### Transparency
-
-`globalAlpha = transparencyValue`: 这个属性影响到 canvas 里所有图形的透明度，有效的值范围是 0.0 （完全透明）到 1.0（完全不透明），默认是 1.0。
-
- `globalAlpha` 属性在需要绘制大量拥有相同透明度的图形时候相当高效。不过，我认为使用`rgba()`设置透明度更加好一些。
-
-### line style
-
-- `lineWidth=value`
-
-线宽。只能是正值。默认是 1.0。
-
-起始点和终点的连线为中心，**上下各占线宽的一半**。
-
-```
-ctx.beginPath();
-ctx.moveTo(10, 10);
-ctx.lineTo(100, 10);
-ctx.lineWidth = 10;
-ctx.stroke();
- 
-ctx.beginPath();
-ctx.moveTo(110, 10);
-ctx.lineTo(160, 10)
-ctx.lineWidth = 20;
-ctx.stroke()
-```
-
-
-
-![img](https://www.runoob.com/wp-content/uploads/2018/12/3410060825-5b74dd8ea12d9_articlex.png)
-
-- `lineCap = type`
-
-线条末端样式。
-
-共有 3 个值：
-
-1. `butt`：线段末端以方形结束
-
-2. `round`：线段末端以圆形结束
-
-3. `square`：线段末端以方形结束，但是增加了一个宽度和线段相同，高度是线段厚度一半的矩形区域。
-
-```javascript
-var lineCaps = ["butt", "round", "square"];
-    
-
-for (var i = 0; i < 3; i++){
-       ctx.beginPath();
-    ctx.moveTo(20 + 30 * i, 30);
-       ctx.lineTo(20 + 30 * i, 100);
-    ctx.lineWidth = 20;
-       ctx.lineCap = lineCaps[i];
-    ctx.stroke();
-   }
-
-   ctx.beginPath();
-ctx.moveTo(0, 30);
-   ctx.lineTo(300, 30);
-
-   ctx.moveTo(0, 100);
-ctx.lineTo(300, 100)
-    
-ctx.strokeStyle = "red";
-   ctx.lineWidth = 1;
-ctx.stroke();
-```
-
-![img](https://www.runoob.com/wp-content/uploads/2018/12/3380216230-5b74dd8e97e85_articlex.png)
-
-- `lineJoin = type`
-
-同一个 path 内，设定线条与线条间接合处的样式。
-
-共有 3 个值：
-
-1. `round`: 通过填充一个额外的，圆心在相连部分末端的扇形，绘制拐角的形状。 圆角的半径是线段的宽度。
-
-2. `bevel `:在相连部分的末端填充一个额外的以三角形为底的区域， 每个部分都有各自独立的矩形拐角。
-
-3. `miter`:(默认) 通过延伸相连部分的外边缘，使其相交于一点，形成一个额外的菱形区域。
-
-```javascript
-function draw(){
-    var canvas = document.getElementById('tutorial');
-    if (!canvas.getContext) return;
-    var ctx = canvas.getContext("2d");
- 
-    var lineJoin = ['round', 'bevel', 'miter'];
-    ctx.lineWidth = 20;
- 
-    for (var i = 0; i < lineJoin.length; i++){
-        ctx.lineJoin = lineJoin[i];
-        ctx.beginPath();
-        ctx.moveTo(50, 50 + i * 50);
-        ctx.lineTo(100, 100 + i * 50);
-        ctx.lineTo(150, 50 + i * 50);
-        ctx.lineTo(200, 100 + i * 50);
-        ctx.lineTo(250, 50 + i * 50);
-        ctx.stroke();
-    }
- 
-}
-draw();
-```
-
-![img](https://www.runoob.com/wp-content/uploads/2018/12/1584506777-5b74dd8e82768_articlex.png)
-
-### 虚线
-
-用 setLineDash 方法和 lineDashOffset 属性来制定虚线样式。 setLineDash 方法接受一个数组，来指定线段与间隙的交替；lineDashOffset属性设置起始偏移量。
-
-```javascript
-function draw(){
-    var canvas = document.getElementById('tutorial');
-    if (!canvas.getContext) return;
-    var ctx = canvas.getContext("2d");
- 
-    ctx.setLineDash([20, 5]);  // [实线长度, 间隙长度]
-    ctx.lineDashOffset = -0;
-    ctx.strokeRect(50, 50, 210, 210);
-}
-draw();
-```
-备注： `getLineDash() `返回一个包含当前虚线样式，长度为非负偶数的数组。
-
-1. ![img](https://www.runoob.com/wp-content/uploads/2018/12/2805401035-5b74dd8e6833c_articlex.png)
-
 ## 绘制文本
 
 canvas 提供了两种方法来渲染文本:
@@ -735,3 +517,86 @@ draw();
 
 文本方向。可能的值包括：ltr, rtl, inherit。默认值是 inherit。
 
+## 绘制图片
+
+
+我们也可以在 `canvas` 上直接绘制图片。
+
+### canvas创建图片
+
+- 基本绘制
+
+```
+ctx.drawImage(img,x,y); 
+```
+
+参数
+`img`：要绘制的 img 
+`x,y`：绘制图片左上角坐标
+
+> 注意：
+> 考虑到图片是从网络加载，如果 `drawImage` 的时候图片还没有完全加载完成，则什么都不做，个别浏览器会抛异常。所以我们应该保证在 `img` 绘制完成之后再 `drawImage`。
+
+```javascript
+var img = new Image();   // 创建img元素
+img.onload = function(){
+  ctx.drawImage(img, 0, 0)
+}
+img.src = 'myImage.png'; // 设置图片源地址
+
+```
+
+### js创建img对象
+
+方法一
+
+```javascript
+var img = document.getElementById("imgId");
+```
+
+方法二
+
+```javascript
+var img = new Image();   // 创建一个<img>元素 
+img.src = 'myImage.png'; // 设置图片源地址
+img.alt = "文本信息";
+img.onload = function(){
+  // 图片加载完成后，执行此方法
+}
+```
+
+第一张图片就是页面中的 `<img>` 标签：
+
+![img](https://www.runoob.com/wp-content/uploads/2018/12/2255709523-5b74dd8eb033e_articlex.png)
+
+### 缩放
+
+`drawImage()` 也可以再添加两个参数：
+
+```
+drawImage(image, x, y, width, height)
+```
+
+这个方法多了 2 个参数：`width` 和 `height`，这两个参数用来控制 当像 canvas 画入时应该缩放的大小。
+
+```
+ctx.drawImage(img, 0, 0, 400, 200)
+```
+
+![img](https://www.runoob.com/wp-content/uploads/2018/12/327614951-5b74dd8e71ab1_articlex.png)
+
+### 裁剪
+
+```
+drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight)
+```
+
+第一个参数和其它的是相同的，都是一个图像或者另一个 canvas 的引用。
+
+其他 8 个参数：
+
+前 4 个是定义图像源的切片位置和大小，后 4 个则是定义切片的目标显示位置和大小。
+
+![img](https://www.runoob.com/wp-content/uploads/2018/12/2106688680-54566fa3d81dc_articlex.jpeg)
+
+## 

@@ -10,8 +10,6 @@
 
 => [canvas撒花瓣效果](http://www.qiutianaimeili.com/html/page/2018/01/source/flower/example.html)(二维码)
 
-#### 思路分析
-
 这里只使用了一张花瓣素材，如下：
 
 ![img](http://active.qiutianaimeili.com/1piece_of_pedal.png)
@@ -130,3 +128,321 @@ else
   c.rotate(this.rotate);
 }
 ```
+
+## 小球拖拽
+
+[参考](https://www.cnblogs.com/ye-hcj/p/10361027.html)
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style type="text/css">
+        canvas {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="canvas" width="500px" height="500px"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        var cRect = canvas.getBoundingClientRect();  
+        var raf;
+        var running = false;
+
+        var ball = {
+            x: 100,
+            y: 100,
+            vx: 5,
+            vy: 2,
+            radius: 25,
+            color: 'red',
+            draw: function () {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, true);
+                ctx.closePath();
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+        };
+
+        function clear() {
+            
+            // ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 尾影效果使用下面
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function draw() {
+            clear();
+            ball.draw();
+
+            // 移动
+            ball.x += ball.vx;
+            ball.y += ball.vy;
+
+            // 曲线运动
+            ball.vy *= .99;
+            ball.vy += .25;
+
+            // 边界
+            if (ball.y + ball.vy > canvas.height || ball.y + ball.vy < 0) {
+                ball.vy = -ball.vy;
+            }
+            if (ball.x + ball.vx > canvas.width || ball.x + ball.vx < 0) {
+                ball.vx = -ball.vx;
+            }
+
+            raf = window.requestAnimationFrame(draw);
+
+        }
+
+        canvas.addEventListener('mousemove', function (e) {
+            if (!running) {
+                clear();
+                ball.x = Math.round(e.clientX - cRect.left);
+                ball.y = Math.round(e.clientY - cRect.top);
+                ball.draw();   // 直接调用draw只会绘制一帧
+            }
+        });
+
+        canvas.addEventListener('click', function (e) {
+            if (!running) {
+                raf = window.requestAnimationFrame(draw);
+                running = true;
+            }
+        });
+
+        canvas.addEventListener('mouseout', function (e) {
+            window.cancelAnimationFrame(raf);
+            running = false;
+        });
+
+        ball.draw();
+
+
+    </script>
+</body>
+
+</html>
+```
+
+## 进度波浪
+
+[参考](https://www.jb51.net/article/99612.htm)
+
+- 核心部分
+
+**绘制 sin() 曲线**
+
+```javascript
+`var` `canvas = document.getElementById(``'c'``);``var` `ctx = canvas.getContext(``'2d'``);` `//画布属性``var` `mW = canvas.width = 700;``var` `mH = canvas.height = 300;``var` `lineWidth = 1;` `//Sin 曲线属性``var` `sX = 0;``var` `sY = mH / 2;``var` `axisLength = mW; ``//轴长``var` `waveWidth = 0.011 ; ``//波浪宽度,数越小越宽 ``var` `waveHeight = 70; ``//波浪高度,数越大越高` `ctx.lineWidth = lineWidth;` `//画sin 曲线函数``var` `drawSin = ``function``(xOffset){`` ``ctx.save();` ` ``var` `points=[]; ``//用于存放绘制Sin曲线的点` ` ``ctx.beginPath();`` ``//在整个轴长上取点`` ``for``(``var` `x = sX; x < sX + axisLength; x += 20 / axisLength){`` ``//此处坐标(x,y)的取点，依靠公式 “振幅高*sin(x*振幅宽 + 振幅偏移量)”`` ``var` `y = -Math.sin((sX + x) * waveWidth);` ` ``points.push([x, sY + y * waveHeight]);`` ``ctx.lineTo(x, sY + y * waveHeight); `` ``}` ` ``//封闭路径`` ``ctx.lineTo(axisLength, mH);`` ``ctx.lineTo(sX, mH);`` ``ctx.lineTo(points[0][0],points[0][1]);`` ``ctx.stroke()` ` ``ctx.restore();``};``drawSin()`
+```
+
+此处通过`waveWidth`和`waveHeight`调节曲线的陡峭度和周期。
+
+**加入动态效果**
+
+```
+var speed = 0.04; //波浪速度，数越大速度越快
+var xOffset = 0; //波浪x偏移量
+```
+
+速度变量和x偏移变量
+
+```
+var y = -Math.sin((sX + x) * waveWidth + xOffset);
+```
+
+修改y点的函数。
+
+```javascript
+`var render = function(){`` ``ctx.clearRect(``0``, ``0``, mW, mH);` ` ``drawSin(xOffset);`` ``xOffset += speed; ``//形成动态效果`` ``requestAnimationFrame(render);``}` `render()`
+```
+
+加入渲染。
+
+**百分比控制**
+
+因为要加入百分比不同的涨幅效果，所以要对y的坐标时行百分比控制修改。
+
+```
+var dY = mH * (1 - nowRange / 100 );
+```
+
+球型显示
+
+这里需要用到`clip()`进行球型裁切显示。
+
+```javascript
+`ctx.beginPath();``ctx.arc(r, r, cR, 0, 2 * Math.PI);``ctx.clip();`
+```
+
+其他
+
+可以通过修改如下变量来修改曲线的形状以及速度：
+
+```javascript
+`var` `waveWidth = 0.015 ; ``//波浪宽度,数越小越宽 ``var` `waveHeight = 6; ``//波浪高度,数越大越高``var` `speed = 0.09; ``//波浪速度，数越大速度越快`
+```
+
+- 完整代码
+
+```html
+<!doctype html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8" />
+ <title>Document</title>
+ <style type="text/css">
+  #c{
+   margin: 0 auto;
+   display: block;
+  }
+  #r{
+   display: block;
+   margin: 0 auto;
+  }
+  #r::before{
+   color: black;
+   content: attr(min);
+   padding-right: 10px;
+  }
+  #r::after{
+   color: black;
+   content: attr(max);
+   padding-left: 10px;
+  }  
+ </style>
+</head>
+<body>
+ <canvas id="c"></canvas>
+ <input type="range" id="r" min="0" max="100" step="1">
+ 
+ <script type="text/javascript">
+  var canvas = document.getElementById('c');
+  var ctx = canvas.getContext('2d');
+  var range = document.getElementById('r');
+ 
+  //range控件信息
+  var rangeValue = range.value;
+  var nowRange = 0; //用于做一个临时的range
+ 
+  //画布属性
+  var mW = canvas.width = 250;
+  var mH = canvas.height = 250;
+  var lineWidth = 2;
+ 
+  //圆属性
+  var r = mH / 2; //圆心
+  var cR = r - 16 * lineWidth; //圆半径
+ 
+  //Sin 曲线属性
+  var sX = 0;
+  var sY = mH / 2;
+  var axisLength = mW; //轴长
+  var waveWidth = 0.015 ; //波浪宽度,数越小越宽 
+  var waveHeight = 6; //波浪高度,数越大越高
+  var speed = 0.09; //波浪速度，数越大速度越快
+  var xOffset = 0; //波浪x偏移量
+ 
+  ctx.lineWidth = lineWidth;
+ 
+  //画圈函数
+  var IsdrawCircled = false;
+  var drawCircle = function(){
+ 
+   ctx.beginPath();
+   ctx.strokeStyle = '#1080d0';
+   ctx.arc(r, r, cR+5, 0, 2 * Math.PI);
+   ctx.stroke();
+   ctx.beginPath();
+   ctx.arc(r, r, cR, 0, 2 * Math.PI);
+   ctx.clip();
+ 
+  }
+ 
+  //画sin 曲线函数
+  var drawSin = function(xOffset){
+   ctx.save();
+ 
+   var points=[]; //用于存放绘制Sin曲线的点
+ 
+   ctx.beginPath();
+   //在整个轴长上取点
+   for(var x = sX; x < sX + axisLength; x += 20 / axisLength){
+    //此处坐标(x,y)的取点，依靠公式 “振幅高*sin(x*振幅宽 + 振幅偏移量)”
+    var y = -Math.sin((sX + x) * waveWidth + xOffset);
+ 
+    var dY = mH * (1 - nowRange / 100 );
+ 
+    points.push([x, dY + y * waveHeight]);
+    ctx.lineTo(x, dY + y * waveHeight);  
+   }
+ 
+   //封闭路径
+   ctx.lineTo(axisLength, mH);
+   ctx.lineTo(sX, mH);
+   ctx.lineTo(points[0][0],points[0][1]);
+   ctx.fillStyle = '#1c86d1';
+   ctx.fill();
+ 
+   ctx.restore();
+  };
+ 
+  //写百分比文本函数
+  var drawText = function(){
+   ctx.save();
+ 
+   var size = 0.4*cR;
+   ctx.font = size + 'px Microsoft Yahei';
+   ctx.textAlign = 'center';
+   ctx.fillStyle = "rgba(06, 85, 128, 0.8)";
+   ctx.fillText(~~nowRange + '%', r, r + size / 2);
+ 
+   ctx.restore();
+  };
+ 
+  var render = function(){
+   ctx.clearRect(0, 0, mW, mH);
+ 
+   rangeValue = range.value;
+ 
+   if(IsdrawCircled == false){
+    drawCircle(); 
+   }
+ 
+   if(nowRange <= rangeValue){
+    var tmp = 1;
+    nowRange += tmp;
+   }
+ 
+   if(nowRange > rangeValue){
+    var tmp = 1;
+    nowRange -= tmp;
+   }
+ 
+   drawSin(xOffset);
+   drawText(); 
+ 
+   xOffset += speed;
+   requestAnimationFrame(render);
+  }
+ 
+  render();  
+ </script>
+</body>
+</html>
+```
+

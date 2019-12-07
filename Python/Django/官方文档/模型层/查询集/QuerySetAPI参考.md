@@ -693,7 +693,7 @@ Entry.objects.select_related('blog').filter(pub_date__gt=timezone.now())
 
 你可以沿着外键查询。 如果你有以下模型：
 
-```
+```python
 from django.db import models
 
 class City(models.Model):
@@ -754,7 +754,7 @@ c = p.hometown       # 访问数据库。
 
 例如，假设你有这些模型：
 
-```
+```python
 from django.db import models
 
 class Topping(models.Model):

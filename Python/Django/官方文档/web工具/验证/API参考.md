@@ -104,60 +104,60 @@ class CustomUser(User):
 
 
 ### 方法
->`get_username()`
+- `get_username()`
 
 返回这个User 的username。 由于可以将`User`模型交换出来，您应该使用此方法，而不是直接引用用户名属性。
 
->`get_full_name()`
+- `get_full_name()`
 
 返回[`first_name`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User.first_name) 和[`last_name`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User.last_name)，之间带有一个空格。
 
-> `get_short_name()`
+- `get_short_name()`
 
 返回[`first_name`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User.first_name)。
 
->`set_password(*raw_password*)`
+- `set_password(*raw_password*)`
 
 设置用户的密码为给定的原始字符串，并负责密码的哈希。 不会保存[`User`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User) 对象。当`None` 为`raw_password` 时，密码将设置为一个不可用的密码，和使用[`set_unusable_password()`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User.set_unusable_password) 的效果一样。
 
->`check_password(*raw_password*)`
+- `check_password(*raw_password*)`
 
 如果给定的原始字符串是用户的正确密码，则返回True。 （这会在进行比较时处理密码散列。）。
 
->`set_unusable_password()`
+- `set_unusable_password()`
 
 标记用户为没有设置密码。 它与密码为空的字符串不一样。 [`check_password()`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User.check_password) 对这种用户永远不会返回`True`。 不会保存[`User`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User) 对象。如果你的认证发生在外部例如LDAP 目录时，可能需要这个函数。
 
->`has_usable_password()`
+- `has_usable_password()`
 
 如果对这个用户调用过[`set_unusable_password()`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/contrib/auth.html#django.contrib.auth.models.User.set_unusable_password)，则返回`False`。
 
 
->`get_group_permissions(*obj=None*)`
+- `get_group_permissions(*obj=None*)`
 
 返回一个用户当前拥有的权限的set，通过用户组如果传入`obj`，则仅返回此特定对象的组权限。http://python.usyiyi.cn/translate/django_182/ref/contrib/auth.html#`get_all_permissions`(*obj=None*)通过组和用户权限返回用户拥有的一组权限字符串。如果传入`obj`，则仅返回此特定对象的权限。
 
->`get_all_permissions(obj=None)`
+- `get_all_permissions(obj=None)`
 
 通过组和用户权限返回用户拥有的一组权限字符串。
 
 如果传入obj，则仅返回此特定对象的权限
 
->`has_perm(*perm*, *obj=None*)`
+- `has_perm(perm, obj=None)`
 
 如果用户具有指定的权限，则返回`True`，其中perm的格式为`"."`。 （请参阅有关[permissions](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/auth/default.html#topic-authorization)）。 如果用户没有激活，这个方法将永远返回 `False`。如果传入`obj`，此方法将不会检查模型的权限，而是检查此特定对象。
 
->`has_perms`(*perm_list*, *obj=None*)
+- `has_perms(perm_list, obj=None)`
 
 Returns `True` if the user has each of the specified permissions, where each perm is in the format `"."`. 如果用户没有激活，这个方法将永远返回 `False`。
 
 如果传入`obj`，此方法将不会检查模型的权限，而是检查特定对象。
 
->`has_module_perms(*package_name*)`
+- `has_module_perms(package_name)`
 
 如果用户具有给出的package_name（Django应用的标签）中的任何一个权限，则返回`True`。 如果用户没有激活，这个方法将永远返回`False`。
 
->`email_user(subject, message, from_email=None, **kwargs)`
+- `email_user(subject, message, from_email=None, **kwargs)`
 
 发送邮件给这个用户。 如果`None` 为`from_email`，Django 将使用[`DEFAULT_FROM_EMAIL`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/settings.html#std:setting-DEFAULT_FROM_EMAIL)。 任何`**kwargs` 都将传递给底层的[`send_mail()`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/topics/email.html#django.core.mail.send_mail) 调用。
 
