@@ -124,6 +124,22 @@ open(file, mode='r', encoding=None, errors='strict', buffering=-1)
 | next()                 | 返回文件下一行                                               |
 | isatty()               | 如果文件连接到一个终端设备，返回True，否则返回False          |
 
+- 实现文件的增量读取
+
+```python
+#!/usr/bin/python
+fd=open("test.txt",'r') #获得一个句柄
+for i in xrange(1,3): #读取三行数据
+    fd.readline()
+label=fd.tell() #记录读取到的位置
+fd.close() #关闭文件
+
+#再次阅读文件
+fd=open("test.txt",'r') #获得一个句柄
+fd.seek(label,0)# 把文件读取指针移动到之前记录的位置
+fd.readline() #接着上次的位置继续向下读取
+```
+
 ## 其他
 
 > 懒加载式

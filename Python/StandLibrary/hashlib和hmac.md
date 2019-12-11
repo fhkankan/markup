@@ -10,7 +10,7 @@ Python的hashlib提供了常见的摘要算法，如MD5，SHA1等等。
 
 我们以常见的摘要算法MD5为例，计算出一个字符串的MD5值：
 
-```
+```python
 import hashlib
 
 md5 = hashlib.md5()
@@ -36,6 +36,32 @@ print(md5.hexdigest())
 ```
 
 试试改动一个字母，看看计算的结果是否完全不同。
+
+一个文件的md5
+
+```python
+import hashlib
+import os
+
+def get_file_md5(filepath):
+    # 获取文件的md5
+    if not os.path.isfile(filepath):
+        return
+    myhash = hashlib.md5()
+    f = open(filepath, "rb")
+    while True:
+        b = f.read(8096)
+        if not b:
+            break
+        myhash.update(b)
+    f.close()
+    print(myhash.hexdigest())
+    return myhash.hexdigest()
+
+if __name__ == "__main__":
+    path = 'D:/file/person.zip'
+    get_file_md5(path)
+```
 
 MD5是最常见的摘要算法，速度很快，生成结果是固定的128 bit字节，通常用一个32位的16进制字符串表示。
 
