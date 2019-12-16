@@ -198,6 +198,12 @@ time.mktime(dateTime.timetuple())
 >>> cday = datetime.strptime('2015-6-1 18:19:59', '%Y-%m-%d %H:%M:%S')
 >>> print(cday)
 2015-06-01 18:19:59
+
+utc = "2017-07-28T08:28:47.776Z"
+UTC_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
+utcTime = datetime.datetime.strptime(utc, UTC_FORMAT)
+localtime = utcTime + datetime.timedelta(hours=8)
+print(localtime)
 ```
 
 ## datetime ---> str
@@ -213,7 +219,7 @@ time.mktime(dateTime.timetuple())
 ## str ---> timestamp
 
 ```
-time.mktime(string_toDatetime(strTime).timetuple()
+time.mktime(string_toDatetime(strTime).timetuple())
 ```
 
  ## timestamp --->str
@@ -221,8 +227,6 @@ time.mktime(string_toDatetime(strTime).timetuple()
 ```
 time.strftime("%Y-%m-%d-%H", tiem.localtime(stamp))
 ```
-
-
 
 ## datetime加减
 

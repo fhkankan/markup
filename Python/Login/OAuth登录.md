@@ -263,3 +263,10 @@ Content-Type: application/x-www-form-urlencoded
 
 grant_type=refresh_token&refresh_token=tGzv3JOkF0XG5Qx2TlKWIA
 ```
+
+## 实例参考
+
+[第三方账号登录功能接入全流程分析](https://blog.csdn.net/wxb880114/article/details/82848743)
+
+[如何开发QQ、微信第三方登录](https://cloud.tencent.com/developer/article/1479985)
+
