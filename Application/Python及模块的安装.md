@@ -215,7 +215,7 @@ sudo pip install ipython
 sudo pip3 install ipython
 ```
 
-## virtualenv-虚环境
+## virtualenv
 
 依赖系统python环境，基于固定系统文件夹创建python环境
 
@@ -280,7 +280,7 @@ https://pypi.douban.com/simple [模块名] 【豆瓣源加速安装】
 pip install (下载的二进制安装文件路径）
 ```
 
-## virtualenvwrapper-虚环境管理
+- virtualenvwrapper-虚环境管理
 
 ```
 用virtualenv创建的虚拟环境必须到指定文件夹的Scripts目录下才能利用activate激活，如果虚拟环境太多，每次启动就非常麻烦，这里可以使用virtualenvwrapper来解决这个问题。
@@ -358,6 +358,42 @@ mkvirtualenv --python=c:\python36\python.exe 虚拟环境名
 
 删除虚拟环境----rmvirtualenv 文件名
 ```
+
+## venv
+
+依赖系统python环境，从python3.3开始，标准库支持创建虚拟环境
+
+```
+python3 -m venv /path/to/new/virtual/environment
+```
+
+全命令
+
+```shell
+venv [-h] [--system-site-packages] [--symlinks | --copies] [--clear]
+            [--upgrade] [--without-pip] [--prompt PROMPT]
+            ENV_DIR [ENV_DIR ...]
+
+# 在一个或多个目标目录中创建虚拟Python环境。
+
+位置参数:
+  ENV_DIR              虚拟环境安装目录
+
+可选参数:
+  -h, --help            展示帮助信息并推出
+  --system-site-packages
+                        授予虚拟环境访问系统的权限site-packages目录。
+  --symlinks            当符号链接不是该平台的默认设置时，尝试使用符号链接而不是复制。
+  --copies              即使符号链接是该平台的默认设置时，尝试使用复制而不是符号链接。
+  --clear               如果在创建环境之前目录已经存在，删除环境目录的内容。
+  --upgrade             升级环境目录以使用此版本的Python，假设Python已就地升级
+  --without-pip        	跳过在虚拟环境中安装或升级pip环境（默认情况下，pip自举）
+  --prompt PROMPT       为此环境提供备用提示前缀。
+
+# 创建环境后，您可能希望激活它，例如通过在其bin目录中找到一个激活脚本。
+```
+
+
 
 ## pipenv
 
@@ -474,7 +510,7 @@ Commands:
 
 ## pyenv
 
-在系统中安装多版本python环境
+不依赖于系统环境，在系统中安装多版本python环境
 
 > mac
 
@@ -609,6 +645,8 @@ pyenv virtualenv-delete env364
 pyenv local env364
 pyenv uninstall env364 # 删除 env364 这个虚拟环境
 ```
+
+
 
 ## Django--web框架
 

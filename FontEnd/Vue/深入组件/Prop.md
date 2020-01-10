@@ -25,9 +25,8 @@ Vue.component('blog-post', {
 
 到这里，我们只看到了以字符串数组形式列出的 prop：
 
-```
+```js
 props: ['title', 'likes', 'isPublished', 'commentIds', 'author']
-
 ```
 
 但是，通常你希望每个 prop 都有指定的值类型。这时，你可以以对象形式列出 prop，这些属性的名称和值分别是 prop 各自的名称和类型：
@@ -156,7 +155,7 @@ post: {
 
 1. **这个 prop 用来传递一个初始值；这个子组件接下来希望将其作为一个本地的 prop 数据来使用。**在这种情况下，最好定义一个本地的 data 属性并将这个 prop 用作其初始值：
 
-   ```
+   ```js
    props: ['initialCounter'],
    data: function () {
      return {
@@ -167,7 +166,7 @@ post: {
 
 2. **这个 prop 以一种原始的值传入且需要进行转换。**在这种情况下，最好使用这个 prop 的值来定义一个计算属性：
 
-   ```
+   ```js
    props: ['size'],
    computed: {
      normalizedSize: function () {
@@ -241,7 +240,7 @@ Vue.component('my-component', {
 
 额外的，`type` 还可以是一个自定义的构造函数，并且通过 `instanceof` 来进行检查确认。例如，给定下列现成的构造函数：
 
-```
+```js
 function Person (firstName, lastName) {
   this.firstName = firstName
   this.lastName = lastName
@@ -250,7 +249,7 @@ function Person (firstName, lastName) {
 
 你可以使用：
 
-```
+```js
 Vue.component('blog-post', {
   props: {
     author: Person
@@ -268,7 +267,7 @@ Vue.component('blog-post', {
 
 例如，想象一下你通过一个 Bootstrap 插件使用了一个第三方的 `<bootstrap-date-input>` 组件，这个插件需要在其 `<input>` 上用到一个 `data-date-picker` 特性。我们可以将这个特性添加到你的组件实例上：
 
-```
+```html
 <bootstrap-date-input data-date-picker="activated"></bootstrap-date-input>
 ```
 
@@ -278,7 +277,7 @@ Vue.component('blog-post', {
 
 想象一下 `<bootstrap-date-input>` 的模板是这样的：
 
-```
+```html
 <input type="date" class="form-control">
 ```
 
@@ -302,7 +301,7 @@ Vue.component('blog-post', {
 
 如果你**不**希望组件的根元素继承特性，你可以在组件的选项中设置 `inheritAttrs: false`。例如：
 
-```
+```js
 Vue.component('my-component', {
   inheritAttrs: false,
   // ...
@@ -311,7 +310,7 @@ Vue.component('my-component', {
 
 这尤其适合配合实例的 `$attrs` 属性使用，该属性包含了传递给一个组件的特性名和特性值，例如：
 
-```
+```js
 {
   required: true,
   placeholder: 'Enter your username'
@@ -320,7 +319,7 @@ Vue.component('my-component', {
 
 有了 `inheritAttrs: false` 和 `$attrs`，你就可以手动决定这些特性会被赋予哪个元素。在撰写[基础组件](https://cn.vuejs.org/v2/style-guide/#基础组件名-强烈推荐)的时候是常会用到的：
 
-```javascript
+```vue
 Vue.component('base-input', {
   inheritAttrs: false,
   props: ['label', 'value'],
@@ -348,5 +347,3 @@ Vue.component('base-input', {
   placeholder="Enter your username"
 ></base-input>
 ```
-
-> 
