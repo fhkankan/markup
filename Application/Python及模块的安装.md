@@ -280,7 +280,9 @@ https://pypi.douban.com/simple [模块名] 【豆瓣源加速安装】
 pip install (下载的二进制安装文件路径）
 ```
 
-- virtualenvwrapper-虚环境管理
+## virtualenvwrapper
+
+虚环境管理
 
 ```
 用virtualenv创建的虚拟环境必须到指定文件夹的Scripts目录下才能利用activate激活，如果虚拟环境太多，每次启动就非常麻烦，这里可以使用virtualenvwrapper来解决这个问题。
