@@ -315,7 +315,6 @@ delete from students where id=5;
 # 逻辑删除
 update students set isdelete=1 where id=1;
 # 删除数据保留表结构
-
 ```
 
 ## 查

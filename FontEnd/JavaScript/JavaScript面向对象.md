@@ -899,6 +899,14 @@ list.sort((a,b)=>{
 })
 ```
 
+判断{}[]
+
+```
+if((Array.isArray(变量) && 变量.length === 0) || (Object.prototype.isPrototypeOf(变量) && Object.keys(变量).length === 0)){
+                alert('该方法判断了{}花括号这种情况！');
+}
+```
+
 ### Array2
 
 字典
