@@ -881,8 +881,6 @@ while True:
     print (msg)
 ```
 
-
-
 ## redis-py-cluster
 
 - 安装包如下
