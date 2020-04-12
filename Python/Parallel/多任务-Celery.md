@@ -747,10 +747,6 @@ celery -A celery_task beat
 celery -A celery_task worker --loglevel=info
 ```
 
-
-
-
-
 ### 任务监控
 
 flower是一个用于监控任务(运行进度、任务详情、图标、数据)的web工具。
