@@ -34,6 +34,73 @@ IO编程中，Stream（流）是一个很重要的概念，可以把流想象成
 
 # 文件操作
 
+## 读写
+
+> 直接读写
+
+```python
+file1 = open("test.txt") 
+file2 = open("output.txt","w") 
+
+while True: 
+    line = file1.readline() 
+    #这里可以进行逻辑处理 
+    file2.write('"'+line[:s]+'"'+",") 
+    if not line: 
+        break 
+#记住文件处理完，关闭是个好习惯 
+file1.close() 
+file2.close() 
+```
+
+> 文件迭代器
+
+从python2.2开始，文件对象是可迭代的。
+
+```python
+f_name = open(path)
+for line in f_name:
+	print('line is', line)
+f_name.close()
+```
+
+> 文件上下文管理器
+
+```python
+#打开文件
+#用with..open自带关闭文本的功能
+with open('somefile.txt', 'r') as f: 
+    data = f.read() 
+
+# loop整个文档
+with open('somefile.txt', 'r') as f: 
+    for line in f: 
+        # 处理每一行
+
+# 写入文本 
+with open('somefile.txt', 'w') as f: 
+    f.write(text1) 
+    f.write(text2) 
+    ... 
+
+# 把要打印的line写入文件中 
+with open('somefile.txt', 'w') as f: 
+    print(line1, file=f) 
+    print(line2, file=f)
+```
+
+> 懒加载式
+
+按read()和readlines()进行读取时，若不带参数则表示把文件中所有内容加载到内存中，有内存溢出风险。
+
+考虑使用while循环和readline()方法，或使用懒加载模式
+
+```python
+import fileinput
+for line in fileinput.input(path):
+	print('line is', line)
+```
+
 ## 对象
 
 内置函数open()
@@ -60,10 +127,6 @@ f = open('hm.txt','w')
 # 关闭文件
 # 目的是释放文件占用的资源，若没有关闭，虽然python会在文件对象引用计数为0时自动关闭，但是可能会丢失输出缓冲区的数据，若不及时关闭，该文件资源被占用，无法进行其他操作 
 f.close()
-
-# 上下文管理语句
-with open('路径', 'r') as f:
-    print(f.read())
 ```
 
 标准库codecs的open()
@@ -138,31 +201,6 @@ fd.close() #关闭文件
 fd=open("test.txt",'r') #获得一个句柄
 fd.seek(label,0)# 把文件读取指针移动到之前记录的位置
 fd.readline() #接着上次的位置继续向下读取
-```
-
-## 其他
-
-> 懒加载式
-
-按read()和readlines()进行读取时，若不带参数则表示把文件中所有内容加载到内存中，有内存溢出风险。
-
-考虑使用while循环和readline()方法，或使用懒加载模式
-
-```python
-import fileinput
-for line in fileinput.input(path):
-	print('line is', line)
-```
-
-> 文件迭代器
-
-从python2.2开始，文件对象是可迭代的。
-
-```python
-f_name = open(path)
-for line in f_name:
-	print('line is', line)
-f_name.close()
 ```
 
 ## 特殊文本文件
@@ -287,6 +325,12 @@ with open(sys.argv[1], 'rb') as fp:
 ```
 
 ## 二进制文件
+
+```python
+f = open('EDC.jpg', 'rb')
+f.write(..., 'wb')
+f.close()
+```
 
 对于二进制文件，不能使用常规软件直接进行读写，也不能通过python的文件对象直接读取和理解二进制文件的内容。必须正确理解二进制文件结构和序列化规则，然后设计正确的反序列化规则，才能正确理解二进制文件的内容
 
@@ -661,8 +705,6 @@ upload_data={"parentId":"","fileCategory":"personal","fileSize":179,"fileName":"
 upload_res=requests.post(upload_url,upload_data,files=files,headers=header)##此处是重点！我们操作文件上传的时候，接口请求参数直接存到upload_data变量里面，在请求的时候，直接作为数据传递过去
 ```
 
-
-
 ## 文件下载
 
 Python开发中时长遇到要下载文件的情况，最常用的方法就是通过Http利用urllib或者urllib2模块。
@@ -960,7 +1002,7 @@ with TemporaryDirectory() as dirname:
 
 > `b64encode,b64decode`
 
-```
+```python
 import base64
 str = "abcd"
 # 编码
@@ -973,7 +1015,7 @@ de = base64.b64decode(en).decode()
 
 对于标准Base64编码后可能有(+)(/),这两种字符不能再URL中使用，需要转换为(-)(_)
 
-```
+```python
 import base64
 str = "abcd++//"
 en = base64.b64decode(str.encode())
@@ -983,5 +1025,224 @@ en_url = base64.urlsafe_b64encode(en)  # b'abcd--__'
 de_url = base64.urlsafe_b64decode(en_url)  # b'i\xb7\x1d\xfb\xef\xff'
 ```
 
+## json
 
+| JSON类型(UTF-8) | Python类型 |
+| --------------- | ---------- |
+| {}              | dict       |
+| []              | list       |
+| "string"        | str        |
+| 1234.56         | int/float  |
+| true/false      | True/False |
+| null            | None       |
+
+列表list
+
+```python
+import json
+
+x = [1,2,3]
+json.dumps(x)
+json.dumps(_)
+```
+
+字典dict
+
+```python
+# 把Python对象变成一个JSON，json.dumps()/json.dump(),前者把Python中的字典序列化为str，后者把JSON写入一个file-like Object
+import json
+d = dict(name='Bob', age=20, score=88)
+json.dumps(d)
+
+# 把JSON反序列化为Python对象， loads()/load(),前者把JSON的字符串反序列化，后者从file-like Object中读取字符串并反序列化
+json_str = '{"age": 20, "score": 88, "name": "Bob"}'
+json.loads(json_str)
+```
+
+类class
+
+```python
+# 类
+class Student(object):
+    def __init__(self, name, age, score):
+        self.name = name
+        self.age = age
+        self.score = score
+
+# 转换函数--->类转字典
+def student2dict(std):
+    return {
+        'name': std.name,
+        'age': std.age,
+        'score': std.score
+    }
+    
+# 转换函数--->字典转类
+def dict2student(d):
+    return Student(d['name'], d['age'], d['score'])
+    
+# 实现转换
+>>> s = Student('Bob', 20, 88)
+>>> print(json.dumps(s, default=student2dict))
+{"age": 20, "name": "Bob", "score": 88}
+
+>>> json_str = '{"age": 20, "score": 88, "name": "Bob"}'
+>>> print(json.loads(json_str, object_hook=dict2student))
+<__main__.Student object at 0x10cd3c190>
+
+# 把任意class的实例变为dict
+print(json.dumps(s, default=lambda obj: obj.__dict__))
+```
+
+## pickle
+
+```python
+# pickle.dumps()把一个python对象序列化,之后把bytes写入文件。
+import pickle
+d = dict(name='Bob', age=20, score=88)
+s_b = pickle.dumps(d)
+
+# pickle.dump()直接把文件对象序列化后写入一个file-like Object。
+f = open('dump.txt', 'wb')
+pickle.dump(d, f)
+f.close()
+
+# pickle.loads()方法反序列化出对象
+import pickle
+d = pickle.loads(s_b)
+
+# pickle.load()从一个file-like Object中直接反序列化出对象
+f = open('dump.txt', 'rb')
+d = pickle.load(f)
+f.close()
+```
+
+## struct
+
+python中的struct模块对python基本数据类型与用Python字符串格式表示的C语言struct类型进行转换
+
+读写流程
+
+```
+写入
+使用struct模块需要使用pack()方法把对象按指定的格式进行序列化，然后使用文件对象的write()
+方法将序列化的结果写入二进制文件；
+
+读取
+需要使用文件对象的read()方法读取二进制文件的内容，然后使用unpack()方法反序列化得到原来的信息
+```
+
+struct模块的函数
+
+| 方法                   | 说明                                                         |
+| ---------------------- | ------------------------------------------------------------ |
+| pack(fmt, v1, v2, ...) | 按照给定的格式(fmt)把数据封装成字符串(实际是类似于C结构体的字节流) |
+| unpack(fmt, string)    | 按照给定的格式(fmt)解析字节流string,返回解析出来的tuple      |
+| calcsize(fmt)          | 计算给定的格式(fmt)占用多少字节的内存                        |
+
+Python3 format对照表
+
+```
+Format	Ctype	PythonType	seandardSize
+x	pad byte 	no value
+c	char		bytes of lenght 1	1
+b	signed char	 int				1
+B	unsigned char int				1
+?	_Bool		 bool				1
+h	short		int					2
+H	unsigned short	int				2
+i	int			int					4
+I	unsigned int	int				4
+l	long		int					4
+L	undigned long	int				4
+q	long long	int					8
+Q	undigned long long	int			8
+n	ssize_t			int
+N	size_t			int
+e	(7)				float			2
+f	float			float			4
+d	double			float			8
+s	char[]			bytes
+P	char[]			bytes
+p	void*			int
+```
+
+读写文件
+
+```python
+import struct
+
+n = 130000
+x = 96.45
+b=True
+s='al@中国'
+sn = struct.pack('if?', n,x,b)  # 序列化，i表示整数，f表示实数，？表示逻辑值
+
+with open('sample_struct.dat', 'wb') as f:
+    f.write(sn)
+    f.write(s.encode())  # 字符串需要编码为字节串再写入文件
+    
+ with open('sample_struct.dat', 'rb') as f:
+    sn = f.read(9)
+    tu = struct.unpack('if?', sn)  # 使用指定格式反序列化
+    n,x,b1 = tu  # 序列解包
+    print('n=', n, 'x=', x, 'b1=', b1)
+    s = f.read(9)
+    s = s.decode()  # 字符串解码
+    print('s=', s) 
+```
+
+## shelve
+
+可以像字典赋值一样写入和读取二进制文件
+
+```python
+import shelve
+
+zhangsan = {'age':36, 'sex':'male', 'address':'SDIBT'}
+lisi = {'age';25, 'sex':'female', 'tel':'123456'}
+
+# 以字典形式把数据写入文件
+with shelve.open('shelve_test.dat') as fp:
+    fp['zahngsan'] = zhangsan  
+    fp['lisi'] = lisi
+    for i in range(5):
+        fp[str(i)] = str(i)
+ 
+# 读取并显示文件内容
+with shelve.open('shelve_test.dat') as fp:
+    print(fp['zhangsan'])
+    print(fp['zhangsan']['age'])
+    print(fp['lisi']['tel'])
+    print(fp['3'])
+```
+
+## marshal
+
+```python
+import marshal
+
+x1 = 30		# 待序列化的对象
+x2 = 5.0
+x3 = [1,2,3]
+x4 = (4,5,6)
+x5 = {'a':1, 'b':2, 'c':3}
+x6 = {7,8,9}
+x = [eval('x'+str(i)) for i in range(1,7)] # 把要序列化的对象放到一个列表中
+
+with open('test.dat', 'wb') as fp:  # 创建二进制文件
+    marshal.dump(len(x), fp)  # 先写入对象个数
+    for item in x:
+        marshal.dump(item, fp)  # 把列表中的对象依次序列化并写入文件
+        
+with open('test.dat', 'rb') as fp:  # 打开二进制文件
+    n = marshal.load(fp)  # 获取对象个数
+    for i in range(n):
+        print(marshal.load(fp))  # 反序列化，输出结果
+  
+
+# 与pickle类似，marshal也提供了dumps()和loads()函数来实现数据的序列化和反序列化。序列化后的字节串更短，可以减少磁盘空间或网络宽带的占用
+```
+
+> 
 
