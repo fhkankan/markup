@@ -246,10 +246,6 @@ brew services restart (服务名|--all)
 brew services cleanup
 ```
 
-
-
-
-
 ## macVIM
 
 配置文件

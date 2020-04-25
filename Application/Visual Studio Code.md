@@ -1,4 +1,4 @@
-# Visual Studio Code（python）
+# Visual Studio Code
 ## 插件安装
 
 python
@@ -213,6 +213,68 @@ Code—首选项—文件图标主题
         "**/*.pyc": true,
         "**/.idea": true,
     },
+```
+
+## 远程调试
+
+### ssh
+
+安装插件
+
+```
+Remote - SSH
+```
+
+开启远程ssh服务
+
+连接远程ssh服务
+
+```
+username@ip
+```
+
+### docker
+
+安装插件
+
+```
+docker
+Remote - Containers
+```
+
+运行docker映射本地代码目录至镜像中
+
+```shell
+docker run -itd --name django -v ~/UhProject/GK:/code alpine_django:v1.0 /bin/bash
+```
+
+配置软件中的docker容器django附着到vsc，等待镜像中安装vsc服务
+
+选择镜像中需要编辑的项目，即可开始编辑运行
+
+运行配置文件
+
+```json
+{
+    // 使用 IntelliSense 了解相关属性。 
+    // 悬停以查看现有属性的描述。
+    // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Django",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/manage.py",
+            "args": [
+                "runserver",
+                "0.0.0.0:8001",
+                "--noreload"
+            ],
+            "django": true
+        }
+    ]
+}
 ```
 
 

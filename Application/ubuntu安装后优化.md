@@ -580,6 +580,150 @@ get filename1  # 下载远程文件至本地
 put filename2  # 上传本地文件至远程
 ```
 
+# 开启ssh服务
+
+- 安装开启停用
+
+检查是否安装开启
+
+```
+sudo ps -e | grep sshd
+```
+
+开启
+
+```
+sudo /etc/init.d/ssh start
+```
+
+安装
+
+````
+sudo apt-get update
+sudo apt-get install openssh-server
+````
+
+服务相关
+
+```
+sudo service ssh status   # 查看状态
+sudo service ssh stop   # 关闭服务
+sudo service ssh restart  # 重启服务
+```
+
+- 配置
+
+客户端配置(`/etc/ssh/ssh_config`)
+
+```
+# Site-wide defaults for various options
+Host *
+ForwardAgent no
+ForwardX11 no
+RhostsAuthentication no
+RhostsRSAAuthentication no
+RSAAuthentication yes
+PasswordAuthentication yes
+FallBackToRsh no
+UseRsh no
+BatchMode no
+CheckHostIP yes
+StrictHostKeyChecking no
+IdentityFile ~/.ssh/identity
+Port 22
+Cipher blowfish
+EscapeChar
+
+逐行说明
+# Site-wide defaults for various options 带“#”表示该句为注释不起作，该句不属于配置文件原文，意在说明下面选项均为系统初始默认的选项。说明一下，实际配置文件中也有很多选项前面加有“#”注释，虽然表示不起作用，其实是说明此为系统默认的初始化设置。
+"Host"只对匹配后面字串的计算机有效，“*”表示所有的计算机。从该项格式前置一些可以看出，这是一个类似于全局的选项，表示下面缩进的选项都适用于该设置，可以指定某计算机替换*号使下面选项只针对该算机器生效。
+"ForwardAgent"设置连接是否经过验证代理（如果存在）转发给远程计算机。
+"ForwardX11"设置X11连接是否被自动重定向到安全的通道和显示集（DISPLAY set）。
+"RhostsAuthentication"设置是否使用基于rhosts的安全验证。
+"RhostsRSAAuthentication"设置是否使用用RSA算法的基于rhosts的安全验证
+"RSAAuthentication"设置是否使用RSA算法进行安全验证。
+"PasswordAuthentication"设置是否使用口令验证。
+"FallBackToRsh"设置如果用ssh连接出现错误是否自动使用rsh，由于rsh并不安全，所以此选项应当设置为"no"。
+"UseRsh"设置是否在这台计算机上使用"rlogin/rsh"，原因同上，设为"no"。
+"BatchMode"：批处理模式，一般设为"no"；如果设为"yes"，交互式输入口令的提示将被禁止，这个选项对脚本文件和批处理任务十分有用。
+"CheckHostIP"设置ssh是否查看连接到服务器的主机的IP地址以防止DNS欺骗。建议设置为"yes"。
+"StrictHostKeyChecking"如果设为"yes"，ssh将不会自动把计算机的密匙加入"$HOME/.ssh/known_hosts"文件，且一旦计算机的密匙发生了变化，就拒绝连接。
+"IdentityFile"设置读取用户的RSA安全验证标识。
+"Port"设置连接到远程主机的端口，ssh默认端口为22。
+“Cipher”设置加密用的密钥，blowfish可以自己随意设置。
+“EscapeChar”设置escape字符。
+```
+
+服务端配置(`/etc/ssh/sshd_config`)
+
+```
+# This is ssh server systemwide configuration file.
+Port 22
+ListenAddress 192.168.1.1
+HostKey /etc/ssh/ssh_host_key
+ServerKeyBits 1024
+LoginGraceTime 600
+KeyRegenerationInterval 3600
+PermitRootLogin no
+IgnoreRhosts yes
+IgnoreUserKnownHosts yes
+StrictModes yes
+X11Forwarding no
+PrintMotd yes
+SyslogFacility AUTH
+LogLevel INFO
+RhostsAuthentication no
+RhostsRSAAuthentication no
+RSAAuthentication yes
+PasswordAuthentication yes
+PermitEmptyPasswords no
+AllowUsers admin
+
+ 
+逐行说明
+"Port"设置sshd监听的端口号。
+"ListenAddress”设置sshd服务器绑定的IP地址。
+"HostKey”设置包含计算机私人密匙的文件。
+"ServerKeyBits”定义服务器密匙的位数。
+"LoginGraceTime”设置如果用户不能成功登录，在切断连接之前服务器需要等待的时间（以秒为单位）。
+"KeyRegenerationInterval”设置在多少秒之后自动重新生成服务器的密匙（如果使用密匙）。重新生成密匙是为了防止用盗用的密匙解密被截获的信息
+"PermitRootLogin”设置是否允许root通过ssh登录。这个选项从安全角度来讲应设成"no"。
+"IgnoreRhosts”设置验证的时候是否使用“rhosts”和“shosts”文件。
+"IgnoreUserKnownHosts”设置ssh daemon是否在进行RhostsRSAAuthentication安全验证的时候忽略用户的"$HOME/.ssh/known_hosts
+"StrictModes”设置ssh在接收登录请求之前是否检查用户家目录和rhosts文件的权限和所有权。这通常是必要的，因为新手经常会把自己的目录和文件设成任何人都有写权限。
+"X11Forwarding”设置是否允许X11转发。
+"PrintMotd”设置sshd是否在用户登录的时候显示“/etc/motd”中的信息。
+"SyslogFacility”设置在记录来自sshd的消息的时候，是否给出“facility code”。
+"LogLevel”设置记录sshd日志消息的层次。INFO是一个好的选择。查看sshd的man帮助页，已获取更多的信息。
+"RhostsAuthentication”设置只用rhosts或“/etc/hosts.equiv”进行安全验证是否已经足够了。
+"RhostsRSA”设置是否允许用rhosts或“/etc/hosts.equiv”加上RSA进行安全验证。
+"RSAAuthentication”设置是否允许只有RSA安全验证。
+"PasswordAuthentication”设置是否允许口令验证。
+"PermitEmptyPasswords”设置是否允许用口令为空的帐号登录。
+"AllowUsers”的后面可以跟任意的数量的用户名的匹配串，这些字符串用空格隔开。主机名可以是域名或IP地址。    
+```
+
+通常情况下我们在连接 OpenSSH服务器的时候假如 UseDNS选项是打开的话，服务器会先根据客户端的 IP地址进行 DNS PTR反向查询出客户端的主机名，然后根据查询出的客户端主机名进行DNS正向A记录查询，并验证是否与原始 IP地址一致，通过此种措施来防止客户端欺骗。平时我们都是动态 IP不会有PTR记录，所以打开此选项也没有太多作用。我们可以通过关闭此功能来提高连接 OpenSSH 服务器的速度。
+
+服务端配置如下
+
+```shell
+# 1. 编辑配置文件
+vim /etc/ssh/sshd_config
+# 2.修改如下选项
+#UseDNS yes
+UseDNS no
+#GSSAPIAuthentication yes
+GSSAPIAuthentication no
+# 3.保存配置文件
+# 4. 重启 OpenSSH服务器
+/etc/init.d/sshd restart
+
+# 注意：一般远程修改ssh端口，建议22端口留着防止修改未成功。如果开启防火墙记得添加端口放行！
+port 22
+port 234
+```
+
 # 设置固定ip
 
 查找网卡名称

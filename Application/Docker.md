@@ -96,12 +96,33 @@ apt-get purge docker-ce -y
 # 删除docker的应用目录
 rm -rf /var/lib/docker
 # 删除docker的认证目录
-rm -rf /etc/dpcker
+rm -rf /etc/docker
+```
+
+修改docker镜像源
+
+```
+# 1.打开配置文件
+sudo vim /etc/docker/daemon.json
+# 2.添加信息
+{"registry-mirrors" : ["https://docker.mirrors.ustc.edu.cn"]}
+# 3.重启docker
+sudo service docker restart
 ```
 
 > mac/windows
 
 安装Docker桌面系统
+
+修改docker镜像源
+
+```
+# 1.打开配置文件
+vim ~/.ssh/daemon.json
+# 2.添加信息
+{"registry-mirrors" : ["https://docker.mirrors.ustc.edu.cn"]}
+# 3.重启docker desktop
+```
 
 ## 使用
 
@@ -741,7 +762,7 @@ FROM ubuntu
 MAINTAINER President.Wang 000000@qq.com
 # 执行命令
 RUN apt-get update
-RUN apt-get install nginx -y
+RUN apt-get install nginx -y  # -y交互时默认输入y
 # 对外端口
 EXPOSE 80
 ```

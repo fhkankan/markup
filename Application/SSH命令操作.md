@@ -14,9 +14,16 @@ ssh user_name@远端计算机IP
 ```bash
 # 首先使用生成密钥
 ssh-keygen -t rsa
-# 将id_rsa.pub中的内容复制到远端计算机的.ssh/authorized_keys文件中，
-# 无密码访问远端计算机了
+# 将id_rsa.pub中的内容复制到远端计算机的.ssh/authorized_keys文件中，就可无密码访问远端计算机
 ssh-copy-id user@host
+# 无密码访问
+ssh user_name@远端计算机IP
+```
+
+非22端口
+
+```shell
+ssh -p 8022 user_name@远端计算机ip
 ```
 
 # 其他连接
