@@ -1,4 +1,8 @@
+
+
 # Numpy
+
+[官网](https://numpy.org/)
 
 Numpy：提供了一个在Python中做科学计算的基础库，重在数值计算，主要用于多维数组（矩阵）处理的库。用来存储和处理大型矩阵，比Python自身的嵌套列表结构要高效的多。本身是由C语言开发，是个很基础的扩展，Python其余的科学计算扩展大部分都是以此为基础。
 
@@ -7,13 +11,13 @@ Numpy：提供了一个在Python中做科学计算的基础库，重在数值计
 - 矩阵运算，无需循环，可完成类似Matlab中的矢量运算
 - 线性代数、随机数生成
 
-**参考学习资料**：
+安装
 
-Python、NumPy和SciPy介绍：<http://cs231n.github.io/python-numpy-tutorial>
+```
+pip install numpy
+```
 
-NumPy和SciPy快速入门：<https://docs.scipy.org/doc/numpy-dev/user/quickstart.html>
-
-> 引用
+引用
 
 ```
 import numpy as np

@@ -1,5 +1,9 @@
 # Scikit-learn
 
+[官网](https://scikit-learn.org/stable/index.html#)
+
+基于NumPy，SciPy和matplotlib构建的开源简单高效的预测数据分析工具
+
 ## 安装使用
 
 安装
