@@ -1,8 +1,18 @@
 # 网络通信
 网络编程就是如何在程序中实现两台计算机的通信。网络通信是两台计算机上的两个进程之间的通信。
 
-用Python进行网络编程，就是在Python程序本身这个进程内，连接别的服务器进程的通信端口进行通信。
+- 五层网络模型
 
+| OSI层      | 功能                         | TCP/IP协议                 |
+| ---------- | ---------------------------- | -------------------------- |
+| 应用层     | 文件传输、电子邮件、文件服务 | HTTP/FTP/SMTP/DNS/Telnet等 |
+| 传输层     | 提供端对端的接口             | TCP/UDP                    |
+| 网络层     | 为数据包选择路由             | IP/ICMP等                  |
+| 数据链路层 | 传输有地址的帧、错误检测功能 | ARP等                      |
+| 物理层     | 物理媒体                     | 1000BASE-SX等              |
+
+用Python进行网络编程，就是在Python程序本身这个进程内，连接别的服务器进程的通信端口进行通信。
+```
 - MAC地址：在设备与设备之间数据通信时用来标记收发双方（网卡的序列号）
 - IP地址：在逻辑上标记一台电脑，用来指引数据包的收发方向（相当于电脑的序列号）
 - 网络掩码：用来区分ip地址的网络号和主机号
@@ -12,40 +22,47 @@
 - 路由器：连接多个不同的网段，让他们之间可以进行收发数据，每次收到数据后，ip不变，但是MAC地址会变化
 - DNS：用来解析出IP（类似电话簿）
 - http服务器：提供浏览器能够访问到的数据
-
+```
 ## IP
 
-```
 ip地址：用来在网络中标记一台电脑，比如192.168.1.1；在本地局域网上是唯一的。
 
+
 A类IP地址
+```
 一个A类IP地址由1字节的网络地址和3字节主机地址组成，网络地址的最高位必须是“0”，
 地址范围1.0.0.1-126.255.255.254
 二进制表示为：00000001 00000000 00000000 00000001 - 01111110 11111111 11111111 11111110
 可用的A类网络有126个，每个网络能容纳1677214个主机
-
+```
 B类IP地址
+```
 一个B类IP地址由2个字节的网络地址和2个字节的主机地址组成，网络地址的最高位必须是“10”，
 地址范围128.1.0.1-191.255.255.254
 二进制表示为：10000000 00000001 00000000 00000001 - 10111111 11111111 11111111 11111110
 可用的B类网络有16384个，每个网络能容纳65534主机
-
+```
 C类IP地址
+```
 一个C类IP地址由3字节的网络地址和1字节的主机地址组成，网络地址的最高位必须是“110”
 范围192.0.1.1-223.255.255.254
 二进制表示为: 11000000 00000000 00000001 00000001 - 11011111 11111111 11111110 11111110
 C类网络可达2097152个，每个网络能容纳254个主机
-
+```
 D类地址用于多点广播
+
+```
 D类IP地址第一个字节以“1110”开始，它是一个专门保留的地址。
 它并不指向特定的网络，目前这一类地址被用在多点广播（Multicast）中
 多点广播地址用来一次寻址一组计算机 s 地址范围224.0.0.1-239.255.255.254
-
+```
 E类IP地址
+```
 以“1111”开始，为将来使用保留
 E类地址保留，仅作实验和开发用
-
+```
 私有ip
+```
 在这么多网络IP中，国际规定有一部分IP地址是用于我们的局域网使用，也就是属于私网IP，不在公网中使用的，它们的范围是：
 10.0.0.0～10.255.255.255
 172.16.0.0～172.31.255.255
@@ -98,16 +115,18 @@ TCP协议则是建立在IP协议之上的。TCP协议负责在两台计算机之
 一个进程也可能同时与多个计算机建立链接，因此它会申请很多端口。
 ```
 
-## Socket
+# Socket
 
 ```
 socket(简称 套接字) 是进程间通信的一种方式，它与其他进程间通信的一个主要不同是：
 它能实现不同主机间的进程间通信，我们网络上各种各样的服务大多都是基于 Socket 来完成通信的
 ```
 
-**创建socket**
+## 概述
 
-```
+创建socket
+
+```python
 import socket
 socket.socket(AddressFamily, Type)
 ```
@@ -127,47 +146,53 @@ Type：套接字类型，可以是 SOCK_STREAM（流式套接字，主要用于 
 | 函数                                 | 描述                                                         |
 | ------------------------------------ | ------------------------------------------------------------ |
 | 服务器端套接字                       |                                                              |
-| s.bind()                             | 绑定地址（host,port）到套接字， 在AF_INET下,以元组（host,port）的形式表示地址。 |
-| s.listen()                           | 开始TCP监听。backlog指定在拒绝连接之前，操作系统可以挂起的最大连接数量。该值至少为1，大部分应用程序设为5就可以了。 |
-| s.accept()                           | 被动接受TCP客户端连接,(阻塞式)等待连接的到来                 |
+| `s.bind()`                             | 绑定地址（host,port）到套接字， 在AF_INET下,以元组（host,port）的形式表示地址。 |
+| `s.listen()`                           | 开始TCP监听。backlog指定在拒绝连接之前，操作系统可以挂起的最大连接数量。该值至少为1，大部分应用程序设为5就可以了。 |
+| `s.accept()`                          | 被动接受TCP客户端连接,(阻塞式)等待连接的到来                 |
 | 客户端套接字                         |                                                              |
-| s.connect()                          | 主动初始化TCP服务器连接，。一般address的格式为元组（hostname,port），如果连接出错，返回socket.error错误。 |
-| s.connect_ex()                       | connect()函数的扩展版本,出错时返回出错码,而不是抛出异常      |
+| `s.connect()`                          | 主动初始化TCP服务器连接，。一般address的格式为元组（hostname,port），如果连接出错，返回socket.error错误。 |
+| `s.connect_ex()`                       | connect()函数的扩展版本,出错时返回出错码,而不是抛出异常      |
 | 公共用途的套接字函数                 |                                                              |
-| s.recv()                             | 接收TCP数据，数据以字符串形式返回，bufsize指定要接收的最大数据量。flag提供有关消息的其他信息，通常可以忽略。 |
-| s.send()                             | 发送TCP数据，将string中的数据发送到连接的套接字。返回值是要发送的字节数量，该数量可能小于string的字节大小。 |
-| s.sendall()                          | 完整发送TCP数据，完整发送TCP数据。将string中的数据发送到连接的套接字，但在返回之前会尝试发送所有数据。成功返回None，失败则抛出异常。 |
-| s.recvfrom()                         | 接收UDP数据，与recv()类似，但返回值是（data,address）。其中data是包含接收数据的字符串，address是发送数据的套接字地址。 |
-| s.sendto()                           | 发送UDP数据，将数据发送到套接字，address是形式为（ipaddr，port）的元组，指定远程地址。返回值是发送的字节数。 |
-| s.close()                            | 关闭套接字                                                   |
-| s.getpeername()                      | 返回连接套接字的远程地址。返回值通常是元组（ipaddr,port）。  |
-| s.getsockname()                      | 返回套接字自己的地址。通常是一个元组(ipaddr,port)            |
-| s.setsockopt(level,optname,value)    | 设置给定套接字选项的值。                                     |
-| s.getsockopt(level,optname[.buflen]) | 返回套接字选项的值。                                         |
-| s.settimeout(timeout)                | 设置套接字操作的超时期，timeout是一个浮点数，单位是秒。值为None表示没有超时期。一般，超时期应该在刚创建套接字时设置，因为它们可能用于连接的操作（如connect()） |
-| s.gettimeout()                       | 返回当前超时期的值，单位是秒，如果没有设置超时期，则返回None。 |
-| s.fileno()                           | 返回套接字的文件描述符。                                     |
-| s.setblocking(flag)                  | 如果flag为0，则将套接字设为非阻塞模式，否则将套接字设为阻塞模式（默认值）。非阻塞模式下，如果调用recv()没有发现任何数据，或send()调用无法立即发送数据，那么将引起socket.error异常。 |
-| s.makefile()                         | 创建一个与该套接字相关连的文件                               |
+| `s.recv()`                             | 接收TCP数据，数据以字符串形式返回，bufsize指定要接收的最大数据量。flag提供有关消息的其他信息，通常可以忽略。 |
+| `s.send()`                             | 发送TCP数据，将string中的数据发送到连接的套接字。返回值是要发送的字节数量，该数量可能小于string的字节大小。 |
+| `s.sendall()`                          | 完整发送TCP数据，完整发送TCP数据。将string中的数据发送到连接的套接字，但在返回之前会尝试发送所有数据。成功返回None，失败则抛出异常。 |
+| `s.recvfrom()`                         | 接收UDP数据，与recv()类似，但返回值是（data,address）。其中data是包含接收数据的字符串，address是发送数据的套接字地址。 |
+| `s.sendto() `                          | 发送UDP数据，将数据发送到套接字，address是形式为（ipaddr，port）的元组，指定远程地址。返回值是发送的字节数。 |
+| `s.close()`                            | 关闭套接字                                                   |
+| `s.getpeername()`                      | 返回连接套接字的远程地址。返回值通常是元组（ipaddr,port）。  |
+| `s.getsockname()`                      | 返回套接字自己的地址。通常是一个元组(ipaddr,port)            |
+| `s.setsockopt(level,optname,value)`    | 设置给定套接字选项的值。                                     |
+| `s.getsockopt(level,optname[.buflen])` | 返回套接字选项的值。                                         |
+| `s.settimeout(timeout) `               | 设置套接字操作的超时期，timeout是一个浮点数，单位是秒。值为None表示没有超时期。一般，超时期应该在刚创建套接字时设置，因为它们可能用于连接的操作（如connect()） |
+| `s.gettimeout() `                      | 返回当前超时期的值，单位是秒，如果没有设置超时期，则返回None。 |
+| `s.fileno()`                           | 返回套接字的文件描述符。                                     |
+| `s.setblocking(flag)`                  | 如果flag为0，则将套接字设为非阻塞模式，否则将套接字设为阻塞模式（默认值）。非阻塞模式下，如果调用recv()没有发现任何数据，或send()调用无法立即发送数据，那么将引起socket.error异常。 |
+| `s.makefile() `                        | 创建一个与该套接字相关连的文件                               |
 
 
 
-# TCP编程
+## TCP
 
-```
 TCP协议，传输控制协议（英语：Transmission Control Protocol，缩写为 TCP）是一种面向连接的、可靠的、基于字节流的传输层通信协议，由IETF的RFC 793定义。
 
-TCP通信需要经过创建连接、数据传送、终止连接三个步骤。
-
+TCP通信步骤
+```
+创建连接
+数据传送
+终止连接
+```
 TCP特点
+```
 1.面向连接
 2.可靠传输
 1）TCP采用发送应答机制
 2）超时重传
 3）错误校验
 4）流量控制和阻塞管理
-
+```
 TCP与UDP的不同点
+
+```
 面向连接（确认有创建三方交握，连接已创建才作传输。）
 有序数据传输
 重发丢失的数据包
@@ -177,7 +202,45 @@ TCP与UDP的不同点
 
 ```
 
-## 客户端
+长短连接
+
+```
+短连接一般只会在 client/server 间传递一次读写操作
+长连接一次读写完成，连接不关闭，长时间操作之后client发起关闭请求
+
+# 优缺点
+长连接可以省去较多的TCP建立和关闭的操作，减少浪费，节约时间。对于频繁请求资源的客户来说，较适用长连接。
+
+client与server之间的连接如果一直不关闭的话，会存在一个问题，随着客户端连接越来越多，server早晚有扛不住的时候，这时候server端需要采取一些策略，如关闭一些长时间没有读写事件发生的连接，这样可以避免一些恶意连接导致server端服务受损；如果条件再允许就可以以客户端机器为颗粒度，限制每个客户端的最大长连接数，这样可以完全避免某个蛋疼的客户端连累后端服务。
+
+短连接对于服务器来说管理较为简单，存在的连接都是有用的连接，不需要额外的控制手段。
+
+但如果客户请求频繁，将在TCP的建立和关闭操作上浪费时间和带宽
+```
+
+注意点
+
+```
+tcp服务器一般情况下都需要绑定，否则客户端找不到这个服务器
+
+tcp客户端一般不绑定，因为是主动链接服务器，所以只要确定好服务器的ip、port等信息就好，本地客户端可以随机
+
+tcp服务器中通过listen可以将socket创建出来的主动套接字变为被动的，这是做tcp服务器时必须要做的
+
+当客户端需要链接服务器时，就需要使用connect进行链接，udp是不需要链接的而是直接发送，但是tcp必须先链接，只有链接成功才能通信
+
+当一个tcp客户端连接服务器时，服务器端会有1个新的套接字，这个套接字用来标记这个客户端，单独为这个客户端服务
+
+listen后的套接字是被动套接字，用来接收新的客户端的链接请求的，而accept返回的新套接字是标记这个新客户端的
+
+关闭listen后的套接字意味着被动套接字关闭了，会导致新的客户端不能够链接服务器，但是之前已经链接成功的客户端正常通信。
+
+关闭accept返回的套接字意味着这个客户端已经服务完毕
+
+当客户端的套接字调用close后，服务器端会recv解堵塞，并且返回的长度为0，因此服务器可以通过返回数据的长度来区别客户端是否已经下线
+```
+
+- 客户端
 
 ```python
 from socket import *
@@ -195,13 +258,13 @@ tcp_client_socket.connect((server_ip, server_port))
 # 提示用户输入数据
 send_data = input("请输入要发送的数据：")
 
-tcp_client_socket.send(send_data.encode("gbk"))
+tcp_client_socket.send(send_data.encode("utf8"))
 
 # 接收对方发送过来的数据，最大接收1024个字节
 recvData = tcp_client_socket.recv(1024)
 
 # 对接收的数据解码
-recvContent = recvData.decode('gbk')
+recvContent = recvData.decode('utf8')
 
 print(recvContent)
 
@@ -209,7 +272,7 @@ print(recvContent)
 tcp_client_socket.close()
 ```
 
-## 服务端
+- 服务端
 
 如果想要完成一个tcp服务器的功能，需要的流程如下：
 
@@ -248,6 +311,7 @@ while True:
     
     # 创建新的线程来处理TCP连接
     t = threading.Thread(target=tcplink(client_socket, clientAddr))
+    t.start()
 
 # 关闭监听套接字
 # tcp_server_socket.close()
@@ -255,64 +319,26 @@ while True:
 def tplink(client_socket, clientAddr):
     print('Accept new connection from %s:%s...' % clientAddr)
   	while True:
-				# 接收对方发送过来的数据
-				recv_data = client_socket.recv(1024)  # 接收1024个字节
-				print('接收到的数据为:', recv_data.decode('gbk'))
-				if recv_data=='exit' or not recv_data:
-          break	
+		# 接收对方发送过来的数据
+		recv_data = client_socket.recv(1024)  # 接收1024个字节
+		print('接收到的数据为:', recv_data.decode('utf8'))
+		if recv_data=='exit' or not recv_data:
+            break	
 		# 发送一些数据到客户端
-		client_socket.send("thank you !".encode('gbk'))
+		client_socket.send("thank you !".encode('utf8'))
 		# 关闭为这个客户端服务的套接字，只要关闭了，就意味着为不能再为这个客户端服务了，如果还需要服务，只能再次重新连接
 		client_socket.close()
 ```
 
-## 长短连接
-
-```
-短连接一般只会在 client/server 间传递一次读写操作
-长连接一次读写完成，连接不关闭，长时间操作之后client发起关闭请求
-
-# 优缺点
-长连接可以省去较多的TCP建立和关闭的操作，减少浪费，节约时间。对于频繁请求资源的客户来说，较适用长连接。
-
-client与server之间的连接如果一直不关闭的话，会存在一个问题，随着客户端连接越来越多，server早晚有扛不住的时候，这时候server端需要采取一些策略，如关闭一些长时间没有读写事件发生的连接，这样可以避免一些恶意连接导致server端服务受损；如果条件再允许就可以以客户端机器为颗粒度，限制每个客户端的最大长连接数，这样可以完全避免某个蛋疼的客户端连累后端服务。
-
-短连接对于服务器来说管理较为简单，存在的连接都是有用的连接，不需要额外的控制手段。
-
-但如果客户请求频繁，将在TCP的建立和关闭操作上浪费时间和带宽
-```
-
-## 注意点
-
-```
-tcp服务器一般情况下都需要绑定，否则客户端找不到这个服务器
-
-tcp客户端一般不绑定，因为是主动链接服务器，所以只要确定好服务器的ip、port等信息就好，本地客户端可以随机
-
-tcp服务器中通过listen可以将socket创建出来的主动套接字变为被动的，这是做tcp服务器时必须要做的
-
-当客户端需要链接服务器时，就需要使用connect进行链接，udp是不需要链接的而是直接发送，但是tcp必须先链接，只有链接成功才能通信
-
-当一个tcp客户端连接服务器时，服务器端会有1个新的套接字，这个套接字用来标记这个客户端，单独为这个客户端服务
-
-listen后的套接字是被动套接字，用来接收新的客户端的链接请求的，而accept返回的新套接字是标记这个新客户端的
-
-关闭listen后的套接字意味着被动套接字关闭了，会导致新的客户端不能够链接服务器，但是之前已经链接成功的客户端正常通信。
-
-关闭accept返回的套接字意味着这个客户端已经服务完毕
-
-当客户端的套接字调用close后，服务器端会recv解堵塞，并且返回的长度为0，因此服务器可以通过返回数据的长度来区别客户端是否已经下线
-```
-
-# UDP编程
+## UDP
 
 创建一个基于udp的网络程序流程很简单，具体步骤如下：
-
+```
 1. 创建客户端套接字
 2. 发送/接收数据
 3. 关闭套接字
-
-## 发送数据
+```
+发送数据
 
 ```python
 from socket import *
@@ -335,7 +361,7 @@ udp_socket.sendto(send_data.encode('utf-8'), dest_addr)
 udp_socket.close()
 ```
 
-## 发送接收数据
+发送接收数据
 
 ```python
 #coding=utf-8
@@ -368,7 +394,7 @@ print(recv_data[1])
 udp_socket.close()
 ```
 
-## 服务端绑定端口
+服务端绑定端口
 
 ```python
 #coding=utf-8
@@ -392,9 +418,59 @@ print(recv_data[0].decode('gbk'))
 udp_socket.close()
 ```
 
-# asyncio
+## 模拟http
 
-标准库asyncio提供的BaseTransport,ReadTransport,WriteTransport,DatagramTransport以及BaseSubprocessTransport类对不通咧行的信道进行了抽象。一般来说，不建议使用这些类直接实例化对象，而是使用AbstarctEventLoop函数来创建相应的Transport对象并且对底层信道进行初始化。一旦信道创建成功，可以通过一对Protocol对象进行通信了。目前asyncio支持TCP,UDP,SSL和Subprocess管道，不同类型的Transport对象支持的方法略有不同，另外需注意：Transport类不是线程安全的
+日常使用中，http请求的处理使用web框架或`requests`模块
+
+```python
+#requests -> urlib -> socket
+import socket
+from urllib.parse import urlparse
+
+
+def get_url(url):
+    #通过socket请求html
+    url = urlparse(url)
+    host = url.netloc
+    path = url.path
+    if path == "":
+        path = "/"
+
+    #建立socket连接
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    # client.setblocking(False)
+    client.connect((host, 80)) #阻塞不会消耗cpu
+
+    #不停的询问连接是否建立好， 需要while循环不停的去检查状态
+    #做计算任务或者再次发起其他的连接请求
+
+    client.send("GET {} HTTP/1.1\r\nHost:{}\r\nConnection:close\r\n\r\n".format(path, host).encode("utf8"))
+
+    data = b""
+    while True:
+        d = client.recv(1024)
+        if d:
+            data += d
+        else:
+            brea
+
+    data = data.decode("utf8")
+    html_data = data.split("\r\n\r\n")[1]
+    print(html_data)
+    client.close()
+
+if __name__ == "__main__":
+    import time
+    start_time = time.time()
+    for url in range(20):
+        url = "http://shop.projectsedu.com/goods/{}/".format(url)
+        get_url(url)
+    print(time.time()-start_time)
+```
+
+# Asyncio
+
+标准库asyncio提供的BaseTransport,ReadTransport,WriteTransport,DatagramTransport以及BaseSubprocessTransport类对不同类型的信道进行了抽象。一般来说，不建议使用这些类直接实例化对象，而是使用AbstarctEventLoop函数来创建相应的Transport对象并且对底层信道进行初始化。一旦信道创建成功，可以通过一对Protocol对象进行通信了。目前asyncio支持TCP,UDP,SSL和Subprocess管道，不同类型的Transport对象支持的方法略有不同，另外需注意：Transport类不是线程安全的
 
 标准库asyncio还提供了类Protocol,DatagramProtocol和SubprocessProtocl,这些类可用作基类进行二次开发来实现自己的网络协议，创建派生类时只需重写感兴趣的回调函数即可。Protocol类常与Transport类一起使用，Protocol对象解析收到的数据并请求待发出数据的读写操作，而Transport对象则负责实际的I/O操作和必要的缓冲
 
@@ -416,7 +492,7 @@ Protocol对象常用回调函数
 
 可以在Protocol对象的方法中使用`ensure_future()`来启动协程，但并不保证严格的执行顺序，Protocol对象并不清楚在对象方法中创建的协程，所以也不会等待其执行结束。若需要确定执行顺序的话，可以在协程中通过yield from语句来使用Stream对象
 
-## 使用TCP通信
+## TCP
 
 服务端代码
 
@@ -500,7 +576,7 @@ loop.run_forever()
 loop.close()
 ```
 
-## 使用UDP通信
+## UDP
 
 监听端代码
 
@@ -761,5 +837,51 @@ def wait_for_data(loop):
 loop = asyncio.get_event_loop()
 loop.run_until_complete(wait_for_data(loop))
 loop.close()
+```
+
+## 模拟http
+
+```python
+import asyncio
+import socket
+from urllib.parse import urlparse
+
+
+async def get_url(url):
+    #通过socket请求html
+    url = urlparse(url)
+    host = url.netloc
+    path = url.path
+    if path == "":
+        path = "/"
+
+    #建立socket连接
+    reader, writer = await asyncio.open_connection(host,80)
+    writer.write("GET {} HTTP/1.1\r\nHost:{}\r\nConnection:close\r\n\r\n".format(path, host).encode("utf8"))
+    
+    all_lines = []
+    # async for将for循环中阻塞式读数据的过程给异步化
+    async for raw_line in reader:
+        data = raw_line.decode("utf8")
+        all_lines.append(data)
+    html = "\n".join(all_lines)
+    return html
+
+async def main():
+    tasks = []
+    for url in range(20):
+        url = "http://shop.projectsedu.com/goods/{}/".format(url)
+        tasks.append(asyncio.ensure_future(get_url(url)))
+    # asyncio.as_completed()返回一个值是协程的迭代器
+    for task in asyncio.as_completed(tasks):
+        result = await task  # task是协程
+        print(result)
+
+if __name__ == "__main__":
+    import time
+    start_time = time.time()
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(main())
+    print('last time:{}'.format(time.time()-start_time))
 ```
 

@@ -1,6 +1,8 @@
 [TOC]
 
-# 协程
+# 异步IO
+
+## 协程
 
 ```
 协程，又称微线程，纤程。英文名Coroutine。
@@ -41,7 +43,7 @@ Future类代表可代哦用对象的异步执行，Task类是Future的子类，�
 于普通函数不同，调用一个协程函数并不会立刻启动代码的执行，返回的协程对象在被调度之前不会做什么事情。启动协程对象的执行有两种方法：1.在一个正在运行的协程中使用await或yield from语句等待线程对象的返回结果；2.使用ensure_future()函数或者AbstractEventLoop.create_task()方法创建任务(Task对象)并调度协程的执行
 ```
 
-## yield
+### 生成器创建
 
 Python对协程的支持是通过generator实现的。
 
@@ -89,7 +91,41 @@ produce(c)
 
 整个流程无锁，由一个线程执行，`produce`和`consumer`协作完成任务，所以称为“协程”，而非线程的抢占式多任务。
 
-## greenlet
+```python
+#生成器是可以暂停的函数
+import inspect
+# def gen_func():
+#     value=yield from
+#     #第一返回值给调用方， 第二调用方通过send方式返回值给gen
+#     return "bobby"
+#1. 用同步的方式编写异步的代码， 在适当的时候暂停函数并在适当的时候启动函数
+import socket
+def get_socket_data():
+    yield "bobby"
+
+def downloader(url):
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client.setblocking(False)
+    try:
+        client.connect((host, 80))  # 阻塞不会消耗cpu
+    except BlockingIOError as e:
+        pass
+
+    selector.register(self.client.fileno(), EVENT_WRITE, self.connected)
+    source = yield from get_socket_data()
+    data = source.decode("utf8")
+    html_data = data.split("\r\n\r\n")[1]
+    print(html_data)
+
+def download_html(html):
+    html = yield from downloader()
+
+if __name__ == "__main__":
+    #协程的调度依然是 事件循环+协程模式 ，协程是单线程模式
+    pass
+```
+
+### greenlet
 
 为了更好使用协程来完成多任务，python中的greenlet模块对其封装，从而使得切换任务变的更加简单
 
@@ -126,7 +162,7 @@ gr2 = greenlet(test2)
 gr1.switch()
 ```
 
-## gevent
+### gevent
 
 python还有一个比greenlet更强大的并且能够自动切换任务的模块`gevent`
 
@@ -251,177 +287,31 @@ gevent.joinall([
 ])
 ```
 
-# 异步
+### async/await
 
-除了线性和并行执行模式外，还有一种被称为异步的模式，它与事件编程(event programming)一样，十分重要。在单处理器系统和多处理系统中，异步活动的执行模型均可使用一个主控制流来实现。
-
-在并发执行的异步模式中，不同的任务在时间线上是相互交错的，而且一切都是在单一控制流(单线程)下进行的。一个任务的执行可以暂停，然后继续，不过这也改变了其他任务的执行时间。
-
-任务之间彼此交错，但都在同一个线程的控制之下，这意味着当执行某个任务时，其他任务没在执行。多线程编程模式与单线程异步并发模型的一个关键区别在于，前者由操作系统决定任务执行的时间线，即是否暂停某个线程的活动并开启另外一个线程，而后者要求程序员假设某个线程可能被暂停，并随时被另一个线程取代。
-
-程序员可以将任务编写为一系列可以间断式执行的小步骤，因此，如果某个任务需要使用另一个任务的输出，那么在编写该任务时就在程序中设定必须接受后者的输入。
-
-## 异步IO概念
-
-```
-CPU的速度远远快于磁盘、网络等IO。在一个线程中，CPU执行代码的速度极快，然而，一旦遇到IO操作，如读写文件、发送网络数据时，就需要等待IO操作完成，才能继续进行下一步操作。这种情况称为同步IO。
-
-在IO操作的过程中，当前线程被挂起，而其他需要CPU执行的代码就无法被当前线程执行了。
-
-因为一个IO操作就阻塞了当前线程，导致其他代码无法执行，所以我们必须使用多线程或者多进程来并发执行代码，为多个用户服务。每个用户都会分配一个线程，如果遇到IO导致线程被挂起，其他用户的线程不受影响。
-
-多线程和多进程的模型虽然解决了并发问题，但是系统不能无上限地增加线程。由于系统切换线程的开销也很大，所以，一旦线程数量过多，CPU的时间就花在线程切换上了，真正运行代码的时间就少了，结果导致性能严重下降。
-
-由于我们要解决的问题是CPU高速执行能力和IO设备的龟速严重不匹配，多线程和多进程只是解决这一问题的一种方法。
-
-另一种解决IO问题的方法是异步IO。当代码需要执行一个耗时的IO操作时，它只发出IO指令，并不等待IO结果，然后就去执行其他代码了。一段时间后，当IO返回结果时，再通知CPU进行处理。
-```
-
-可以想象如果按普通顺序写出的代码实际上是没法完成异步IO的：
-
-```
-do_some_code()
-f = open('/path/to/file', 'r')
-r = f.read() # <== 线程停在此处等待IO操作结果
-# IO操作完成后线程才能继续执行:
-do_some_code(r)
-```
-
-所以，同步IO模型的代码是无法实现异步IO模型的。
-
-异步IO模型需要一个消息循环，在消息循环中，主线程不断地重复“读取消息-处理消息”这一过程：
-
-```
-loop = get_event_loop()
-while True:
-    event = loop.get_event()
-    process_event(event)
-```
-
-消息模型其实早在应用在桌面应用程序中了。一个GUI程序的主线程就负责不停地读取消息并处理消息。所有的键盘、鼠标等消息都被发送到GUI程序的消息队列中，然后由GUI程序的主线程处理。
-
-由于GUI线程处理键盘、鼠标等消息的速度非常快，所以用户感觉不到延迟。某些时候，GUI线程在一个消息处理的过程中遇到问题导致一次消息处理时间过长，此时，用户会感觉到整个GUI程序停止响应了，敲键盘、点鼠标都没有反应。这种情况说明在消息模型中，处理一个消息必须非常迅速，否则，主线程将无法及时处理消息队列中的其他消息，导致程序看上去停止响应。
-
-消息模型是如何解决同步IO必须等待IO操作这一问题的呢？当遇到IO操作时，代码只负责发出IO请求，不等待IO结果，然后直接结束本轮消息处理，进入下一轮消息处理过程。当IO操作完成后，将收到一条“IO完成”的消息，处理该消息时就可以直接获取IO操作结果。
-
-在“发出IO请求”到收到“IO完成”的这段时间里，同步IO模型下，主线程只能挂起，但异步IO模型下，主线程并没有休息，而是在消息循环中继续处理其他消息。这样，在异步IO模型下，一个线程就可以同时处理多个IO请求，并且没有切换线程的操作。对于大多数IO密集型的应用程序，使用异步IO将大大提升系统的多任务处理能力。
-
-## concurrent.futures
-
-在python3.2之后，python引入了concurrent.futures模块，支持管理并发编程任务，如进程池和线程池、非确定性执行流以及多进程和线程同步。该模块包含以下几类
-
-| 类及方法                      | 说明                                                         |
-| ----------------------------- | ------------------------------------------------------------ |
-| `concurrent.futures.Executor` | 抽象类，提供异步执行调用的方法                               |
-| `submit(function, argument)`  | 安排某个函数(可调用对象)使用给定参数执行，返回一个Future对象 |
-| `map(function, argument)`     | 以异步模式使用给定参数来执行函数。与内置函数map(func, *iterables)等价的异步执行方法，多个func的调用可以并发执行 |
-| `shutdown(wait=True)`         | 向执行器(executor)传递释放资源的信号。通知Executor对象执行完当前Future对象之后释放所有资源，若参数wait为True，则shutdown()方法等待执行结束并释放有关资源之后再返回，否则立即返回 |
-| `concurrent.futures.Future`   | 封装一个可调用函数的异步执行。通过向执行器提交任务(带可选参数的函数)来实例化Future对象 |
-
-执行器是一种抽象类，通过其子类来访问：线程或进程的`ExecutorPools`。实际上，实例化线程和进程是比较耗资源的任务，所以最好将这些资源聚集起来，把它们变成可重复使用的发射器(launcher)或执行器(执行器概念由此而来)，用于并行或并发执行任务。
-
-### 使用线程池和进程池
-
-一个线程池或进程池(也被称为池化)指的是用来优化、简化程序内部线程/进程使用的软件管理器。通过池化，可以向pooler提交将由其执行的任务。这个池子里有一个待执行任务的内部队列，以及一些执行这些任务的线程或进程。池化中的一个常见概念是复用：一个线程(或进程)在其生命周期中，被多次用于执行不同的任务。复用减少了创建进程或线程的开销，提升了利用池化技巧的程序的性能。虽然复用不是非用不可的，但它却是促使程序员在其应用中使用池化的主要原因之一。
-
-几乎所有服务器端应用都用到了池化，因为需要处理来自任意数量客户端的大量并发请求。而还有不少其他应用要求每个任务立刻执行，或者对执行任务的线程具备更大的控制权。这种情况下，池化不是最好选择。
-
-`current.Futures`模块提供了Executor类的两个子类
+python位了将语义变得更加明确，python3.5以后引入async/await，避免了生成器和协程混用
 
 ```python
-concurrent.futures.ThreadPoolExecutor(max_works)
-# 异步式地管理一个线程池
-concurrent.futures.ProcessPoolExecutor(max_works)
-# 异步式地管理一个进程池
+#python为了将语义变得更加明确，就引入了async和await关键词用于定义原生的协程
+async def downloader(url):
+    return "bobby"
 
-# 参数
-max_works		用于异步执行调用的最大worker数量
-```
+# import types
+# @types.coroutine  # 装饰器封装为await
+# def downloader(url):
+#     yield "bobby"
 
-示例
-
-```python
-import concurrent.futures
-import time
-
-# 创建一个数字列表，对于列表中的每个元素，执行计数程序，直到完成1000万次迭代，然后将得到的结果乘以10000000
-number_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-
-def evaluate_item(x):
-    # 计数， 仅为了执行一些操作而已
-    result_item = count(x)
-    print("item " + str(x) + " result " + str(result_item))
-
-def count(number):
-    for i in range(0, 10000000):
-        i = i + 1
-    return i*number
-
+async def download_url(url):
+    #dosomethings
+    html = await downloader(url)
+    return html
 
 if __name__ == "__main__":
-    # 线性执行
-    start_time = time.clock()
-    for item in number_list:
-        evaluate_item(item)
-    print("Sequential execution in " + str(time.clock() - start_time), "seconds")
-
-    # 线程池执行
-    # ThreadPoolExecutor使用其内部已经池化的线程执行给定的任务。它将管理在池子中工作的5个线程。
-    # 每个线程从池子里接受并执行一个job。执行完成后，线程将从线程池获取要处理的下一个工作
-    start_time_1 = time.clock()
-    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-        for item in number_list:
-            executor.submit(evaluate_item, item)
-    print("Thread pool execution in " + str(time.clock() - start_time_1), "seconds")
-
-    # 进程池执行
-    # ProcessPoolExecutor使用的是multiprocessing模块，可以避开全局解释器锁，大幅降低执行时间
-    start_time_2 = tiem.clock()
-    with concurrent.futures.ProcessPoolExecutor(max_workers=5) as executor:
-        for item in number_list:
-            executor.submit(evaluate_item, item)
-    print("Process pool execution in " + str(time.clock() - start_time_2), "seconds")
+    coro = download_url("http://www.imooc.com")
+    # next(None)  # 原协程不能如此调用
+    coro.send(None)
 ```
 
-批量移动文件
-
-```python
-from concurrent.futures import ThreadPoolExecutor
-from shutil import copy
-from os import listdir
-from os.path import isfile, json
-
-with ThreadPoolExecutor(max_workers=4) as e:
-    for f in (fn for fn in lisdir('C:\\test')):
-        src = json('C:\\test', f)
-        if isfile(src):
-            # 目标文件夹存在
-            dst = join('D:\\test', f)
-            e.submit(copy, src, dst)
-```
-
-批量快速判断素数
-
-```python
-from concurrent.futures import ProcessPoolExecutor
-
-PRIMES = [109999999, 108376355, 1276544678, 123555677, 234645542424]
-def isPrime(n):
-    if n%2 == 0:
-        return False
-    for i in range(3, int(n**0.5)+1, 2):
-        if n%i == 0:
-            return False
-    return True
-
-def main():
-    with ProcessPoolExecutor() as executor:
-        for number, prime in zip(PRIMES, executor.map(isPrime, PRIMES)):
-            print('%d is prime: %s' % (number, prime))
-
-if __name__ == "__main__":
-    main()
-```
 
 ## asyncio
 
@@ -429,7 +319,18 @@ Python 3.4版本引入的标准库asyncio，以生成器对象为基础，直接
 
 ### 概述
 
-asyncio提供了管理事件、协程、任务和线程的功能，以及编写并发代码的同步原语(synchronization primitives)。该模块主要由以下组件构成
+asyncio提供了管理事件、协程、任务和线程的功能，以及编写并发代码的同步原语(synchronization primitives)。
+
+```
+包含各种特定系统实现的模块化事件循环
+传输和协议抽象
+对TCP、UDP、SSL、子进程、延时调用以及其他的具体支持 
+模仿futures模块但适用于时间循环使用的Future类
+基于yield from的协议和任务，可用顺序的方式编写并发代码
+必须使用一个将产生阻塞IO的调用时，有接口可以把这个事件转移到线程池中
+```
+
+该模块主要由以下组件构成
 
 | 概念        | 说明                                                         |
 | ----------- | ------------------------------------------------------------ |
@@ -439,16 +340,29 @@ asyncio提供了管理事件、协程、任务和线程的功能，以及编写�
 | future      | 代表将来执行或没有执行任务的结果，与task没有本质的区别       |
 | async/await | python3.5用于定义协程的关键字，async定义一个协程，await用于挂起阻塞的异步调用接口 |
 
+常用方法
+
+| 方法                                                         | 说明                                                         |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| `asyncio.get_event_loop()`                                   | 可以获得当前上下文的事件循环                                 |
+| `asyncio.set_event_loop(loop)`                               | 将当前上下文的事件循环设置为给定循环                         |
+| `asyncio.new_event_loop()`                                   | 根据此函数的规则创建并返回一个新的事件循环对象               |
+| `asyncio.Future()`                                           | 创建Future对象                                               |
+| `asyncio.ensure_future(coro_or_future, *, loop=None)`        | 将任务注册到事件循环，返回Task对象；在python3.4.3中使用`asyncio.async()` |
+| `asyncio.gather(*coros_or_futures, loop=None, return_exceptions=False)` | 接受一系列协程或任务，并返回将那些任务聚合后的单个任务(包装其接收的任何适用协程)；也可作为整体的一组任务添加回调的机制 |
+| `asyncio.wait(fs, *, loop=None, timeout=None, return_when=ALL_COMPLETED)` | 接受一系列协程或任务构成的列表，根据参数确定何时返回结果，默认全部完成返回，可设定超时时长 |
+| `asyncio.run_coroutine_threadsafe(coro,loop)`                | 在主线程中将协程加入到子线程中开始的事件循环中               |
+| `asyncio.Queue()`                                            | 最基本的一步队列                                             |
+| `asyncio.sleep(delay)`                                       | 异步中延迟执行时长秒数                                       |
+
 python3.4与python3.5区别
 
-```
+```python
 用asyncio提供的@asyncio.coroutine可以把一个generator标记为coroutine类型，然后在coroutine内部用yield from调用另一个coroutine实现异步操作。
 
 请注意，async和await是针对coroutine的新语法，要使用新的语法，只需要做两步简单的替换：
-
-1. @asyncio.coroutine <==> async；
-2. yield from <==> await。
-
+@asyncio.coroutine <==> async
+yield from <==> await
 
 # python3.4
 @asyncio.coroutine
@@ -486,15 +400,22 @@ while (1) {
 
 管理事件循环的方法
 
-| 方法                                            | 说明                                                         |
-| ----------------------------------------------- | ------------------------------------------------------------ |
-| `loop = get_event_loop()`                       | 可以获得当前上下文的事件循环                                 |
-| `loop.call_later(time_delay,callback,argument)` | 安排在给定事件time_delay秒后，调用某个回调对象               |
-| `loop.call_soon(callback,argument)`             | 安排一个将马上被调用的回调对象，在call_soon()返回、控制回到事件循环之后，回调对象就被调用 |
-| `loop.time()`                                   | 以浮点值的形式返回根绝事件循环的内部时钟确定当前时间         |
-| `asyncio.set_event_loop()`                      | 将当前上下文的事件循环设置为给定循环                         |
-| `asyncio.new_event_loop()`                      | 根据此函数的规则创建并返回一个新的事件循环对象               |
-| `loop.run_forever()`                            | 一直执行，直到调用stop()为止                                 |
+| 方法                                        | 说明                                                         |
+| ------------------------------------------- | ------------------------------------------------------------ |
+| `loop = asyncio.get_event_loop()`           | 可以获得当前上下文的事件循环                                 |
+| `loop = asyncio.set_event_loop()`           | 将当前上下文的事件循环设置为给定循环                         |
+| `loop = asyncio.new_event_loop()`           | 根据此函数的规则创建并返回一个新的事件循环对象               |
+| `loop.call_later(delay,callback,*args)`     | 安排在给定事件delay秒后，调用某个回调对象                    |
+| `loop.call_soon(callback,*args)`            | 安排一个将马上被调用的回调对象，在`call_soon()`返回、控制回到事件循环之后，回调对象就被调用 |
+| `loop.call_soon_threadsafe(callback,*args)` | 线程安全的`call_soon()`                                      |
+| `loop.call_at(when,callback,*args)`         | 在指定的与`loop.time()`相比较的时间时执行回调                |
+| `loop.time()`                               | 以浮点值的形式返回根据事件循环的内部时钟确定当前时间         |
+| `loop.create_task(coro)`                    | 创建一个task任务                                             |
+| `loop.run_until_complete(future)`           | 任务结束前执行循环，完任务后自动停止事件循环                 |
+| `loop.run_forever()`                        | 一直执行，直到调用`stop()`为止                               |
+| `loop.stop()`                               | 停止事件循环                                                 |
+| `loop.close()`                              | 关闭事件循环                                                 |
+
 
 - 创建循环
 
@@ -569,9 +490,7 @@ loop.run_forever()
 - 任务结束前执行循环
 
 ```python
-# 装饰器将普通的python函数转换为一个协程
-@asyncio.coroutine
-def trivial():
+async def trivial():
     return 'Hello world!'
 
 # 调用run_until_complete时，将任务注册并在任务结束前执行循环
@@ -598,7 +517,7 @@ run_loop_forever_in_background(loop)  # <Thread(Thread-1, started xxx)>
 loop.is_running()  # True
 ```
 
-该例可做测试但不会应用在项目中，原因：停止循环很难，loop.stop将不再生效
+该例可做测试但不会应用在项目中，原因：停止循环很难，`loop.stop()`将不再生效
 
 ```python
 # 把任务注册到循环并令其立刻执行
@@ -673,11 +592,9 @@ loop.close()
 在asyncio中使用的大多数函数都是协程(coroutines)。协程是一种设计用在事件循环中执行的特殊函数。此外，若创建了协程但未执行它，那么将会在日志中记录一个错误.
 
 ```python
-# python3.4中通过@asyncio.coroutine将一个函数装饰为协程
 import asyncio
 
-@asyncio.coroutine
-def coro_sum(*args):
+async def coro_sum(*args):
     anser = 0
     for i in args:
         answer += i
@@ -712,17 +629,16 @@ except StopIteration as ex:
 ```python
 import asyncio
 
-@asyncio.coroutine
-def nested(*args):
+
+async def nested(*args):
     print('The "nested" function ran with args: %r' % (args,))
     return [i+1 for i in args]
 
-@asyncio.coroutine
-def outer(*args):
+async def outer(*args):
     print('The "outer" function ran with args: %r' % (args,))
-    # outer协程遇到yield from时挂起，将nested的协程放入事件循环并执行。outer协程在nested完成并返回结果之前不会继续执行
-    # yield from语句返回它执行协程的结果
-    answer = yield from nested(*[i*2 for i in args])
+    # outer协程遇到await时挂起，将nested的协程放入事件循环并执行。outer协程在nested完成并返回结果之前不会继续执行
+    # 返回它执行协程的结果
+    answer = await nested(*[i*2 for i in args])
     return answer
 
 loop = asyncio.get_event_loop()
@@ -744,62 +660,57 @@ from random import randint
 
 
 # 状态S0
-@asyncio.coroutine
-def startState():
+async def startState():
     print("start State called \n")
     input_value = randint(0, 1)
     time.sleep(1)
     if input_value == 0:
-        result = yield from state2(input_value)
+        result = await state2(input_value)
     else:
-        result = yield from state1(input_value)
+        result = await state1(input_value)
     print("Resume of the Transition:\n start State calling " + result)
 
 # 状态S1
-@asyncio.coroutine
-def state1(transition_value):
+async def state1(transition_value):
     outputValue = str(("state 1 with transition value = %s \n" % (transition_value)))
     input_value = randint(0, 1)
     time.sleep(1)
     print("...Evaluating...")
     if input_value == 0:
-        result = yield from state3(input_value)
+        result = await state3(input_value)
     else:
-        result = yield from state2(input_value)
+        result = await state2(input_value)
     result = "state 1 calling " + result
     return (outputValue + str(result))
 
 # 状态S2
-@asyncio.coroutine
-def state2(transition_value):
+async def state2(transition_value):
     outputValue = str(("state 2 with transition value = %s \n" % (transition_value)))
     input_value = randint(0, 1)
     time.sleep(1)
     print("...Evaluating...")
     if input_value == 0:
-        result = yield from state1(input_value)
+        result = await state1(input_value)
     else:
-        result = yield from state3(input_value)
+        result = await state3(input_value)
     result = "state 2 calling " + result
     return (outputValue + str(result)) 
 
 # 状态S3
-@asyncio.coroutine
-def state3(transition_value):
+async def state3(transition_value):
     outputValue = str(("state 3 with transition value = %s \n" % (transition_value)))
     input_value = randint(0, 1)
     time.sleep(1)
     print("...Evaluating...")
     if input_value == 0:
-        result = yield from state1(input_value)
+        result = await state1(input_value)
     else:
-        result = yield from endState(input_value)
+        result = await endState(input_value)
     result = "state 3 calling " + result
     return (outputValue + str(result)) 
 
 # 状态S4
-@asyncio.coroutine
-def endState(transition_value):
+async def endState(transition_value):
     outputValue = str(("end state with transition value = %s \n" % (transition_value)))
     print("...stop computation...")
     return (outputValue)
@@ -824,31 +735,28 @@ Ayncio模块提供了一个处理任务计算的方法:`asyncio.Task(coroutine)`
 import asyncio
 
 
-@asyncio.coroutine
-def factorial(number):
+async def factorial(number):
     f = 1
     for i in range(2, number+1):
         print("Asyncio.Task: Compute factorial(%s)" % i)
-        yield from asyncio.sleep(1)
+        await asyncio.sleep(1)
         f *= i
     print("Asyncio.Task - factorial(%s) = %s" % (number, f))
 
-@asyncio.coroutine
-def fibonacci(number):
+async def fibonacci(number):
     a, b = 0, 1
     for i in range(2, number):
         print("Asyncio.Task: Compute fibonacci (%s)" % i)
-        yield from asyncio.sleep(1)
+        await asyncio.sleep(1)
         a, b = b, a + b
     print("Ayncio.Task - fibonacci(%s) = %s" % (number, a))
 
-@asyncio.coroutine
-def binomialCoeff(n, k):
+async def binomialCoeff(n, k):
     result = 1
     for i in range(1, k+1):
         result = result * (n-i+1) / i
         print("Asyncio.Task: Compute binomialCoeff (%s)" % i)
-        yield from asyncio.sleep(1)
+        await asyncio.sleep(1)
     print("Asyncio.Task - binomialCoeff(%s, %s) = %s" % (n, k, result))
 
 if __name__ == "__main__":
@@ -866,7 +774,7 @@ if __name__ == "__main__":
     loop.close()
 ```
 
-### Future、Task
+### Future/Task
 
 由于使用asyncio完成的大多工作都是异步的，因此在处理异步方式执行时的返回值要小心。为此，yield from语句提供了一种方式，但是另外一些时候需要其他处理方式，比如，需要并行执行异步函数
 
@@ -904,22 +812,22 @@ import asyncio
 import sys
 
 # 求n个整数的和
-@asyncio.coroutine
-def first_coroutine(future, N):
+
+async def first_coroutine(future, N):
     count = 0
     for i in range(1, N+1):
         count = count + i
-    yield from asyncio.sleep(3)
+    await asyncio.sleep(3)
     # 标记已完成，设置其结果
     future.set_result("first corountine (sum of N integers) result = " + str(count))
 
 # 求n的阶乘
-@asyncio.coroutine
-def second_coroutine(future, N):
+
+async def second_coroutine(future, N):
     count = 1
     for i in range(2, N+1):
         count *= i
-    yield from asyncio.sleep(4)
+    await asyncio.sleep(4)
     future.set_result("second corountine (factorial) result = " + str(count))
 
 # 打印future最后的结果
@@ -949,38 +857,94 @@ if __name__ == "__main__":
     loop.close()
 ```
 
-
-
 - Task对象
 
-Task对象是Future对象的子类，在使用asyncio时常用的对象。每当一个协程在事件循环中被安排执行后，协程就会被一个Task对象包装。因此，在之前的示例中，当调用run_until_complete并传递一个协程时，该协程会被包装到一个Task对象中并执行。Task对象的任务时存储结果并为yield from语句提供值
+Task对象是Future对象的子类，在使用asyncio时常用的对象。每当一个协程在事件循环中被安排执行后，协程就会被一个Task对象包装。
 
-run_until_complete方法并不是将一个协程包装到类中的唯一方式(甚至不是主要方式)。毕竟在很多程序中，事件循环一直在执行。在这类系统中将协程放入事件循环的方法时asyncio.async，返回对应的Task对象
+当调用`run_until_complete(coro)`，该协程参数会被包装到一个Task对象中并执行。Task对象的任务时存储结果并为`await`语句提供值
 
-注意：若是python3.4.4以上版本，使用ensure_future，若是3.4.3使用asyncio
+除了`run_until_complete(coro)`方法外，还有如下方式创建task：
+
+1. `asyncio.ensure_future(coro)`，返回对应的Task对象
+
+注意：若是python3.4.4以上版本，使用ensure_future，若是3.4.3使用async
+
+2. `loop.create_task(coro)`，返回对应的Task对象
 
 ```python
 import asyncio
 
-@asyncio.coroutine
-def make_tea(variety):
+async def make_tea(variety):
     print('Now making %s tea.' % variety)
     # 获取事件循环
     asyncio.get_event_loop().stop()
     return '%s tea' % variety
 
-# 将任务注册到事件循环，但循环未执行
-task = asyncio.async(make_tea('chamomile'))
+# 方式一：将任务注册到事件循环，但循环未执行
+task = asyncio.ensure_future(make_tea('chamomile'))
 # 查看Task对象
-task.done()  # False
-task.result()  # 抛出InvalidStateError异常
+print(task.done())  # False
+# task.result()  # 抛出InvalidStateError异常
 # 开始循环，任务完成后，由于调用loop.stop()，task将立即停止执行
-loop = asyncio.get_eventloop()
+loop = asyncio.get_event_loop()
+# 方式二：
+# task = loop.create_task(make_tea('chamomile'))
 loop.run_forever()
 # 查看Task对象
-task.done()  # True
-task.result()  # 'chamomile tea'
+print(task.done())  # True
+print(task.result()) # 'chamomile tea'
 ```
+
+- 状态
+
+`future`对象有几个状态：
+```
+- `Pending`
+- `Running`
+- `Done`
+- `Cacelled`
+```
+创建`future`的时候，`task`为`pending`，事件循环调用执行的时候当然就是`running`，调用完毕自然就是`done`，如果需要停止事件循环，就需要先把`task`取消。可以使用`asyncio.Task`获取事件循环的`task`
+
+```python
+import asyncio
+import time
+
+now = lambda :time.time()
+
+async def do_some_work(x):
+    print("Waiting:",x)
+    await asyncio.sleep(x)
+    return "Done after {}s".format(x)
+
+coroutine1 =do_some_work(1)
+coroutine2 =do_some_work(2)
+coroutine3 =do_some_work(2)
+
+tasks = [
+    asyncio.ensure_future(coroutine1),
+    asyncio.ensure_future(coroutine2),
+    asyncio.ensure_future(coroutine3),
+]
+
+start = now()
+
+loop = asyncio.get_event_loop()
+try:
+    loop.run_until_complete(asyncio.wait(tasks))
+except KeyboardInterrupt as e:
+    print(asyncio.Task.all_tasks())  # 获取所有task的状态
+    for task in asyncio.Task.all_tasks():
+        print(task.cancel())
+    loop.stop()
+    loop.run_forever()
+finally:
+    loop.close()
+
+print("Time:",now()-start)
+```
+
+启动事件循环之后，马上 ctrl+c，会触发`run_until_complete`的执行异常 `KeyBorardInterrupt`。然后通过循环`asyncio.Task`取消`future`。
 
 ### 回调
 
@@ -995,8 +959,7 @@ import asyncio
 
 loop = asyncio.get_event_loop()
 # 生成协程，本协程不会停止
-@asyncio.corountine
-def make_tea(variety):
+async def make_tea(variety):
     print('Now making %s tea.' % variety)
     return '%s tea' % variety
 
@@ -1004,9 +967,9 @@ def make_tea(variety):
 def confirm_tea(future):
     print('The %s is made.' % future.result())
     
-task = asyncio.async(make_tea('green'))
+task = asyncio.ensure_future(make_tea('green'))
 # 将confirm_tea方法作为回调赋值给task，该函数被赋值给task(对一个协程的特殊调用),而不是赋值给协程本身
-# 若用调用同一个协程的asyncio.async方法将另一个任务注册到循环，该任务不会得到该回调
+# 若用调用同一个协程的asyncio.ensure_future方法将另一个任务注册到循环，该任务不会得到该回调
 task.add_done_callback(confirm_tea)
 
 loop.run_until_complete(task)  
@@ -1019,7 +982,7 @@ loop.run_until_complete(task)
 
 Future仅仅是被执行，但并不能保证它能够执行成功。本例仅仅是假设`future.result()`结果值被正确返回，但事实可能并非如此。Task的执行可能会引发异常，在这种情况下，尝试访问`future.result()`将会引发该异常
 
-同样地，也有可能取消任务(使用`FUture.cancel()`方法或其他方式)。若这么做，则任务会被标记为Cancelled，会安排回调。在这种情况下，尝试访问`future.result()`将会引发CancelledError异常
+同样地，也有可能取消任务(使用`Future.cancel()`方法或其他方式)。若这么做，则任务会被标记为Cancelled，会安排回调。在这种情况下，尝试访问`future.result()`将会引发CancelledError异常
 
 - 幕后
 
@@ -1040,8 +1003,7 @@ import functools
 
 loop = asyncio.get_event_loop()
 
-@asyncio.coroutine
-def make_tea(variety):
+async def make_tea(variety):
     print('Now making %s tea.' % variety)
     return '%s tea' % variety
 
@@ -1049,7 +1011,7 @@ def make_tea(variety):
 def add_ingredient(ingredient, future):
     print('Now adding %s to the %s.' % (ingredient, future.result()))
     
-task = asyncio.async(make_tea('herbal'))
+task = asyncio.ensure_future(make_tea('herbal'))
 # 回调的注册方式是通过实例化一个带有位置参数的functools.partial对象实现
 # partial仅接受一个参数，Future对象作为最后一个位置参数被发送
 task.add_done_callback(functools.partial(add_ingredient, 'honey'))
@@ -1066,15 +1028,14 @@ asyncio模块提供了一种聚合任务的便利方法，聚合任务主要归�
 
 - 聚集任务
 
-asyncio为聚集任务目的提供的第一种机制是通过gather函数。gather哈书接受一系列协程或任务，并返回将那些任务聚合后的单个任务(包装其接收的任何适用协程)
+asyncio为聚集任务目的提供的第一种机制是通过gather函数。gather接受一系列协程或任务，并返回将那些任务聚合后的单个任务(包装其接收的任何适用协程)
 
 ```python
 import asyncio
 
 loop = asyncio.get_event_loop()
 
-@asyncio.cotoutine
-def make_tea(variety):
+async def make_tea(variety):
     print('Now making %s tea.' % variety)
     return '%s tea' % variety
 
@@ -1105,8 +1066,7 @@ import asyncio
 
 loop = asyncio.get_event_loop()
 
-@asyncio.coroutine
-def make_tea(variety):
+async def make_tea(variety):
     print('Now making %s tea.' % variety)
     return '%s tea' % variety
 
@@ -1137,13 +1097,13 @@ import asyncio
 
 loop = asyncio.get_event_loop()
 
-@asyncio.coroutine
-def make_tea(variety):
+
+async def make_tea(variety):
     print('Now making %s tea.' % variety)
     return '%s tea' % variety
 
 # wait方法返回一个协程，该协程带有值，可以在yield from中使用该协程
-# 无法将回调直接附加到wait返回的协程上，若希望如此，则必须使用asyncio.async将该协程包装到一个任务中
+# 无法将回调直接附加到wait返回的协程上，若希望如此，则必须使用asyncio.ensure_future将该协程包装到一个任务中
 coro = asyncio.wait([make_tea('chamomile'), make_tea('herbal')])
 
 # asyncio.wait的返回值是一个包含Future对象(其自身包含返回值)的两部分容器。
@@ -1204,8 +1164,7 @@ import asyncio
 
 loop = asyncio.get_event_loop()
 
-@asyncio.coroutine
-def raise_ex_after(seconds):
+async def raise_ex_after(seconds):
     yield from asyncio.sleep(seconds)
     raise RuntimeError('Raising an exception.')
     
@@ -1234,6 +1193,176 @@ coro = asyncio.wait([
 
 loop.reun_until_complete(coro)
 # ({Task(<sleep>)<result=NOne>, Task(<sleep>)<result=None>}, set())
+```
+
+
+
+### 多线程
+
+很多时候，我们的事件循环用于注册协程，而有的协程需要动态的添加到事件循环中。一个简单的方式就是使用多线程。当前线程创建一个事件循环，然后再新建一个线程，在新线程中启动事件循环。当前线程不会被`block(阻塞)`。
+
+```python
+import asyncio
+from threading import Thread
+import time
+
+now = lambda :time.time()
+
+def start_loop(loop):
+    asyncio.set_event_loop(loop)
+    loop.run_forever()
+
+def more_work(x, start):
+    print('More work {}'.format(x))
+    time.sleep(x)  # 同步阻塞
+    print('Finished more work {}'.format(x))
+    print('Done time:{}'.format(time.time()-start))
+    print('thread id:{}'.format(Thread.ident))
+
+start = now()
+new_loop = asyncio.new_event_loop()
+t = Thread(target=start_loop, args=(new_loop,))
+t.start()
+print('TIME: {}'.format(time.time() - start)) 
+
+# 事件循环中加入函数
+new_loop.call_soon_threadsafe(more_work, 6, start)
+new_loop.call_soon_threadsafe(more_work, 3, start)
+```
+
+启动上述代码之后，当前线程不会被`block`，新线程中会按照顺序执行`call_soon_threadsafe`方法注册的`more_work`方法， 后者因为`time.sleep`操作是同步阻塞的，因此运行完毕`more_work`需要大致6 + 3
+
+```python
+import asyncio
+import time
+from threading import Thread
+
+now = lambda :time.time()
+
+def start_loop(loop):
+    asyncio.set_event_loop(loop)
+    loop.run_forever()
+
+async def do_some_work(x, start):
+    print('Waiting {}'.format(x))
+    await asyncio.sleep(x)
+    print('Done after {}s'.format(x))
+    print('Done time:{}'.format(time.time() - start))
+
+def more_work(x):
+    print('More work {}'.format(x))
+    time.sleep(x)
+    print('Finished more work {}'.format(x))
+
+start = now()
+new_loop = asyncio.new_event_loop()
+t = Thread(target=start_loop, args=(new_loop,))
+t.start()
+print('TIME: {}'.format(time.time() - start))
+
+# 线程中加入协程
+asyncio.run_coroutine_threadsafe(do_some_work(6, start), new_loop)
+asyncio.run_coroutine_threadsafe(do_some_work(4, start), new_loop)
+```
+
+上述的例子，主线程中创建一个`new_loop`，然后在另外的子线程中开启一个无限事件循环。 主线程通过`run_coroutine_threadsafe`新注册协程对象。这样就能在子线程中进行事件循环的并发操作，同时主线程又不会被`block`。一共执行的时间大概在6s左右。
+
+### 线程池
+
+在协程中集成阻塞IO
+
+```python
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
+import socket
+from urllib.parse import urlparse
+
+
+def get_url(url):
+    #通过socket请求html
+    url = urlparse(url)
+    host = url.netloc
+    path = url.path
+    if path == "":
+        path = "/"
+
+    #建立socket连接
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    # client.setblocking(False)
+    client.connect((host, 80)) #阻塞不会消耗cpu
+
+    #不停的询问连接是否建立好， 需要while循环不停的去检查状态
+    #做计算任务或者再次发起其他的连接请求
+
+    client.send("GET {} HTTP/1.1\r\nHost:{}\r\nConnection:close\r\n\r\n".format(path, host).encode("utf8"))
+
+    data = b""
+    while True:
+        d = client.recv(1024)
+        if d:
+            data += d
+        else:
+            break
+
+    data = data.decode("utf8")
+    html_data = data.split("\r\n\r\n")[1]
+    print(html_data)
+    client.close()
+
+
+if __name__ == "__main__":
+    import time
+    start_time = time.time()
+    loop = asyncio.get_event_loop()
+    executor = ThreadPoolExecutor(3)
+    tasks = []
+    for url in range(20):
+        url = "http://shop.projectsedu.com/goods/{}/".format(url)
+        # 把阻塞代码放置到线程池中运行，将线程中的future封装为协程中的future
+        task = loop.run_in_executor(executor, get_url, url)
+        tasks.append(task)
+    loop.run_until_complete(asyncio.wait(tasks))
+    print("last time:{}".format(time.time()-start_time))
+```
+
+### 同步通信
+
+asyncio中同步通信的机制有Lock、Event、Condition、Semaphere、BoundedSemaphore，使用方法和线程类似
+
+```python
+import asyncio
+from asyncio import Lock
+cache = {}
+lock = Lock()
+
+async def get_stuff(utl):
+    # await lock.aquire()  # 协程
+    # if url in cache:
+    #     return cache[url]
+    # stuff = await aiohttp.request('GET', url)
+    # cache[url] = stuff
+    # return stuff
+	# lock.release()
+    async with lock:  # lock中实现了__await__方法
+        if url in cache:
+            return cache[url]
+        stuff = await aiohttp.request('GET', url)
+        cache[url] = stuff
+        return stuff 
+    
+    
+async def parse_stuff():
+    stuff = await get_stuff()
+    # do some parsing
+    
+async def user_stuff():
+    stuff = await get_stuff()
+    # use stuff to do something interesting
+    
+    
+tasks = [parse_stuff(), use_stuff()]
+loop = asyncio.get_event_loop()
+loop.run_until_complete(asyncio.wait(tasks))
 ```
 
 ### 队列
@@ -1280,7 +1409,7 @@ import asyncio
 loop = asyncio.get_event_loop()
 queue = asyncio.Queue()
 
-task = asyncio.async(queue.get())
+task = asyncio.ensure_future(queue.get())
 coro = asyncio.wait([task], timeout=1)
 
 loop.run_until_complete(coro)
@@ -1320,70 +1449,6 @@ queue = asyncio.Queue(maxsize=5)
 
 若设置了最大长度，Queue将不再允许入队超过最大值的项，调用put方法将会等待之前的项被移除之后(且只能是之后)将项入队。若在队列满时调用put_nowait，将会引发QueueFull异常
 
-### 服务器
-
-asyncio模块最常见的用处是创建一个作为守护程序的服务并接受命令。asyncio模块定义了一个Protocol类，用于在接受或失去连接时以及接收到数据时触发对应事件
-
-此外，事件循环定义了一个create_server方法，用于打开一个socket连接，该连接允许将数据发送到事件循环并交给Protocol类
-
-```python
-import asyncio
-
-class Shutdown(Exception):
-    pass
-
-class ServeProtocol(asyncio.Protocol):
-    """"""
-    def connection_made(self, transport):
-        self.transport = transport
-        self.write('Welecome.')
-        
-    def data_received(self, data):
-        """接受一个数据行并尝试对该数据行进行处理。只接受两个基本命令，任何其他输入的命令都会导致错误"""
-        # 语法检查，空命令时直接返回
-        if not data:
-            return 
-        
-        # 
-        message = data.decode('ascii')
-        command = message.strip().split(' ')[0].lower()
-        args = message.strip().split(' ')[1:]
-        
-        # 检查命令的格式
-        if not hasattr(self, 'command_%s' % command):
-            self.write('Invalid command: %s' % command)
-            return 
-        
-        # 执行命令
-        try:
-            return getattr(self, 'command_%s' % command)(*args)
-        except Exception as ex:
-            self.write('Error: %s\n' % str(ex))
-            
-    def write(self, msg_string):
-        """用于类型转换，将文本字符串转换为字节，避免了在每次将数据写入通道时，将本文字符串转换为字节字符串"""
-        string += '\n'
-        self.transort.write(msg_string.encode('ascii', 'ignore'))
-        
-    def command_add(self, *args):
-        args = [int(i) for i in args]
-        self.write('%d' % sum(args))
-        
-    def command_shutdown(self):
-        self.write('Okay. Shutting down.')
-        raise KeyboardInterrupt
-        
-if __name__ == '__main__':
-    loop = asyncio.get_event_loop()
-    # 启动服务器，并在本季的特定端口上运行
-    coro = loop.create_server(ServerProtocol, '127.0.0.1', 8000)
-    asyncio.async(coro)
-    try:
-        loop.run_forever()
-    except KeyboardInterrupt:
-        pass
-```
-
 ### 示例
 
 > Demo1
@@ -1393,11 +1458,10 @@ if __name__ == '__main__':
 ```python
 import asyncio
 
-@asyncio.coroutine
-def hello():
+async def hello():
     print("Hello world!")
     # 异步调用asyncio.sleep(1):
-    r = yield from asyncio.sleep(1)
+    r = await asyncio.sleep(1)
     print("Hello again!")
 
 # 获取EventLoop:
@@ -1426,10 +1490,9 @@ hello()会首先打印出Hello world!，然后，yield from语法可以让我们
 import threading
 import asyncio
 
-@asyncio.coroutine
-def hello():
+async def hello():
     print('Hello world! (%s)' % threading.currentThread())
-    yield from asyncio.sleep(1)
+    await asyncio.sleep(1)
     print('Hello again! (%s)' % threading.currentThread())
 
 loop = asyncio.get_event_loop()
@@ -1459,16 +1522,15 @@ Hello again! (<_MainThread(MainThread, started 140735195337472)>)
 ```python
 import asyncio
 
-@asyncio.coroutine
-def wget(host):
+async def wget(host):
     print('wget %s...' % host)
     connect = asyncio.open_connection(host, 80)
     reader, writer = yield from connect
     header = 'GET / HTTP/1.0\r\nHost: %s\r\n\r\n' % host
     writer.write(header.encode('utf-8'))
-    yield from writer.drain()
+    await writer.drain()
     while True:
-        line = yield from reader.readline()
+        line = await reader.readline()
         if line == b'\r\n':
             break
         print('%s header > %s' % (host, line.decode('utf-8').rstrip()))
@@ -1581,14 +1643,13 @@ async def factorial(name, number);
 import asyncio.subprocess
 import sys 
 
-@asyncio.coroutine
-def get_date():
+async def get_date():
     code = 'import datetime; print(datetime.datetime.now())'
     # 创建子进程，并把标准输出重定向道管道
     create = asyncio.create_subprocess_exec(sys.executable, '-c', code, stdout=asyncio.subprocess.PIPE)
-    proc = yield from create
+    proc = await create
     # 读取一行输出
-    data = yield from proc.stdout.readline()
+    data = await proc.stdout.readline()
     line = data.decode('ascii').rstrip()
     # 等待子进程退出
     yield from proc.wait()
@@ -1612,9 +1673,8 @@ import asyncio
 import operator
 import functools
 
-@asyncio.coroutine
-def slow_operation(future, n):
-    yield from asyncio.sleep(1)
+async def slow_operation(future, n):
+    await asyncio.sleep(1)
     result = functools.reduce(operator.mul, range(1, n+1))
     # 设置计算结果
     future.set_result(result)
@@ -1647,50 +1707,3 @@ loop.run_forever()
 loop.close()
 ```
 
-## aiohttp
-
-`asyncio`可以实现单线程并发IO操作。如果仅用在客户端，发挥的威力不大。如果把`asyncio`用在服务器端，例如Web服务器，由于HTTP连接就是IO操作，因此可以用单线程+`coroutine`实现多用户的高并发支持。
-
-`asyncio`实现了TCP、UDP、SSL等协议，`aiohttp`则是基于`asyncio`实现的HTTP框架。
-
-我们先安装`aiohttp`：
-
-```
-pip install aiohttp
-```
-
-然后编写一个HTTP服务器，分别处理以下URL：
-
-- `/` - 首页返回`b'<h1>Index</h1>'`；
-- `/hello/{name}` - 根据URL参数返回文本`hello, %s!`。
-
-代码如下：
-
-```
-import asyncio
-
-from aiohttp import web
-
-async def index(request):
-    await asyncio.sleep(0.5)
-    return web.Response(body=b'<h1>Index</h1>')
-
-async def hello(request):
-    await asyncio.sleep(0.5)
-    text = '<h1>hello, %s!</h1>' % request.match_info['name']
-    return web.Response(body=text.encode('utf-8'))
-
-async def init(loop):
-    app = web.Application(loop=loop)
-    app.router.add_route('GET', '/', index)
-    app.router.add_route('GET', '/hello/{name}', hello)
-    srv = await loop.create_server(app.make_handler(), '127.0.0.1', 8000)
-    print('Server started at http://127.0.0.1:8000...')
-    return srv
-
-loop = asyncio.get_event_loop()
-loop.run_until_complete(init(loop))
-loop.run_forever()
-```
-
-注意`aiohttp`的初始化函数`init()`也是一个`coroutine`，`loop.create_server()`则利用`asyncio`创建TCP服务

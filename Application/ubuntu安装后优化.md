@@ -205,8 +205,6 @@ apt-get install handbrake-cli
 
 ```
 visualStudioCode
-sogou
-opera
 dbeaver
 ```
 > 下载工具
