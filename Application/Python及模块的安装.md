@@ -332,7 +332,7 @@ source .bashrc
 
 新建虚拟环境
 
-```
+```python
 # 默认python版本环境下
 mkvirtualenv env1
 

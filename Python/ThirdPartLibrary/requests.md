@@ -1,124 +1,348 @@
 # requests
 
-我们已经讲解了Python内置的urllib模块，用于访问网络资源。但是，它用起来比较麻烦，而且，缺少很多实用的高级功能。
+requests 的底层实现其实就是 urllib3
 
-更好的方案是使用requests。它是一个Python第三方库，处理URL资源特别方便。
+Requests的文档非常完备
 
-## 安装requests
+开源地址：<https://github.com/kennethreitz/requests>
 
-如果安装了Anaconda，requests就已经可用了。否则，需要在命令行下通过pip安装：
+中文文档 API： <http://docs.python-requests.org/zh_CN/latest/index.html>
 
-```
-$ pip install requests
-```
+## 安装
 
-如果遇到Permission denied安装失败，请加上sudo重试。
-
-## 使用requests
-
-### GET
-
-要通过GET访问一个页面，只需要几行代码：
-
-```
->>> import requests
->>> r = requests.get('https://www.douban.com/') # 豆瓣首页
->>> r.status_code
-200
->>> r.text
-r.text
-'<!DOCTYPE HTML>\n<html>\n<head>\n<meta name="description" content="提供图书、电影、音乐唱片的推荐、评论和...'
+```python
+pip install requests
 ```
 
-对于带参数的URL，传入一个dict作为`params`参数：
+## GET
 
-```
->>> r = requests.get('https://www.douban.com/search', params={'q': 'python', 'cat': '1001'})
->>> r.url # 实际请求的URL
-'https://www.douban.com/search?q=python&cat=1001'
-```
+```python
+response = requests.get("http://www.baidu.com/")
 
-requests自动检测编码，可以使用`encoding`属性查看：
-
-```
->>> r.encoding
-'utf-8'
+# 也可以这么写
+response = requests.request("get", "http://www.baidu.com/")
 ```
 
-无论响应是文本还是二进制内容，我们都可以用`content`属性获得`bytes`对象：
+### 添加headers和查询参数
 
-```
->>> r.content
-b'<!DOCTYPE html>\n<html>\n<head>\n<meta http-equiv="Content-Type" content="text/html; charset=utf-8">\n...'
-```
+如果想添加 headers，可以传入`headers`参数来增加请求头中的headers信息。如果要将参数放在url中传递，可以利用 `params` 参数。
 
-requests的方便之处还在于，对于特定类型的响应，例如JSON，可以直接获取：
+```python
+import requests
 
-```
->>> r = requests.get('https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20weather.forecast%20where%20woeid%20%3D%202151330&format=json')
->>> r.json()
-{'query': {'count': 1, 'created': '2017-11-17T07:14:12Z', ...
-```
+kw = {'wd':'长城'}
 
-需要传入HTTP Header时，我们传入一个dict作为`headers`参数：
+headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36"}
 
-```
->>> r = requests.get('https://www.douban.com/', headers={'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit'})
->>> r.text
-'<!DOCTYPE html>\n<html>\n<head>\n<meta charset="UTF-8">\n <title>豆瓣(手机版)</title>...'
-```
+# params 接收一个字典或者字符串的查询参数，字典类型自动转换为url编码，不需要urlencode()
+response = requests.get("http://www.baidu.com/s?", params = kw, headers = headers)
 
-### POST
+# 查看响应内容，response.text 返回的是Unicode格式的数据
+print response.text
 
-要发送POST请求，只需要把`get()`方法变成`post()`，然后传入`data`参数作为POST请求的数据：
+# 查看响应内容，response.content返回的字节流数据
+print respones.content
 
-```
->>> r = requests.post('https://accounts.douban.com/login', data={'form_email': 'abc@example.com', 'form_password': '123456'})
-```
+# 查看完整url地址
+print response.url
 
-requests默认使用`application/x-www-form-urlencoded`对POST数据编码。如果要传递JSON数据，可以直接传入json参数：
+# 查看响应头部字符编码
+print response.encoding
 
-```
-params = {'key': 'value'}
-r = requests.post(url, json=params) # 内部自动序列化为JSON
+# 查看响应码
+print response.status_code
 ```
 
-类似的，上传文件需要更复杂的编码格式，但是requests把它简化成`files`参数：
+## POST
 
-```
->>> upload_files = {'file': open('report.xls', 'rb')}
->>> r = requests.post(url, files=upload_files)
-```
-
-在读取文件时，注意务必使用`'rb'`即二进制模式读取，这样获取的`bytes`长度才是文件的长度。
-
-把`post()`方法替换为`put()`，`delete()`等，就可以以PUT或DELETE方式请求资源。
-
-除了能轻松获取响应内容外，requests对获取HTTP响应的其他信息也非常简单。例如，获取响应头：
-
-```
->>> r.headers
-{Content-Type': 'text/html; charset=utf-8', 'Transfer-Encoding': 'chunked', 'Content-Encoding': 'gzip', ...}
->>> r.headers['Content-Type']
-'text/html; charset=utf-8'
+```python
+response = requests.post("http://www.baidu.com/", data = data)
 ```
 
-requests对Cookie做了特殊处理，使得我们不必解析Cookie就可以轻松获取指定的Cookie：
+### 传入data数据
 
-```
->>> r.cookies['ts']
-'example_cookie_12345'
-```
+data的常见格式：
 
-要在请求中传入Cookie，只需准备一个dict传入`cookies`参数：
+- application/x-www-form-urlencoded 
 
-```
->>> cs = {'token': '12345', 'status': 'working')
->>> r = requests.get(url, cookies=cs)
+浏览器的原生 form 表单，如果header中不设置 Content-Type 属性，默认以 `application/x-www-form-urlencoded` 方式提交数据。
+
+```python
+requests.post(url='',data={'key1':'value1','key2':'value2'},headers={'Content-Type':'application/x-www-form-urlencoded'})
 ```
 
-最后，要指定超时，传入以秒为单位的timeout参数：
+样例
 
+```python
+import requests
+
+url = 'http://httpbin.org/post'
+# headers={'Content-Type':'application/x-www-form-urlencoded'}
+d = {'key1': 'value1', 'key2': 'value2'} 
+r = requests.post(url, data=d)
+print r.text
 ```
->>> r = requests.get(url, timeout=2.5) # 2.5秒后超时
+
+- multipart/form-data 
+
+上传文件用的表单
+
+```python
+requests.post(url='',data={'key1':'value1','key2':'value2'},headers={'Content-Type':'multipart/form-data'})
 ```
+
+需要文件
+
+```python
+from requests_toolbelt import MultipartEncoder
+import requests
+
+url = 'http://httpbin.org/post'
+m = MultipartEncoder(
+    fields={'field0': 'value', 'field1': 'value',
+            'field2': ('filename', open('file.py', 'rb'), 'text/plain')}
+    )
+h={'Content-Type': m.content_type}
+r = requests.post(url, data=m, headers=h)
+```
+
+不需要文件
+
+```python
+from requests_toolbelt import MultipartEncoder
+import requests
+
+url = 'http://httpbin.org/post'
+m = MultipartEncoder(fields={'field0': 'value', 'field1': 'value'})
+h = {'Content-Type': m.content_type}
+r = requests.post(url, data=m, headers=h
+```
+
+- application/json 
+
+传入json格式
+
+```python
+requests.post(url='',data=json.dumps({'key1':'value1','key2':'value2'}),headers={'Content-Type':'application/json'})
+```
+
+样例
+
+```python
+import requests
+
+url = 'http://httpbin.org/post'
+# headers={'Content-Type':'application/json'}
+d_s = json.dumps({'key1': 'value1', 'key2': 'value2'})
+r = requests.post(url, data=d_s)
+print r.text
+```
+
+- text/xml 
+
+传入xml格式
+
+```python
+requests.post(url='',data='<?xml  ?>',headers={'Content-Type':'text/xml'})
+```
+
+- binary
+
+二进制文件
+
+```python
+requests.post(url='',files={'file':open('test.xls','rb')},headers={'Content-Type':'binary'})
+```
+
+样例
+
+```python
+import requests
+
+url = 'http://httpbin.org/post'
+# headers={'Content-Type':'binary'}
+files = {'file': open('report.txt', 'rb')}
+r = requests.post(url, files=files)
+print r.text
+```
+
+### 模拟浏览器
+
+```python
+import requests
+
+formdata = {
+    "type":"AUTO",
+    "i":"i love python",
+    "doctype":"json",
+    "xmlVersion":"1.8",
+    "keyfrom":"fanyi.web",
+    "ue":"UTF-8",
+    "action":"FY_BY_ENTER",
+    "typoResult":"true"
+}
+
+url = "http://fanyi.youdao.com/translate?smartresult=dict&smartresult=rule&smartresult=ugc&sessionFrom=null"
+
+headers={ "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36"}
+
+response = requests.post(url, data = formdata, headers = headers)
+
+print response.text
+
+# 如果是json文件可以直接显示
+print response.json()
+```
+
+## 代理
+
+-  proxies参数
+
+你可以通过为任意请求方法提供 `proxies` 参数来配置单个请求：
+
+```python
+import requests
+
+# 根据协议类型，选择不同的代理
+proxies = {"http": "http://12.34.56.79:9527"}
+
+response = requests.get("http://www.baidu.com", proxies = proxies)
+print response.text
+```
+
+也可以通过本地环境变量 `HTTP_PROXY` 和 `HTTPS_PROXY` 来配置代理：
+
+```python
+export HTTP_PROXY="http://12.34.56.79:9527"
+export HTTPS_PROXY="https://12.34.56.79:9527"
+```
+
+- 私密代理
+
+```python
+import requests
+
+# 如果代理需要使用HTTP Basic Auth，可以使用下面这种格式：
+proxy = { "http": "mr_mao_hacker:sffqry9r@61.158.163.130:16816" }
+
+response = requests.get("http://www.baidu.com", proxies = proxy)
+
+print response.text
+```
+
+## 验证
+
+```python
+import requests
+
+auth=('test', '123456')
+
+response = requests.get('http://192.168.199.107', auth = auth)
+
+print response.text
+```
+
+## SSL
+
+```python
+import requests
+# 检查证书
+r = requests.get("https://www.baidu.com/", verify=True)
+# 忽略证书
+r = requests.get("https://www.12306.cn/mormhweb/", verify = False)
+print r.text
+```
+
+## Cookies
+
+```python
+import requests
+
+response = requests.get("http://www.baidu.com/")
+
+# 7. 返回CookieJar对象:
+cookiejar = response.cookies
+
+# 8. 将CookieJar转为字典：
+cookiedict = requests.utils.dict_from_cookiejar(cookiejar)
+
+print cookiejar
+
+print cookiedict
+```
+
+## Session
+
+```python
+import requests
+
+# 1. 创建session对象，可以保存Cookie值
+ssion = requests.session()
+
+# 2. 处理 headers
+headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36"}
+
+# 3. 需要登录的用户名和密码
+data = {"email":"mr_mao_hacker@163.com", "password":"alarmchime"}  
+
+# 4. 发送附带用户名和密码的请求，并获取登录后的Cookie值，保存在ssion里
+ssion.post("http://www.renren.com/PLogin.do", data = data)
+
+# 5. ssion包含用户登录后的Cookie值，可以直接访问那些登录后才可以访问的页面
+response = ssion.get("http://www.renren.com/410043129/profile")
+
+# 6. 打印响应内容
+print response.text
+```
+
+## 实例
+
+```python
+#!/usr/bin/env python
+# coding: utf-8
+import requests
+
+
+def requests_base_use():
+
+    url = 'http://www.baidu.com'
+    headers = {}
+    # 1.get
+    params = {}
+    # 1/url自动转码
+    # 2/多了params的参数
+    response = requests.get(url, params=params, headers=headers)
+    print response.text
+
+    # 二进制流
+    print response.content
+
+    # 必须是返回的json文件
+    print response.json()
+
+    # 2.post
+    formdata = {}
+    requests.post(url, data=formdata, headers=headers)
+
+    # 3.ssl
+    requests.get(url, verify=False)
+
+    # 4.proxy
+    proxy = {'http': "ip:port"}
+    requests.get(url, proxies=proxy)
+
+    # 5.cookie
+    # 生成一个可以自动保存cookie对象
+    session = requests.session()
+    session.post(url, data=formdata)
+    session.get(url)
+
+    # 6.webauth
+    auth = ('user', 'pwd')
+    requests.get(url, auth=auth)
+
+
+if __name__ == "__main__":
+    requests_base_use()
+```
+

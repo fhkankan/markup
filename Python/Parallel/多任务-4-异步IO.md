@@ -125,6 +125,31 @@ if __name__ == "__main__":
     pass
 ```
 
+### async/await
+
+python位了将语义变得更加明确，python3.5以后引入async/await，避免了生成器和协程混用
+
+```python
+#python为了将语义变得更加明确，就引入了async和await关键词用于定义原生的协程
+async def downloader(url):
+    return "bobby"
+
+# import types
+# @types.coroutine  # 装饰器封装为await
+# def downloader(url):
+#     yield "bobby"
+
+async def download_url(url):
+    #dosomethings
+    html = await downloader(url)
+    return html
+
+if __name__ == "__main__":
+    coro = download_url("http://www.imooc.com")
+    # next(None)  # 原协程不能如此调用
+    coro.send(None)
+```
+
 ### greenlet
 
 为了更好使用协程来完成多任务，python中的greenlet模块对其封装，从而使得切换任务变的更加简单
@@ -163,6 +188,8 @@ gr1.switch()
 ```
 
 ### gevent
+
+使用C语言实现协程
 
 python还有一个比greenlet更强大的并且能够自动切换任务的模块`gevent`
 
@@ -216,7 +243,7 @@ g3.join()
 
 - 打补丁
 
-```
+```python
 from gevent import monkey
 import gevent
 import random
@@ -240,7 +267,7 @@ gevent.joinall([
 
 **并发下载**
 
-```
+```python
 from gevent import monkey
 import gevent
 import urllib.request
@@ -263,7 +290,7 @@ gevent.joinall([
 
 **多视频下载**
 
-```
+```python
 from gevent import monkey
 import gevent
 import urllib.request
@@ -286,32 +313,6 @@ gevent.joinall([
         gevent.spawn(my_downLoad, "2.mp4", 'http://oo52bgdsl.bkt.clouddn.com/05day-03-%E3%80%90%E6%8E%8C%E6%8F%A1%E3%80%91%E6%97%A0%E5%8F%82%E6%95%B0%E6%97%A0%E8%BF%94%E5%9B%9E%E5%80%BC%E5%87%BD%E6%95%B0%E7%9A%84%E5%AE%9A%E4%B9%89%E3%80%81%E8%B0%83%E7%94%A8%28%E4%B8%8B%29.mp4'),
 ])
 ```
-
-### async/await
-
-python位了将语义变得更加明确，python3.5以后引入async/await，避免了生成器和协程混用
-
-```python
-#python为了将语义变得更加明确，就引入了async和await关键词用于定义原生的协程
-async def downloader(url):
-    return "bobby"
-
-# import types
-# @types.coroutine  # 装饰器封装为await
-# def downloader(url):
-#     yield "bobby"
-
-async def download_url(url):
-    #dosomethings
-    html = await downloader(url)
-    return html
-
-if __name__ == "__main__":
-    coro = download_url("http://www.imooc.com")
-    # next(None)  # 原协程不能如此调用
-    coro.send(None)
-```
-
 
 ## asyncio
 
