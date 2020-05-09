@@ -391,7 +391,7 @@ JSON 解码为 Python 类型转换对应表：
 
 Python 数据结构 ---> JSON字符串：
 
-```
+```python
 #!/usr/bin/python3
 
 import json
@@ -419,7 +419,7 @@ JSON 对象： {"url": "http://www.runoob.com", "no": 1, "name": "Runoob"}
 
 JSON字符串  --->  Python数据结构：
 
-```
+```python
 #!/usr/bin/python3
 
 import json
@@ -452,7 +452,7 @@ data2['url']:  http://www.runoob.com
 
 如果你要处理的是文件而不是字符串，你可以使用 **json.dump()** 和 **json.load()** 来编码和解码JSON数据。例如：
 
-```
+```python
 # 写入 JSON 数据
 with open('data.json', 'w') as f:
     json.dump(data, f)
