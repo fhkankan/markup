@@ -1,43 +1,35 @@
 # MySQL
 
-## 与python交互
+## 与python同步交互
 
 ### 数据库驱动
 
-```
 数据库驱动是用于连接 MySQL 服务器，可以执行sql语句的发送，执行结果的获取
 
 ORM是将模型类的操作转换为sql语句，将数据库执行的结果转换为模型类对象
 
 在mysql数据库的使用中，若使用ORM，ORM只识别mysqldb作为数据库驱动名
 ```
-
-> PyMySQL是个人维护的第三方库，支持python2.x和python3.x.
-
-```
-# 在ORM（Django,sqlalchemy,flask-sqlalchemy）中使用时需执行如下语句
+- PyMySQL是个人维护的第三方库
+支持python2.x和python3.x.
+在ORM（Django,sqlalchemy,flask-sqlalchemy）中使用时需执行如下语句
 import pymysql
 pymsql.install_as_mysqldb()
+
+- mysql-client
+支持python2和python3
+
+- mysql-connector-python
+mysql官方维护的库，支持python2和python3
 ```
 
-> MySQL-Python是mysql官方维护的库，只支持python2
-
-```
-# 官方的库，安装后，ORM自动识别为mysqldb,直接使用
-```
-
-> mysql-client，支持python2和python3
-
-```
-替代mysql-python
-```
 
 安装驱动
 
 ```
 pip install PyMySQL
-pip install MySQL-Python
 pip install mysqlclient
+pip install mysql-connector-python
 ```
 
 ### 数据库交互
@@ -45,7 +37,6 @@ pip install mysqlclient
 - 引入模块
 
 ```
-# 在py文件中引入pymysql模块
 from pymysql import *
 ```
 
@@ -53,59 +44,57 @@ from pymysql import *
 
 用于建立与数据库的连接
 
-```
+```python
 # 创建对象
 conn=connect(参数列表)
-
-参数host：连接的mysql主机，如果本机是'localhost'
-参数port：连接的mysql主机的端口，默认是3306
-参数database：数据库的名称
-参数user：连接的用户名
-参数password：连接的密码
-参数charset：通信采用的编码方式，推荐使用utf8
+# 参数列表
+host：连接的mysql主机，如果本机是'localhost'
+port：连接的mysql主机的端口，默认是3306
+database：数据库的名称
+user：连接的用户名
+password：连接的密码
+charset：通信采用的编码方式，推荐使用utf8
 ```
 
 对象的方法
 
-```
-# 关闭连接
-close()			
-# 提交
-commit()		
-# 返回Cursor对象，用于执行sql语句并获得结果
-cursor()		
+```python
+cursor()  # 返回Cursor对象，用于执行sql语句并获得结果
+commit()  # 对数据库数据进行增删更时需提交	
+rollback()  # 提交出错时回滚
+close()  # 关闭连接
 ```
 
 - Cursor对象
 
 用于执行sql语句，使用频度最高的语句为select、insert、update、delete
 
+游标对象
 ```
-# 获取Cursor对象
 cs1=conn.cursor()
 ```
 
 对象方法
 
-```
-close()
-# 关闭
-execute(operation [, parameters ])
-# 执行语句，返回受影响的行数，主要用于执行insert、update、delete语句，也可以执行create、alter、drop等语句
-fetchone()
-# 执行查询语句时，获取查询结果集的第一个行数据，返回一个元组
-fetchall()
-# 执行查询时，获取结果集的所有行，一行构成一个元组，再将这些元组装入一个元组返回
+```python
+close()  # 关闭
+execute(operation [, parameters ])  # 执行语句，返回受影响的行数，主要用于执行insert、update、delete语句，也可以执行create、alter、drop等语句
+fetchone()  # 执行查询语句时，获取查询结果集的第一个行数据，返回一个元组
+fetchall()  # 执行查询时，获取结果集的所有行，一行构成一个元组，再将这些元组装入一个元组返回
 ```
 
 对象的属性
 
+```python
+rowcount  # 只读属性，表示最近一次execute()执行后受影响的行数
+connection  # 获得当前连接对象
 ```
-rowcount
-# 只读属性，表示最近一次execute()执行后受影响的行数
 
-connection
-# 获得当前连接对象
+上下文管理器
+
+```python
+with conn.cursor() as cursor:
+	pass
 ```
 
 ### 参数化
@@ -113,7 +102,7 @@ connection
 - sql语句的参数化，可以有效防止sql注入
 - 注意：此处不同于python的字符串格式化，全部使用%s占位
 
-```
+```python
 from pymysql import *
 
 def main():
@@ -160,195 +149,86 @@ if __name__ == '__main__':
 
 ### 综合实例
 
-#### 使用pymsql
+#### pymsql
 
-数据库连接
-
-```
+```python
 import pymysql
  
 # 打开数据库连接
 db = pymysql.connect("localhost","testuser","test123","TESTDB" )
  
-# 使用 cursor() 方法创建一个游标对象 cursor
+# 创建游标对象
 cursor = db.cursor()
  
-# 使用 execute()  方法执行 SQL 查询 
-cursor.execute("SELECT VERSION()")
- 
-# 使用 fetchone() 方法获取单条数据.
-data = cursor.fetchone()
- 
-print ("Database version : %s " % data)
-
-# 关闭数据库连接
-db.close()
-```
-
-创建数据库表
-
-```
-import pymysql
- 
-# 打开数据库连接
-db = pymysql.connect("localhost","testuser","test123","TESTDB" )
- 
-# 使用 cursor() 方法创建一个游标对象 cursor
-cursor = db.cursor()
- 
-# 使用 execute() 方法执行 SQL，如果表存在则删除
-cursor.execute("DROP TABLE IF EXISTS EMPLOYEE")
- 
-# 使用预处理语句创建表
+# 执行sql语句
+# 增删改
+sql = "DROP TABLE IF EXISTS EMPLOYEE"
 sql = """CREATE TABLE EMPLOYEE (
          FIRST_NAME  CHAR(20) NOT NULL,
          LAST_NAME  CHAR(20),
          AGE INT,  
          SEX CHAR(1),
          INCOME FLOAT )"""
- 
-cursor.execute(sql)
- 
-# 关闭数据库连接
-db.close()
-```
-
-数据库插入
-
-```
-import pymysql
- 
-# 打开数据库连接
-db = pymysql.connect("localhost","testuser","test123","TESTDB" )
- 
-# 使用cursor()方法获取操作游标 
-cursor = db.cursor()
- 
-# SQL 插入语句
 sql = """INSERT INTO EMPLOYEE(FIRST_NAME,
          LAST_NAME, AGE, SEX, INCOME)
          VALUES ('Mac', 'Mohan', 20, 'M', 2000)"""
-try:
-   # 执行sql语句
-   cursor.execute(sql)
-   # 提交到数据库执行
-   db.commit()
-except:
-   # 如果发生错误则回滚
-   db.rollback()
- 
-# 关闭数据库连接
-db.close()
-```
-
-数据库查询
-
-- **fetchone():** 该方法获取下一个查询结果集。结果集是一个对象
-- **fetchall():** 接收全部的返回结果行.
-- **rowcount:** 这是一个只读属性，并返回执行execute()方法后影响的行数。
-
-```
-import pymysql
- 
-# 打开数据库连接
-db = pymysql.connect("localhost","testuser","test123","TESTDB" )
- 
-# 使用cursor()方法获取操作游标 
-cursor = db.cursor()
- 
-# SQL 查询语句
-sql = "SELECT * FROM EMPLOYEE \
-       WHERE INCOME > '%d'" % (1000)
-try:
-   # 执行SQL语句
-   cursor.execute(sql)
-   # 获取所有记录列表
-   results = cursor.fetchall()
-   for row in results:
-      fname = row[0]
-      lname = row[1]
-      age = row[2]
-      sex = row[3]
-      income = row[4]
-       # 打印结果
-      print ("fname=%s,lname=%s,age=%d,sex=%s,income=%d" % \
-             (fname, lname, age, sex, income ))
-except:
-   print ("Error: unable to fetch data")
- 
-# 关闭数据库连接
-db.close()
-```
-
-数据库更新
-
-```
-import pymysql
- 
-# 打开数据库连接
-db = pymysql.connect("localhost","testuser","test123","TESTDB" )
- 
-# 使用cursor()方法获取操作游标 
-cursor = db.cursor()
- 
-# SQL 更新语句
 sql = "UPDATE EMPLOYEE SET AGE = AGE + 1 WHERE SEX = '%c'" % ('M')
-try:
-   # 执行SQL语句
-   cursor.execute(sql)
-   # 提交到数据库执行
-   db.commit()
-except:
-   # 发生错误时回滚
-   db.rollback()
- 
-# 关闭数据库连接
-db.close()
-```
-
-删除操作
-
-```
-import pymysql
- 
-# 打开数据库连接
-db = pymysql.connect("localhost","testuser","test123","TESTDB" )
- 
-# 使用cursor()方法获取操作游标 
-cursor = db.cursor()
- 
-# SQL 删除语句
 sql = "DELETE FROM EMPLOYEE WHERE AGE > '%d'" % (20)
 try:
-   # 执行SQL语句
    cursor.execute(sql)
-   # 提交修改
-   db.commit()
+   db.commit()  # 提交到数据库执行
 except:
-   # 发生错误时回滚
-   db.rollback()
- 
-# 关闭连接
+   db.rollback()  # 如果发生错误则回滚
+# 数据查询
+sql = "SELECT VERSION()"
+sql = "SELECT * FROM EMPLOYEE \
+       WHERE INCOME > '%d'" % (1000)
+cursor.execute(sql)
+data = cursor.fetchone()  # 获取sql执行单行结果
+results = cursor.fetchall()  # 获取sql执行后多行结果
+for row in results:
+     pass
+    
+# 关闭游标
+cursor.close()
+# 关闭数据库连接
 db.close()
 ```
 
-#### 使用mysqlClient
-
-测试安装ok
-
-```
-import MySQLdb
-```
-
-操作数据库
+with
 
 ```python
-#coding=utf-8
+import pymysql.cursors
+
+# Connect to the database
+connection = pymysql.connect(host='localhost',
+                             user='user',
+                             password='passwd',
+                             db='db',
+                             charset='utf8mb4',
+                             cursorclass=pymysql.cursors.DictCursor)
+
+try:
+    with connection.cursor() as cursor:
+        sql = "INSERT INTO `users` (`email`, `password`) VALUES (%s, %s)"
+        cursor.execute(sql, ('webmaster@python.org', 'very-secret'))
+    connection.commit()
+
+    with connection.cursor() as cursor:
+        sql = "SELECT `id`, `password` FROM `users` WHERE `email`=%s"
+        cursor.execute(sql, ('webmaster@python.org',))
+        result = cursor.fetchone()
+        print(result)
+finally:
+    connection.close()
+```
+
+#### mysqlClient
+
+```python
 import MySQLdb
 
-
-#connect() 方法用于创建数据库的连接，里面可以指定参数：用户名，密码，主机等信息。
-#这只是连接到了数据库，要想操作数据库需要创建游标。
+# 创建连接对象
 conn= MySQLdb.connect(
         host='localhost',
         port = 3306,
@@ -357,12 +237,10 @@ conn= MySQLdb.connect(
         db ='test',
         )
 
-
-
-#通过获取到的数据库连接conn下的cursor()方法来创建游标。
+# 创建游标。
 cur = conn.cursor()
 
-#创建数据表,通过游标cur 操作execute()方法可以写入纯sql语句。通过execute()方法中写如sql语句来对数据进行操作
+# 执行sql
 cur.execute("create table student(id int ,name varchar(20),class varchar(30),age varchar(10))")
 
 #插入一条数据
@@ -375,7 +253,15 @@ cur.execute("update student set class='3 year 1 class' where name = 'Tom'")
 #删除查询条件的数据
 cur.execute("delete from student where age='9'")
 
-#cur.close() 关闭游标
+#一次插入多条记录
+sqli="insert into student values(%s,%s,%s,%s)"
+cur.executemany(sqli,[
+    ('3','Tom','1 year 1 class','6'),
+    ('3','Jack','2 year 1 class','7'),
+    ('3','Yaheng','2 year 2 class','7'),
+    ])
+
+# 关闭游标
 cur.close()
 
 #conn.commit()方法在提交事物，在向数据库插入一条数据时必须要有这个方法，否则数据不会被真正的插入。
@@ -385,41 +271,108 @@ conn.commit()
 conn.close()
 ```
 
-插入多条值
+#### m-c-p
+
+mysql经典协议
 
 ```python
-#coding=utf-8
-import MySQLdb
+import mysql.connector
 
-conn= MySQLdb.connect(
-        host='localhost',
-        port = 3306,
-        user='root',
-        passwd='123456',
-        db ='test',
-        )
-cur = conn.cursor()
+# Connect to server
+cnx = mysql.connector.connect(
+    host="127.0.0.1",
+    port=3306,
+    user="mike",
+    password="s3cre3t!")
 
-#一次插入多条记录
-sqli="insert into student values(%s,%s,%s,%s)"
-cur.executemany(sqli,[
-    ('3','Tom','1 year 1 class','6'),
-    ('3','Jack','2 year 1 class','7'),
-    ('3','Yaheng','2 year 2 class','7'),
-    ])
+# Get a cursor
+cur = cnx.cursor()
 
-cur.close()
-conn.commit()
-conn.close()
+# Execute a query
+cur.execute("SELECT CURDATE()")
+
+# Fetch one result
+row = cur.fetchone()
+print("Current date is: {0}".format(row[0]))
+
+# Close connection
+cnx.close()
+```
+
+使用MySQL X DevAPI
+
+```python
+import mysqlx
+
+# Connect to server
+session = mysqlx.get_session(
+   host="127.0.0.1",
+   port=33060,
+   user="mike",
+   password="s3cr3t!")
+schema = session.get_schema("test")
+
+# Use the collection "my_collection"
+collection = schema.get_collection("my_collection")
+
+# Specify which document to find with Collection.find()
+result = collection.find("name like :param") \
+                   .bind("param", "S%") \
+                   .limit(1) \
+                   .execute()
+
+# Print document
+docs = result.fetch_all()
+print(r"Name: {0}".format(docs[0]["name"]))
+
+# Close session
+session.close()
+```
+
+## 与python异步交互
+
+安装驱动
+
+```
+pip install aiomysql
+```
+
+- 使用
+
+[参考](https://github.com/aio-libs/aiomysql)
+
+[文档](https://aiomysql.readthedocs.io/en/latest/)
+
+简单使用
+
+```python
+import asyncio
+import aiomysql
+
+
+async def test_example(loop):
+    pool = await aiomysql.create_pool(host='127.0.0.1', port=3306,
+                                      user='root', password='',
+                                      db='mysql', loop=loop)
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cur:
+            await cur.execute("SELECT 42;")
+            print(cur.description)
+            (r,) = await cur.fetchone()
+            assert r == 42
+    pool.close()
+    await pool.wait_closed()
+
+
+loop = asyncio.get_event_loop()
+loop.run_until_complete(test_example(loop))
 ```
 
 ## 与Django框架交互
 
 在框架中，使用默认的ORM
 
-### 配置
-
-```
+```python
 1、手动生成mysql数据库
 mysql –uroot –p 
 show databases;
@@ -444,9 +397,7 @@ DATABASES = {
 }
 
 2)、在python虚拟环境下安装mysqlPython包:
-pip install mysql-python 	# python2
-pip install pymysql			# python3
-pip install mysqlclient # python2,python3
+pip install pymysql
 
 3)、导入mysql包
 1. 在项目或应用的__init__.py中，

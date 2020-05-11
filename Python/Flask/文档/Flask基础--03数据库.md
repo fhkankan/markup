@@ -21,7 +21,7 @@ show databases;
 desc create table 数据表名;
 ```
 
-### 安装flask-sqlalchemy
+### 安装
 
 ```
 # ORM(将模型类操作转换为sql语句，将结果转换为模型类对象)
@@ -103,7 +103,7 @@ app.config['SQLALCHEMY_ECHO'] = True
 
 从数据库表的层面考虑定义模型类
 
-```
+```python
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 
