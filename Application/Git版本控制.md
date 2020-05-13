@@ -767,6 +767,7 @@ git rm 		# 从工作区和索引中删除文件
 - 回退
 
 ```
+git reset --soft HEAD^  # 撤销上次commit，不撤销add
 git reset --hard <commit-id>  # 撤销上次commit的内容
 git reset --hard HEAD^		# 后退1步(一个^表示后退一步)
 git reset --hard HEAD~2		# 后退2步(~后的数字n摆哦是后退n步)
@@ -776,6 +777,8 @@ git reset --hard HEAD~2		# 后退2步(~后的数字n摆哦是后退n步)
 
 ```shell
 git commit -m '修改注释'    # 记录变更到仓库
+git commit --amend  修改注释
+git reset --soft HEAD^  # 撤销上次commit，不撤销add
 ```
 
 - 合并
