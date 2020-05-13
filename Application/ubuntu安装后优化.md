@@ -14,8 +14,13 @@ sudo apt-get remove  unity-webapps-common  totem  rhythmbox simple-scan gnome-ma
 # 清理缓存
 sudo apt-get autoremove
 sudo apt-get autoclean 
+
+# 使用dpkg卸载
+sudo dpkg -l  # 查看已安装软件
+sudo dpkg -P ...  # 删除已安装软件
 ```
 # 更换源
+
 - 方法一：
 
 图形化界面中，更改设置中的软件与更新，选择中国阿里云
