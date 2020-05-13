@@ -179,6 +179,8 @@ git commit -m "branch test"	# 提交本地
 
 git checkout master	# 切回master分支
 git merge dev		# 合并指定分支到当前分支
+
+git branch --set-upstream-to=origin/远程分支名字 本地分支名字  # 追踪分支
 ```
 
 ## 合并冲突解决
