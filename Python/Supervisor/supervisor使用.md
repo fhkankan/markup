@@ -5,13 +5,10 @@ Supervisor是用Python开发的一套通用的进程管理程序，能将一个�
 ## 安装
 
 ```
-1：easy_install 安装：
-easy_install supervisor
-
-2：pip 安装：
+# pip 安装：
 pip install supervisor
 
-3：Debian / Ubuntu可以直接通过apt安装：
+# Debian / Ubuntu可以直接通过apt安装：
 apt-get install supervisor
 ```
 

@@ -187,11 +187,263 @@ if __name__ == "__main__":
 
 流程：构造文件队列、读取二进制数据并进行解码、处理图片数据形状及类型放入批处理队列中、开启会话线程运行
 
+```python
+import tensorflow as tf
+import os
+
+class Cifar(object):
+
+    def __init__(self):
+        # 初始化操作
+        self.height = 32
+        self.width = 32
+        self.channels = 3
+        # 字节数
+        self.image_bytes = self.height * self.width * self.channels
+        self.label_bytes = 1
+        self.all_bytes = self.label_bytes + self.image_bytes
+
+    def read_and_decode(self, file_list):
+        # 1.构造文件名队列
+        file_queue = tf.train.string_input_producer(file_list)
+        # 2.读取与解码
+        # 读取
+        reader = tf.FixedLengthRecordReader(self.all_bytes)
+        key, value = reader.read(file_queue)
+        # 解码
+        decoded = tf.decode_raw(value, tf.uint8)
+        # 将目标值和特征值分割
+        label = tf.slice(decoded, [0], [self.label_bytes])
+        image = tf.slice(decoded, [self.label_bytes], [self.image_bytes])
+        # 调整图片形状
+        image_reshaped = tf.reshape(image, shape=[self.channels, self.height, self.width])
+        # 转置，将图片的顺序转为height,width,channels
+        image_transposed = tf.transpose(image_reshaped, [1,2,0])
+        # 调整图像类型
+        image_cast = tf.cast(image_transposed, tf.float32)
+        # 3.批处理
+        label_batch, image_batch = tf.train.batch([label, image_cast], batch_size=100, num_threads=2, capacity=100)
+        # 4.开启会话
+        with tf.Session() as sess:
+            # 开启线程
+            coord = tf.train.Coordinator()
+            threads = tf.train.start_queue_runners(sess=sess, coord=coord)
+            key_n, value_n, decoded_n, label_n, image_n, image_reshaped_n, image_transposed_n = \
+             sess.run([key, value, decoded, label, image, image_reshaped, image_transposed])
+            label_value, image_value = sess.run([label_batch, image_batch])
+            print('new-key-value:\n{}\n-{}'.format(key_n, value_n))
+            print('new-decoded:\n', decoded_n)
+            print('new-lable:\n', label_n)
+            print('new-image:\n', image_n)
+            print('new-image_reshaped:\n', image_reshaped_n)
+            print('new-image_transposed:\n', image_transposed_n)
+            print("label_value:\n", label_value)
+            print("image_value:\n", image_value)
+            # 回收线程
+            coord.request_stop()
+            coord.join(threads)
+if __name__ == "__main__":
+    # 构造路径+文件名的列表
+    file_name = os.listdir("./cifar-10-batches-bin")
+    file_list = [os.path.join("./cifar-10-batches-bin/", file) for file in file_name if file[-3:] == "bin"]
+    print(file_list)
+    cifar = Cifar()
+    cifar.read_and_decode(file_list)
 ```
-
-```
-
-
 
 ### TFRecords
+
+TFRecords其实是一种二进制文件，虽然不如其他格式好理解，但是他能更好地利用内存，更方便复制和移动，并且不需要单独的标签文件。文件格式`*.tfrecords`
+
+使用步骤
+
+```
+1. 获取数据
+2. 将数据填入到Example协议内存块(protocol buffer)
+3. 将协议内存块序列化为字符串，并且通过tf.python_io.TFRecordWriter写入到TFRecords文件
+```
+
+- Example
+
+Example结构
+> 这种结构很好地实现了数据和标签(训练的类别标签)或其他属性数据存储在同一个文件中
+
+```
+Example:
+	features{
+	  feature{
+	    key: "image"
+	    value{
+	      bytes_list{
+	        value: "\377..."
+	      }
+	    }
+	  }
+	  feature{
+	    key: "label"
+	    value{
+	      int64_list{ 
+	        value: 9
+	      }
+	    }
+	  }
+	}
+```
+
+写入相关函数
+
+```python
+# 实例化一个example对象
+example = tf.train.Example(features=tf.train.Features(
+    feature={
+        "image": tf.train.Feature(bytes_list=tf.train.BytesList(value=[image])),
+        "label": tf.train.Feature(int64_list=tf.train.Int64List(value=[label])),
+   }))
+
+tf.train.Example(features=None)
+# 写入tfrecords文件，返回example格式协议块
+# 参数features:tf.train.Features类型的特征实例
+
+tf.train.Features(feature=None)
+# 构建每个样本的信息键值对，返回Features类型
+# 参数feature：字典数据，key为要保存的名字，value为tf.train.Feature实例
+
+tf.train.Feature(options)
+# 参数options:支持存入的类型如下
+- tf.train.Int64List(value=[Value])
+- tf.train.BytesList(value=[Bytes])
+- tf.train.FloatList(value=[Value])
+```
+
+读取相关函数
+
+```python
+# 解析example的一个步骤
+feature = tf.parse_single_example(values, features={
+    "image": tf.FixedLenFeature([], tf.string),
+    "label": tf.FixedLenFeature([], tf.int64)
+})
+
+tf.parse_single_example(serialized, features=None, name=None)
+# 解析一个单一的Example原型。返回一个键值对组成的字典，键为读取的名字
+# 参数
+- serialized:标量字符串Tensor，一个序列化的Example
+- features:dict字典数据，键为读取的名字，值为FixedLenFeature
+    
+tf.FixedLenFeature(shape, dtype)
+# 参数
+- shape:输入数据的形状，一般不指定，为空列表
+- dtype:输入数据类型，与存储进文件的类型要一致，只能是float32,int64,string
+```
+
+
+- 写入与读取实例
+
+```python
+import tensorflow as tf
+import os
+
+class Cifar(object):
+
+    def __init__(self):
+        # 设置图像大小
+        self.height = 32
+        self.width = 32
+        self.channels = 3
+        # 设置图像字节数
+        self.image_bytes = self.height * self.width * self.channels
+        self.label_bytes = 1
+        self.all_bytes = self.label_bytes + self.image_bytes
+
+    def read_binary(self):
+        # 1.构造文件名队列
+        file_name = os.listdir("./cifar-10-batches-bin")
+        file_list = [os.path.join("./cifar-10-batches-bin/", file) for file in file_name if file[-3:] == "bin"]
+        file_queue = tf.train.string_input_producer(file_list)
+        # 2.读取与解码
+        # 读取
+        reader = tf.FixedLengthRecordReader(self.all_bytes)
+        key, value = reader.read(file_queue)  # key文件名，value样本
+        # 解码
+        decoded = tf.decode_raw(value, tf.uint8)
+        # 将目标值和特征值分割
+        label = tf.slice(decoded, [0], [self.label_bytes])
+        image = tf.slice(decoded, [self.label_bytes], [self.image_bytes])
+        # 调整图片形状
+        image_reshaped = tf.reshape(image, shape=[self.channels, self.height, self.width])
+        # 转置，将图片的顺序转为height,width,channels
+        image_transposed = tf.transpose(image_reshaped, [1,2,0])
+        # 调整图像类型
+        image_cast = tf.cast(image_transposed, tf.float32)
+        # 3.批处理
+        label_batch, image_batch = tf.train.batch([label, image_cast], batch_size=100, num_threads=2, capacity=100)
+        # 4.开启会话
+        with tf.Session() as sess:
+            # 开启线程
+            coord = tf.train.Coordinator()
+            threads = tf.train.start_queue_runners(sess=sess, coord=coord)
+            label_value, image_value = sess.run([label_batch, image_batch])
+            # 回收线程
+            coord.request_stop()
+            coord.join(threads)
+        return image_value, label_value
+
+    def write_to_tfrecords(self, image_batch, label_batch):
+        # 将样本的特征值和目标值一起写入tfrecords文件
+        with  tf.python_io.TFRecordWriter("cifar10.tfrecords") as writer:
+            # 循环构造example对象，并序列化写入文件
+            for i in range(100):
+                image = image_batch[i].tostring()
+                label = label_batch[i][0]
+                example = tf.train.Example(
+                    features=tf.train.Features(
+                        feature={
+                            "image": tf.train.Feature(bytes_list=tf.train.BytesList(value=[image])),
+                            "label": tf.train.Feature(int64_list=tf.train.Int64List(value=[label])),
+                        }
+                ))
+                # 将序列化后的example写入文件
+                writer.write(example.SerializeToString())
+
+    def read_tfrecords(self):
+        # 读取tfrecords文件
+        # 1.构造文件名队列
+        file_queue = tf.train.string_input_producer(['cifar10.tfrecords'])
+        # 2.读取与解码
+        # 读取
+        reader = tf.TFRecordReader()
+        key, value = reader.read(file_queue)
+        # 解析example
+        feature = tf.parse_single_example(value, features={
+            "image": tf.FixedLenFeature([], tf.string),
+            "label": tf.FixedLenFeature([], tf.int64)
+        })
+        image = feature["image"]
+        label = feature["label"]
+        # 解码
+        image_decoded = tf.decode_raw(image, tf.uint8)
+        # 图像形状调整
+        image_reshaped = tf.reshape(image_decoded, [self.height, self.width, self.channels])
+        # 3.构造批处理队列
+        image_batch, label_batch = tf.train.batch([image_reshaped, label], batch_size=100, num_threads=2, capacity=100)
+        # 开启会话
+        with tf.Session() as sess:
+            # 开启线程
+            coord = tf.train.Coordinator()
+            threads = tf.train.start_queue_runners(sess=sess, coord=coord)
+            image_value, label_value = sess.run([image_batch, label_batch])
+            print(image_value, label_value)
+            # 回收资源
+            coord.request_stop()
+            coord.join(threads)
+     
+
+if __name__ == "__main__":
+    cifar = Cifar()
+    # 写入
+    image_value, label_value = cifar.read_binary()
+    cifar.write_to_tfrecords(image_value, label_value) 
+    # 读取
+    cifar.read_tfrecords()
+```
 
