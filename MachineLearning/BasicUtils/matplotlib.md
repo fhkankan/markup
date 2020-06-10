@@ -14,6 +14,12 @@ Matplotlib 是一个 Python 的 2D绘图库，通过 Matplotlib，开发者可�
 
 <http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.plot>
 
+> 安装
+
+```python
+pip install marplotlib
+```
+
 > 引用
 
 ```python
@@ -28,6 +34,8 @@ ipython --pylab
 ```
 
 ## 配置参数
+
+### 设置方式
 
 - 代码中
 
@@ -49,18 +57,18 @@ matplotlib.rcdefaults()
 
 ```python
 # 配置文件位置决定了应用范围
-# 1.当前工作目录matplotlibrc
-代码运行目录，在当前目录下，可以为目录所包含的当前项目代码定制matplotlib配置项
-# 2.用户级.matplotlib/matplotlibrc
-通常是在用户的$HOME目录下(在windows系统中Documents and Settings目录)。可以用matplotlib.get_configdir()命令来找到当前用户的配置文件目录
+# 1.当前工作目录
+# 代码运行目录
+./
+# 2.用户级
+# 通常是在用户的$HOME目录下(在windows系统中Documents and Settings目录)。
+print(matplotlib.get_configdir())
 # 3.安装配置文件
-通常在python的site-packages目录下。是系统级配置，但每次重新安装matplotlib后，配置文件被覆盖。
-
-# 打印出配置文件目录的位置
-python -c 'import matplotlib as mpl; print mpl.get_configdir()'
+# 通常在python的site-packages目录下。是系统级配置，但每次重新安装matplotlib后，配置文件被覆盖。
+print(matplotlib.matplotlib_fname())
 ```
 
-- 配置文件中的配置项
+配置文件中的配置项
 
 ```
 axes: 设置坐标轴边界和表面的颜色、坐标刻度值大小和网格的显示
@@ -75,6 +83,125 @@ savefig:可以对保存的图形进行单独设置。如设置渲染的文件背
 text:设置字体颜色、文本解析(纯文本或latex标记)等
 verbose:设置matplotlib在执行期间信息输出，如silent/helpful/debug/debug-annoying
 xticks/yicks：为x,y轴的主刻度和次刻度设置颜色、大小、方向，以及标签大小
+```
+
+### 中文异常
+
+- 字体集
+
+查看支持的字体集
+
+```python
+import matplotlib  
+a=sorted([f.name for f in matplotlib.font_manager.fontManager.ttflist])  
+  
+for i in a:  
+    print(i)  
+```
+
+增加支持的字体集
+
+```python
+# 查找配置文件
+print(matplotlib.get_configdir())
+# 修改配置中字体文件fontList.json，在ttflist列表中, 添加中文字体集
+"ttflist": [
+    {
+      "style": "normal",
+      "name": "Heiti",  # 可引用的名字
+      "weight": 400,
+      "fname": "/System/Library/Fonts/STHeiti Medium.ttc",  # 字体文件路径
+      "stretch": "normal",
+      "_class": "FontEntry",
+      "variant": "normal",
+      "size": "scalable"
+    },
+...
+```
+
+一些中文字体的英文名
+
+```
+宋体 SimSun
+黑体 SimHei
+微软雅黑 Microsoft YaHei
+微软正黑体 Microsoft JhengHei
+新宋体 NSimSun
+新细明体 PMingLiU
+细明体 MingLiU
+标楷体 DFKai-SB
+仿宋 FangSong
+楷体 KaiTi
+隶书：LiSu
+幼圆：YouYuan
+华文细黑：STXihei
+华文楷体：STKaiti
+华文宋体：STSong
+华文中宋：STZhongsong
+华文仿宋：STFangsong
+方正舒体：FZShuTi
+方正姚体：FZYaoti
+华文彩云：STCaiyun
+华文琥珀：STHupo
+华文隶书：STLiti
+华文行楷：STXingkai
+华文新魏：STXinwei
+```
+
+- 配置中文支持
+
+FontProperties
+
+```python
+# 方法一：硬编码
+import matplotlib.pyplot as plt
+from matplotlib.font_manager import FontProperties  # 步骤一
+
+font = FontProperties(fname=r"c:\windows\fonts\simsun.ttc", size=14)  # 步骤二
+plt.xlabel("x轴", fontproperties=font) # 步骤三
+plt.ylabel("y轴", fontproperties=font)
+plt.title("标题", fontproperties=font)
+plt.show()
+
+# 方法二：引用
+plt.xlabel("x轴")   # 使用默认字体
+plt.ylabel("y轴", fontproperties="SimSun") # 使用宋体
+plt.title("标题", fontproperties="SimHei") # 使用黑体
+plt.show()
+```
+
+rcParams
+
+```python
+import matplotlib.pyplot as plt
+
+plt.rcParams['font.sans-serif'] = ['SimHei'] # 步骤一（替换sans-serif字体）
+plt.rcParams['axes.unicode_minus'] = False   # 步骤二（解决坐标轴负数的负号显示问题）
+#...
+
+plt.xlabel("x轴")
+plt.ylabel("y轴")
+plt.title("标题")
+plt.show()
+```
+
+rc
+
+```python
+import matplotlib.pyplot as plt
+
+font = {'family' : 'SimHei',
+        'weight' : 'bold',
+        'size'   : '16'}
+plt.rc('font', **font)               # 步骤一（设置字体的更多属性）
+plt.rc('axes', unicode_minus=False)  # 步骤二（解决坐标轴负数的负号显示问题）
+
+#...
+
+plt.xlabel("x轴")
+plt.ylabel("y轴")
+plt.title("标题")
+plt.show()
 ```
 
 ## figure对象
@@ -847,8 +974,6 @@ show()
 | Lower left  | 3    | lower center | 8    |
 | Lower right | 4    | upper center | 9    |
 | right       | 5    | Center       | 10   |
-
-
 
 ```python
 import matplotlib.pyplot as plt

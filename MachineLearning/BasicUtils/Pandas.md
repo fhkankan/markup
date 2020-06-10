@@ -1014,8 +1014,6 @@ players["heightclass"] = pd.qcut(
 )
 ```
 
-
-
 ## 时间序列
 
 时间序列在pandas中是索引比较特殊的Series或DataFrame，其最主要的特点是以时间戳(TimeStamp)为索引

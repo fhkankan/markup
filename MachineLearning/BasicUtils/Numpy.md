@@ -95,7 +95,7 @@ numpy中创建数组的函数主要有
 array
 # 将输入数据(列表、元组、数组或其他序列)转换程ndarray
 asarray
-# 将输入转换为ndarray，如果输入数据本身时ndarray就不进行复制
+# 将输入转换为ndarray，如果输入数据本身是ndarray就不进行复制
 arange
 # 类似python内置的arange，但返回一个ndarray而不是列表
 linspace
