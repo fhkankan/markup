@@ -318,6 +318,7 @@ print(df_obj.iloc[0])
 print(df_obj.iloc[0:2])
 print(df_obj.iloc[0:2, 1:3])
 print(df_obj.iloc[[0, 2], [0, 3]])
+print(df_obj.iloc[[1,2,3,4], :])
 ```
 
 > ix
@@ -673,7 +674,7 @@ ser_obj.sort_index()
 # axis=0表示列变动，ascending=False表示降序
 df_obj.sort_index()
  
-# 按值排序
+# 按值排序,默认升序
 # by参数指定需要排序的列名(数字、字符串)
 # 若有重名的列，不能参与排序
 df_obj.sort_values(by='column_name', ascending=False))
