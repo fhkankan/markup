@@ -174,8 +174,8 @@ docker rmi [image_id/image_name:image_version]
 # 将已经下载好的镜像，导出到本地，以备后用
 docker save -o [导出后本地的镜像名称] [源镜像名称]
 # 导入镜像(两种方式)
-docker load < [image.tar_name]
-docker load --input [image.tar_name]
+docker load < [image.tar.gz]
+docker load --input [image.tar.gz]
 ```
 
 > 历史、创建

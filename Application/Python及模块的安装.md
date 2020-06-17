@@ -215,6 +215,51 @@ sudo pip install ipython
 sudo pip3 install ipython
 ```
 
+帮助
+
+```python
+# 获取文档
+help(len)
+len?
+
+# 获取源码
+square??
+```
+
+魔法命令
+
+```shell
+%paste/%cpaste  # 粘贴代码块
+%run 			# 执行外部脚本
+
+%history		# 可查看历史输入
+%magic			# 获取可用魔法函数的通用描述及示例
+%lsmagic		# 获取所有可用魔法函数的列表
+```
+
+输出
+
+```python
+print(_)		# 更新以前的输出
+print(__)		# 获得倒数第二个历史输出
+print(_2)		# 等价于Out[2]
+2+2;			# ;会禁止输出
+```
+
+性能
+
+```shell
+%time			# 运行一行代码执行时间
+%timeit			# 重复运行计算接下来一行的语句执行时间
+%%timeit		# 处理多行输入的执行时间
+%prun			# 统计代码执行过程耗时细节
+%load_ext line_profiler
+%lprun -f func_name()  # 对代码生成逐行分析报告
+%load_ext memory_profiler
+%memit func_name()  # 内存消耗计算类似%timeit
+%mprun func_name()  # 内存消耗计算类似%lprun
+```
+
 ## virtualenv
 
 依赖系统python环境，基于固定系统文件夹创建python环境
