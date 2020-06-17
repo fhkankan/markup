@@ -14,16 +14,23 @@ Pandas是一个强大的分析结构化数据的工具集，基于NumPy构建，
 
 <http://pandas.pydata.org>
 
+安装
+
+```
+pip install pandas
+```
+
+查看版本
+
+```
+import pandas
+pandas.__version
+```
+
 引用
 
 ```python
 import pandas as pd
-```
-
-帮助
-
-```python
-help(pandas.read_csv)
 ```
 
 ## 数据结构
@@ -383,29 +390,103 @@ df_obj.rename(
 )
 ```
 
-## 算术运算
+## 层级索引与数据重构
 
-Pandas可以对不同索引的对象进行算术运算(add, sub,div,mul等)，如果存在不同的索引，结果的索引就是所有索引的并集。
+索引对象
+
+```
+- Index，自定义索引
+- RangeIndex，序列索引
+- Int64Index，整数索引
+- MultiIndex，层级索引
+```
+
+- 层级索引
+
+```python
+# 选层
+# 1.选取外层
+ser_obj['outer_label']
+# 2.选取指定外层的指定内层
+print(ser_obj['b', '2'])
+# 3.选取所有外层的指定内层
+ser_obj[:, 'inner_label']
+
+# 交换分层
+# swaplevel表示交换指定的两个层级，参数为层级的下标，如果只有两层索引，默认就是内外层互相交换
+# 参数0：表示最外层
+# 参数1：表示第二外层
+# 参数2：表示第三外层
+# ...
+ser_obj2 = ser_obj.swaplevel()
+
+# 排序分层
+# sortlevel和sort_index(level=)表示对指定层级进行排序，参数为层级的下标
+# 参数0：表示最外层
+# 参数1：表示第二外层
+# 参数2：表示第三外层
+# ...
+print(ser_obj.swaplevel().sortlevel())
+```
+
+- 数据重构
+
+```python
+# unstack()
+# Series->DataFrame
+# 默认1内层索引为列索引，0将最外层做为列索引
+# df_obj = ser_obj3.unstack()
+df_obj = ser_obj3.unstack(1)
+
+# stack()
+# DataFrame->Series
+# 将列索引旋转为行索引，完成层级索引
+df_obj.stack()
+
+# DataFrame.T
+# 将行和列索引互相调换
+df_obj.T
+```
+
+## 数值运算
+
+pandas在数值运算时，对于一元运算，通用函数在输出结果中保留索引和列标签；对于二元运算，通用函数会自动对其索引进行计算.
+
+如果存在不同的索引，结果的索引就是所有索引的并集。
 
 如果索引相同，按索引对齐进行运算。如果没对齐的位置则补NaN；但是可以通过指定数据填充缺失值，再参与对齐运算。
 
-- +/-/*//
+- 一元
+
+```python
+rng = np.random.RandomState(42)
+ser = pd.Series(rng.randint(0, 10, 4))
+df = pd.DataFrame(rng.randint(0, 10, (3, 4)), columns=['A', 'B', 'C', 'D'])
+np.exp(ser)
+np.sin(df * np.pi / 4)
+```
+
+- 二元
+
++/-/*//
 
 ```python
 ser_obj1 = pd.Series(range(10, 15), index=list("ABCDE"))
 ser_obj2 = pd.Series(range(10, 15), index=list("CDEFG"))
 
-ser_obj1 + 5
-ser_obj1 - 5
-ser_obj1 * 5
-ser_obj1 / 5
-ser_obj1 + ser_obj2
+ser_obj1 + 5  # np.add()
+ser_obj1 - 5  # np.sub(), np.subtract()
+ser_obj1 * 5  # np.mul(), np.multiply
+ser_obj1 / 5  # np.truediv(), np.div(), np.divde()
+ser_obj1 // 5  # np.floordiv()
+ser_obj1 % 5  # np.mod()
+ser_obj1 ** 5  # np.pow()
+
+ser_obj1 + ser_obj2  
 ser_obj1 - ser_obj2
 ser_obj1 * ser_obj2
 ser_obj1 / ser_obj2
 ```
-
-- add/sub/div/mul
 
 Series
 
@@ -478,7 +559,7 @@ df_obj.pivot_table(index="Pclass", values="Survived", aggfunc=np.mean)
 
 - 形式
 
-在pandas对象中缺失值除了以`NaN`的形式存在之外，还可以用python基本库中的`None`来表示。
+在pandas对象中缺失值除了以`NaN`的形式存在之外，还可以用python对象中的`None`来表示。
 
 注意：在数值型数据二者都表示`NaN`，而字符型数据`np.nan`表示为`NaN`，`None`就是表示为其本身
 
@@ -705,64 +786,6 @@ first	 按值在原始数据中的出现顺序分配排名
 ```python
 rrank.rank(method='first')
 rrank.rank(method='max')
-```
-
-## 层级索引与数据重构
-
-索引对象
-
-```
-- Index，自定义索引
-- RangeIndex，序列索引
-- Int64Index，整数索引
-- MultiIndex，层级索引
-```
-
-- 层级索引
-
-```python
-# 选层
-# 1.选取外层
-ser_obj['outer_label']
-# 2.选取指定外层的指定内层
-print(ser_obj['b', '2'])
-# 3.选取所有外层的指定内层
-ser_obj[:, 'inner_label']
-
-# 交换分层
-# swaplevel表示交换指定的两个层级，参数为层级的下标，如果只有两层索引，默认就是内外层互相交换
-# 参数0：表示最外层
-# 参数1：表示第二外层
-# 参数2：表示第三外层
-# ...
-ser_obj2 = ser_obj.swaplevel()
-
-# 排序分层
-# sortlevel和sort_index(level=)表示对指定层级进行排序，参数为层级的下标
-# 参数0：表示最外层
-# 参数1：表示第二外层
-# 参数2：表示第三外层
-# ...
-print(ser_obj.swaplevel().sortlevel())
-```
-
-- 数据重构
-
-```python
-# unstack()
-# Series->DataFrame
-# 默认1内层索引为列索引，0将最外层做为列索引
-# df_obj = ser_obj3.unstack()
-df_obj = ser_obj3.unstack(1)
-
-# stack()
-# DataFrame->Series
-# 将列索引旋转为行索引，完成层级索引
-df_obj.stack()
-
-# DataFrame.T
-# 将行和列索引互相调换
-df_obj.T
 ```
 
 ## 数据合并
