@@ -37,7 +37,7 @@ import pandas as pd
 
 Pandas有两个最主要也是最重要的数据结构： **Series** 和 **DataFrame**
 
-### Series
+- Series
 
 Series是一种类似于一维数组的 **对象**，由一组数据（各种NumPy数据类型）以及一组与之对应的索引（数据标签）组成。
 
@@ -48,7 +48,7 @@ Series是一种类似于一维数组的 **对象**，由一组数据（各种Num
   - 索引是自动创建的
 ```
 
-- 创建
+创建
 
 ```python
 # 通过list创建
@@ -68,7 +68,7 @@ ser_obj4.index.name = "Info"
 ser_obj3 = pd.Series(data=range(-3, 3), index=list("ABCDEF"), dtype=np.float64, name="测试数据")
 ```
 
-- 查看
+查看
 
 ```python
 # 查看名字
@@ -87,7 +87,7 @@ ser_obj["label1"]
 ser_obj[pos]
 ```
 
-### DataFrame
+- DataFrame
 
 DataFrame是一个表格型的数据结构，它含有一组有序的列，每列可以是不同类型的值。DataFrame既有行索引也有列索引，它可以被看做是由Series组成的字典（共用同一个索引），数据是以二维结构存放的。
 
@@ -97,7 +97,7 @@ DataFrame是一个表格型的数据结构，它含有一组有序的列，每�
 - 索引包括列索引和行索引
 ```
 
-- 创建
+创建
 
 ```python
 # 通过嵌套列表/ndarray创建
@@ -123,7 +123,7 @@ df_obj[new_col_idx] = data
 df_pbj2 = pd.DataFrame(arr, index= ['A', 'B', 'C'], columns=['a', 'b', 'c', 'd'])
 ```
 
-- 查看
+查看
 
 ```python
 # 产看DataFrame对象的详细信息
@@ -201,12 +201,6 @@ jddf = pd.read_csv(
 | `to_sql`       | 输出为sql格式            |
 | `to_clipboard` | 输出到剪贴板中           |
 
-示例
-
-```python
-
-```
-
 ## 索引操作
 
 ### 查看数据
@@ -224,16 +218,16 @@ ser_obj[‘label’]
 ser_obj.label
 ser_obj[pos]
 
-# 取连续的多个数据(切片索引)
-# 按索引名切片操作时，是包含结束位的
-ser_obj[‘label1’: ’label3’]
-ser_obj[2:4]
-
-# 不连续多个数据
+# 取Series
+# 切片索引
+ser_obj[‘label1’: ’label3’]  # 显式，包含结束位
+ser_obj[2:4]  # 隐式，左闭右开
+# 花哨索引
 ser_obj[[‘label1’, ’label2’, ‘label3’]]
 ser_obj[[pos1, pos2, pos3]]
 
-# 根据条件取值(布尔索引)
+# 根据条件取值
+# 布尔索引
 # 对对象做运算，返回新对象，显示对象中每个元素的布尔值
 (ser_obj1 > 10) & (ser_obj1 < 14)
 # 对索引做布尔，返回符合条件的结果
@@ -246,25 +240,30 @@ DataFrame
 ```python
 # DataFrame对象本身也支持一些索引取值操作，但是通常情况下，会使用规范良好的高级索引方法。
 
-# 指定index指定行索引，columns指定列索引
-df_obj = pd.DataFrame(np.random.rand(3, 4), index= list("ABC"), columns=list("abcd"))
+df_obj = pd.DataFrame(np.random.rand(3, 4), index= list("ABC"), columns=list("abcd"))  # 指定index指定行索引，columns指定列索引
 
-# 列索引取值
+# 列行对象
 # 取某列(Series对象)
 df_obj['column_label']
+df_obj.column_label
 # 取某列的数据(ndarray对象)
 df_obj['column_label'].values
-# 取某列的某个数据
-df_obj['column_label'].values[num]
-df_obj['column_label']['raw_label']
 # 取不连续的多列(不能取连续的列)
 df_obj[['column_label1', 'column_label2']]
 # 连续索引取单行
 df_obj["raw_label1":"raw_label1"]
+df_obj[pos:pos+1]
 # 取连续的多行（不能取不连续的行）
 df_obj["raw_label1":"raw_label2"]
+df_obj[pos1:pos2]
+
 # 按条件索引(布尔索引)
 df_obj[df_obj["column_label] >= 2]
+
+# 取值
+# 取某列的某个数据
+df_obj['column_label'].values[num]
+df_obj['column_label']['raw_label']
 ```
 
 - 高级索引
@@ -332,7 +331,9 @@ print(df_obj.iloc[[1,2,3,4], :])
 
 ix是以上二者的综合，既可以使用索引编号，又可以使用自定义索引，但是如果索引既有数字又有英文，容易导致定位的混乱。目前官方已不推荐使用
 
-### 新增数据
+### 增删改
+
+增
 
 ```python
 # Series
@@ -345,7 +346,7 @@ df_obj["f"] = [10, 20, 30, 40]
 df_obj["g"] = df_obj["c"] + df_obj["f"]
 ```
 
-### 删除数据
+删
 
 ```python
 # del 删除原数据，
@@ -358,7 +359,7 @@ df_obj.drop(["f"], axis=1)
 df_obj.drop(["C", "D"], inplace=True)
 ```
 
-### 修改数据
+改
 
 ```python
 titanic.log[titanic["Sex"] == "male", "Sex"] = 0
@@ -390,7 +391,9 @@ df_obj.rename(
 )
 ```
 
-## 层级索引与数据重构
+## 层级索引
+
+对于一维和二维数据，用pandas的Series和DataFrame对象存储，若是三维或四维数据，可以通过能够过层级索引(也称多级索引)配合多个有不同等级的一级索引一起使用，将高维数据转换成类似Series和Dataframe对象的形式。
 
 索引对象
 
@@ -401,54 +404,325 @@ df_obj.rename(
 - MultiIndex，层级索引
 ```
 
-- 层级索引
+### 多级索引Series
+
+元组表示索引
 
 ```python
-# 选层
-# 1.选取外层
-ser_obj['outer_label']
-# 2.选取指定外层的指定内层
-print(ser_obj['b', '2'])
-# 3.选取所有外层的指定内层
-ser_obj[:, 'inner_label']
-
-# 交换分层
-# swaplevel表示交换指定的两个层级，参数为层级的下标，如果只有两层索引，默认就是内外层互相交换
-# 参数0：表示最外层
-# 参数1：表示第二外层
-# 参数2：表示第三外层
-# ...
-ser_obj2 = ser_obj.swaplevel()
-
-# 排序分层
-# sortlevel和sort_index(level=)表示对指定层级进行排序，参数为层级的下标
-# 参数0：表示最外层
-# 参数1：表示第二外层
-# 参数2：表示第三外层
-# ...
-print(ser_obj.swaplevel().sortlevel())
+index = [('California', 2000),('California', 2001),('New York', 2000), ('New York', 2001)]
+population = [1000, 1050, 3000, 3050]
+pop = pd.Series(population, index=index)
+print(pop)
+# (California, 2000)    1000
+# (California, 2001)    1050
+# (New York, 2000)      3000
+# (New York, 2001)      3050
 ```
 
-- 数据重构
+pandas多级索引
 
 ```python
+index = pd.MultiIndex.from_tuples(index)
+print(index)
+# MultiIndex([('California', 2000),
+#             ('California', 2001),
+#             (  'New York', 2000),
+#             (  'New York', 2001)],
+#            )
+pop = pop.reindex(index)  # 索引重置
+print(pop)
+# California  2000    1000
+#             2001    1050
+# New York    2000    3000
+#             2001    3050
+
+```
+
+高维数据多级索引
+
+```python
+pop_df = pd.DataFrame({'total': pop, 'under18':[200, 210, 300, 310]})
+print(pop_df)
+#                  total  under18
+# California 2000   1000      200
+#            2001   1050      210
+# New York   2000   3000      300
+#            2001   3050      310
+```
+
+### 创建方法
+
+直接创建
+
+```python
+# 将index设置为二维索引数组
+df = pd.DataFrame(np.random.rand(4, 2),
+                  index=[['a', 'a', 'b', 'b'],[1,2,1,2]],
+                  columns=['data1', 'data2'])
+print(df)
+#         data1     data2
+# a 1  0.860061  0.962663
+#   2  0.174399  0.168180
+# b 1  0.070034  0.906971
+#   2  0.311166  0.071993
+
+# 将元组作为key的字典传递给pandas，默认转为MultiIndex
+data = {
+    ('California', 2000): 200,
+    ('California', 2001): 210,
+    ('New York', 2000): 200,
+    ('New York', 2001): 210
+}
+res = pd.Series(data)
+print(res)
+# California  2000    200
+#             2001    210
+# New York    2000    200
+#             2001    210
+```
+
+显式创建
+
+```python
+data = [100, 200, 300, 400]
+index1 = pd.MultiIndex.from_arrays([['a', 'a', 'b', 'b'], [1, 2, 1, 2]])
+index2 = pd.MultiIndex.from_tuples([('a', 1), ('a', 2), ('b', 1), ('b', 2)])
+index3 = pd.MultiIndex.from_product([['a', 'b'], [1, 2]])
+index4 = pd.MultiIndex(levels=[['a', 'b'], [1, 2]], codes=[[0, 0, 1, 1], [0, 1, 0, 1]])
+res1 = pd.Series(data, index=index4)
+print(res1)
+# a  1    100
+#    2    200
+# b  1    300
+#    2    400
+res2= pd.DataFrame(data , index=index4, columns=['a'])
+print(res2)
+#        a
+# a 1  100
+#   2  200
+# b 1  300
+#   2  400
+```
+
+多级索引的等级名称
+
+```python
+# 方法一：内部创建
+index = pd.MultiIndex.from_product([['California', 'New York'], [2000, 2001]], names=['state', 'year'])
+# 方法二：外部更改
+pop.index.names = ['state', 'year']
+print(pop)
+# state       year
+# California  2000    1000
+#             2001    1050
+# New York    2000    3000
+#             2001    3050
+```
+
+多级列索引
+
+```python
+# 4维数据
+index = pd.MultiIndex.from_product([[2013, 2014], [1, 2]], names=['year', 'visit'])
+columns = pd.MultiIndex.from_product([['Bob', 'Guido', 'Sue'], ['HR', 'Temp']], names=['Subject', 'type'])
+# 模拟数据
+data = np.round(np.random.randn(4, 6), 1)
+data[:, :2] *= 10
+data += 37
+# 创建DataFrame
+health_data = pd.DataFrame(data, index=index, columns=columns)
+print(health_data)
+# Subject      Bob       Guido         Sue
+# type          HR  Temp    HR  Temp    HR  Temp
+# year visit
+# 2013 1      25.0  33.0  37.4  39.3  36.5  36.2
+#      2      51.0  35.0  38.0  36.3  35.3  38.9
+# 2014 1      43.0  56.0  38.0  36.0  36.4  35.9
+#      2      28.0  30.0  35.8  38.7  38.2  34.8
+```
+
+### 查看数据
+
+Series
+
+```python
+index = pd.MultiIndex.from_product([['California', 'New York'], [2000, 2001]], names=['state', 'year'])
+data = [100, 200, 300, 400]
+pop = pd.Series(data, index=index)
+print(pop)
+# state       year
+# California  2000    100
+#             2001    200
+# New York    2000    300
+#             2001    400
+
+print(pop['California'])
+print(pop.loc['California'])
+# year
+# 2000    100
+# 2001    200
+print(pop['California':'California']) 
+print(pop.loc['California':'California'])
+# 对于使用行索引名字进行切片时，需按序排列
+# pop.sor_index()
+# pop['California':'New York']
+print(pop[0:2])
+print(pop[['California']])
+# state       year
+# California  2000    100
+#             2001    200
+
+print(pop[pop > 150])
+# state       year
+# California  2001    200
+# New York    2000    300
+#             2001    400
+
+print(pop['California', 2000])
+# 100
+```
+
+dataFrame
+
+```python
+index = pd.MultiIndex.from_product([[2013, 2014], [1, 2]], names=['year', 'visit'])
+columns = pd.MultiIndex.from_product([['Bob', 'Guido', 'Sue'], ['HR', 'Temp']], names=['Subject', 'type'])
+# 模拟数据
+data = np.round(np.random.randn(4, 6), 1)
+data[:, :2] *= 10
+data += 37
+health_data = pd.DataFrame(data, index=index, columns=columns)
+print(health_data)
+# Subject      Bob       Guido         Sue      
+# type          HR  Temp    HR  Temp    HR  Temp
+# year visit                                    
+# 2013 1      32.0  45.0  37.0  36.8  36.9  36.6
+#      2      24.0  39.0  37.1  38.0  35.5  36.1
+# 2014 1      18.0  44.0  35.5  36.7  34.8  38.2
+#      2      40.0  53.0  36.5  35.6  37.2  36.7
+print(health_data['Guido', 'HR'])
+print(health_data.loc[:, ('Guido', 'HR')])
+print(health_data.iloc[:, 2:3])
+# year visit      
+# 2013 1      37.0
+#      2      37.1
+# 2014 1      35.5
+#      2      36.5
+print(health_data.iloc[0, 0])
+# 32.0
+```
+
+### 行列转换
+
+unstack/stack
+
+```python
+index = pd.MultiIndex.from_product([['New York', 'California'], [2000, 2001]], names=['state', 'year'])
+data = [100, 200, 300, 400]
+pop = pd.Series(data, index=index)
+pop = pop.sort_index()
+print(pop)
+# state       year
+# California  2000    300
+#             2001    400
+# New York    2000    100
+#             2001    200
+
 # unstack()
 # Series->DataFrame
 # 默认1内层索引为列索引，0将最外层做为列索引
-# df_obj = ser_obj3.unstack()
-df_obj = ser_obj3.unstack(1)
+print(pop.unstack())
+# year        2000  2001
+# state
+# California   300   400
+# New York     100   200
+print(pop.unstack(level=0))
+# state  California  New York
+# year
+# 2000          300       100
+# 2001          400       200
 
 # stack()
 # DataFrame->Series
 # 将列索引旋转为行索引，完成层级索引
-df_obj.stack()
+print(pop.unstack().stack())
+# state       year
+# California  2000    300
+#             2001    400
+# New York    2000    100
+#             2001    200
 
 # DataFrame.T
 # 将行和列索引互相调换
-df_obj.T
+print(pop.unstack().T)
+# state  California  New York
+# year
+# 2000          300       100
+# 2001          400       200
 ```
 
-## 数值运算
+重置索引
+
+```python
+pop_flat = pop.reset_index(name='population')
+print(pop_flat)
+#         state  year  population
+# 0  California  2000         300
+# 1  California  2001         400
+# 2    New York  2000         100
+# 3    New York  2001         200
+pop_flat = pop_flat.set_index(['state', 'year'])
+print(pop_flat)
+#                  population
+# state      year            
+# California 2000         300
+#            2001         400
+# New York   2000         100
+#            2001         200
+```
+
+### 数据累计方法
+
+除了pandas的数据运算函数如`mean(),sum()`等，对于层级索引，可以设置参数level实现对数据子集的累计操作
+
+```python
+index = pd.MultiIndex.from_product([[2013, 2014], [1, 2]], names=['year', 'visit'])
+columns = pd.MultiIndex.from_product([['Bob', 'Guido', 'Sue'], ['HR', 'Temp']], names=['Subject', 'type'])
+# 模拟数据
+data = np.round(np.random.randn(4, 6), 1)
+data[:, :2] *= 10
+data += 37
+health_data = pd.DataFrame(data, index=index, columns=columns)
+print(health_data)
+# Subject      Bob       Guido         Sue      
+# type          HR  Temp    HR  Temp    HR  Temp
+# year visit                                    
+# 2013 1      32.0  45.0  37.0  36.8  36.9  36.6
+#      2      24.0  39.0  37.1  38.0  35.5  36.1
+# 2014 1      18.0  44.0  35.5  36.7  34.8  38.2
+#      2      40.0  53.0  36.5  35.6  37.2  36.7
+
+# 计算每一年各项指标的平均值
+data_mean = health_data.mean(level='year')
+print(data_mean)
+# Subject   Bob        Guido         Sue
+# type       HR  Temp     HR  Temp    HR   Temp
+# year
+# 2013     43.0  36.5  38.05  37.7  37.9  37.55
+# 2014     35.0  32.5  35.15  38.7  36.3  38.35
+
+# 对列索引进行类似的累计操作
+res = data_mean.mean(axis=1, level='type')
+print(res)
+# type         HR       Temp
+# year                      
+# 2013  40.350000  40.683333
+# 2014  34.866667  33.383333
+```
+
+## 数据运算
+
+### 数值运算
 
 pandas在数值运算时，对于一元运算，通用函数在输出结果中保留索引和列标签；对于二元运算，通用函数会自动对其索引进行计算.
 
@@ -509,7 +783,7 @@ df_obj3 = df_obj1.add(df_obj2)
 df_obj4 = df_obj1.add(df_obj2, fill_value=100)
 ```
 
-## 统计计算
+### 统计计算
 
 ```python
 # 常用的统计计算
@@ -548,6 +822,44 @@ df_obj.pivot_table(index="Pclass", values="Survived", aggfunc=np.mean)
 | cumprod       | 样本值的累计积                               |
 | diff          | 计算一阶差分(对时间序列很有用)               |
 | pct_change    | 计算百分数变化                               |
+
+### 自定义函数
+
+- Numpy
+
+numpy的ufunc也可以用于pandas对象，即可将函数应用到Series中的每一个元素
+
+```python
+print(np.sum(ser_obj))
+print(np.abs(ser_obj))
+print(np.sum(df_obj))
+print(np.sum(df_obj, axis=1))
+
+reversef = lambda x: -x
+reversef(def_obj)
+```
+
+- apply
+
+使用apply应用自定义函数到DataFrame的对象的每一行/每一列上
+
+返回值由自定义函数决定，若是计算类，返回DataFrame,若是统计类，返回Series
+
+```python
+print(df.apply(lambda x : x.max()))
+# 指定轴方向，axis=1，方向是行
+print(df.apply(lambda x : x.max(), axis=1))
+```
+
+- applymap
+
+通过applymap将函数应用到DataFrame的每个元素
+
+返回DataFrame
+
+```python
+print(df.applymap(lambda x : '%.2f' % x))
+```
 
 ## 数据清洗
 
@@ -706,44 +1018,6 @@ object_columns_df = df_obj.select_dtype(include=["object"])
 print(object_columns_df.iloc[0])
 ```
 
-## 自定义函数
-
-- Numpy
-
-numpy的ufunc也可以用于pandas对象，即可将函数应用到Series中的每一个元素
-
-```python
-print(np.sum(ser_obj))
-print(np.abs(ser_obj))
-print(np.sum(df_obj))
-print(np.sum(df_obj, axis=1))
-
-reversef = lambda x: -x
-reversef(def_obj)
-```
-
-- apply
-
-使用apply应用自定义函数到DataFrame的对象的每一行/每一列上
-
-返回值由自定义函数决定，若是计算类，返回DataFrame,若是统计类，返回Series
-
-```python
-print(df.apply(lambda x : x.max()))
-# 指定轴方向，axis=1，方向是行
-print(df.apply(lambda x : x.max(), axis=1))
-```
-
-- applymap
-
-通过applymap将函数应用到DataFrame的每个元素
-
-返回DataFrame
-
-```python
-print(df.applymap(lambda x : '%.2f' % x))
-```
-
 ## 排序排名
 
 - 排序
@@ -788,217 +1062,6 @@ rrank.rank(method='first')
 rrank.rank(method='max')
 ```
 
-## 数据合并
-
-pandas提供了如下函数对pandas的数据对象进行合并
-
-| 函数            | 说明 |
-| --------------- | ---- |
-| `concat`        |      |
-| `append`        |      |
-| `merge`         |      |
-| `join`          |      |
-| `combain_first` |      |
-| `update`        |      |
-| `merge_ordered` |      |
-| `merge_asof`    |      |
-| `crosstab`      |      |
-
-- np.concatenate
-
-```python
-import numpy as np
-import pandas as pd
-arr1 = np.random.randint(0, 10, (3, 4))
-arr2 = np.random.randint(0, 10, (3, 4))
-
-# 默认axis=0,行变动
-print(np.concatenate([arr1, arr2]))
-# axis=1, 列变动
-print(np.concatenate([arr1, arr2], axis=1))
-```
-
-- pd.concat
-
-注意指定轴方向，默认axis=0，join指定合并方式，默认为outer，Series合并时查看行索引有无重复
-
-```python
-# index 有重复的情况
-ser_obj1 = pd.Series(np.random.randint(-5, 10, 4), index=range(4))
-ser_obj2 = pd.Series(np.random.randint(-5, 10, 5), index=range(5))
-ser_obj3 = pd.Series(np.random.randint(-5, 10, 6), index=range(6))
-# 默认axis=0表示新增多行
-print(pd.concat([ser_obj1, ser_obj2, ser_obj3]))
-# axis=1表示新增多列
-print(pd.concat([ser_obj1, ser_obj2, ser_obj3], axis=1))
-# 默认join="outer"表示外连接，inner表示内连接
-print(pd.concat([ser_obj1, ser_obj2, ser_obj3], axis=1, join="inner"))
-
-#  index 没有重复的情况
-ser_obj4 = pd.Series(np.random.randint(-5, 10, 4), index=range(4))
-ser_obj5 = pd.Series(np.random.randint(-5, 10, 5), index=range(4, 9))
-ser_obj6 = pd.Series(np.random.randint(-5, 10, 6), index=range(9, 15))
-print(pd.concat([ser_obj4, ser_obj5, ser_obj6], axis=1))
-
-# 多个DataFrame对象进行合并，注意索引是否一致(若索引不一致，合并没有任何意义)
-df_obj1 = pd.DataFrame(np.random.randint(-5, 10, (3, 4)), index=list("ABC"), columns=list("abcd"))
-df_obj2 = pd.DataFrame(np.random.randint(-5, 10, (4, 5)), index=list("ABCD"), columns=list("abcde"))
-df_obj3 = pd.DataFrame(np.random.randint(-5, 10, (5, 6)), index=list("ABCDE"), columns=list("abcdef"))
-# 默认axis=0表示共享列索引，新增多行
-print(pd.concat([df_obj1, df_obj2, df_obj3], axis=0))
-# axis=1表示共享行索引，新增多列
-print(pd.concat([df_obj1, df_obj2, df_obj3], axis=1, join="inner")) 
-```
-
-- pd.append
-
-```python
-c1 = pd.DataFrame({
-    'Name':{101: 'Zhang San'},
-    'Subject':{101: 'Literature'},
-    'Score':{101: 98}
-})
-
-c2 = pd.DataFrame({
-    'Gender':{101: 'Male'}
-})
-
-# concat
-c = pd.concat([c1,c2],axis=0)
-
-# append
-c1.append(c2)
-```
-
-- pd.merge
-
-根据单个或多个键将不同DataFrame的行连接起来，类似数据库的连接操作
-
-```python
-c3 = pd.DataFrame({
-    'Name':{101: 'Zhang San'},
-    'Gender':{101: 'Male'}
-})
-
-# concat
-pd. concat([c1, c3], axis=1)
-
-# merge
-# 将c3和c1按照Name进行匹配合并，参加匹配合并的每个对象应具备同一个列用来作为匹配标识的列
-pd.merge(c1, c3, on='Name')
-
-
-
-import pandas as pd
-import numpy as np
-
-df_obj1 = pd.DataFrame({'key': ['b', 'b', 'a', 'c', 'a', 'a', 'b'],
-                        'data1' : np.random.randint(0,10,7)})
-df_obj2 = pd.DataFrame({'key': ['a', 'b', 'd'],
-                        'data2' : np.random.randint(0,10,3)})
-                        
-# 默认将重叠列的列名作为“外键”进行连接
-print(pd.merge(df_obj1, df_obj2))
-
-# on显示指定“外键”,尤其对于多个同名列
-print(pd.merge(df_obj1, df_obj2, on='key'))
-
-# left_on，左侧数据的“外键”，right_on，右侧数据的“外键”
-# 默认结果为内连接，可以通过how指定连接方式
-# 默认how="inner"内连接，取交集数据
-df_obj3 = df_obj1.rename(columns={'key':'key1'})
-df_obj4 = df_obj2.rename(columns={'key':'key2'})
-print(pd.merge(df_obj3, df_obj4, left_on='key1', right_on='key2'))
-print(pd.merge(df_obj3, df_obj4, left_on="key1", right_on="key2", how="inner" ))
-# how="outer"外连接，取并集结果
-print(pd.merge(df_obj3, df_obj4, left_on="key1", right_on="key2", how="outer" ))
-# how="left"左连接，保证左表的完整性
-print(pd.merge(df_obj3, df_obj4, left_on="key1", right_on="key2", how="left" ))
-# how="right"右连接，保证右表的完整性
-print(pd.merge(df_obj3, df_obj4, left_on="key1", right_on="key2", how="right" ))
-
-# 处理重复列名，suffixes添加前缀，默认为_x, _y
-# suffixes参数接收一个元组/列表， 两个元素分别表示左表和游标的后缀
-df_obj5 = pd.DataFrame({"key": list("ababcacb"),
-    "data": np.random.randint(-5, 10, 8)})
-df_obj6 = pd.DataFrame({"key": list("cbdcdb"),
-    "data": np.random.randint(-5, 10, 6)})
-print(pd.merge(df_obj5, df_obj6, on="key", suffixes=["_left", "_right"]))
-
-# 使用行索引连接，left_index=True或right_index=True
-df_obj7 = pd.DataFrame({"key" : list("ababcbac"),
-    "data" : np.random.randint(-5, 10, 8)})
-
-df_obj8 = pd.DataFrame({"data" : np.random.randint(-5, 10, 6)},
-    index = list("cbdcdb"))
-# left_on表示指定左表的key列做为外键，right_index=True表示使用右表行索引作为外键，进行关联
-new_df = pd.merge(df_obj7, df_obj8, left_on="key", right_index=True, how="outer", suffixes=["_left", "_right"])
-```
-
-- pd.crosstab
-
-对数据进行交叉比对(横纵均是离散值)
-
-```python
-pd.crosstab(players.rater1, players.rater2)
-```
-
-## 数据分组
-
-- 对数据集进行分组，然后对每组进行统计分析
-- SQL能够对数据进行过滤，分组聚合
-- pandas能利用groupby进行更加复杂的分组运算
-- 分组运算过程：split->apply->combine
-  1. 拆分：进行分组的根据
-  2. 应用：每个分组运行的计算规则
-  3. 合并：把每个分组的计算结果合并起来
-
-### 分组操作
-
-```python
-# 分组操作
-# groupby()进行分组，GroupBy对象没有进行实际运算，只是包含分组的中间数据
-# 按列名分组：obj.groupby(‘label’)
-df_obj.groupby(df_obj['key1'])
-df_obj['data1'].groupby(df_obj['key1'])
-
-# 分组运算
-# 对GroupBy对象进行分组运算/多重分组运算，如mean()
-# 非数值数据不进行分组运算
-obj.groupby(‘label’).mean()
-
-
-# 按自定义的key列表分组
-obj.groupby(self_def_key)，自定义的key可为列表，相当于新增一列，并按该列分组
-self_def_key = [0, 1, 2, 3, 3, 4, 5, 7]
-df_obj.groupby(self_def_key).size()
-```
-
-### 迭代操作
-
-```python
-# GroupBy对象支持迭代操作
-# 每次迭代返回一个元组 (group_name, group_data)，可用于分组数据的具体运算
-# 单层分组，根据key1
-for group_name, group_data in grouped1:
-    print(group_name)
-    print(group_data)
-# 多层分组，根据key1 和 key2
-for group_name, group_data in grouped2:
-    print(group_name)
-    print(group_data)    
-```
-
-### 转换
-
-```python
-# GroupBy对象可以转换成列表或字典
-# GroupBy对象转换list
-print(list(grouped1))
-# GroupBy对象转换dict
-print(dict(list(grouped1)))
-```
-
 ## 数据标签
 
 pandas中可以把DataFrame实例对象的数据转化为Categorical类型的数据，以实现类似于一般统计分析软件中的值标签功能，便于分析结果的展示
@@ -1038,6 +1101,411 @@ players["heightclass"] = pd.qcut(
 )
 ```
 
+## 数据分组累计
+
+对数据集进行分组，然后对每组进行统计分析。pandas能利用groupby虽然名字借用SQL的语言的命令，但是分组运算过程：split->apply->combine
+
+```
+1. 拆分：将DataFrame按照指定的键分割层内若干组
+2. 应用：对每个组应用函数，通常是累计、转换或过滤函数
+3. 合并：把每个分组的计算结果合并成一个输出数组
+```
+
+示例
+
+```python
+df = pd.DataFrame({'key': ['A', 'B', 'C', 'A', 'B', 'C'],
+                   'data': range(6)}, columns=["key", "data"])
+
+# groupby()可进行大多数常见的分割-应用-合并操作
+df_gb = df.groupby('key')  # 传入分组的列名
+print(df_gb)  # DataFrameGroupBy对象，在应用函数前不会计算
+# <pandas.core.groupby.generic.DataFrameGroupBy object at 0x127955cf8>
+print(df_gb.sum())  # 应用累计函数并生成结果
+```
+
+GroupBy对象是一种灵活的抽象类型，在大多数情境中，可认为其是DataFrame的集合，在底层解决所有难题。具有基本操作、aggregat、filter、transform、apply等操作。
+
+### 基本操作
+
+```python
+# 数据
+import seaborn as sns
+planets = sns.load_dataset('planets')
+print(planets.head(5))
+#             method  number  orbital_period   mass  distance  year
+# 0  Radial Velocity       1         269.300   7.10     77.40  2006
+# 1  Radial Velocity       1         874.774   2.21     56.95  2008
+# 2  Radial Velocity       1         763.000   2.60     19.84  2011
+# 3  Radial Velocity       1         326.030  19.40    110.62  2007
+# 4  Radial Velocity       1         516.220  10.50    119.47  2009
+print(planets.shape)  # (1035, 6)
+```
+
+按列取值
+
+```python
+# 返回一个修改过的GroupBy对象
+pl_gb = planets.groupby('method')
+print(pl_gb['orbital_period'])  # <pandas.core.groupby.generic.SeriesGroupBy object at 0x11d57e748>
+print(pl_gb['orbital_period'].median())  # 累计并生成结果
+```
+
+按组迭代
+
+```python
+# 每次迭代返回一个元组 (group_name, group_data)，可用于分组数据的具体运算
+for (method, group) in pl_gb:
+    print('{0:30s} shape={1}'.format(method, group.shape))
+```
+
+调用方法
+
+```python
+# 借助python的Aclassmethod，可以让任何不由GroupBy对象直接实现的方法应用到每一组，无论DataFrame或Series对象都同样适用
+res = pl_gb['year'].describe()  # 对数据进行描述性统计
+print(res)
+```
+
+### 高级操作
+
+- 累计
+
+内置函数
+
+| 函数名     | 说明                        |
+| ---------- | --------------------------- |
+| count      | 分组中非NA值的数量          |
+| sum        | 非NA值的和                  |
+| mean       | 非NA值的平均值              |
+| median     | 非NA值的算数中位数          |
+| std/var    | 无偏(分母为n-1)标准差和方差 |
+| min/max    | 非NA值的最小值和最大值      |
+| prod       | 非NA值的积                  |
+| first/last | 第一个和最后一个的非NA值    |
+
+示例
+
+```python
+print(df_obj.groupby('key1').sum())
+print(df_obj.groupby('key1').max())
+print(df_obj.groupby('key1').min())
+print(df_obj.groupby('key1').mean())
+print(df_obj.groupby('key1').size())
+print(df_obj.groupby('key1').count())
+print(df_obj.groupby('key1').describe())
+```
+
+`aggregate()`支持更复杂的操作。函数调用中也可简写为`agg()`
+
+```python
+df_obj = pd.DataFrame(
+    {
+        "key1": list("abbaabba"),
+        "key2": ["one", "two", "three", "two", "one", "three", "one", "two"],
+        "data1": np.random.randint(-5, 10, 8),
+        "data2": np.random.randint(-5, 10, 8),
+    }, index=list("ABCDEFGH")
+)
+# agg()传入自定义函数 直接写函数名； 若是Pandas内置的函数，用字符串表示
+func1 = lambda x: x.max() - x.min()
+print(df_obj.groupby("key1").agg(func1))
+print(df_obj.groupby("key1").agg("sum"))
+
+# 可以同时应用多个聚合函数(默认使用函数名作为列名)， 也可以再修改列名
+res = df_obj.groupby("key1").agg([("和", "sum"), ("平均数", "mean"), ("最大值", "max"), ("最小值", "min"), ("大小差值", func1)])
+print(res)
+
+# 可以对不同的列使用不同的聚合函数
+dict_map = {
+    "data1": ["sum", "mean"],
+    "data2": ["max", "min", ("max-min", func1)]
+}
+print(df_obj.groupby("key1").agg(dict_map))
+
+# 对数据是否只出现一次
+all_cols_unique_players = df.groupby('playerShort').agg({
+  col:'numique' for col in players_cols
+})  # 将行中是否出现重复的playerShort数据以出现次数的形式展示
+all_cols_unique_players[all_cols_unique_players > 1].dropna().head()  # 显示重复的前几项
+all_cols_unique_players[all_cols_unique_players > 1].dropna().shape[0] == 0  # 返回bool，表示是否无重复
+```
+
+- 过滤
+
+过滤操作可以按照分组的属性丢弃若干数据
+
+```python
+def filter_dunc(x):
+    return x['data2'].std() > 4
+
+print(df_obj.groupby('key1').std())
+res = df_obj.groupby('key1').filter(filter_dunc)
+print(res)
+```
+
+- 转换
+
+转换操作会返回一个新的全量数据。数据经过转换后其形状与原来的输入数据一样
+
+```python
+key1_tf_df = df_obj[["data1", "data2"]].groupby(df_obj["key1"]).transform("sum").add_prefix("key1_sum_")
+print(key1_tf_df)
+
+
+key1_df_mean = df_obj.groupby("key1").transform(lambda x: x - x.mean())
+print(key1_df_mean)
+```
+
+- 应用
+
+通过apply方法，将自定义函数在各个分组上分别调用.
+
+```python
+def norm_by_data2(x):
+    x['data1'] /= x['data2'].sum()
+    return x
+
+res = df_obj.groupby('key1').apply(norm_by_data2)
+print(res)
+```
+
+### 设置分割的键
+
+前面是适用列名分割DataFrame，还有其他的分组操作
+
+- 列表/数组/Series/索引作为分组键
+
+分组键可以是长度与DataFrame匹配的任意Series或列表
+
+```python
+L = [0, 1, 0, 1, 2, 0, 1, 2]
+print(df_obj)
+print(df_obj.groupby(L).sum())
+```
+
+- 字典/Series将索引映射到分组名称
+
+```python
+df_obj2 = df_obj.set_index('key1')
+mapping = {'a': 'u', 'b': 'v'}
+print(df_obj2)
+print(df_obj2.groupby(mapping).sum())
+```
+
+- 任意python函数
+
+将函数传入groupby，函数映射到索引，然后新的分组输出
+
+```python
+print(df_obj2.groupby(str.upper).mean())
+```
+
+- 多个有效键构成的列表
+
+```python
+print(df_obj2.groupby([str.upper, mapping]).mean())
+```
+
+## 数据合并
+
+pandas提供了如下函数对pandas的数据对象进行合并
+
+- np.concatenate
+
+```python
+import numpy as np
+import pandas as pd
+arr1 = np.random.randint(0, 10, (3, 4))
+arr2 = np.random.randint(0, 10, (3, 4))
+
+# 默认axis=0,行变动
+print(np.concatenate([arr1, arr2]))
+# axis=1, 列变动
+print(np.concatenate([arr1, arr2], axis=1))
+```
+
+- pd.concat
+
+注意指定轴方向，默认axis=0，join指定合并方式，默认为outer，Series合并时查看行索引有无重复
+
+series
+
+```python
+#  index 没有重复的情况
+ser_obj1 = pd.Series(np.random.randint(-5, 10, 4), index=range(4))
+ser_obj2 = pd.Series(np.random.randint(-5, 10, 5), index=range(4, 9))
+# 默认axis=0表示新增多行
+print(pd.concat([ser_obj1, ser_obj2]))
+# axis=1表示新增多列
+print(pd.concat([ser_obj1, ser_obj2], axis=1))
+
+# index有重复的情况
+ser_obj1 = pd.Series(np.random.randint(-5, 10, 4), index=range(4))
+ser_obj2 = pd.Series(np.random.randint(-5, 10, 5), index=range(5))
+# 索引重复时， pandas在合并时会保留索引
+print(pd.concat([ser_obj1, ser_obj2]))
+# 同样列索引下的值有缺失时，用NaN表示
+print(pd.concat([ser_obj1, ser_obj2], axis=1))  
+# 捕捉索引重复的错误
+try:
+    pd.concat([ser_obj1, ser_obj2], verify_integrity=True)
+except ValueError as e:
+    print('ValueError:', e)
+# 索引不重要时，可忽略重复索引，创建一个新的整数索引
+pd.concat([ser_obj1, ser_obj2], ignore_index=True)
+# 增加层级索引
+pd.concat([ser_obj1, ser_obj2], keys=['ser1', 'ser2'])
+
+# 默认join="outer"表示外连接，inner表示内连接
+print(pd.concat([ser_obj1, ser_obj2], axis=1, join="inner"))
+```
+
+DataFrame
+
+```python
+# 多个DataFrame对象进行合并，注意索引是否一致(若索引不一致，合并没有任何意义)
+df_obj1 = pd.DataFrame(np.random.randint(-5, 10, (3, 4)), index=list("ABC"), columns=list("abcd"))
+df_obj2 = pd.DataFrame(np.random.randint(-5, 10, (4, 5)), index=list("ABCD"), columns=list("abcde"))
+df_obj3 = pd.DataFrame(np.random.randint(-5, 10, (5, 6)), index=list("ABCDE"), columns=list("abcdef"))
+# 默认axis=0表示共享列索引，新增多行
+print(pd.concat([df_obj1, df_obj2, df_obj3]))
+# axis=1表示共享行索引，新增多列
+print(pd.concat([df_obj1, df_obj2, df_obj3], axis=1))
+# join
+print(pd.concat([df_obj1, df_obj2, df_obj3], join="inner"))
+print(pd.concat([df_obj1, df_obj2, df_obj3], axis=1, join="inner")) 
+```
+
+- pd.append
+
+```python
+c1 = pd.DataFrame({
+    'Name': {101: 'Zhang San'},
+    'Subject': {101: 'Literature'},
+    'Score': {101: 98}
+})
+c2 = pd.DataFrame({
+    'Gender': {101: 'Male'}
+})
+
+# concat
+print(pd.concat([c1, c2], axis=0))
+
+# append
+print(c1.append(c2))
+```
+
+- pd.merge
+
+根据单个或多个键将不同DataFrame的行连接起来，类似数据库的连接操作
+
+```python
+df_obj1 = pd.DataFrame({'key': ['b', 'b', 'a', 'c', 'a', 'a', 'b'],
+                        'data1' : np.random.randint(0,10,7)})
+df_obj2 = pd.DataFrame({'key': ['a', 'b', 'd'],
+                        'data2' : np.random.randint(0,10,3)})
+ 
+# 合并列
+# 默认将重叠列的列名作为“外键”进行连接
+print(pd.merge(df_obj1, df_obj2))
+# on显示指定“外键”,尤其对于多个同名列
+print(pd.merge(df_obj1, df_obj2, on='key'))
+# left_on左侧数据的“外键”，right_on右侧数据的“外键”，how指定连接方式
+df_obj3 = df_obj1.rename(columns={'key':'key1'})
+df_obj4 = df_obj2.rename(columns={'key':'key2'})
+# 默认how="inner"内连接，取交集数据
+print(pd.merge(df_obj3, df_obj4, left_on='key1', right_on='key2'))
+# how="outer"外连接，取并集结果
+print(pd.merge(df_obj3, df_obj4, left_on="key1", right_on="key2", how="outer" ))
+# how="left"左连接，保证左表的完整性
+print(pd.merge(df_obj3, df_obj4, left_on="key1", right_on="key2", how="left" ))
+# how="right"右连接，保证右表的完整性
+print(pd.merge(df_obj3, df_obj4, left_on="key1", right_on="key2", how="right" ))
+# 删除等价的外键列
+print(pd.merge(df_obj3, df_obj4, left_on='key1', right_on='key2').drop('key2', axis=1))
+
+# 处理重复的非外键列名，suffixes添加前缀，默认为_x, _y
+# suffixes参数接收一个元组/列表， 两个元素分别表示左表和游标的后缀
+df_obj5 = pd.DataFrame({"key": list("ababcacb"),
+    "data": np.random.randint(-5, 10, 8)})
+df_obj6 = pd.DataFrame({"key": list("cbdcdb"),
+    "data": np.random.randint(-5, 10, 6)})
+print(pd.merge(df_obj5, df_obj6, on="key", suffixes=["_left", "_right"]))
+
+# 合并行索引
+# left_index=True或right_index=True
+print(pd.merge(df_obj5, df_obj6, left_index=True, right_index=True))
+
+# 行列混用
+df_obj7 = pd.DataFrame({"key" : list("ababcbac"),
+    "data" : np.random.randint(-5, 10, 8)})
+df_obj8 = pd.DataFrame({"data" : np.random.randint(-5, 10, 6)},
+    index = list("cbdcdb"))
+# left_on表示指定左表的key列做为外键，right_index=True表示使用右表行索引作为外键，进行关联
+new_df = pd.merge(df_obj7, df_obj8, left_on="key", right_index=True, how="outer", suffixes=["_left", "_right"])
+```
+
+## 数据透视表
+
+数据透视表奖每一列数据作为输入，输出将数据不断细分成多个维度累计信息的二维数据表。
+
+函数
+
+```python
+pivot_table(data, values=None, index=None, columns=None, aggfunc='mean', fill_value=None, margins=False, dropna=True, margins_name='All')
+
+# 参数
+data		指定为pandas中的DataFrame
+index		对应数据透视表中的行
+columns		对应数据透视表中的列
+values		对应数据透视表中的值
+aggfunc		指定汇总的函数，默认为mean函数
+margins		指定分类汇总和总计
+fill_value	指定填补的缺失值
+dropna		指定是否包含所有数据项都是缺失值的列
+
+crosstab(index, columns, values=None, rownames=None, colnames=None, aggfunc=None, margins=False, dropna=True, normalize=False)
+# 不需要使用data参数指定对象，而是直接在index、columns、values等中直接指定分析对象
+```
+
+示例
+
+```python
+# 读取文件建表
+storesales = pd.read_csv('./data/storesales.csv')
+print(storesales.head(5))
+#      id  store  method  orders  sales
+# 0  1001      1       1      78  89000
+# 1  1023      2       1      87  98000
+# 2  1234      2       2      67  78500
+# 3  1002      3       2      87  77500
+# 4  1001      3       1      56  67990
+
+p_table = pd.pivot_table(storesales, index=['store'], columns=['method'], values=['sales'], aggfunc=[sum], fill_value=0, margins=True)
+print(p_table)
+#            sum
+#          sales
+# method       1       2      All
+# store
+# 1       312643       0   312643
+# 2       251667  176820   428487
+# 3       146335  244903   391238
+# 4            0  165010   165010
+# All     710645  586733  1297378
+
+p_ctab = pd.crosstab(storesales['store'], storesales['method'], values=storesales['sales'],aggfunc=[sum], margins=True)
+print(p_ctab)
+#              sum
+# method         1         2      All
+# store
+# 1       312643.0       NaN   312643
+# 2       251667.0  176820.0   428487
+# 3       146335.0  244903.0   391238
+# 4            NaN  165010.0   165010
+# All     710645.0  586733.0  1297378
+```
+
 ## 时间序列
 
 时间序列在pandas中是索引比较特殊的Series或DataFrame，其最主要的特点是以时间戳(TimeStamp)为索引
@@ -1059,16 +1527,22 @@ dates = [pd.Timestamp('2017-07-05'), pd.Timestamp('2017-07-06'), pd.Timestamp('2
 ts = pd.Series(np.random.randn(3), dates)
 ts.index
 
+# DateTimeIndex
+index = pd.DatetimeIndex(['2013-02-11', '2014-03-12'])
+data = pd.Series([1,2], index=index)
+
 # date_range创建
 dates = pd.date_range('2017-07-05', '2017-07-07')
 # dates = pd.date_range('2017/07/01', periods=10, freq='M')  # M:月,D:天,H:小时
 ts = ps.Series(np.random.randn(3), dates)
 ts.index
 
-# Period类实例化
-dates = [pd.Period('2017-07-05'), pd.Period('2017-07-06'), pd.Period('2017-07-07')]
-ts = pd.Series(np.random.randn(3), dates)
-ts.index 
+# timedelta_range
+index = pd.timedelta_range(0, periods=9, freq='2H30T')
+
+
+# to_timedelta
+index = pd.to_timedelta(np.arange(5), unit='s')
 
 # to_datetime
 # 将已有形如时间日期的数据转换为时间序列
@@ -1080,6 +1554,11 @@ jd_ts.head()
 # 将时间戳转换为时间周期
 ts = pd.Series(range(10), pd.date_range('07-10-16 8:00', periods=10, freq='H'))
 ts_period = ts.to_period()
+
+# Period类实例化
+dates = [pd.Period('2017-07-05'), pd.Period('2017-07-06'), pd.Period('2017-07-07')]
+ts = pd.Series(np.random.randn(3), dates)
+ts.index 
 ```
 
 ### 索引与切片
@@ -1233,126 +1712,79 @@ r.var  # 方差
 r.mean()  # 均
 ```
 
-## 数据聚合
+##高性能
 
-- 数组产生标量的过程，如mean()、count()等
-- 常用于对分组后的数据进行计算
+Pandas中的`eval(),query()`函数依赖于Numexpr程序包，提供了类C的速度。
 
-### 内置聚合函数
-
-| 函数名     | 说明                        |
-| ---------- | --------------------------- |
-| count      | 分组中非NA值的数量          |
-| sum        | 非NA值的和                  |
-| mean       | 非NA值的平均值              |
-| median     | 非NA值的算数中位数          |
-| std/var    | 无偏(分母为n-1)标准差和方差 |
-| min/max    | 非NA值的最小值和最大值      |
-| prod       | 非NA值的积                  |
-| first/last | 第一个和最后一个的非NA值    |
+- 设计动机：复合带数式
 
 ```python
-print(df_obj5.groupby('key1').sum())
-print(df_obj5.groupby('key1').max())
-print(df_obj5.groupby('key1').min())
-print(df_obj5.groupby('key1').mean())
-print(df_obj5.groupby('key1').size())
-print(df_obj5.groupby('key1').count())
-print(df_obj5.groupby('key1').describe())
+# numpy向量化操作比for循环快
+rng = np.random.RandomState(42)
+x = rng.rand(10 ** 6)
+y = rng.rand(10 ** 6)
+time1 = time.process_time()
+sum = x + y
+time2 = time.process_time()
+print('numpy向量化操作消耗时间:{}'.format(time2-time1))
+
+# numpy复合代数式效率低
+sum_np = np.fromiter((xi + yi for xi, yi in zip(x, y)), dtype=x.dtype, count=len(x))
+mask = (x > 0.5) & (y < 0.5)  # 会将中间过程显式分配内存
+
+# numexpr可以不为中间过程分配内存,计算更快速
+sum_numexpr = numexpr.evaluate('sum_np')
+mask_numexpr = numexpr.evaluate('mask')
 ```
 
-### 自定义函数
-
-grouped.agg(func)，func的参数为groupby索引对应的记录
+- eval
 
 ```python
-func1 = lambda x: x.max() - x.min()
-# agg()传入自定义函数 直接写函数名； 若是Pandas内置的函数，用字符串表示
-print(df_obj.groupby(df_obj["key1"]).agg(func1))
-print(df_obj.groupby(df_obj["key1"]).agg("sum"))
+# 高性能计算
+nrows, ncols = 100000, 100
+rng = np.random.RandomState(42)
+df1, df2, df3, df4 = (pd.DataFrame(rng.rand(nrows, ncols)) for i in range(4))
+time1 = time.process_time()
+sum_n = df1 + df2 + df3 + df4
+time2 = time.process_time()
+sum_e = pd.eval('sum_n')
+time3 = time.process_time()
+print('pandas普通运算消耗times:{}'.format(time2 - time1))
+print('eval普通运算消耗times:{}'.format(time3 - time2))
 
-# 可以同时应用多个聚合函数(默认使用函数名作为列名)， 也可以再修改列名
-df_obj.groupby(df_obj["key1"]).agg([("和", "sum"),("平均数", "mean"), ("最大值", "max"), ("最小值", "min"), ("大小差值", func1)])
-
-# 可以对不同的列使用不同的聚合函数
-dict_map = {
-    "data1": ["sum", "mean"],
-    "data2": ["max", "min", ("max-min", func1)]
-}
-print(df_obj.groupby(df_obj["key1"]).agg(dict_map))
-
-# 对数据是否只出现一次
-all_cols_unique_players = df.groupby('playerShort').agg({
-  col:'numique' for col in players_cols
-})  # 将行中是否出现重复的playerShort数据以出现次数的形式展示
-all_cols_unique_players[all_cols_unique_players > 1].dropna().head()  # 显示重复的前几项
-all_cols_unique_players[all_cols_unique_players > 1].dropna().shape[0] == 0  # 返回bool，表示是否无重复
+# 列间运算
+rng = np.random.RandomState(42)
+df = pd.DataFrame(rng.rand(1000, 3), columns=['A', 'B', 'C'])
+# 普通计算
+res1 = (df['A'] + df['B']) / (df['C'] -1)
+res2 = pd.eval('res1')
+np.allclose(res1, res2)
+# 通过列名
+res3 = df.eval('(A + B) / (C - 1)')
+np.allclose(res1, res3)  # True
+# 新增列
+df.eval('D = (A + B) / C', inplace=True)
+print(df.head(5))
+# 使用局部变量
+column_mean = df.mean(1)
+res1 = df['A'] + column_mean
+res2 = df.eval('A + @column_mean')
+np.allclose(res1, res2)  # True 
 ```
 
-## 分组聚合后的数据合并
+- query
 
 ```python
-import numpy as np
-import pandas as pd
+res1 = df[(df.A < 0.5) & (df.B < 0.5)]
+res2 = pd.eval('res1')  # 不能使用df.eval()
+print(np.allclose(res1, res2))  # True
+res3 = df.query('A < 0.5 and B < 0.5')
+print(np.allclose(res1, res3))  # True
 
-df_obj = pd.DataFrame(
-    {
-    "key1" : list("abbaabba"),
-    "key2" : ["one", "two", "three", "two", "one", "three", "one", "two"],
-    "data1" : np.random.randint(-5, 10, 8),
-    "data2" : np.random.randint(-5, 10, 8),  
-    }, index=list("ABCDEFGH")
-)
-```
-
-### merge()
-
-对分组聚合后的数据表和原表进行关联
-
-```python
-# 对分组聚合后的结果进行多表关联，通过suffixes参数添加后缀区分同名列
-key1_sum_df1 = df_obj.groupby(df_obj["key1"]).sum()
-print(pd.merge(df_obj, key1_sum_df1, left_on="key1", right_index=True, suffixes=["_left", "_right"]))
-
-# 使用add_prrefix()方法对分组聚合后的结果列名添加前缀，再进行多表关联
-key1_sum_df2 = df_obj.groupby(df_obj["key1"]).sum().add_prefix("key1_sum_")
-print(pd.merge(df_obj, key1_sum_df2,left_on="key1",right_index=True ))
-```
-
-### transform()
-
-接收聚合函数作为参数，运算结果默认和原表形状一致，直接参与concat合并
-
-```python
-key1_tf_df = df_obj[["data1", "data2"]].groupby(df_obj["key1"]).transform("sum").add_prefix("key1_sum_")
-print(pd.concat([df_obj, key1_tf_df], axis=1))
-```
-
-### groupby.app(func)
-
-GroupBy对象可以通过apply方法，将自定义函数在各各个分组上分别调用，最后的结果自动通过pd.concat合并到一起。
-
-```python
-import numpy as np
-import pandas as pd
-
-filename = "./starcraft.csv"
-df_obj = pd.read_csv(filename, usecols=["LeagueIndex", "Age", "HoursPerWeek", "TotalHours", "APM"])
-print(df_obj.head())
-
-# 统计各个段位里手速最快的前3个人
-def top_n(df, column="APM", n=3, sort_type=False):
-    return df.sort_values(by=column, ascending=sort_type)[:n]
-    
-# 通过apply调用自定义函数，参数是分组后的每组数据
-# 通过自定义函数的计算后，并返回结果，最后自动合并为一个DataFrame
-print(df_obj.groupby(df_obj["LeagueIndex"]).apply(top_n))
-# apply()
-
-# 参数1：分组后的每组数据，后面的参数可传给自定义函数接收
-print(df_obj.groupby(df_obj["LeagueIndex"]).apply(top_n, "Age", 5, True))
-
-# 分组以及默认为行索引，可以通过group_keys=False禁用分组一句作为行索引
-print(df_obj.groupby(df_obj["LeagueIndex"], group_keys=False).apply(top_n, "Age", 5, True))
+# 支持局部变量引用
+Cmean = df['C'].mean()
+res1 = df[(df.A < Cmean) & (df.B < Cmean)]
+res2 = df.query('A < @Cmean and B < @Cmean')
+print(np.allclose(res1, res2))  # True
 ```
 

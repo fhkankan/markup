@@ -204,6 +204,7 @@ np.fromfunction(multiply99, (9,9))
 | ?        | bool          | 布尔类型                                    |
 | O        | object        | Python对象类型                              |
 | <U1或U   | unicode       | 固定长度的unicode类型，跟字符串定义方式一样 |
+|          | datetime64    | 时间类型                                    |
 
 ```python
 # dtype属性
@@ -212,6 +213,7 @@ print(arr1.dtype)
 # dtype参数
 # 指定数组的数据类型，类型名+位数，如float64, int32
 float_arr = np.array([1, 2, 3, 4], dtype = np.float64)
+date = np.array('2019-04-08', dtype=np.datetime64)
 
 # astype方法
 # 转换数组的数据类型
