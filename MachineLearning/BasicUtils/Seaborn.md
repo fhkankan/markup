@@ -220,7 +220,7 @@ sns.distplot(x, kde=False)
 
 ### 散点图
 
-观测两个变量之间的分布关系
+也叫联合分布图，观测两个变量之间的分布关系
 
 ```python
 sns.jointplot(x="x", y="y", data=df)
@@ -267,7 +267,7 @@ plt.show()
 
 ### 比较图
 
-观察变量两两之间的关系
+也叫矩阵图，观察变量两两之间的关系
 
 ```python
 sns.pairplot(iris)
@@ -417,6 +417,8 @@ plt.show()
 
 ### 小提琴图
 
+使用小提琴图做分布对比
+
 ```python
 sns.violinplot(x="total_bill", y="day", hue="time", data=tips, split=True)
 ```
@@ -446,6 +448,8 @@ plt.xticks(rotation='vertical') plt.show()
 ```
 
 ### 多层面板分类图
+
+也叫因子图，观察一个参数在另一个参数间隔中的分布情况
 
 ````python
 sns.factorplot()

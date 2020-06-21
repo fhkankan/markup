@@ -33,6 +33,52 @@ pandas.__version
 import pandas as pd
 ```
 
+## 文件读写
+
+- 文件导入
+
+可以使用如下的函数将主流格式的数据文件读物并转化为DataFrame实例对象
+
+| 函数             | 说明                                 |
+| ---------------- | ------------------------------------ |
+| `read_csv`       | 读入具有分隔符的csv文件              |
+| `read_table`     | 读入具有分隔符的文件                 |
+| `read_sql`       | 读入SQL，MySQL数据库中的数据         |
+| `read_sas`       | 读入SAS的xpt或sas7bdat格式的数据集   |
+| `read_stata`     | 读入STATA数据集                      |
+| `read_json`      | 读入json数据                         |
+| `read_html`      | 读入网页中的表                       |
+| `read_clipboard` | 读入剪贴板中数据内容                 |
+| `read_fwf`       | 读入固定宽度格式化数据               |
+| `read_hdf`       | 读入分布式存储系统(HDFStore)中的文件 |
+
+示例
+
+```python
+jddf = pd.read_csv(
+    'data.csv', 
+    header=None,  # 表示不会把数据的第1行和第1列设置为行列索引
+    name=['name', 'time', 'opening_price', 'closing_price', 'lowest_price', 'highest_price', 'volume']  # 指定列索隐，即通常意义下的变量名
+)
+```
+
+- 数据导出
+
+可以使用如下函数将实例对象输出到外部文件或指定对象中
+
+| 函数           | 说明                     |
+| -------------- | ------------------------ |
+| `to_csv`       | 输出到csv文件中          |
+| `to_excel`     | 输出到excel表中          |
+| `to_hdf`       | 输出到HDFS分布式文件系统 |
+| `to_json`      | 输出到json文件中         |
+| `to_html`      | 输出到网页表中           |
+| `to_dict`      | 输出为字典格式           |
+| `to_stata`     |                          |
+| `to_latex`     | 输出为latex格式          |
+| `to_sql`       | 输出为sql格式            |
+| `to_clipboard` | 输出到剪贴板中           |
+
 ## 数据结构
 
 Pandas有两个最主要也是最重要的数据结构： **Series** 和 **DataFrame**
@@ -154,52 +200,6 @@ df_obj.col_idx.unique()
 # 统计列数据出现的频次
 df_obj[col_idx].value_counts()
 ```
-
-## 文件读写
-
-- 文件导入
-
-可以使用如下的函数将主流格式的数据文件读物并转化为DataFrame实例对象
-
-| 函数             | 说明                                 |
-| ---------------- | ------------------------------------ |
-| `read_csv`       | 读入具有分隔符的csv文件              |
-| `read_table`     | 读入具有分隔符的文件                 |
-| `read_sql`       | 读入SQL，MySQL数据库中的数据         |
-| `read_sas`       | 读入SAS的xpt或sas7bdat格式的数据集   |
-| `read_stata`     | 读入STATA数据集                      |
-| `read_json`      | 读入json数据                         |
-| `read_html`      | 读入网页中的表                       |
-| `read_clipboard` | 读入剪贴板中数据内容                 |
-| `read_fwf`       | 读入固定宽度格式化数据               |
-| `read_hdf`       | 读入分布式存储系统(HDFStore)中的文件 |
-
-示例
-
-```python
-jddf = pd.read_csv(
-    'data.csv', 
-    header=None,  # 表示不会把数据的第1行和第1列设置为行列索引
-    name=['name', 'time', 'opening_price', 'closing_price', 'lowest_price', 'highest_price', 'volume']  # 指定列索隐，即通常意义下的变量名
-)
-```
-
-- 数据导出
-
-可以使用如下函数将实例对象输出到外部文件或指定对象中
-
-| 函数           | 说明                     |
-| -------------- | ------------------------ |
-| `to_csv`       | 输出到csv文件中          |
-| `to_excel`     | 输出到excel表中          |
-| `to_hdf`       | 输出到HDFS分布式文件系统 |
-| `to_json`      | 输出到json文件中         |
-| `to_html`      | 输出到网页表中           |
-| `to_dict`      | 输出为字典格式           |
-| `to_stata`     |                          |
-| `to_latex`     | 输出为latex格式          |
-| `to_sql`       | 输出为sql格式            |
-| `to_clipboard` | 输出到剪贴板中           |
 
 ## 索引操作
 

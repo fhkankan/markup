@@ -1,7 +1,5 @@
 # gensim
 
-
-
 安装
 
 ```shell
