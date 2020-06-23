@@ -2,6 +2,17 @@
 
 # Matplotlib
 
+python数据可视化常用库如下：
+
+- matplotlib：最知名的python可视化程序库
+- seaborn：对matplotlib做了封装的可视化程序库
+- Bokeh：用python做前端的javascript可视化程序库，支持非常强大的交互可视化功能，可以处理非常大的批数据或流数据。python前端会生成一份json数据结构，通过Bokeh的JS引擎进行渲染
+- Plotly：设计理念与Bokeh类似，高水平开发支持。
+- Vispy：侧重于大数据动态可视化项目，建立在OpenGL接口上且可充分利用显卡。
+- Vega/Vega-Lite：采用声明式图形表示方法，最终渲染式Javascript，但是API与编程语言无关。
+
+
+
 Matplotlib 是一个 Python 的 2D绘图库，通过 Matplotlib，开发者可以仅需要几行代码，便可以生成绘图，直方图，功率谱，条形图，错误图，散点图等。
 
 - 用于创建出版质量图表的绘图工具库

@@ -11,8 +11,8 @@
 缺点
 
 ```
-如果训练集有m个样本，n个特征，则预测每一个新的数据，需要O(m*n),计算量大，内存开销大
-必须指定k值，k值选择不当则分类精度不能保证
+1. 如果训练集有m个样本，n个特征，则预测每一个新的数据，需要O(m*n),计算量大，内存开销大
+2. 必须指定k值，k值选择不当则分类精度不能保证
 
 优化：使用树结构，KD-Tree,Ball-Tree
 ```
@@ -122,7 +122,7 @@ y_predict = knn_clf.predict(X_predict)[0]
 
 ## sklearn
 
-[KNeighborsClassifier](https://scikit-learn.org/stable/modules/generated/sklearn.neighbors.KNeighborsClassifier.html#sklearn.neighbors.KNeighborsClassifier)
+### 函数
 
 用于分类
 
@@ -140,7 +140,23 @@ score = knn.score(x_test, y_test)
 print(score)
 ```
 
-示例
+用于回归
+
+```python
+from sklearn.neighbors import KNeighborsRegressor
+
+# 创建实例对象
+knn_reg = KNeighborsRegressor()  
+knn_reg.fit(x_train, y_train)
+# 使用测试集的特征值，预测测试集的特征值对应的目标值
+y_predict = knn_reg.predict(x_test)
+print(y_predict)
+# 测试模型在测试集上的准确性
+score = knn_reg.score(x_test, y_test)
+print(score)
+```
+
+### 示例
 
 ```python
 # 1.导入所需的包
@@ -197,24 +213,6 @@ y_predict = knn.predict(x_test)
 print(y_predict)
 # 测试模型在测试集上的准确性
 score = knn.score(x_test, y_test)
-print(score)
-```
-
-[KNeighborsRegressor](KNeighborsRegressor)
-
-用于回归
-
-```python
-from sklearn.neighbors import KNeighborsRegressor
-
-# 创建实例对象
-knn_reg = KNeighborsRegressor()  
-knn_reg.fit(x_train, y_train)
-# 使用测试集的特征值，预测测试集的特征值对应的目标值
-y_predict = knn_reg.predict(x_test)
-print(y_predict)
-# 测试模型在测试集上的准确性
-score = knn_reg.score(x_test, y_test)
 print(score)
 ```
 
