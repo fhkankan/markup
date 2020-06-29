@@ -14,8 +14,6 @@ LASSO趋向于使得一部分theta值变为0，可作为特征选择用。
 
 ## 实现
 
-
-
 ## sklearn
 
 ```python

@@ -1,5 +1,7 @@
 # jupyter
 
+## 概述
+
 安装
 
 ```shell
@@ -12,20 +14,22 @@ pip install jupyter
 jupyter notebook
 ```
 
-使用
+## 使用
+
+快捷键
 
 ```python
-# mac快捷键
-F								find and replace
-enter						enter edit mode
+# mac快捷键及对应含义
+F					find and replace
+enter				enter edit mode
 shift+Enter			run cell, select below
 contorl+Enter		run selected cell
 option+Enter		run cell, insert below
-Y								to code
-M								to markdown
-R								to raw
-A								add cell up the selected cell
-B								add cell bellow the selected cell
+Y					to code
+M					to markdown
+R					to raw
+A					add cell up the selected cell
+B					add cell bellow the selected cell
 ```
 
 魔法命令
