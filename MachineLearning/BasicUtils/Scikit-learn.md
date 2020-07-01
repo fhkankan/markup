@@ -808,10 +808,13 @@ plt.show()
 ```python
 # k-近邻算法
 sklearn.neighbors	
-# 高斯朴素贝叶斯
-from sklearn.naive_bayes import GaussianNB 
+# 朴素贝叶斯
+from sklearn.naive_bayes import GaussianNB  # 高斯
+from sklearn.naive_bayes import MultinomialNB  # 多项式
+# SVM
+from sklearn.svm import SVC
 # 逻辑回归
-sklearn.linear_model.LogisticRegression	
+from sklearn.linear_model import LogisticRegression	
 ```
 
 回归
@@ -819,9 +822,9 @@ sklearn.linear_model.LogisticRegression
 ```python
 # 线性回归
 from sklearn.linear_model import LinearRegression
-# 岭回归
+# 岭回归（L2范数正则化）
 from sklearn.linear_model import Ridge
-# Lasso回归
+# Lasso回归（L1范数正则化）
 from sklearn.linear_model import Lasso
 ```
 

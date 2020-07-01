@@ -886,8 +886,8 @@ print(df.applymap(lambda x : '%.2f' % x))
 df_obj.isnull()
 df_obj.notnull()
 
-# 统计缺失值的个数,返回每列特征对应缺失值的个数
-df_objisnull().sum()
+# 返回每列特征对应缺失值的个数
+df_obj.isnull().sum()
 ```
 
 - 处理
@@ -896,9 +896,9 @@ df_objisnull().sum()
 
 ```python
 # 删除缺失值所在的行
-df_obj.dropna()
+df_obj = df_obj.dropna()
 # 删除缺失值所在的列
-df_obj.dropna(axis=1)
+df_obj = df_obj.dropna(axis=1)
 ```
 
 填充
@@ -1579,7 +1579,7 @@ jd_ts['2017-02']  # 提取2017年2月份的数据
 jd_ts['2017-02-10':'2017-02-20']  # 提取2017年2月10日至20日数据
 
 
-sample = pd.Series(np.random.randn(20), index=pd.date_range(dt.datetime(2016,1,1),periods=20))
+sample = pd.Series(np.random.randn(20), index=pd.date_range(pd.datetime(2016,1,1),periods=20))
 sample.truncate(before='2016-1-10')  # 2016-1-10之前的数据排除，保留当前和之后的
 sample.truncate(after='2016-1-10')  # 2016-1-10之后的数据排除，保留之前的当前的
 sample.truncate(after='2017-01-06')  # 2017年1月6日前的所有数据

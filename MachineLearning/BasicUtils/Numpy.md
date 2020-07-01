@@ -1045,6 +1045,34 @@ m1*m2  # matrix([[30, 36, 42],[66, 81,96]])
 m2.I  # 逆矩阵
 ```
 
+## 矩阵点
+
+创建网格点矩阵
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 方法一
+X = np.array([[0, 0.5, 1],[0, 0.5, 1]])
+Y = np.array([[0, 0, 0],[1, 1, 1]])
+print("X的维度:{},shape:{}".format(X.ndim, X.shape))
+print("Y的维度:{},shape:{}".format(Y.ndim, Y.shape))
+plt.plot(X, Y, 'o--')
+plt.grid(True)
+
+# 方法二
+x = np.array([0, 0.5, 1])
+y = np.array([0,1])
+xv,yv = np.meshgrid(x, y)
+print("xv的维度:{},shape:{}".format(xv.ndim, xv.shape))
+print("yv的维度:{},shape:{}".format(yv.ndim, yv.shape))
+plt.plot(xv, yv, 'o--')
+plt.grid(True)
+
+plt.show()
+```
+
 ## 运算
 
 - 矩阵与矩阵(多维数组与多维数组)

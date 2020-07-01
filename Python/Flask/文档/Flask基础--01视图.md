@@ -20,6 +20,7 @@ Flask-Login			认证用户状态；
 Flask-RESTful		开发REST API的工具；
 Flask-Bootstrap		集成前端Twitter Bootstrap框架；
 Flask-Moment		本地化日期和时间；
+Flask-Admin			国产管理框架
 ```
 
 安装Flask
