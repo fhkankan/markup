@@ -30,15 +30,15 @@ import sklearn
 
 ## 数据集
 
-### 内置数据集
+```
+from sklearn import datasets
+```
+
+- 内置数据集
 
 加载
 
 ```python
-# 加载获取流行数据集
-from sklearn import datasets
-
-
 # 获取小规模数据集，数据包含在datasets中
 datasets.load_*()		
 
@@ -59,41 +59,34 @@ load_boston()	# 波士顿房价
 fetch_20newsgroups(data_home=None,subset='all')  # 20类新闻数据集
 ```
 
-属性
+数据集对象属性
 
 ```python
-# 数据集属性
-DESCR			 	数据集描述
-feature_names	 	特征名
-data			 	特征值数据数组，是[n_samples*n_features]的二维numpy.ndarry数组
-target_names	 	标签名，回归数据集没有
-target				目标值数组
+print(data.keys())  # 打印数据字典对象的keys
+
+DESCR			 数据集描述
+feature_names	 特征名
+data			 特征值数据数组，是[n_samples*n_features]的二维numpy.ndarry数组
+target_names	 标签名，回归数据集没有
+target			 目标值数组
 ```
 
-### 数据集分离
+- 创建数据集
+
+```
+datasets.make_*()
+```
+
+常用方法
 
 ```python
-sklearn.model_selection.train_test_split(*arrays, *options)
+X, y = datasets.make_blobs(n_samples=100, n_features=2, centers=2, random_state=2, cluster_std=1.5)
 # 参数
-X				 x数据集的特征值
-y				 y数据集的特征值
-test_size		 测试集的大小，一般为float
-random_state	 随机数种子
-# 返回
-训练集特征值、测试集特征值、训练集标签、测试集标签
-```
-
-示例
-
-```python
-from sklearn.model_selection import train_test_split
-
-# 特征值
-x = np.arange(0,10).reshape([5,2])
-# 目标值
-y = range(5)
-
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=666)
+# n_samples 样本数
+# n_features 特征数
+# centers	 中心数
+# random_state	随机种子
+# cluster_std	方差
 ```
 
 ## 特征工程
@@ -520,17 +513,24 @@ print(model.predict(X))
 
 ```
 
-
-
 ## 交叉验证
 
 API
 
 ```python
-from sklearn.model_selection import cross_val_score, LeaveOneOut
+from sklearn.model_selection import train_test_split, cross_val_score, LeaveOneOut
+
+train_test_split(*arrays, *options)
+# 参数
+# X				 x数据集的特征值
+# y				 y数据集的特征值
+# test_size		 测试集的大小，一般为float
+# random_state	 随机数种子
+# 返回
+# 训练集特征值、测试集特征值、训练集标签、测试集标签
 
 cross_val_score(model, X_train, y_train, cv=LeaveOneOut(len(X_train))) 
-
+# 参数
 # LeaveOneOut为只留一个测试
 ```
 
@@ -539,9 +539,8 @@ cross_val_score(model, X_train, y_train, cv=LeaveOneOut(len(X_train)))
 ```python
 import numpy as np
 from sklearn import datasets
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.model_selection import cross_val_score
 
 
 digits = datasets.load_digits()
@@ -815,6 +814,10 @@ from sklearn.naive_bayes import MultinomialNB  # 多项式
 from sklearn.svm import SVC
 # 逻辑回归
 from sklearn.linear_model import LogisticRegression	
+# 决策树
+from sklearn.tree import DecisionTreeClassifier
+# 随机森林
+from skleran.ensemble import RandomForestClassifier
 ```
 
 回归
@@ -826,12 +829,15 @@ from sklearn.linear_model import LinearRegression
 from sklearn.linear_model import Ridge
 # Lasso回归（L1范数正则化）
 from sklearn.linear_model import Lasso
+# 随机森林回归
+from sklearn.ensemble import RandomForestRegressor
 ```
 
-聚类
+无监督
 
 ```python
-
+# PCA
+from sklearn.decomposition import PCA
 ```
 
 ## 算法评价
@@ -849,7 +855,7 @@ from sklearn.metrics import accuracy_score
 ```python
 from sklearn.metrics import confusion_matrix
 
-confusion_matrix(y_test, y_predict)
+confusion_matrix(y_test, y_predict)  # xlabel是predict,ylabel是true
 ```
 
 精准率
@@ -892,6 +898,14 @@ from sklearn.metrics import roc_auc_score
 
 fprs, tprs, thresholds = roc_curve(Y_test, decision_scores)
 roc_auc_score(y_test, decision_scores)
+```
+
+分类结果报告
+
+```python
+from sklearn.metrics import classification_report
+
+res = classification_report(y_test, y_predict, target_names=data.target_names)
 ```
 
 ### 回归

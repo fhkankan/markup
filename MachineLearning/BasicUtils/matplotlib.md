@@ -295,9 +295,9 @@ plt.scatter(x_data, y_data, c="r", alpha=0.4, s=100)
 # 参数
 x_data		特征数据1
 y_data		特征数据2
-c					颜色	
-alpha			透明度
-s 				散点大小
+c			颜色	
+alpha		透明度
+s 			散点大小
 ```
 
 示例

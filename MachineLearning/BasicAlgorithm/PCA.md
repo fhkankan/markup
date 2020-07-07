@@ -1,14 +1,12 @@
+
+
 # 主成分分析
 
 ## 原理
 
 一个非监督的机器学习算法
 
-主要用于数据的降维
-
-通过降维，可以发现更便于人类理解的特征
-
-其他应用：可视化、去噪
+用于：数据降维、数据可视化、噪音过滤、特征抽取和特征工程等。
 $$
 Var(x) = \frac{1}{m}\sum_{i=1}^m(x_i-\bar{x})^2
 $$
@@ -399,7 +397,125 @@ X_restore = pca.inverse_transform(X_reduction)
 print(X_restore.shape)
 ```
 
-示例
+示例1
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.datasets import load_digits
+from sklearn.decomposition import PCA
+
+# 1.PCA概述
+rng = np.random.RandomState(1)
+X = np.dot(rng.rand(2, 2), rng.randn(2, 200)).T
+# plt.scatter(X[:, 0], X[:, 1])
+# plt.axis('equal')
+# plt.show()
+
+pca = PCA(n_components=2)
+pca.fit(X)
+print(pca.components_)  # 成分
+"""
+[[-0.94446029 -0.32862557]
+ [-0.32862557  0.94446029]]
+"""
+print(pca.explained_variance_)  # 可解释性差异
+"""
+[0.7625315 0.0184779]
+"""
+
+
+# 画出指标
+def draw_vector(v0, v1, ax=None):
+    ax = ax or plt.gca()
+    arrowprops = dict(arrowstyle='->', linewidth=2, shrinkA=0, shrinkB=0)
+    ax.annotate('', v1, v0, arrowprops=arrowprops)
+
+
+# plt.scatter(X[:, 0], X[:, 1], alpha=0.2)
+# for length, vector in zip(pca.explained_variance_, pca.components_):
+#     v = vector * 3 * np.sqrt(length)
+#     draw_vector(pca.mean_, pca.mean_ + v)
+# plt.axis('equal')
+# plt.show()
+
+# 2.用PCA降维
+pca = PCA(n_components=1)
+pca.fit(X)
+X_pca = pca.transform(X)
+print('original shape: ', X.shape)
+print('transformed shape: ', X_pca.shape)
+"""
+original shape:  (200, 2)
+transformed shape:  (200, 1)
+"""
+
+# 数据降维逆变换后，与原始数据比较
+X_new = pca.inverse_transform(X_pca)
+# plt.scatter(X[:, 0], X[:, 1], alpha=0.2)
+# plt.scatter(X_new[:, 0], X_new[:, 1], alpha=0.8)
+# plt.axis('equal')
+# plt.show()
+
+# 3.用PCA数据可视化
+digits = load_digits()
+print(digits.data.shape)
+"""
+(1797, 64)
+图像数据是8px*8px
+"""
+# 可视化为2维
+pca = PCA(2)
+projected = pca.fit_transform(digits.data)
+print(digits.data.shape)
+print(projected.shape)
+"""
+(1797, 64)
+(1797, 2)
+"""
+# 画出图
+# plt.scatter(projected[:, 0], projected[:, 1], c=digits.target, edgecolors='none',
+#             alpha=0.5, cmap=plt.cm.get_cmap('Spectral', 10))
+# plt.xlabel('component 1')
+# plt.ylabel('component 2')
+# plt.colorbar()
+# plt.show()
+
+# 确定主成分的数量：累积方差贡献率
+# pca = PCA().fit(digits.data)
+# plt.plot(np.cumsum(pca.explained_variance_ratio_))
+# plt.xlabel('number of components')
+# plt.ylabel('cumulative explained variance')
+# plt.show()
+
+
+# 3.用PCA降噪
+def plot_digits(data):
+    fig, axes = plt.subplots(4, 10, figsize=(10, 4), subplot_kw={'xticks': [], 'yticks': []},
+                             gridspec_kw=dict(hspace=0.1, wspace=0.1))
+    for i, ax in enumerate(axes.flat):
+        ax.imshow(data[i].reshape(8, 8), cmap='binary', interpolation='nearest', clim=(0, 16))
+
+# 无噪音输入数据
+# plot_digits(digits.data)
+# plt.show()
+# 有噪音输入数据
+np.random.seed(42)
+noisy = np.random.normal(digits.data, 4)
+# plot_digits(noisy)
+# plt.show()
+
+# 用噪音数据训练一个PCA，要求保留50%的方差
+pca = PCA(0.5).fit(noisy)
+print(pca.n_components_)
+components = pca.transform(noisy)
+filtered = pca.inverse_transform(components)
+plot_digits(filtered)
+plt.show()
+```
+
+示例2
 
 ```python
 import numpy as np
@@ -465,55 +581,18 @@ print(knn_score)
 pca = PCA(n_components=X_train.shape[1])
 pca.fit(X_train)
 pca.explained_variance_ratio_  # 查看各个维度所能代表信息的比率
-# 可视化
+# 可视化方法一
 plt.plot([i for i in range(X_train.shape[1])],
         [np.sum(pca.explained_variance_ratio_[: i+1]) for i in range(X_train.shape[1])]
         )
+# 可视化方法二
+plt.plot(np.cumsum(pca.explained_variance_ratio_))
 plt.show()
 
 # 方法二：输入准确度，自动计算n_components
 pca = PCA(0.95)
 pca.fit(X_train)
 pca.n_components_
-```
-
-## MNIST
-
-手写数字识别
-
-```python
-import numpy as np
-from sklearn.datasets import fetch_mldata
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.decomposition import PCA
-
-mnist = fetch_mldata('MNIST original')
-X, y = mnist['data'], mnist['target']
-print(X.shape)
-X_train = np.array(X[:60000], dtype=float)
-print(X_train.shape)
-y_train = np.array(X[:60000], dtype=float)
-X_test = np.array(X[60000:], dtype=float)
-y_test = np.array(X[60000:], dtype=float)
-
-# 由于数据在同一量纲维度下，故不需要归一化
-# 全特征knn训练
-knn_clf = KNeighborsClassifier()
-knn_clf.fit(X_train, y_train)
-knn_score = knn_clf.score(X_test, y_test)
-print(knn_score)
-
-# 降维，提高效率，降噪，可能提高了准确率
-pca = PCA(0.9)
-pca.fit(X_train)
-X_train_reduction = pca.transform(X_train)
-print(X_train_reduction.shape)
-X_test_reduction = pca.transform(X_test)
-
-knn_clf = KNeighborsClassifier()
-knn_clf.fit(X_train_reduction, y_train)
-knn_score = knn_clf.score(X_test_reduction, y_test)
-print(knn_score)
 ```
 
 ## 降噪
@@ -564,6 +643,45 @@ pca.fit(noisy_digits)
 components = pca.transform(example_digits)
 filtered_digits = pca.inverse_transform(components)
 plot_digits(filtered_digits)
+```
+
+## MNIST
+
+手写数字识别
+
+```python
+import numpy as np
+from sklearn.datasets import fetch_mldata
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.decomposition import PCA
+
+mnist = fetch_mldata('MNIST original')
+X, y = mnist['data'], mnist['target']
+print(X.shape)
+X_train = np.array(X[:60000], dtype=float)
+print(X_train.shape)
+y_train = np.array(X[:60000], dtype=float)
+X_test = np.array(X[60000:], dtype=float)
+y_test = np.array(X[60000:], dtype=float)
+
+# 由于数据在同一量纲维度下，故不需要归一化
+# 全特征knn训练
+knn_clf = KNeighborsClassifier()
+knn_clf.fit(X_train, y_train)
+knn_score = knn_clf.score(X_test, y_test)
+print(knn_score)
+
+# 降维，提高效率，降噪，可能提高了准确率
+pca = PCA(0.9)
+pca.fit(X_train)
+X_train_reduction = pca.transform(X_train)
+print(X_train_reduction.shape)
+X_test_reduction = pca.transform(X_test)
+
+knn_clf = KNeighborsClassifier()
+knn_clf.fit(X_train_reduction, y_train)
+knn_score = knn_clf.score(X_test_reduction, y_test)
+print(knn_score)
 ```
 
 ## 特征脸
@@ -630,6 +748,56 @@ faces2 = datasets.fetch_lfw_people(min_faces_per_person=60)
 print(faces2.data.shape)
 print(faces2.target_names)
 print(len(faces2.target_names))
+```
+
+示例
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.datasets import fetch_lfw_people
+from sklearn.decomposition import PCA
+
+faces = fetch_lfw_people(min_faces_per_person=60)
+print(faces.target_names, faces.images.shape)
+"""
+['Ariel Sharon' 'Colin Powell' 'Donald Rumsfeld' 'George W Bush'
+ 'Gerhard Schroeder' 'Hugo Chavez' 'Junichiro Koizumi' 'Tony Blair'] 
+ (1348, 62, 47)
+"""
+# 数据集比较大，使用一个随机方法来估计前N个主成分
+pca = PCA(n_components=150, svd_solver='randomized')
+pca.fit(faces.data)
+
+# 画出特征脸
+# 主成分被称作特征向量，这些图像被称作特征脸
+# fig, axes = plt.subplots(3, 8, figsize=(9, 4), subplot_kw={'xticks':[], 'yticks':[]},
+#                           gridspec_kw=dict(hspace=0.1, wspace=0.1))
+# for i, ax in enumerate(axes.flat):
+#     ax.imshow(pca.components_[i].reshape(62, 47), cmap='bone')
+# plt.show()
+
+# 查看累积方差
+# plt.plot(np.cumsum(pca.explained_variance_ratio_))
+# plt.xlabel('number of components')
+# plt.ylabel('cumulative explained variance')
+# plt.show()
+
+# 计算成分和投影的人脸
+pca = PCA(n_components=150, svd_solver='randomized').fit(faces.data)
+components = pca.transform(faces.data)
+projected = pca.inverse_transform(components)
+
+fig, ax = plt.subplots(2, 10, figsize=(10, 2.5), subplot_kw={'xticks':[], 'yticks': []},
+                       gridspec_kw=dict(hspace=0.1, wspace=0.1))
+for i in range(10):
+    ax[0, i].imshow(faces.data[i].reshape(62, 47), cmap='binary_r')
+    ax[1, i].imshow(projected[i].reshape(62, 47), cmap='binary_r')
+ax[0, 0].set_ylabel('full-dim\ninput')
+ax[1, 0].set_ylabel('150-dim\nreconstruction')
+plt.show()
+
 ```
 
 

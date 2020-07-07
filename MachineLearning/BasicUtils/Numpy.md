@@ -481,6 +481,21 @@ print(id(arr1), id(arr3))
 
 数组的维度可以进行变换，如行列互换、降维等。numpy中可以使用reshape函数改变数组的维数，使用ravel函数、flatten函数等把数组展平维一维数组
 
+```python
+x = 10 * np.random.rand(100)
+x.shape  # (100,)
+x.ndim  # 1
+
+y = x[:, None]
+y.shape  # (100, 1)
+y.ndim  # 2
+
+
+y = x[:, np.newaxis]
+y.shape  # (100, 1)
+y.ndim  # 2
+```
+
 - 展平
 
 ```python
@@ -833,6 +848,11 @@ np.argpartition(x, 3, axis=0)
 #### 比较运算
 
 ```python
+# 比较两个array误差是否在误差范围内
+np.allclose()
+np.allclose([1e10,1e-7], [1.00001e10,1e-8])  # False
+np.allclose([1e10,1e-8], [1.00001e10,1e-9])  # True
+
 # 对每个值进行比较，返回布尔数组， 可以添加axis参数指定轴方向
 x = np.arange(16)
 X = x.reshape(4, 4)
@@ -871,8 +891,6 @@ np.sum(~(x == 0))  # 非
 np.any(x==0)
 # 所有的元素满足指定条件才返回True
 np.all(x>0)
-
-
 ```
 
 #### 布尔运算
