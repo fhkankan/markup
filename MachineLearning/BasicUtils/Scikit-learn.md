@@ -838,6 +838,10 @@ from sklearn.ensemble import RandomForestRegressor
 ```python
 # PCA
 from sklearn.decomposition import PCA
+# 流形学习
+from sklearn.manifold import MDS, LocallyLinearEmbedding, Isomap, TSNE
+# 聚类
+from sklearn.cluster import KMeans
 ```
 
 ## 算法评价
