@@ -35,7 +35,7 @@ import numpy as np
 可以不用循环便可对数据执行矢量化运算，大小相等数组之间的任何算术运算都会应用到元素，数组与标量之间的运算也会“广播”到数组的各个元素，并具有执行速度快和节省空间的特点。
 
 ```python
-# 基本库定义一个函数python_multi
+# 示例1
 def python_multi(n):
     a = range(n)
     b = range(n)
@@ -46,14 +46,22 @@ def python_multi(n):
         c.append(a[i]*b[i])
     return c
 
-# numpy定义功能类似函数numpy_multi
 def numpy_mult(n):
     c = np.arrange(n)**2*np.arrange(n)**3
     return c
 
 # 测试执行时间
-%timeit python_multi(10000)
-%timeit numpy_multi(10000)
+%timeit python_multi(10000)  # 常规实现
+%timeit numpy_multi(10000)  # 向量化运算
+
+# 示例2
+a = np.random.rand(10000)
+b = np.random.rand(10000)
+c = 0
+for i inrange(10000):  # 常规实现
+    c += a[o] * b[i]
+  
+c = np.dot(a, b)  # 向量化运算
 ```
 
 帮助
@@ -578,6 +586,11 @@ arr_con = np.vstack([A, x])
 # hstack，水平向堆叠，列增加
 arr_con = np.hstack([A, B])
 
+# np.r_，行增加
+arr_con = np.r_[x,y]  # 两个shape一致
+# np.c_，列增加
+arr_con = np.c_[A,B]
+
 # tile, 单个向量堆叠
 a = np.tile(x, (2, 1))
 ```
@@ -730,16 +743,22 @@ print(arr1<4)
 np.ceil(x): 向上最接近的整数，参数是 number 或 ndarray
 np.floor(x): 向下最接近的整数，参数是 number 或 ndarray
 np.rint(x): 四舍五入，参数是 number 或 ndarray
+np.around(x, decimals): 四舍五入，decimals舍入的小数位数。默认为0，如果为负，整数将四舍五入到小数点左侧的位置 
+    
 np.negative(x): 元素取反，参数是 number 或 ndarray
-abs(x)：元素的绝对值，参数是 number 或 ndarray
+np.abs(x)：元素的绝对值，参数是 number 或 ndarray
 np.square(x)：元素的平方，参数是 number 或 ndarray
 np.aqrt(x)：元素的平方根，参数是 number 或 ndarray
+
 np.sign(x)：计算各元素的正负号, 1(正数)、0（零）、-1(负数)，参数是 number 或 ndarray
 np.modf(x)：将数组的小数和整数部分以两个独立数组的形式返回，参数是 number 或 ndarray
 np.isnan(x): 判断元素是否为 NaN(Not a Number)，返回bool，参数是 number 或 ndarray
+    
 np.sin(x):计算各元素的正弦
 np.cos(x):计算各元素的余弦
 np.tan(x):计算各元素的正切
+np.degress(x):将弧度转换为角度 
+    
 np.exp(x)：计算各元素的e^x
 np.power(3,x)：计算各元素的3^x
 np.log(x):计算loge(x)
@@ -1047,22 +1066,6 @@ np.add.outer([1,2,3,4],[5,6,7,8])  # array([[6,7,8,9],[7,8,9,10],[8,9,10,11],[9,
 np.multiply.outer([1,2,3],[5,6,7,8])  # array([[5,6,7,8],[10,12,14,16],[15,18,21,24]])
 ```
 
-## 矩阵
-
-矩阵(matrix)是numpy提供的另一种数据类型，可以使用mat或matrix函数将数组转化为矩阵
-
-```python
-m1 = np.mat([[1,2,3],[4,5,6]])  # matrix([[1,2,3],[4,5,6]])
-
-m1*8  # matrix([[8,16,24],[32,40,48]])
-
-m2 = np.matrix([[1,2,3],[4,5,6],[7,8,9]])
-
-m1*m2  # matrix([[30, 36, 42],[66, 81,96]])
-
-m2.I  # 逆矩阵
-```
-
 ## 矩阵点
 
 创建网格点矩阵
@@ -1091,9 +1094,38 @@ plt.grid(True)
 plt.show()
 ```
 
-## 运算
+## 线性代数
 
-- 矩阵与矩阵(多维数组与多维数组)
+| 函数              | 描述                                                |
+| :---------------- | :-------------------------------------------------- |
+| `dot`             | 两个数组的点积，即元素对应相乘。                    |
+| `vdot`            | 两个向量的点积                                      |
+| `inner`           | 两个数组的内积                                      |
+| `matmul`          | 两个数组的矩阵积                                    |
+| `np.linalg.det`   | 计算输入矩阵的行列式                                |
+| `np.linalg.solve` | 求解线性矩阵方程                                    |
+| `np.linalg.inv`   | 计算矩阵的乘法逆矩阵                                |
+| `np.linalg.svd`   | 对矩阵(M,N)进行奇异值分解，返回u(M,M),s(M,N),v(N,N) |
+
+- 矩阵
+
+矩阵(matrix)是numpy提供的另一种数据类型，可以使用mat或matrix函数将数组转化为矩阵
+
+```python
+m1 = np.mat([[1,2,3],[4,5,6]])  # matrix([[1,2,3],[4,5,6]])
+
+m1*8  # matrix([[8,16,24],[32,40,48]])
+
+m2 = np.matrix([[1,2,3],[4,5,6],[7,8,9]])
+
+m1*m2  # matrix([[30, 36, 42],[66, 81,96]])
+
+m2.I  # 逆矩阵
+```
+
+- 运算
+
+矩阵与矩阵(多维数组与多维数组)
 
 ```python
 # 多维数组和多维数组之间的运算
@@ -1119,7 +1151,7 @@ pinvX = np.linalg.pinv(X)
 X.dot(pinvX)  # 单位矩阵
 ```
 
-- 向量与矩阵(一维数组与多维数组)
+向量与矩阵(一维数组与多维数组)
 
 ```python
 # 一维数组和多维数组之间运算
@@ -1139,7 +1171,7 @@ v.dot(A)  # 数学意义上的矩阵乘法1*2*2*2
 A.dot(v)  # numpy自动转换向量为合适列向量或行向量，但结果不一定是数学意义上的样子
 ```
 
-- 向量与向量(一维数组与一维数组)
+向量与向量(一维数组与一维数组)
 
 ```python
 arr1 = np.array([1, 2, 3, 4, 5])
@@ -1154,7 +1186,7 @@ print(arr1 * arr2)
 print(arr1 / arr2)
 ```
 
-- 数字与数组
+数字与数组
 
 ```python
 # 数组和数字之间的运算

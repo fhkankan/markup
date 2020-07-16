@@ -143,5 +143,199 @@ ax.set_zlim(-1, 1)
 plt.show()
 ```
 
-### 
+## 地图
+
+matplotlib中地图可视化包为Basemap。实际使用中，可考虑`leaflet`开发库、谷歌地图、百度地图、高德地图等API。
+
+### Basemap
+
+安装
+
+```python
+conda install basemap
+```
+
+引用
+
+```python
+from mpl_toolkits.basemap import Basemap
+```
+
+使用
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from mpl_toolkits.basemap import Basemap
+
+# 地球
+# plt.figure(figsize=(8, 8))
+# m = Basemap(projection='ortho', resolution=None, lat_0=40, lon_0=115)
+# m.bluemarble(scale=0.5)
+# plt.show()
+
+# 地图投影放大到亚洲，定位北京位置
+fig = plt.figure(figsize=(8, 8))
+m = Basemap(projection='lcc', resolution=None, width=8E6, height=8E6, lat_0=40, lon_0=115)
+m.etopo(scale=0.5, alpha=0.5)
+# 地图上的经纬度对应图上xy坐标
+x, y = m(116, 40)
+plt.plot(x, y, 'ok', markersize=5)
+plt.text(x, y, 'Beijing', fontsize=12)
+plt.show()
+
+```
+
+### 地图投影
+
+Basemap程序包里面实现了几十种投影类型。
+
+```python
+from itertools import chain
+
+
+def draw_map(m, scale=0.2):
+    # 画地貌晕染图
+    m.shadedrelief(scale=scale)
+    # 用字典表示经纬度
+    lats = m.drawparallels(np.linspace(-90, 90, 13))
+    lons = m.drawmeridians(np.linspace(-180, 180, 13))
+    # 字典的键是plt.line2D示例
+    lat_lines = chain(*(tup[1][0] for tup in lats.items()))
+    lon_lines = chain(*(tup[1][0] for tup in lons.items()))
+    all_lines = chain(lat_lines, lon_lines)
+    # 用循环将所有线设置城需要的样式
+    for line in all_lines:
+        line.set(linestyle='-', alpha=0.3, color='w')
+
+
+# 圆柱投影
+# fig = plt.figure(figsize=(8, 6), edgecolor='w')
+# m = Basemap(projection='cyl', resolution=None, llcrnrlat=-90, urcrnrlat=90, llcrnrlon=-180, urcrnrlon=180)
+# # cyl:等距圆柱投影，merc:墨卡托投影，cea:圆柱等积投影
+# draw_map(m)
+# plt.show()
+
+# 伪圆柱投影
+# fig = plt.figure(figsize=(8, 6), edgecolor='w')
+# m = Basemap(projection='moll', resolution=None, lat_0=0, lon_0=0)
+# # moll:摩尔威德投影，sinu:正弦投影，robin:罗宾森投影 
+# draw_map(m)
+# plt.show()
+
+# 透视投影
+# fig = plt.figure(figsize=(8, 8))
+# m = Basemap(projection='ortho', resolution=None, lat_0=50, lon_0=0)
+# # ortho:正射投影，gnom:球心投影，stere:球极投影
+# draw_map(m)
+# plt.show()
+
+# 圆锥投影
+fig = plt.figure(figsize=(8, 8))
+m = Basemap(projection='lcc', resolution=None, lat_0=50, lat_1=45, lat_2=55, lon_0=0, width=1.6E7, height=1.2E7)
+# lcc:兰勃特等角圆锥投影，eqdc:等距圆锥投影，aea:阿尔伯斯等积圆锥投影
+draw_map(m)
+plt.show()
+```
+
+### 地图背景
+
+常用画图函数
+
+```python
+# 物理边界与水体
+drawcoastlines()	# 绘制大陆海岸线
+drawlsmask()		# 为陆地和海洋设置填充色，从而在陆地或海洋之投影其他图像
+drawmapboundary()	# 绘制地图边界，包括为海洋填充颜色
+drawrivers()		# 绘制河流
+fillcontinents()	# 用一种颜色填充大陆，用另一种功能颜色填充湖泊
+# 政治边界
+drawcountries()		# 绘制国界线
+drawstates()		# 绘制美国州界线
+drawcounties()		# 绘制美国县界线
+# 地图功能
+drawgreatcircle()	# 在两点之间绘制一个大圆
+drawparallels()		# 绘制维线
+drawmeridians()		# 绘制经线
+drawmapscale()		# 在地图上绘制一个线性比例尺
+# 地球影像
+bluemarble()		# 绘制NASA蓝色弹珠地球投影
+shadedrelief()		# 在地图上绘制地貌晕染图
+etopo()				# 在地图上绘制地形晕染图
+warpimage()			# 将用户提供的图像投影到地图上
+```
+
+示例
+
+```python
+# 画地图背景
+fig, ax = plt.subplots(1, 2, figsize=(12, 8))
+
+for i, res in enumerate(['l', 'h']):
+    m = Basemap(projection='gnom', lat_0=57.3, lon_0=-6.2, width=90000, height=120000, resolution=res, ax=ax[i])
+    # 分辨率：c原始分辨率，l低分辨率，i中等分辨率，h高分辨率，f全画质分辨率，None表示不使用边界线
+    m.fillcontinents(color='#FFDDCC', lake_color='#DDEEFF')
+    m.drawmapboundary(fill_color='#DDEEFF')
+    m.drawcoastlines()
+    ax[i].set_title("resolution='{0}'".format(res))
+plt.show()
+```
+
+### 地图数据
+
+使用任意的`plt`函数就可以在地图上画出简单的图形和文字，可以将维度和经度坐标投影为直角坐标系。`Basemap`实例中的许多方法都是与地图相关的函数。这些函数与标准Matplotlib函数用法类似，只是都多了一个布尔参数`latlon`，若是将它设置为`True`，就表示使用原来的经度纬度表示，而不是投影为`(x,y)`坐标。
+
+部分与地图有关的方法
+
+```python
+contour()/contourf()		# 绘制等高线/填充等高线
+imshow()					# 绘制一个图像
+pcolor()/pcolormesh()		# 绘制带规则/不规则网格的伪彩图
+plot()						# 绘制线条和/或标签
+scatter()				    # 绘制带标签的点
+quiver()					# 绘制箭头
+barbs()						# 绘制风羽
+drawgreatecircle()			# 绘制大圆圈
+```
+
+### 案例
+
+美国加州城市数据
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.basemap import Basemap
+import pandas as pd
+
+cities = pd.read_csv('data/california_cities.csv')
+
+# 提取需要的数据
+lat = cities['latd'].values
+lon = cities['longd'].values
+population = cities['population_total'].values
+area = cities['area_total_km2'].values
+# 绘制地图投影，绘制数据散点，并创建颜色条与图例
+# 1.绘制地图背景
+fig = plt.figure(figsize=(8, 8))
+m = Basemap(projection='lcc', resolution='h', lat_0=37.5, lon_0=-119, width=1E6, height=1.2E6)
+m.shadedrelief()
+m.drawcoastlines(color='gray')
+m.drawcountries(color='gray')
+m.drawstates(color='gray')
+# 2.绘制城市数据散点，用颜色表示人口数据
+m.scatter(lon, lat, latlon=True, c=np.log10(population), s=area, cmap='Reds', alpha=0.5)
+# 3.创建颜色条与图例
+plt.colorbar(label=r'$\log_{10}({\rm population})$')
+plt.clim(3, 7)
+# 用虚拟点绘制图例
+for a in [100, 300, 500]:
+    plt.scatter([], [], c='k', alpha=0.5, s=a, label=str(a) + 'km$^2$')
+plt.legend(scatterpoints=1, frameon=False, labelspacing=1, loc='lower left')
+plt.show()
+
+```
+
+
 

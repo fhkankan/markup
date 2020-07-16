@@ -91,6 +91,23 @@ from IPython.display import Image
 Image(file_path)
 ```
 
+示例
+
+```python
+import os
+
+PROJECT_ROOT_DIR = "."
+CHAPTER_ID = "end_to_end_project"
+IMAGES_PATH = os.path.join(PROJECT_ROOT_DIR, "images", CHAPTER_ID)
+
+def save_fig(fig_id, tight_layout=True, fig_extension="png", resolution=300):
+    path = os.path.join(IMAGES_PATH, fig_id + "." + fig_extension)
+    print("Saving figure", fig_id)
+    if tight_layout:
+        plt.tight_layout()
+    plt.savefig(path, format=fig_extension, dpi=resolution)
+```
+
 ## figure/Axes
 
 在画图形时，需要先创建一个图形fig和一个坐标轴ax
@@ -377,13 +394,14 @@ plt.xlim(0, 10)
 ### 直方图
 
 ```python
-plt.hist(arr, bins=100, range(4, 5), color="r", alpha=0.4)
+plt.hist(arr, bins=100, range(4, 5), color="r", alpha=0.4, density=True)
 # 参数
 arr		x轴表示值大小，y轴表示每个值的个数
 bins	直方的个数
 range()	显示x值的范围
 color 	颜色
 alpha	透明度
+density	标准化概率密度
 
 # 不需要画图，只计算数据
 counts, bin_edges = np.histogram(a, bins=10, range=None, normed=None, weights=None, density=None)

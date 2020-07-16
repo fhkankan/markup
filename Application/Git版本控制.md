@@ -760,8 +760,10 @@ git mv		# 移动或重命名一个文件、目录或符号链接
 
 - 删除
 
-```
+```python
 git rm 		# 从工作区和索引中删除文件
+git branch -d 分支名  # 删除一个已合并的分支(非当前分支)
+git branch -D 分支名  # 强行删除分支(未合并则丢失修改)
 ```
 
 - 回退
@@ -855,6 +857,5 @@ git rebase -i 9fbf10  # 对某次id为9fbf10之后的commit进行rebase
 # 2.对弹窗commands处理
 将需要删除的commit设置操作指令drop
 # 3.保存退出
-
 ```
 

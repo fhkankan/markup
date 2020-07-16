@@ -28,6 +28,14 @@ pip install scikit-learn
 import sklearn
 ```
 
+对象
+
+```
+估算器：能够根据数据集对某些参数进行估算的任意对象都可称为估算器，估算由fit()执行
+转换器：可以转换数据集的估算器也叫转换器。转换由transform()执行，有时直接使用fit_transform()
+预测器：可以基于一个给定的数据集进行预测的估算器也叫预测器。预测由predict()执行
+```
+
 ## 数据集
 
 ```
@@ -95,34 +103,46 @@ X, y = datasets.make_blobs(n_samples=100, n_features=2, centers=2, random_state=
 
 #### 分类特征
 
-- DictVectorizer
-
-API
+- LabelEncoder
 
 ```python
-# 字典向量化
-from sklearn.feature_extraction import DictVectorizer
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder
 
-# 实例化
-vec = DictVectorizer(sparse=True,…)
-
-# 方法
-vec.fit_transform(X)       
-# 参数X:字典或者包含字典的迭代器
-# 返回值：返回sparse矩阵
-
-# 等价于vec.fit_transform(X)
-vec.fit(X)
-vec.transform(X)
-
-vec.inverse_transform(X)
-# 参数X:array数组或者sparse矩阵
-# 返回值:转换之前数据格式
-
-vec.get_feature_names()  # 返回类别名称
+dict_data = {'lang': ['Eng', 'Chi', 'Spa']}
+data = pd.DataFrame(dict_data)
+encoder = LabelEncoder()
+data_encode = encoder.fit_transform(dict_data['lang'])
+print(data_encode)  # [1 0 2]
+print(encoder.classes_)  # ['Chi' 'Eng' 'Spa']
 ```
 
-实现
+- OneHotEncoder
+```python
+one_hot = OneHotEncoder()
+# 整数转换为onehot
+data_one_hot = one_hot.fit_transform(data_encoder.reshape(-1, 1))
+print(data_one_hot.toarray())
+"""
+[[0. 1. 0.]
+ [1. 0. 0.]
+ [0. 0. 1.]]
+"""
+```
+- LabelBinarizer
+```python
+encoder2 = LabelBinarizer()
+# 文本转换为整数，整数转换为onehot
+data_encoder2 = encoder2.fit_transform(dict_data['lang'])
+print(data_encoder2)
+"""
+[[0 1 0]
+ [1 0 0]
+ [0 0 1]]
+"""
+```
+
+- DictVectorizer
 
 ```python
 from sklearn.feature_extraction import DictVectorizer
@@ -371,6 +391,8 @@ print(tfidf.inverse_transform(result))
 
 方法一：使用像素
 
+方法二：HOG特征
+
 ### 特征预处理
 
 #### 衍生特征
@@ -479,7 +501,43 @@ print(X2)
 #  [8.  8.  1. ]]
 ```
 
-## 特征管道
+## 自定义转换器
+
+sklearn提供了转换器：`LabelEncoder, OneHotEncoder, LabelBinarizer`等，但是也可以自定义转换器
+
+```python
+rooms_ix, bedrooms_ix, populaton_ix, household_ix = 3, 4, 5, 6
+
+
+class CombinedAttributesAdder(BaseEstimator, TransformerMixin):
+    """
+    由于scickit-learn依赖于鸭子类型的编译，而不是继承，所以可以创建一个类，然后用fit(),transform(),fit_transform()
+    实现与其他的转换器类似，可以和scikit-learn自身的功能(如pipline)无缝对接。
+    继承BaseEstimator，在构造器中避免*args和**kwargs，可以额外获得get_params()和set_params()两个调整超参数的方法
+    继承TransformerMixin，可以直接使用fit_transform()
+    """
+
+    def __init__(self, add_bedrooms_per_room=True):
+        self.add_bedrooms_per_room = add_bedrooms_per_room
+
+    def fit(self, X, y=None):
+        return self
+
+    def transform(self, X, y=None):
+        rooms_per_household = X[:, rooms_ix] / X[:, household_ix]
+        population_per_household = X[:, populaton_ix] / X[:, household_ix]
+        if self.add_bedrooms_per_room:
+            bedrooms_per_room = X[:, bedrooms_ix] / X[:, rooms_ix]
+            return np.c_[X, rooms_per_household, population_per_household, bedrooms_per_room]
+        else:
+            return np.c_[X, rooms_per_household, population_per_household]
+
+
+attr_adder = CombinedAttributesAdder(add_bedrooms_per_room=False)
+housing_extra_attribs = attr_adder.transform(housing.values)
+```
+
+## 管道
 
 需要将多个步骤串联起来使用，可以使用管道对象。
 
@@ -487,87 +545,75 @@ API
 
 ```python
 from sklearn.pipeline import make_pipeline
+from sklearn.pipeline import Pipeline
+from sklearn.pipeline import make_union
+from sklearn.pipeline import FeatureUnion
 ```
 
-示例
+- pipline
+
+Pipeline将多个评估器级联合成一个评估器。这么做的原因是考虑了数据处理过程的一系列前后相继的固定流程，比如：feature selection --> normalization --> classification
+
+在这里，Pipeline提供了两种服务：
+```
+1. Convenience: 你只需要一次fit和predict就可以在数据集上训练一组estimators。
+2. Join parameter selection： 可以把grid search用在pipeline中所有的estimators的参数组合上面。
+```
+注意： pineline中除了最后一个之外的所有的estimators都必须是变换器（transformers）（也就是说必须要有一个transform方法）。最后一个estimator可以是任意的类型（transformer, classifier, regresser, etc）。
+
+调用pipeline estimator的fit方法，就等于是轮流调用每一个estimator的fit函数一样，不断地变换输入，然后把结果传递到下一个阶段（step）的estimator。Pipeine对象实例拥有最后一个estimator的所有的方法。
 
 ```python
-import numpy as np
-from sklearn.impute import SimpleImputer
-from sklearn.linear_model import LinearRegression
-from sklearn.pipeline import make_pipeline
-from sklearn.preprocessing import PolynomialFeatures
+from sklearn.pipeline import Pipeline, make_pipeline
+from sklearn.svm import SVC
+from sklearn.decomposition import PCA
+from sklearn.model_selection import GridSearchCV
+from sklearn.linear_model import LogisticRegression
 
-X = np.array([[np.nan, 0, 3],
-              [3, 7, 9],
-              [3, 5, 2],
-              [4, np.nan, 6],
-              [8, 8, 1]])
-y = np.array([14, 16, -1, 8, -5])
-model = make_pipeline(SimpleImputer(strategy='mean'), PolynomialFeatures(degree=2), LinearRegression())
-model.fit(X, y)
-print(y)
-# [14 16 -1  8 -5]
-print(model.predict(X))
-# [14. 16. -1.  8. -5.]
+# Pipeline
+estimators = [('reduce_dim', PCA()), ('clf', SVC()) ]
+pipe = Pipeline(estimators) 
+# make_pipeline省去名称，程序自动填充
+pipe = make_pipeline(PCA(), SVC())
+
+print(pipe)  # 评估器
+print('-----------')
+print(pipe.steps)  # 评估器执行步骤
+print('-----------')
+print(pipe.named_steps['clf'])  # 评估器具体步骤
+
+params = dict(reduce_dim__n_components=[2, 5, 10],
+              clf__C=[0.1, 10, 100])
+grid_search = GridSearchCV(pipe, param_grid=params)  
+     
 
 ```
 
-## 交叉验证
+- FeatureUnion
 
-API
+FeatureUnion把若干个transformer object组合成一个新的estimators。这个新的transformer组合了他们的输出，一个FeatureUnion对象接受一个transformer对象列表。
 
-```python
-from sklearn.model_selection import train_test_split, cross_val_score, LeaveOneOut
+在训练阶段，每一个transformer都在数据集上独立的训练。在数据变换阶段，多有的训练好的Trandformer可以并行的执行。他们输出的样本特征向量被以end-to-end的方式拼接成为一个更大的特征向量。
 
-train_test_split(*arrays, *options)
-# 参数
-# X				 x数据集的特征值
-# y				 y数据集的特征值
-# test_size		 测试集的大小，一般为float
-# random_state	 随机数种子
-# 返回
-# 训练集特征值、测试集特征值、训练集标签、测试集标签
-
-cross_val_score(model, X_train, y_train, cv=LeaveOneOut(len(X_train))) 
-# 参数
-# LeaveOneOut为只留一个测试
+在这里，FeatureUnion提供了两种服务：
 ```
+1. Convenience： 你只需要调用一次fit和transform就可以在数据集上训练一组estimators。
+2. Joint parameter selection： 可以把grid search用在FeatureUnion中所有的estimators的参数这上面。
+```
+FeatureUnion和Pipeline可以组合使用来创建更加复杂的模型。
 
-示例
+注意：FeatureUnion无法检查两个transformers是否产生了相同的特征输出，它仅仅产生了一个原来互相分离的特征向量的集合。确保其产生不一样的特征输出是调用者的事情。
 
 ```python
-import numpy as np
-from sklearn import datasets
-from sklearn.model_selection import train_test_split, cross_val_score
-from sklearn.neighbors import KNeighborsClassifier
-
-
-digits = datasets.load_digits()
-X = digits.data
-y = digits.target
-
-# 数据集留出集
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.4, random_state=666)
-
-
-knn_clf = KNeighborsClassifier()
-# 交叉验证
-cross_val_score(knn_clf, X_train, y_train)
-# cross_val_score(knn_clf, X_train, y_train, cv=5)  # 指定训练集分割份数
-best_score, best_p, best_k = 0, 0, 0
-for k in range(2, 11):
-  	for p in range(1, 6):
-      	knn_clf = KNeighborsClassifier(weights="distance", n_neighbors=k, p=p)
-        scores = cross_val_score(knn_clf, X_train, y_train)
-        score = np.mean(scores)
-        if score > best_score:
-          	best_score = score
-            best_p = p
-            best_k = k
-print("best_score", best_score)
-print("best_p", best_p)
-print("bset_k", best_k)
+from sklearn.pipeline import FeatureUnion
+from sklearn.pipeline import make_union
+from sklearn.decomposition import PCA
+from sklearn.decomposition import KernelPCA
+# FeatureUnion
+estimators = [('linear_pca', PCA()), ('kernel_pca', KernelPCA())]
+combined = FeatureUnion(estimators)
+# make_union：省去名称，程序自动填充
+combined = make_union(PCA(), KernelPCA())
 ```
 
 ## 验证曲线
@@ -721,6 +767,100 @@ plt.show()
 # 采用更复杂的模型之后，收敛得分提高了，但是模型的方差也变大了。
 ```
 
+## 交叉验证
+
+随机抽样
+
+```python
+from sklearn.model_selection import train_test_split
+
+train_test_split(*arrays, *options)
+# 参数
+# X				 x数据集的特征值
+# y				 y数据集的特征值
+# test_size		 测试集的大小，一般为float
+# random_state	 随机数种子
+# 返回
+# 训练集特征值、测试集特征值、训练集标签、测试集标签
+```
+
+分层抽样
+
+```python
+import pandas as pd
+from sklearn.model_selection import StratifiedShuffleSplit
+
+# 读取数据
+data = pd.read_csv("median_income.csv")
+# 查看原始数据在数据中的比例
+data["income_cat"].value_counts() / len(data)
+
+# 数据的加工处理，是每个类别里的数据变的均匀
+data["income_cat"] = np.ceil(data["median_income"]/1.5)
+data["income_cat"].where(data["income_cat"]<5, 5.0, inplace=True)
+
+# 创建对象
+split = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=42)
+for train_index, test_index in split.split(data, data["income_cat"]):
+    strat_train_test = data.loc[train_index]
+    strat_test_test = data.loc[test_index]
+
+# 计算分层抽样后的各个数据占的比例
+strat_train_test["income_cat"].value_counts() / len(strat_train_test)
+
+# 从运行结果很容易发现分层抽样前后各个数据占总数据的比例基本一致
+```
+
+交叉验证
+
+```python
+from sklearn.model_selection import cross_val_score, LeaveOneOut
+# 执行交叉验证，返回每个折叠的评估分数
+
+cross_val_score(model, X_train, y_train, cv=LeaveOneOut(len(X_train))) 
+# 参数
+# LeaveOneOut为只留一个测试
+
+from sklearn.model_selection import cross_val_predict
+# 执行交叉验证，返回每个折叠的预测
+```
+
+示例
+
+```python
+import numpy as np
+from sklearn import datasets
+from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.neighbors import KNeighborsClassifier
+
+
+digits = datasets.load_digits()
+X = digits.data
+y = digits.target
+
+# 数据集留出集
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.4, random_state=666)
+
+
+knn_clf = KNeighborsClassifier()
+# 交叉验证
+cross_val_score(knn_clf, X_train, y_train)
+# cross_val_score(knn_clf, X_train, y_train, cv=5)  # 指定训练集分割份数
+best_score, best_p, best_k = 0, 0, 0
+for k in range(2, 11):
+  	for p in range(1, 6):
+      	knn_clf = KNeighborsClassifier(weights="distance", n_neighbors=k, p=p)
+        scores = cross_val_score(knn_clf, X_train, y_train)
+        score = np.mean(scores)
+        if score > best_score:
+          	best_score = score
+            best_p = p
+            best_k = k
+print("best_score", best_score)
+print("best_p", best_p)
+print("bset_k", best_k)
+```
+
 ## 网格搜索
 
 API
@@ -739,7 +879,8 @@ cv：指定几折交叉验证
 fit：输入训练数据
 score：准确率
 # 属性
-best_score_:最好结果
+best_score_:最佳模型下的分数
+best_params_:最佳模型参数
 best_estimator_：最好的参数模型
 cv_results_:交叉验证的结果
 ```
@@ -812,6 +953,7 @@ from sklearn.naive_bayes import GaussianNB  # 高斯
 from sklearn.naive_bayes import MultinomialNB  # 多项式
 # SVM
 from sklearn.svm import SVC
+from sklearn.svm import SVR
 # 逻辑回归
 from sklearn.linear_model import LogisticRegression	
 # 决策树
@@ -841,10 +983,40 @@ from sklearn.decomposition import PCA
 # 流形学习
 from sklearn.manifold import MDS, LocallyLinearEmbedding, Isomap, TSNE
 # 聚类
-from sklearn.cluster import KMeans
+from sklearn.cluster import KMeans,SpectralClustering
+# 高斯混合模型
+from sklearn.mixture import GaussianMixture
+# 核密度估计
+from sklearn.neighbors import KernelDensity
 ```
 
 ## 算法评价
+
+### 回归
+
+均方误差
+
+```python
+from sklearn.metrics import mean_squared_error
+```
+
+根均方误差
+
+```python
+sqrt(mean_squared_error())
+```
+
+平均绝对误差
+
+```python
+from sklearn.metrics import mean_absolute_error
+```
+
+R方
+
+```python
+from sklearn.metrics import r2_score
+```
 
 ### 分类
 
@@ -859,7 +1031,7 @@ from sklearn.metrics import accuracy_score
 ```python
 from sklearn.metrics import confusion_matrix
 
-confusion_matrix(y_test, y_predict)  # xlabel是predict,ylabel是true
+confusion_matrix(y_test, y_predict)  # xlabel是predict,ylabel是true；即行表示实际的类别，列表示预测的列表
 ```
 
 精准率
@@ -886,7 +1058,7 @@ from sklearn.metics import f1_score
 f1_score(y_test, y_predict)
 ```
 
-precision-recall曲线
+PR曲线
 
 ```python
 from sklearn.metrics import precision_recall_curve
@@ -894,7 +1066,7 @@ from sklearn.metrics import precision_recall_curve
 precisions, recalls, thresholds = precision_recall_curve(y_test, decision_scores)
 ```
 
-ROC曲线
+ROC/AUC曲线
 
 ```python
 from sklearn.metrics import roc_curve
@@ -910,32 +1082,6 @@ roc_auc_score(y_test, decision_scores)
 from sklearn.metrics import classification_report
 
 res = classification_report(y_test, y_predict, target_names=data.target_names)
-```
-
-### 回归
-
-均方误差
-
-```python
-from sklearn.metrics import mean_squared_error
-```
-
-根均方误差
-
-```python
-sqrt(mean_squared_error())
-```
-
-平均绝对误差
-
-```python
-from sklearn.metrics import mean_absolute_error
-```
-
-R方
-
-```python
-from sklearn.metrics import r2_score
 ```
 
 ### 聚类

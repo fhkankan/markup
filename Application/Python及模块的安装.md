@@ -846,8 +846,6 @@ pip install jupyter
 $jupyter notebook
 ```
 
-
-
 # Anaconda
 
 ## 安装
@@ -859,6 +857,8 @@ $jupyter notebook
 # Ubuntu
 进入下载目录，打开终端，输入
 bash Anaconda3-4.3.1-Linux-x86_64.sh 
+# mac
+brew cask install anaconda
 
 2. 环境变量
 # windows
@@ -869,6 +869,8 @@ C:\ProgramData\Anaconda3;C:\ProgramData\Anaconda3\Scripts
 echo 'export PATH="~/anaconda2/bin:$PATH"' >> ~/.bashrc
 # 更新bashrc以立即生效
 source ~/.bashrc
+# mac 
+conda init zsh/bash
 
 3. 检查
 conda -V
@@ -925,6 +927,8 @@ python --version
 source activate your_env_name
 # Windows
 activate your_env_name
+# mac
+conda activate your_env_name
 
 # 对虚拟环境中安装额外的包
 conda install -n your_env_name [package]
@@ -934,6 +938,8 @@ conda install -n your_env_name [package]
 source deactivate
 # Windows
 deactivate
+# mac
+conda deactivate
 
 # 删除虚拟环境
 conda remove -n your_env_name --all

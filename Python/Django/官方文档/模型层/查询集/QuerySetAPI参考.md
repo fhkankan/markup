@@ -313,21 +313,21 @@ my_queryset.reverse()[:5]
 
 > 注
 
-[`order_by()`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/models/querysets.html#django.db.models.query.QuerySet.order_by) 调用中的任何字段都将包含在SQL 的 `SELECT` 列中。 与`distinct()` 一起使用时可能导致预计不到的结果。 如果你根据关联模型的字段排序，这些fields将添加到查询的字段中，它们可能产生本应该是唯一的重复的行。 因为多余的列没有出现在返回的结果中（它们只是为了支持排序），有时候看上去像是返回了不明确的结果。
+`order_by()`调用中的任何字段都将包含在SQL 的 `SELECT` 列中。 与`distinct()` 一起使用时可能导致预计不到的结果。 如果你根据关联模型的字段排序，这些fields将添加到查询的字段中，它们可能产生本应该是唯一的重复的行。 因为多余的列没有出现在返回的结果中（它们只是为了支持排序），有时候看上去像是返回了不明确的结果。
 
-类似地，如果您使用[`values()`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/models/querysets.html#django.db.models.query.QuerySet.values)查询来限制所选择的列，则仍然会涉及任何[`order_by()`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/models/querysets.html#django.db.models.query.QuerySet.order_by)（或默认模型排序）影响结果的唯一性。
+类似地，如果您使用`values()`查询来限制所选择的列，则仍然会涉及任何`order_by()`（或默认模型排序）影响结果的唯一性。
 
-这里的约束是，如果你使用的是`distinct()`，请注意相关模型的排序。 类似地，当一起使用`distinct()`和[`values()`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/models/querysets.html#django.db.models.query.QuerySet.values)时，请注意字段在不在[`values()`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/models/querysets.html#django.db.models.query.QuerySet.values)
+这里的约束是，如果你使用的是`distinct()`，请注意相关模型的排序。 类似地，当一起使用`distinct()`和`values()`时，请注意字段在不在`values()`
 
-在PostgreSQL上，您可以传递位置参数（`*fields`），以便指定`DISTINCT`应该应用的字段的名称。 这转换为`SELECT DISTINCT ON` SQL查询。 这里有区别。 对于正常的`distinct()`调用，数据库在确定哪些行不同时比较每行中的*每个*字段。 对于具有指定字段名称的`distinct()`调用，数据库将仅比较指定的字段名称。
+在PostgreSQL上，您可以传递位置参数（`*fields`），以便指定`DISTINCT`应该应用的字段的名称。 这转换为`SELECT DISTINCT ON` SQL查询。 这里有区别。 对于正常的`distinct()`调用，数据库在确定哪些行不同时比较每行中的每个字段。 对于具有指定字段名称的`distinct()`调用，数据库将仅比较指定的字段名称。
 
 > 注
 > 当你指定字段名称时，*必须*在`distinct()`中提供`QuerySet`，而且`order_by()`中的字段必须以`order_by()`中的字段相同开始并且顺序相同。
-> 例如，`SELECT DISTINCT ON （a）`列`a`中的每个值。 如果你没有指定一个顺序，你会得到一个任意的行。
+> 例如，`SELECT DISTINCT ON (a)`列`a`中的每个值。 如果你没有指定一个顺序，你会得到一个任意的行。
 
 示例（除第一个示例外，其他示例都只能在PostgreSQL 上工作）：
 
-```
+```shell
 >>> Author.objects.distinct()
 [...]
 
@@ -349,13 +349,13 @@ my_queryset.reverse()[:5]
 
 > 注
 
-请记住，[`order_by()`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/models/querysets.html#django.db.models.query.QuerySet.order_by)使用已定义的任何默认相关模型排序。 您可能需要通过关系`_id`或引用字段显式排序，以确保`DISTINCT ON`在`ORDER BY`子句的开头。 例如，如果`Blog`模型通过`name`定义[`ordering`](https://yiyibooks.cn/__trs__/xx/Django_1.11.6/ref/models/options.html#django.db.models.Options.ordering)：
+请记住，`order_by()`使用已定义的任何默认相关模型排序。 您可能需要通过关系`_id`或引用字段显式排序，以确保`DISTINCT ON`在`ORDER BY`子句的开头。 例如，如果`Blog`模型通过`name`定义`ordering`：
 
 ```
 Entry.objects.order_by('blog').distinct('blog')
 ```
 
-…wouldn’t work because the query would be ordered by `blog__name` thus mismatching the `DISTINCT ON` expression. 你必须按照关系`_id`字段（在这种情况下为`blog__pk`）或引用的（`blog_id`）显式排序来确保两个表达式都匹配。
+将不会有效，因为查询是以`blog__name`进行排序，因此没有匹配到`DISTINCT ON` 表达式。你必须按照关系`_id`字段（在这种情况下为`blog__pk`）或引用的（`blog_id`）显式排序来确保两个表达式都匹配。
 
 #### `values()`
 
@@ -457,7 +457,7 @@ Django 的作者喜欢将影响SQL 的方法放在前面，然后放置影响输
 
 
 
-#### values_list()``
+#### `values_list()`
 
 `values_list(*fields, flat=False)`
 
