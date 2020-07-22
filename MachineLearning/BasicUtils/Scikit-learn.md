@@ -787,7 +787,6 @@ train_test_split(*arrays, *options)
 分层抽样
 
 ```python
-import pandas as pd
 from sklearn.model_selection import StratifiedShuffleSplit
 
 # 读取数据
@@ -814,6 +813,7 @@ strat_train_test["income_cat"].value_counts() / len(strat_train_test)
 交叉验证
 
 ```python
+# 1.带返回值的cross_val_score
 from sklearn.model_selection import cross_val_score, LeaveOneOut
 # 执行交叉验证，返回每个折叠的评估分数
 
@@ -823,6 +823,23 @@ cross_val_score(model, X_train, y_train, cv=LeaveOneOut(len(X_train)))
 
 from sklearn.model_selection import cross_val_predict
 # 执行交叉验证，返回每个折叠的预测
+
+# 2.自定义函数
+from sklearn.model_selection import StratifiedKFold
+from sklearn.base import clone
+
+skfolds = StratifiedKFold(n_splits=3, random_state=42)
+for train_index, test_index in skfolds.split(X_train, y_train_5):
+    clone_clf = clone(sgd_clf)
+    X_train_folds = X_train[train_index]
+    y_train_folds = (y_train_5[train_index])
+    X_test_fold = X_train[test_index]
+    y_test_fold = (y_train_5[test_index])
+
+    clone_clf.fit(X_train_folds, y_train_folds)
+    y_pred = clone_clf.predcit(X_test_fold)
+    n_correct = sum(y_pred == y_test_fold)
+    print(n_correct / len(y_pred))
 ```
 
 示例
@@ -956,6 +973,8 @@ from sklearn.svm import SVC
 from sklearn.svm import SVR
 # 逻辑回归
 from sklearn.linear_model import LogisticRegression	
+# 随机梯度下降
+from sklearn.linear_model import SGDClassifier
 # 决策树
 from sklearn.tree import DecisionTreeClassifier
 # 随机森林
@@ -1024,6 +1043,8 @@ from sklearn.metrics import r2_score
 
 ```python
 from sklearn.metrics import accuracy_score
+
+res = accuracy_score(y_test, y_predict)
 ```
 
 混淆矩阵
@@ -1031,7 +1052,7 @@ from sklearn.metrics import accuracy_score
 ```python
 from sklearn.metrics import confusion_matrix
 
-confusion_matrix(y_test, y_predict)  # xlabel是predict,ylabel是true；即行表示实际的类别，列表示预测的列表
+res = confusion_matrix(y_test, y_predict)  # xlabel是predict,ylabel是true；即行表示实际的列表，列表示预测的列表
 ```
 
 精准率
@@ -1039,7 +1060,7 @@ confusion_matrix(y_test, y_predict)  # xlabel是predict,ylabel是true；即行�
 ```python
 from sklearn.metrics import precision_score
 
-precision_score(y_test, y_predict)
+res = precision_score(y_test, y_predict)
 ```
 
 召回率
@@ -1047,7 +1068,7 @@ precision_score(y_test, y_predict)
 ```python
 from sklearn.metics import recall_score
 
-recall_score(y_test, y_predict)
+res = recall_score(y_test, y_predict)
 ```
 
 F1 Score
@@ -1055,7 +1076,7 @@ F1 Score
 ```python
 from sklearn.metics import f1_score
 
-f1_score(y_test, y_predict)
+res = f1_score(y_test, y_predict)
 ```
 
 PR曲线
