@@ -1,5 +1,18 @@
 # 神经网络API
 
+## Adam算法
+
+````python
+tf.train.AdamOptimizer(learning_rate=0.001, beta1=0.9, beta2=0.999,epsilon=1e-08,name='Adam')
+
+# 参数
+α：学习率，需要尝试一系列的值，来寻找比较合适的
+β1：常用的缺省值为 0.9
+β2：Adam 算法的作者建议为 0.999
+ϵ：Adam 算法的作者建议为epsilon的默认值1e-8
+注：β1、β2、ϵ 通常不需要调试
+````
+
 ## FC全连接
 
 ```python
