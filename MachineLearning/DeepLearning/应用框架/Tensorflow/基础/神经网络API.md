@@ -1,5 +1,11 @@
 # 神经网络API
 
+## one-hot
+
+```python
+res = tf.keras.utils.to_categorical(np.array([1,2,3,5,0]))
+```
+
 ## Adam算法
 
 ````python
@@ -16,6 +22,11 @@ tf.train.AdamOptimizer(learning_rate=0.001, beta1=0.9, beta2=0.999,epsilon=1e-08
 ## FC全连接
 
 ```python
+tf.contrib.layers.fully_connected(P2, 6, activation_fn=None)
+# 全连接输出
+# 参数
+
+
 tf.nn.softmax_cross_entropy_with_logits(labels=None, logits=None, name=None)
 # 计算logits和labels之间的交叉熵损失。返回损失值列表
 # 参数
@@ -62,5 +73,12 @@ tf.nn.max_pool(value, ksize, strides, padding, data_format="NHWC", name=None)
 - ksize:池化窗口大小，[1,1,1,1]
 - strides:步长大小,[1,1,1,1]
 - padding:使用填充算法的类型，"SAME","VALID"
+```
+
+展平
+
+```python
+tf.contrib.layers.flatten(values)
+# 将输入展平
 ```
 

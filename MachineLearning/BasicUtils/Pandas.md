@@ -201,6 +201,15 @@ df_obj.col_idx.unique()
 df_obj[col_idx].value_counts()
 ```
 
+- 转换为numpy
+
+```python
+# 方法1
+df.values
+# 方法2
+np.array(df)
+```
+
 ## 索引操作
 
 ### 查看数据

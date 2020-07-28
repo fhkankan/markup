@@ -119,9 +119,11 @@ print(encoder.classes_)  # ['Chi' 'Eng' 'Spa']
 
 - OneHotEncoder
 ```python
+from sklearn.preprocessing import OneHotEncoder
+
 one_hot = OneHotEncoder()
 # 整数转换为onehot
-data_one_hot = one_hot.fit_transform(data_encoder.reshape(-1, 1))
+data_one_hot = one_hot.fit_transform(data_encode.reshape(-1, 1))
 print(data_one_hot.toarray())
 """
 [[0. 1. 0.]
@@ -131,6 +133,8 @@ print(data_one_hot.toarray())
 ```
 - LabelBinarizer
 ```python
+from sklearn.preprocessing import label_binarize
+
 encoder2 = LabelBinarizer()
 # 文本转换为整数，整数转换为onehot
 data_encoder2 = encoder2.fit_transform(dict_data['lang'])
@@ -178,48 +182,6 @@ print(res)
 #   (1, 3)	60.0
 #   (2, 2)	1.0
 #   (2, 3)	30.0
-```
-
-- one-hot
-
-```
-3种方式：
-1. DictVectorizer(注意，数字不会进行转换)
-2. OneHotEncoder(Numpy)
-3. pd.get_dummies(Pandas)
-```
-
-实现
-
-```python
-import pandas as pd
-from sklearn.feature_extraction import DictVectorizer
-from sklearn.preprocessing import OneHotEncoder
-
-
-df = pd.read_csv("./one_hot_test.csv")
-# print(df)
-
-# 1.DictVecotrizer
-# df.gender = df.gender.map({0: "female", 1: "male", })
-# print(type(df))
-# print(df["gender"])  # Series对象
-# print(df[["gender"]]) # DataFrame对象
-# print(list(df[["gender"]].T.to_dict().values()))
-# data = list(df[["gender"]].T.to_dict().values())
-# dv = DictVectorizer(sparse=False)
-# result = dv.fit_transform(data)
-# print(dv.get_feature_names())
-# print(result)
-
-# 2.OneHotEncoder
-encoder = OneHotEncoder(sparse=False)
-result = encoder.fit_transform(df[["gender"]])
-print(result)
-
-# 3.pd.get_dummies转换之后不需要在做合并
-data = pd.get_dummies(data=df, columns=["gender"])
-print(data)
 ```
 
 #### 文本特征
