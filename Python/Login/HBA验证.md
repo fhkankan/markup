@@ -4,7 +4,7 @@
 
 [参考](https://blog.csdn.net/TinyJian/article/details/81067777)
 
-`HTTP Basic Auth` 在HTTP中，基本认证是一种用来允许Web浏览器或其他客户端程序在请求时提供用户名和口令形式的身份凭证的一种登录验证方式，通常用户名和明码会通过HTTP头传递。
+在HTTP中，基本认证是一种用来允许Web浏览器或其他客户端程序在请求时提供**用户名**和**口令**形式的身份凭证的一种登录验证方式，通常用户名和明码会通过HTTP头传递。
 
 在发送之前是以用户名追加一个冒号然后串接上口令，并将得出的结果字符串再用Base64算法编码。例如，提供的用户名是Aladdin、口令是open sesame，则拼接后的结果就是Aladdin:open sesame，然后再将其用`Base64编码`，得到QWxhZGRpbjpvcGVuIHNlc2FtZQ==。最终将Base64编码的字符串发送出去，由接收者解码得到一个由冒号分隔的用户名和口令的字符串。
 
