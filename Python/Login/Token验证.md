@@ -18,12 +18,6 @@
 - 基于标准化: 你的API可以采用标准化的 JSON Web Token (JWT). 这个标准已经存在 多个后端库（.NET, Ruby, Java,Python, PHP）和多家公司的支持（如： Firebase,Google, Microsoft）
 ```
 
-缺点
-
-```
-
-```
-
 - 流程
 
 ```
