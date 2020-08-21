@@ -1134,37 +1134,37 @@ python中的struct模块对python基本数据类型与用Python字符串格式�
 
 struct模块的函数
 
-| 方法                   | 说明                                                         |
-| ---------------------- | ------------------------------------------------------------ |
-| pack(fmt, v1, v2, ...) | 按照给定的格式(fmt)把数据封装成字符串(实际是类似于C结构体的字节流) |
-| unpack(fmt, string)    | 按照给定的格式(fmt)解析字节流string,返回解析出来的tuple      |
-| calcsize(fmt)          | 计算给定的格式(fmt)占用多少字节的内存                        |
+| 方法                     | 说明                                                         |
+| ------------------------ | ------------------------------------------------------------ |
+| `pack(fmt, v1, v2, ...)` | 按照给定的格式(fmt)把数据封装成字符串(实际是类似于C结构体的字节流) |
+| `unpack(fmt, string)`    | 按照给定的格式(fmt)解析字节流string,返回解析出来的tuple      |
+| `calcsize(fmt)`          | 计算给定的格式(fmt)占用多少字节的内存                        |
 
 Python3 format对照表
 
 ```
-Format	Ctype	PythonType	seandardSize
-x	pad byte 	no value
-c	char		bytes of lenght 1	1
-b	signed char	 int				1
-B	unsigned char int				1
-?	_Bool		 bool				1
-h	short		int					2
-H	unsigned short	int				2
-i	int			int					4
-I	unsigned int	int				4
-l	long		int					4
-L	undigned long	int				4
-q	long long	int					8
-Q	undigned long long	int			8
-n	ssize_t			int
-N	size_t			int
-e	(7)				float			2
-f	float			float			4
-d	double			float			8
-s	char[]			bytes
-P	char[]			bytes
-p	void*			int
+Format	Ctype			PythonType			seandardSize
+x	pad byte 			no value			1
+c	char				string of lenght 	1
+b	signed char	 		int					1
+B	unsigned char 		int					1
+?	_Bool		 		bool				1
+h	short				int					2
+H	unsigned short		int					2
+i	int					int					4
+I	unsigned int		int or long			4
+l	long				int					4
+L	undigned long		long				4
+q	long long			long				8
+Q	undigned long long 	long 				8
+n	ssize_t				int
+N	size_t				int
+e	(7)					float				2
+f	float				float				4
+d	double				float				8
+s	char[]				string				1
+P	char[]				string				1
+p	void*				long
 ```
 
 读写文件
@@ -1176,7 +1176,7 @@ n = 130000
 x = 96.45
 b=True
 s='al@中国'
-sn = struct.pack('if?', n,x,b)  # 序列化，i表示整数，f表示实数，？表示逻辑值
+sn = struct.pack('!if?', n,x,b)  # 序列化，!表示表示适用于网络传输的字节顺序，i表示整数，f表示实数，？表示逻辑值
 
 with open('sample_struct.dat', 'wb') as f:
     f.write(sn)
@@ -1184,7 +1184,7 @@ with open('sample_struct.dat', 'wb') as f:
     
  with open('sample_struct.dat', 'rb') as f:
     sn = f.read(9)
-    tu = struct.unpack('if?', sn)  # 使用指定格式反序列化
+    tu = struct.unpack('!if?', sn)  # 使用指定格式反序列化
     n,x,b1 = tu  # 序列解包
     print('n=', n, 'x=', x, 'b1=', b1)
     s = f.read(9)
