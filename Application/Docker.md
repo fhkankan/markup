@@ -1202,4 +1202,3 @@ docker build -t ubuntu-nginx-sub:v0.1 .
 docker run -p 80 --name nginx-16 -d ubuntu-nginx-sub:v0.1
 docker ps
 ```
-
