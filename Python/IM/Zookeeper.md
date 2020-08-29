@@ -35,21 +35,19 @@ Znode被分为持久（persistent）节点，顺序（sequential）节点和临�
 
 Znode更改是与znode相关的数据的修改或znode的子项中的更改。只触发一次watches。如果客户端想要再次通知，则必须通过另一个读取操作来完成。当连接会话过期时，客户端将与服务器断开连接，相关的watches也将被删除。
 
-## 安装
+## 安装配置
 
 在安装ZooKeeper之前，请确保你的系统是在以下任一操作系统上运行：
-
-**任意Linux OS** - 支持开发和部署。适合演示应用程序。
-
-**Windows OS** - 仅支持开发。
-
-**Mac OS** - 仅支持开发。
+```
+任意Linux OS - 支持开发和部署。适合演示应用程序。
+Windows OS - 仅支持开发。
+Mac OS - 仅支持开发。
+```
+### 安装
 
 ZooKeeper服务器是用Java创建的，它在JVM上运行。你需要使用JDK 6或更高版本。
 
-现在，按照以下步骤在你的机器上安装ZooKeeper框架。
-
-**验证Java安装**
+- Java
 
 ```python
 # 1.验证系统中java版本
@@ -71,7 +69,7 @@ source ~/.bashrc
 java -version
 ```
 
-**安装zookeeper**
+- zookeeper
 
 ```python
 # 1.下载Zookeeper
@@ -88,6 +86,8 @@ tickTime = 2000
 dataDir = /path/to/zookeeper/data
 clientPort = 2181
 ```
+
+### 使用
 
 启动与停止zookeeper
 

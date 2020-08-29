@@ -7,11 +7,11 @@
 ## 常用命令
 
 ```shell
-git clone <repository> --recursive 递归的方式克隆整个项目
-git submodule add <repository> <path> 添加子模块
-git submodule init 初始化子模块
-git submodule update 更新子模块
-git submodule foreach git pull 拉取所有子模块
+git clone <repository> --recursive   	# 递归的方式克隆整个项目
+git submodule add <repository> <path>   # 添加子模块
+git submodule init 						# 初始化子模块
+git submodule update 					# 更新子模块
+git submodule foreach git pull 			# 拉取所有子模块
 ```
 
 ## 如何使用
@@ -141,7 +141,7 @@ cd ..
 
 ### 删除子模块
 
-网上有好多用的是下面这种方法
+删除缓存和文件夹
 
 ```shell
 git rm --cached moduleA
@@ -150,7 +150,7 @@ rm .gitmodules
 vim .git/config
 ```
 
-删除submodule相关的内容，例如下面的内容
+删除配置信息
 
 ```shell
 [submodule "moduleA"]
