@@ -1,12 +1,44 @@
-# 与python交互
 
-## 安装
 
-```python
-pip install pika
+# RabbitMQ
+
+## 概述
+
+MQ是一种应用程序对应用程序的通信方法。应用程序通过读出（写入）队列的消息（针对应用程序的数据）来通信，而无需使用专用连接来链接它们。消息传递指的是程序之间通过在消息中发送数据进行通信，而不是通过直接调用彼此来通信，排队指的是应用程序通过 队列来通信。队列的使用排除了接收和发送应用程序同时执行的要求。
+
+RabbitMQ是流行的开源消息队列系统，用erlang语言开发。RabbitMQ是AMQP（高级消息队列协议）的标准实现。
+
+RabbitMQ也是前面所提到的生产者消费者模型，一端发送消息（生产任务），一端接收消息（处理任务）。
+
+rabbitmq的详细使用（包括各种系统的安装配置）可参见其[官方文档](http://www.rabbitmq.com/documentation.html)
+
+作用
+
+```
+程序解耦、提升性能、降低多业务逻辑复杂度
 ```
 
-## 使用
+常用命令
+
+```shell
+# 一步启动Erlang node和Rabbit应用
+sudo rabbitmq-server
+# 在后台启动Rabbit node
+sudo rabbitmq-server -detached
+# 关闭整个节点（包括应用）
+sudo rabbitmqctl stop
+```
+
+## 安装配置
+
+## pika
+
+pika是python与Rabbitmq交互的客户端工具
+
+```shell
+# 安装
+pip install pika
+```
 
 ### producer/consumer
 

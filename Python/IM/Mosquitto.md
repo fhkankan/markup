@@ -1,4 +1,6 @@
-# Paho-mqtt
+# Mosquitto
+
+## 概述
 
 [参考](https://blog.csdn.net/weixin_43986924/article/details/88354797)
 
@@ -16,11 +18,13 @@
 “只有一次”，确保消息到达一次。这一级别可用于如下情况，在计费系统中，消息重复或丢失会导致不正确的结果
 ```
 
-## 服务端
+## 安装
 
-常用的有mosquitto，EMQ
 
-## 客户端
+
+## paho-mqtt
+
+paho-mqtt是python连接paho-mqtt的客户端工具
 
 ```
 pip install paho-mqtt
@@ -198,7 +202,7 @@ client.subscribe('fifa', qos=0)
 client.loop_forever()
 ```
 
-## 常用函数
+### 常用函数
 
 | name              | desc                 |
 | ----------------- | -------------------- |
@@ -271,32 +275,30 @@ client.on_connect = on_connect
 
 用来保持无穷阻塞调用`loop()`
 
-## API
+### API
 
 [参考1](https://blog.csdn.net/weixin_41656968/article/details/80848542)  [参考2](https://github.com/eclipse/paho.mqtt.python)
 
-###  Client
+####  Client
 
 与MQTT代理（broker）进行通信的主要类。
 
-#### 使用流程
+使用流程
+```
+1.使用`connect()`/`connect_async()` 连接MQTT代理
 
-- 使用`connect()`/`connect_async()` 连接MQTT代理
-
-- 频繁的调`loop()`来维持与MQTT代理之间的流量
+2.频繁的调`loop()`来维持与MQTT代理之间的流量
 
   - 或者使用`loop_start()`来设置一个线程为你调用`loop()`
   - 或者在一个阻塞的函数中调用`loop_forever()`来为你调用`loop()`
 
-- 使用`subscribe()`订阅一个主题（topic）并接受消息（messages）
+3.使用`subscribe()`订阅一个主题（topic）并接受消息（messages）
+4.使用`publish()`来发送消息
+5.使用`disconnect()`来断开与MQTT代理的连接
+```
+#### Callbacks
 
-- 使用`publish()`来发送消息
-
-- 使用`disconnect()`来断开与MQTT代理的连接
-
-#### 回调(Callbacks)
-
-##### 基本概念
+- 基本概念
 
 使用回调处理从MQTT代理返回的数据，要使用回调需要先定义回调函数然后将其指派给客户端实例（client）。
 例如：
@@ -317,9 +319,9 @@ client.on_connect = on_connect
 |  `client`    |  调用回调的客户端实例    |
 |  `userdata`    | 可以使任何类型的用户数据，可以在创建新客户端实例时设置或者使用`user_data_set(userdata)`设置     |
 
-##### 回调种类
+- 回调种类
 
-- on_connect
+**on_connect**
 
 当代理响应连接请求时调用。
 ```
@@ -331,7 +333,7 @@ on_connect(client, userdata, flags, rc):
 |   `flags`   |  一个包含代理回复的标志的字典    |
 |  `rc`    |  决定了连接成功或者不成功:0连接成功,1协议版本错误,2无效的客户端标识,3服务器无法使用,4错误的用户名或密码,5未经授权    |
 
-- on_disconnect
+**on_disconnect**
 
 当与代理断开连接时调用
 
@@ -342,7 +344,7 @@ on_disconnect(client, userdata, rc):
 `rc`参数表示断开状态。
 如果`MQTT_ERR_SUCCESS(0)`，回调被调用以响应`disconnect()`调用。 如果以任何其他值断开连接是意外的，例如可能出现网络错误。
 
-- on_message
+**on_message**
 
 ```
 on_message(client, userdata, message):
@@ -351,7 +353,7 @@ on_message(client, userdata, message):
 当收到关于客户订阅的主题的消息时调用。
 `message`是一个描述所有消息参数的MQTTMessage。
 
-- on_publish
+**on_publish**
 
 当使用使用`publish()`发送的消息已经传输到代理时被调用。
 
@@ -365,7 +367,7 @@ on_publish(client, userdata, mid):
 
 > 此回调很重要，因为即使`publish()`调用返回，但并不总意味着消息已发送。
 
-- on_subscribe
+**on_subscribe**
 
 当代理响应订阅请求时被调用。
 
@@ -376,7 +378,7 @@ on_subscribe(client, userdata, mid, granted_qos):
 `mid`变量匹配从相应的`subscribe()`返回的`mid`变量。
 ‘granted_qos’变量是一个整数列表，它提供了代理为每个不同的订阅请求授予的QoS级别。
 
-- on_unsubscribe
+**on_unsubscribe**
 
 当代理响应取消订阅请求时调用。
 
@@ -386,7 +388,7 @@ on_unsubscribe(client, userdata, mid):
 
 `mid`匹配从相应的`unsubscribe()`调用返回的中间变量。
 
-- on_log
+**on_log**
 
 当客户端有日志信息时调用
 
@@ -847,11 +849,9 @@ client模块还提供了一些全局帮助函数。
 
 `error_string(mqtt_errno)`返回与Paho MQTT错误号关联的错误字符串。
 
-### Publish
+#### Publish
 
 该模块提供了一些帮助功能，可以以一次性方式直接发布消息。换句话说，它们对于您想要发布给代理的单个/多个消息然后断开与其他任何必需的连接的情况非常有用。
-
-#### 方法
 
 ##### Single
 
@@ -911,11 +911,9 @@ msgs = [{'topic':"paho/test/multiple", 'payload':"multiple 1"},
 publish.multiple(msgs, hostname="iot.eclipse.org")
 ```
 
-### Subscribe
+#### Subscribe
 
 该模块提供了一些帮助功能，以允许直接订阅和处理消息。
-
-#### 方法
 
 ##### Simple
 
