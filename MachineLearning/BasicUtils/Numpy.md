@@ -59,7 +59,7 @@ a = np.random.rand(10000)
 b = np.random.rand(10000)
 c = 0
 for i inrange(10000):  # 常规实现
-    c += a[o] * b[i]
+    c += a[i] * b[i]
   
 c = np.dot(a, b)  # 向量化运算
 ```
