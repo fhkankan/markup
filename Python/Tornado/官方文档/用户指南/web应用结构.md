@@ -9,18 +9,21 @@ import tornado.ioloop
 import tornado.web
 
 class MainHandler(tornado.web.RequestHandler):
+    """实现web.RequestHandler子类，重载其中的get()函数"""
     def get(self):
+        """负责处理相应定位到该RequestHandler的HTTP GET请求"""
         self.write("Hello, world")
 
 def make_app():
+    """返回web.Application对象，第一个参数用于定义路由映射"""
     return tornado.web.Application([
         (r"/", MainHandler),
     ])
 
 if __name__ == "__main__":
     app = make_app()
-    app.listen(8888)
-    tornado.ioloop.IOLoop.current().start()
+    app.listen(8888)  # 监听服务器端口
+    tornado.ioloop.IOLoop.current().start()  # 启动IOLoop，该函数将一直运行且不退出，用于处理完所有客户端的访问请求
 ```
 
 ## `Application`对象

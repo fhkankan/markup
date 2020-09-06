@@ -69,8 +69,7 @@ def async_fetch_gen(url):
 ```python
 from tornado.concurrent import Future
 
-def async_fetch_manual(url)
-:
+def async_fetch_manual(url):
     http_client = AsyncHTTPClient()
     my_future = Future()
     fetch_future = http_client.fetch(url)

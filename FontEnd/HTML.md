@@ -627,6 +627,10 @@ datetime：表示更改所发生的日期、时间
 ```
 <table>
 	<tr>
+		<th>number</th>
+		<th>number</th>
+	</tr>
+	<tr>
 		<td>One</td>
 		<td>Two</td>
 	</tr>
@@ -724,8 +728,6 @@ td代表普通单元格，th表示表头单元格
 
 - `colspan`：合并列单元格
 - `rowspan`：合并行单元格
-
-
 
 ## 嵌入式HTML元素
 
