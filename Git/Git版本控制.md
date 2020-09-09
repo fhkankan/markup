@@ -89,7 +89,7 @@ git diff 文件名
 
 ### 版本回退
 
-```
+```shell
 # 查看历史提交版本,只能看到当前版本之前的版本
 git log
 # 查看所有的历史版本
@@ -111,6 +111,9 @@ git reset --hard HEAD^^
 
 # 往上10个版本
 git reset --hard HEAD~10
+
+# 强制提交
+git push -f
 ```
 
 ### 撤销修改

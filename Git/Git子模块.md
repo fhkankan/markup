@@ -64,7 +64,7 @@ cd ..
 
 ```shell
 cd project
-git submodule add ../moduleA.git moduleA
+git submodule add moduleA.git moduleA
 git status
 git diff
 git add .
