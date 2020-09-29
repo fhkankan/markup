@@ -876,6 +876,14 @@ conda init zsh/bash
 conda -V
 ```
 
+## 修改源
+
+```python
+conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free
+conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main
+conda config --set show_channel_urls yes
+```
+
 ## 包管理
 
 ```python
