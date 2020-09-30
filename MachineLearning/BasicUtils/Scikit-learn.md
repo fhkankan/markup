@@ -926,17 +926,17 @@ plt.show()
 
 ```python
 # k-近邻算法
-sklearn.neighbors	
-# 朴素贝叶斯
-from sklearn.naive_bayes import GaussianNB  # 高斯
-from sklearn.naive_bayes import MultinomialNB  # 多项式
-# SVM
-from sklearn.svm import SVC
-from sklearn.svm import SVR
+sklearn.neighbors
 # 逻辑回归
 from sklearn.linear_model import LogisticRegression	
 # 随机梯度下降
 from sklearn.linear_model import SGDClassifier
+# SVM
+from sklearn.svm import LinearSVC
+from sklearn.svm import SVC
+# 朴素贝叶斯
+from sklearn.naive_bayes import GaussianNB  # 高斯
+from sklearn.naive_bayes import MultinomialNB  # 多项式
 # 决策树
 from sklearn.tree import DecisionTreeClassifier
 # 随机森林
@@ -952,6 +952,9 @@ from sklearn.linear_model import LinearRegression
 from sklearn.linear_model import Ridge
 # Lasso回归（L1范数正则化）
 from sklearn.linear_model import Lasso
+# SVM
+from sklearn.svm import LinearSVR
+from sklearn.svm import SVR
 # 随机森林回归
 from sklearn.ensemble import RandomForestRegressor
 ```
@@ -1073,6 +1076,18 @@ res = classification_report(y_test, y_predict, target_names=data.target_names)
 
 ```python
 from sklearn.metrics import silhouette_score
+```
+
+## 模型保存加载
+
+```python
+from sklearn.externals import joblib
+
+# 保存
+joblib.dump(my_model, "my_model.pkl")
+
+# 加载
+my_model_loaded = joblib.load("my_model.pkl")
 ```
 
 ## 使用示例
@@ -1262,8 +1277,6 @@ sns.lmplot("PCA1", "PCA2", hue='target', data=iris_frame, col='cluster', fit_reg
 plt.show()
 
 ```
-
-
 
 
 
