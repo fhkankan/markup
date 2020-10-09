@@ -925,8 +925,6 @@ plt.show()
 分类
 
 ```python
-# k-近邻算法
-sklearn.neighbors
 # 逻辑回归
 from sklearn.linear_model import LogisticRegression	
 # 随机梯度下降
@@ -934,13 +932,15 @@ from sklearn.linear_model import SGDClassifier
 # SVM
 from sklearn.svm import LinearSVC
 from sklearn.svm import SVC
-# 朴素贝叶斯
-from sklearn.naive_bayes import GaussianNB  # 高斯
-from sklearn.naive_bayes import MultinomialNB  # 多项式
 # 决策树
 from sklearn.tree import DecisionTreeClassifier
 # 随机森林
 from skleran.ensemble import RandomForestClassifier
+# k-近邻算法
+sklearn.neighbors
+# 朴素贝叶斯
+from sklearn.naive_bayes import GaussianNB  # 高斯
+from sklearn.naive_bayes import MultinomialNB  # 多项式
 ```
 
 回归

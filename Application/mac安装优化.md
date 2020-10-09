@@ -13,36 +13,28 @@
 使用
 
 ```
-$brew search name       	# 搜索brew支持的软件（支持模糊搜索）
-$brew info svn			   # 显示软件的各种信息（包括版本、源码地址、依赖等等）
-$brew install name          # 安装源码
-$brew uninstall name	    # 卸载软件
-$brew upgrade name    		#更新安装过的软件(如果不加软件名，就更新所有可以更新的软件)
-$brew list                  # 列出本机通过brew安装的所有软件
-$brew update                # brew自身更新
-$brew cleanup             	#清除下载的缓存
+brew search [pack]		# 搜索brew支持的软件
+brew info [pack]		# 显示软件的各种信息
+brew list               # 列出通过brew安装的所有软件
+
+brew install [pack]     # 安装源码
+brew uninstall [pack]	# 卸载软件
+
+brew outdated 			# 查看可用的更新
+brew outdated --greedy  # 查看所有可用的更新，包括标记了 auto_updates或者latest版本号的软件包；
+brew upgrade 			# 更新所有软件包，不包括标记了auto_updates或者latest版本号的软件包；
+brew upgrade [pack]     # 更新安装过的软件
+brew upgrade --greedy 	# 更新所有可用软件包
+
+brew update                # brew自身更新
+brew cleanup             	#清除下载的缓存
 (PS:详见man brew)
 ```
 
-## brew cask
-
-> 对于图形化界面程序的安装管理，补充了appstore，需下载编译好的文件，安装
-
-安装
+cask
 
 ```
-安装完brew时，brew-cask已经安装好了，无需额外安装
-```
-
-使用
-
-```
-$brew cask info app             # 列出应用的信息
-$brew cask install name         # 下载安装软件
-$brew cask uninstall name       # 卸载软件
-$brew cask upgrade name    		#更新安装过的软件(如果不加软件名，就更新所有可以更新的软件)
-$brew cask list                 # 列出本机安装过的软件列表
-(PS:详见man brew cask)
+brew [command] --cask  # 对于图形化界面应用，在常用brew后面加--cask
 ```
 
 - 使用异常

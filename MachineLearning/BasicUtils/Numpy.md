@@ -1248,7 +1248,3 @@ world_alcohol = np.gefromtxt("world_alcohol.txt", delimiter=",", dtype=str)
 
 
 
-
-
-
-
