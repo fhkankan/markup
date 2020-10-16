@@ -256,7 +256,56 @@ public class Test {
 实现
 
 ```java
+// 循环读取数据源文件中的字符
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
 
+public class Test {
+    public static void main(String[] args) throws IOException {
+        // 声明字符流对象
+        Reader r = null;
+        // 创建字符流输入对象，搭建与数据源的管道
+        r  = new FileReader("./demo.txt");
+        // 读取数据，按照字符去读取
+        int temp = 0;  // 用于存储读到的字符的整数值
+        StringBuilder sb = new StringBuilder(); // 一个用来存储字符的容器
+        while ((temp = r.read()) != -1) { // 判断是否达到了文件的末尾
+            char c = (char) temp;
+            sb.append(c);
+        }
+        // 输出StringBuilder中的内容
+        System.out.println(sb.toString()); // 专程String类型
+        // 关闭流
+        r.close();
+    }
+}
+
+// 读取字符到字符数组中
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
+
+public class Test {
+    public static void main(String[] args) throws IOException {
+        // 声明字符流对象
+        Reader r = null;
+        // 创建字符流输入对象，搭建与数据源的管道
+        r  = new FileReader("./demo.txt");
+        // 声明char类型数组，用于存储读到的内容
+        char[] ch = new char[1024];
+        // 声明int类型的变量用于存车处读到取的字符的个数 
+        int length = r.read(ch);
+        // 判断是否达到了文件的末尾
+        while (length != -1) {
+            // 借助String类的构造方法查看读到的内容
+            System.out.println(new String(ch,  0, length));
+            length = r.read(ch);
+        }
+        // 关闭流
+        r.close();
+    }
+}
 ```
 
 - 字符输出流`Writer`
@@ -277,7 +326,24 @@ public class Test {
 实现
 
 ```java
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Writer;
 
+public class Test {
+    public static void main(String[] args) throws IOException {
+        // 声明字符输出流对象
+        Writer w = null;
+        // 创建字符输出流对象，搭建与目的地的桥梁
+        w  = new FileWriter("./demo.txt");
+        // 向目的地写入一个字符
+        w.write(97);
+        // 向目的地写入一串字符
+        w.write("hello world!");
+        // 关闭流
+        w.close();
+    }
+}
 ```
 
 - `OutputStream,Writer`区别
@@ -421,12 +487,476 @@ public class Test {
 
 ## System类
 
+`System`类位于`java.lang`包中，在使用时不需要导包，其中定义了3个静态常量
+
+```
+System.in	标准输入流
+System.out	标准输出流
+System.err	标准错误流
+```
+
+- `System.in`
+
+标准的输入设备是键盘，所以`System.in`指的是从键盘获取的数据，返回值类型`InputStream`.
+
+```java
+// 从键盘获取一个字节
+import java.io.IOException;
+import java.io.InputStream;
+
+public class Test {
+    public static void main(String[] args) throws IOException {
+        System.out.println("请输入数据：");
+        // 创建字节流对象，数据源是键盘
+        InputStream is = System.in;
+        // 将输入的数据展示
+        System.out.println(is.read());
+        // 关闭流
+        is.close();
+    }
+}
+
+
+// 使用缓冲流从键盘获取数据
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+
+public class Test {
+    public static void main(String[] args) throws IOException {
+       // 创建缓冲流对象
+       BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+       // 创建StringBuilder对象，用于存储从键盘获取的数据
+       StringBuilder sb = new StringBuilder();
+       String str = null;
+       while (!(str=br.readLine()).equals("bye")) {
+           sb.append(str);
+       }
+       System.out.println("获取的内容为：" + sb);
+       // 关闭流
+       br.close();
+    }
+}
+```
+
+- `System.out`
+
+标准的输出设备是显示器，`System.out`是将数据输出到显示器上显示 。返回值类型是`PrintStream`，其父类是`OutputStream`。
+
+```java
+import java.io.IOException;
+import java.io.OutputStream;
+
+
+public class Test {
+    public static void main(String[] args) throws IOException {
+       // 获取字节流对象
+       OutputStream os = System.out;
+       // 输出数据到显示器
+       os.write("welecome to beijing!".getBytes());
+       // 关闭流
+       os.close();
+    }
+}
+```
+
 ## Scanner类
+
+`Scanner`是从jdk1.5开始的一个类，位于`java.util`包中，该类对IO流进行了封装。
+
+构造方法
+
+```java
+Scanner(File source)
+// 构造一个新的Scanner，产生从指定文件扫描的值
+Scanner(InputStream source)
+// 构造一个新的Scanner，产生从指定输入流扫描的值
+```
+
+获取数据
+
+```java
+Scanner input = new Scanner(new FileInputStream("./demo.txt"))
+Scanner input = new Scanner(System.in)
+```
+
+使用
+
+```java
+// 文件
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Scanner;
+
+public class Test {
+    public static void main(String[] args) throws IOException {
+        // 创建Scanner对象，指明数据源是文件
+        Scanner input = new Scanner(new FileInputStream("./demo.txt"));
+        // 读取数据，Scanner类实现了Iterator接口（实现了hasNext()和next()）
+        String str = null;
+        while (input.hasNext()) { // 判断是否有数据，返回值为true/false
+            str = input.next(); 
+            System.out.println(str);
+        }
+        input.close();
+    }
+}
+
+// 键盘
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Scanner;
+
+public class Test {
+    public static void main(String[] args) throws IOException {
+        // 创建Scanner对象
+        Scanner input = new Scanner(System.in);
+        // 读取数据，Scanner类实现了Iterator接口（实现了hasNext()和next()）
+        String str = null;
+        while (!(str = input.next()).equals("bye")) {
+            System.out.println(str);
+        }
+        input.close();
+    }
+}
+```
 
 ## 打印流
 
+打印流是输出流的一种，分为字节打印流`PrintStream`与字符打印流`PrintWriter`，常用的方法为`print(),println()`，`PrintStream`的父类为`OutputStream`，`PrintWriter`的父类为`Writer`。
+
+```java
+// PrintStream
+import java.io.IOException;
+import java.io.PrintStream;
+
+public class Test {
+    public static void main(String[] args) throws IOException {
+        // 创建打印流对象，目的地是显示器
+        PrintStream ps = System.out;
+        // PrintStream中的方法
+        ps.print("hello");
+        ps.print("world!");
+        // write(byte[] buf)是从PrintStream的父类OutputStream中继承
+        ps.write("welcome to beijing!".getBytes());
+        // 关闭流
+        ps.close();
+    }
+}
+
+// PrintWriter
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+
+public class Test {
+    public static void main(String[] args) throws IOException {
+        // 创建字符打印流对象，目的地是文件
+        PrintWriter ps = new PrintWriter(new FileOutputStream("./demo.txt"));
+        // 向目的地打印输出数据
+        ps.println("hello world");
+        ps.write("welcome to beijing!");  // 从父类继承的方法
+        // 关闭流
+        ps.close();
+    }
+}
+```
+
 ## 数据流
+
+`DataInputStream, DataOutputStream`被称为数据流，二者配合使用可以按照与平台无关的方式中从流中读取/写入基本数据类型的数据，还可使用`WriteUTF(String str), redUTF()`方法写入/读取采用utf-8字符编码格式的字符串。
+
+```java
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+public class Test {
+    public static void main(String[] args) throws IOException {
+        // 创建数据输出流对象
+        DataOutputStream dos = new DataOutputStream(new FileOutputStream("./demo.txt"));
+        // 使用数据流向目的地写入数据
+        dos.writeInt(100); // 写入一个int类型的值
+        dos.writeChar('\n'); // 写入一个换行
+        dos.writeBoolean(true); // 写入一个boolean数据
+        dos.writeChar('\n'); // 写入一个换行
+        dos.writeUTF("北京欢迎你");
+        // 关闭流
+        dos.close();
+        // 创建数据输入流对象
+        DataInputStream dis = new DataInputStream(new FileInputStream("./demo.txt"));
+        // 使用数据流从数据源读取数据
+        System.out.println(dis.readInt()); // 读取int类型
+        dis.readChar(); // 读取换行
+        System.out.println(dis.readBoolean()); // 读取boolean数据
+        dis.readChar(); // 读取换行
+        System.out.println(dis.readUTF()); // 读取String类型的值
+        // 关闭流
+        dis.close();
+    }
+}
+```
 
 ## 对象流
 
+对象流是将对象的内存表示形式以二进制的形式存储到目的地，当需要使用的时候再从数据源以二进制的形式还原为对象的内存表示形式。使用数据流可以再网络中进行对象传输。
+
+根据流的方向分为对象输出流`ObjectOutputStream`和对象输入流`ObjectInputStream`。对象流的构造方法需要其他的流对象，所以对象流是一个处理流。
+
+```java
+ObjectOutputStream(OutputStream out)
+// 构造方法，构造对象输出流对象
+ObjectInputStream(InputStream in)
+// 构造方法，构造对象输入流对象
+
+void writeObject(Object obj)
+// 普通方法，用于将对象写入目的地
+Object readObject()
+// 普通方法，用于从数据源获取对象
+```
+
+- 对象输出流`ObjectOutputStream`
+
+用于将对象的状态以二进制数据的形式输出到目的地，将对象的状态信息输出到目的地的过程也被称为对象的序列化。
+
+```java
+// 写入一个对象
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+
+public class Test {
+    public static void main(String[] args) throws IOException {
+        // 创建Person对象
+        Person p = new Person("lucy", 12);
+        // 创建对象输出流对象
+        ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("./demo.txt"));
+        // 将Person类的对象p写入目的地
+        oos.writeObject(p); // 向上类型转换
+        // 关闭流
+        oos.close();
+    }
+}
+
+// 写入一组对象
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+
+public class Test {
+    public static void main(String[] args) throws IOException {
+        // 创建集合对象
+        ArrayList<Person> al = new ArrayList<Person>();
+        // 创建Person对象
+        Person p1 = new Person("lucy", 12);
+        Person p2 = new Person("jack", 12);
+        // 将Person对象添加到集合中
+        al.add(p1);
+        al.add(p2);
+        // 创建对象输出流对象
+        ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("./demo.txt"));
+        // 将Person类的对象集合写入目的地
+        oos.writeObject(al); // 向上类型转换
+        // 关闭流
+        oos.close();
+    }
+}
+
+// Person.java
+import java.io.Serializable;
+
+public class Person implements Serializable {
+    /**
+     * serialVersionUID用于标识写的对象和对的对象是否是同一个对象
+     */
+    private static final long serialVersionUID = 1L;
+    private String name;
+    private int age;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+
+    public Person(String name, int age) {
+        super();
+        this.name = name;
+        this.age = age;
+    }
+
+    public Person() {
+        super();
+    }
+
+}
+
+```
+
+
+
+- 对象输入流`ObjectInputStream`
+
+用于将数据源中存储的对象状态信息读取到程序中，对对象的过程被称为反序列化。
+
+```java
+// 读取一个对象
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+
+public class Test {
+    public static void main(String[] args) throws IOException, ClassNotFoundException {
+        // 创建对象输入流对象
+        ObjectInputStream ois = new ObjectInputStream(new FileInputStream("./demo.txt"));
+        // 从数据源读取对象
+        Person p = (Person) ois.readObject(); // 向下转换
+        System.out.println(p.getName() + "\t" + p.getAge());
+        // 关闭流
+        ois.close();
+    }
+}
+// 读取一组对象
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.util.ArrayList;
+
+public class Test {
+    public static void main(String[] args) throws IOException, ClassNotFoundException {
+        // 创建对象输入流对象
+        ObjectInputStream ois = new ObjectInputStream(new FileInputStream("./demo.txt"));
+        // 从数据源读取对象
+        ArrayList<Person> al = (ArrayList<Person>) ois.readObject();
+        for (Person per : al) {
+            System.out.println(per.getName() + "\t" + per.getAge());
+        }
+        // 关闭流
+        ois.close();
+    }
+}
+
+// Person.java
+import java.io.Serializable;
+
+public class Person implements Serializable {
+    /**
+     * serialVersionUID用于标识写的对象和对的对象是否是同一个对象
+     */
+    private static final long serialVersionUID = 1L;
+    private String name;
+    private int age;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+
+    public Person(String name, int age) {
+        super();
+        this.name = name;
+        this.age = age;
+    }
+
+    public Person() {
+        super();
+    }
+
+}
+```
+
 ## 字节数组流
+
+字节数组流`ByteArrayInputStream,ByteArrayOutputStream`的数据源和目的地均为`byte`类型的字节数组，该流可以将各种数据类型的数据转换成`byte`类型的数组用于在网络中进行各种数据传输。
+
+```java
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+
+public class Test {
+    public static void main(String[] args) throws Exception {
+        // 将各种数据类型转换成byte类型数组
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(bos);
+        oos.writeInt(100);
+        oos.writeUTF("hello");
+        oos.writeBoolean(true);
+        oos.writeObject(new Person());
+        // 将各种数据类型的数据转换成byte类型的数组
+        byte[] buf = bos.toByteArray();
+        ByteArrayInputStream bis = new ByteArrayInputStream(buf);
+        ObjectInputStream ois = new ObjectInputStream(bis);
+        System.out.println(ois.readInt());
+        System.out.println(ois.readUTF());
+        System.out.println(ois.readBoolean());
+        System.out.println(ois.readObject());
+    }
+}
+
+// Person.java
+import java.io.Serializable;
+
+public class Person implements Serializable {
+    /**
+     * serialVersionUID用于标识写的对象和对的对象是否是同一个对象
+     */
+    private static final long serialVersionUID = 1L;
+    private String name;
+    private int age;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+
+    public Person(String name, int age) {
+        super();
+        this.name = name;
+        this.age = age;
+    }
+
+    public Person() {
+        super();
+    }
+
+}
+```
+
