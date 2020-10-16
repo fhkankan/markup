@@ -130,11 +130,10 @@ tcp_server_socket.bind(address)
 tcp_server_socket.listen(128)
 
 while True:
-		# 如果有新的客户端来链接服务器，那么就产生一个新的套接字专门为这个客户端服务
-		# client_socket用来为这个客户端服务
-		# tcp_server_socket就可以省下来专门等待其他新客户端的链接
-		client_socket, clientAddr = tcp_server_socket.accept()
-    
+	# 如果有新的客户端来链接服务器，那么就产生一个新的套接字专门为这个客户端服务
+	# client_socket用来为这个客户端服务
+	# tcp_server_socket就可以省下来专门等待其他新客户端的链接
+	client_socket, clientAddr = tcp_server_socket.accept()
     # 创建新的线程来处理TCP连接
     t = threading.Thread(target=tcplink(client_socket, clientAddr))
     t.start()
