@@ -598,7 +598,7 @@ ssh -T git@github.com
 
 ```shell
 # 系统级别签名
-git config --globaluser.name [AAA]
+git config --global user.name [AAA]
 git config --global user.email [邮箱地址]
 cat .gitconfig
 # 项目级别签名
