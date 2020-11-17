@@ -634,7 +634,7 @@ pip install django-redis
 
 为了使用 django-redis , 你应该将你的 django cache setting 改成这样:
 
-```
+```python
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
@@ -650,7 +650,7 @@ CACHES = {
 
 Django 默认可以使用任何 cache backend 作为 session backend, 将 django-redis 作为 session 储存后端不用安装任何额外的 backend
 
-```
+```python
 SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 SESSION_CACHE_ALIAS = "default"
 ```
@@ -659,11 +659,9 @@ SESSION_CACHE_ALIAS = "default"
 
 在某些情况下你的应用需要进入原生 Redis 客户端使用一些 django cache 接口没有暴露出来的进阶特性. 为了避免储存新的原生连接所产生的另一份设置, django-redis 提供了方法 `get_redis_connection(alias)` 使你获得可重用的连接字符串.
 
-```
->>> from django_redis import get_redis_connection
->>> con = get_redis_connection("default")
->>> con
-<redis.client.StrictRedis object at 0x2dc4510>
+```python
+from django_redis import get_redis_connection
+con = get_redis_connection("default")
 ```
 
 ## 与集群交互

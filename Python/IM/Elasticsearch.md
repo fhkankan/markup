@@ -23,6 +23,16 @@ Elastic 的底层是开源库 [Lucene](https://lucene.apache.org/)。但是，�
 - 建立在Lucene上，每个分片都是一个功能齐全的Lucene索引，Lucene的所有权利都可以通过简单的配置/插件轻松曝露
 - 操作具有高度一致性，单个文档级操作是原子的、一致的、隔离的和耐用的。
 ```
+> **中文分词说明**
+
+搜索引擎在对数据构建索引时，需要进行分词处理。
+
+分词是指将一句话拆解成**多个单字** 或 **词**，这些字或词便是这句话的关键词。
+
+比如：我是中国人。分词后：`我`、`是`、`中`、`国`、`人`、`中国`等等都可以是这句话的关键字。
+
+Elasticsearch 不支持对中文进行分词建立索引，需要配合扩展`elasticsearch-analysis-ik`来实现中文分词处理。
+
 - 概念
 
 **Node 与 Cluster**
@@ -76,6 +86,8 @@ $ curl 'localhost:9200/_mapping?pretty=true'
 ## 安装配置
 
 ### 安装
+
+#### 原生安装
 
 Elastic 需要 Java 8 环境。如果你的机器还没安装 Java，可以参考[这篇文章](https://www.digitalocean.com/community/tutorials/how-to-install-java-with-apt-get-on-debian-8)，注意要保证环境变量`JAVA_HOME`正确设置。
 
@@ -134,11 +146,24 @@ sudo sysctl -w vm.max_map_count=262144
 curl localhost:9200  
 ```
 
-macos
+macos方式二
 
 ```shell
 brew tap elastic/tap  # 添加仓库
 brew install elastic/tap/elasticsearch-full  # 安装
+```
+
+#### Docker安装
+
+```shell
+# 安装
+sudo docker image pull delron/elasticsearch-ik:2.4.6-1.0
+# 解压教学资料中本地镜像
+sudo docker load -i elasticsearch-ik-2.4.6_docker.tar
+# 配置
+...
+# 启动
+sudo docker run -dti --name=elasticsearch --network=host -v /home/python/elasticsearch-2.4.6/config:/usr/share/elasticsearch/config delron/elasticsearch-ik:2.4.6-1.0
 ```
 
 ### 配置
@@ -910,4 +935,3 @@ with open("D://ml/data.csv", 'w', newline='', encoding="gbk") as flow:
         csv_writer.writerow(res['_source'].values())
 print("done!")
 ```
-

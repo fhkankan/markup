@@ -44,6 +44,8 @@ Storage:实际保存文件 Storage 分为多个组，每个组之间保存的文
 
 ## 安装与配置
 
+### 原生安装
+
 安装fastdfs依赖包
 
 ```
@@ -165,6 +167,25 @@ fdfs_upload_file /etc/fdfs/client.conf 要上传的图片文件
 浏览器访问：127.0.0.1:8888/文件id
 ```
 
+### Docker安装
+
+```shell
+# 1. 获取FastDFS镜像
+# 从仓库拉取镜像
+sudo docker image pull delron/fastdfs
+# 解压教学资料中本地镜像
+sudo docker load -i 文件路径/fastdfs_docker.tar
+
+# 2.开启tracker容器
+# 我们将 tracker 运行目录映射到宿主机的 /var/fdfs/tracker目录中
+sudo docker run -dit --name tracker --network=host -v /var/fdfs/tracker:/var/fdfs delron/fastdfs tracker
+
+# 3.开启storage容器
+# TRACKER_SERVER=Tracker的ip地址:22122（Tracker的ip地址不要使用127.0.0.1）
+# 我们将 storage 运行目录映射到宿主机的 /var/fdfs/storage目录中
+sudo docker run -dti --name storage --network=host -e TRACKER_SERVER=192.168.103.158:22122 -v /var/fdfs/storage:/var/fdfs delron/fastdfs storage
+```
+
 # python对接fastdfs
 
 文档 https://github.com/jefforeilly/fdfs_client-py
@@ -172,16 +193,20 @@ fdfs_upload_file /etc/fdfs/client.conf 要上传的图片文件
 1. workon django_py3
 2. 进入fdfs_client-py-master.zip所在目录
 3. pip install fdfs_client-py-master.zip
-4. 在python中运行
+4. 使用shell中python环境运行
 
-```
->>> from fdfs_client.client import Fdfs_client
->>> client = Fdfs_client('/etc/fdfs/client.conf')
->>> ret = client.upload_by_filename('test')
->>> ret
+```shell
+# 导入FastDFS客户端扩展
+from fdfs_client.client import Fdfs_client
+# 创建FastDFS客户端实例
+client = Fdfs_client('/etc/fdfs/client.conf')
+# 调用FastDFS客户端上传文件方法
+ret = client.upload_by_filename('test')
+print(ret)
+"""
 {'Group name':'group1','Status':'Upload successed.', 'Remote file_id':'group1/M00/00/00/	wKjzh0_xaR63RExnAAAaDqbNk5E1398.py','Uploaded size':'6.0KB','Local file name':'test'
 	, 'Storage IP':'192.168.243.133'}
-
+"""
 ```
 
 # Django二次开发对接fastdfs

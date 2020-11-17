@@ -943,20 +943,29 @@ CACHES = {
 
 - 测试
 
-pyshell
+代码中或shell中
 
 ```shell
-$python manage.py shell
->>> from django.core.cache import cache
->>> cache.set('user', 'Aaron', 600) # 缓存有效时间为600秒，即10分钟
-True
->>> cache.get('user')
-'Aaron'
+# 直接使用cache
+from django.core.cache import cache
+cache.set('user', 'Aaron', 600) # 保存缓存有效时间为600秒，即10分钟
+cache.get('user')  # 获取缓存结果
+
+# 使用redis连接对象
+from django_redis import get_redis_connection 
+redis_client = get_redis_connection('default') # 连接cache配置
+for i in range(99999):  
+    redis_client.set(i,i)  # 普通方法多次写入，会发多次连接多次发送
+ 
+p1 = redis_client.pipeline() # 实例化一个pipeline对象，提高多次发送的服务器性能
+for i in range(99999):
+    p1.set(i,i) # 使用pipeline执行，会一次连接一次发送多个数据
+p1.execute()  # 执行命令
 ```
 
 redis-cli
 
-```
+```shell
 127.0.0.1:6379> select 0  # 选择数据库0，默认也是0
 OK
 127.0.0.1:6379> keys *    # 显示所有的key

@@ -1,4 +1,4 @@
-Git版本库（本地仓库）
+ Git版本库（本地仓库）
 
 ```
 - Directory：根目录，由Git管理的一个目录，包含我们的工作区和Git仓库信息。
@@ -801,8 +801,18 @@ git rebase		# 本地提交转移至更新后的上游分支中
 
 - 标记
 
-```
-git tag			# 	创建、列出、删除或校验一个GPG签名的标签对象
+```shell
+git tag						# 查看标签
+git tag tag-name  			# 创建新标签/查看标签内容
+git tag tag-name commit-id  # 对以往的记录进行标签 
+
+git pull --tags  			# 拉取所有标签
+
+git push origin tag-name 	# 推送某个标签
+git push --tags			 	# 推送所有标签
+
+git tag -d tage-name		# 删除本地标签
+git push origin :refs/tags/tag-name  # 删除远程标签
 ```
 
 ## 协同
