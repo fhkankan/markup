@@ -404,7 +404,7 @@ def upload():
 
 ### 自定义状态码
 
-```
+```pythonn
 # return后面可以自主定义状态码(即使这个状态码不存在)。当客户端的请求已经处理完成，由视图函数决定返回给客户端一个状态码，告知客户端这次请求的处理结果。
 @app.route('/')
 def hello_itcast():
@@ -413,7 +413,7 @@ def hello_itcast():
 
 ### 抛出异常
 
-```
+```python
 # abort()函数立即终止视图函数的执行,向前端返回一个http标准中存在的错误状态码，表示出现的错误信息。其类似于python中raise.
 from flask import Flask,abort
 @app.route('/')
@@ -424,7 +424,7 @@ def hello_itcast():
 
 ### 自定义错误页面显示
 
-```
+```python
 # 通过装饰器来实现捕获异常，errorhandler()接收的参数为异常状态码
 @app.errorhandler(404)
 def error(e):
@@ -569,30 +569,130 @@ session['name'] = user.id，可以记录用户信息。还可以通过session.ge
 
 ### 应用上下文
 
-```
-current_app和g都属于应用上下文对象。
+current_app和g对象都属于应用上下文对象。
 
-g:处理请求时，用于临时存储的对象，方便其他函数调用，每次请求都会重设这个变量。
+current_app
 
-urrent_app:表示当前运行程序文件的程序实例。
+```python
+# 表示当前运行程序文件的程序实例。可以通过current_app.name打印当前app的名称，也可以在current_app中存储一些变量，如：应用的启动脚本是哪个文件，启动时指定了哪些参数，加载了哪些配置文件，导入了哪些配置，连了哪个数据库，有哪些public的工具类、常量，应用跑再哪个机器上，IP多少，内存多大
 current_app.name		# 打印出当前应用程序实例的名字。
 current_app.send_static_file(filename)	# 把文件名返回给浏览器
+
+
+# 示例current_app_demo.py
+from flask import Flask, current_app
+
+app1 = Flask(__name__)  # 创建了程序应用对象app1
+app2 = Flask(__name__)
+
+# 以redis客户端对象为例
+# 用字符串表示创建的redis客户端
+# 为了方便在各个视图中使用，将创建的redis客户端对象保存到flask app中，
+# 后续可以在视图中使用current_app.redis_cli获取
+# current_app 就是当前运行的flask app，在代码不方便直接操作flask的app对象时，可以操作current_app就等价于操作flask app对象
+
+app1.redis_cli = 'app1 redis client'
+app2.redis_cli = 'app2 redis client'
+
+@app1.route('/route11')
+def route11():
+    return current_app.redis_cli
+
+@app1.route('/route12')
+def route12():
+    return current_app.redis_cli
+
+@app2.route('/route21')
+def route21():
+    return current_app.redis_cli
+
+@app2.route('/route22')
+def route22():
+    return current_app.redis_cli
+
+
+# 运行app1、app2
+export FLASK_APP=current_app_demo:app1
+flask run
+
+export FLASK_APP=current_app_demo:app2
+flask run
+```
+
+g对象
+
+```python
+# g 作为 flask 程序全局的一个临时变量，充当中间媒介的作用，我们可以通过它在一次请求调用的多个函数间传递一些数据。每次请求都会重设这个变量。
+
+# 示例
+from flask import Flask, g
+
+app = Flask(__name__)
+
+def db_query():
+    user_id = g.user_id
+    user_name = g.user_name
+    print('user_id={} user_name={}'.format(user_id, user_name))
+
+@app.route('/')
+def get_user_profile():
+    g.user_id = 123
+    g.user_name = 'itcast'
+    db_query()
+    return 'hello world'
 ```
 
 注意
 
 ```
-- 当调用app = Flask(_name_)的时候，创建了程序应用对象app；
 - request 在每次http请求发生时，WSGI server调用Flask.call()；然后在Flask内部创建的request对象；
 - app的生命周期大于request和g，一个app存活期间，可能发生多次http请求，所以就会有多个request和g。
 - 最终传入视图函数，通过return、redirect或render_template生成response对象，返回给客户端。
+```
+
+### request/app_context
+
+在Flask程序未运行的情况下，调试代码时需要使用`current_app`、`g`、`request`这些对象，会不会有问题？该如何使用？
+
+- request_context
+
+为我们提供了请求上下文环境，允许我们在外部使用请求上下文`request`、`session`，可以通过with语句进行使用
+
+```shell
+>>> from flask import Flask
+>>> app = Flask('')
+>>> request.args  # 错误，没有上下文环境
+报错
+>>> environ = {'wsgi.version':(1,0), 'wsgi.input': '', 'REQUEST_METHOD': 'GET', 'PATH_INFO': '/', 'SERVER_NAME': 'itcast server', 'wsgi.url_scheme': 'http', 'SERVER_PORT': '80'}  # 模拟解析客户端请求之后的wsgi字典数据
+>>> with app.request_context(environ):  # 借助with语句使用request_context创建请求上下文
+...     print(request.path)
+...   
+/
+```
+
+- app_context
+
+为我们提供了应用上下文环境，允许我们在外部使用应用上下文`current_app`、`g`，可以通过`with`语句进行使用
+
+```shell
+>>> from flask import Flask
+>>> app = Flask('')
+>>> app.redis_cli = 'redis client'
+>>> 
+>>> from flask import current_app
+>>> current_app.redis_cli   # 错误，没有上下文环境
+报错
+>>> with app.app_context():  # 借助with语句使用app_context创建应用上下文
+...     print(current_app.redis_cli)
+...
+redis client
 ```
 
 ## 请求钩子hook
 
 在客户端和服务器交互的过程中，有些准备工作或扫尾工作需要处理，比如：在请求开始时，建立数据库连接；在请求结束时，指定数据的交互格式。为了让每个视图函数避免编写重复功能的代码，Flask提供了通用设施的功能，即请求钩子。
 
-```
+```python
 # 以函数形式定义，函数名可自定义，通过装饰器的形式实现，Flask支持如下四种请求钩子：
 
 before_first_request：在处理第一个请求前运行。
@@ -617,6 +717,44 @@ def handle_teardown_request(response):
 	return response
 ```
 
+使用g对象和钩子进行登陆验证
+
+```python
+from flask import Flask, abort, g
+
+app = Flask(__name__)
+
+@app.before_request
+def authentication():
+    """
+    利用before_request请求钩子，在进入所有视图前先尝试判断用户身份
+    :return:
+    """
+    # TODO 此处利用鉴权机制（如cookie、session、jwt等）鉴别用户身份信息
+    # if 已登录用户，用户有身份信息
+    g.user_id = 123
+    # else 未登录用户，用户无身份信息
+    # g.user_id = None
+
+def login_required(func):
+    def wrapper(*args, **kwargs):
+        if g.user_id is not None:
+            return func(*args, **kwargs)
+        else:
+            abort(401)
+
+    return wrapper
+
+@app.route('/')
+def index():
+    return 'home page user_id={}'.format(g.user_id)
+
+@app.route('/profile')
+@login_required
+def get_user_profile():
+    return 'user profile page user_id={}'.format(g.user_id)
+```
+
 ## 扩展命令行
 
 通过使用Flask-Script扩展，我们可以在Flask服务器启动的时候，通过命令行的方式传入参数。
@@ -629,7 +767,7 @@ pip install Flask-Script
 
 **创建程序**
 
-```
+```python
 from flask import Flask
 from flask_script import Manager
 
@@ -648,7 +786,7 @@ if __name__ == "__main__":
 
 **命令行启动**
 
-```
+```shell
 # 来查看参数
 python hello.py runserver --help
 

@@ -70,14 +70,6 @@ HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
 HAYSTACK_SEARCH_RESULTS_PER_PAGE = 10
 ```
 
-url
-
-```python
-import haystack.urls
-
-url(r'^search/', include('haystack.urls')),
-```
-
 ## 建立索引
 
 - 创建索引类
@@ -91,9 +83,9 @@ from .models import SKU
 
 
 class SKUIndex(indexes.SearchIndex, indexes.Indexable):
-    """SKU索引数据模型类
-    在SKUIndex建立的字段，都可以借助Haystack由Elasticsearch搜索引擎查询。其中text字段我们声明为document=True，表名该字段是主要进行关键字查询的字段。text字段的索引值可以由多个数据库模型类字段组成，具体由哪些模型类字段组成，我们用use_template=True表示后续通过模板来指明。
-    """
+    """SKU索引数据模型类"""
+    # 接收索引字段：使用文档定义索引字段，并使用模板语法渲染
+    # document=True表明有相关文档说明。use_template=True表示使用模板语法说明字段。
     text = indexes.CharField(document=True, use_template=True)
 
     def get_model(self):
@@ -119,7 +111,24 @@ class SKUIndex(indexes.SearchIndex, indexes.Indexable):
 
 模板文件说明：当将关键词通过text参数名传递时此模板指明SKU的`id`、`name`、`caption`作为`text`字段的索引值来进行关键字索引查询。
 
-- 创建模版文件
+## 设置视图
+
+- 添加`SearchView`到`URLconf`
+
+```python
+import haystack.urls
+
+# 这会拉取Haystack的默认URLconf，它由单独指向SearchView实例的URLconf组成。你可以通过传递几个关键参数或者完全重新它来改变这个类的行为。
+url(r'^search/', include('haystack.urls')),
+
+# 视图返回数据
+query：搜索关键字
+paginator：分页paginator对象
+page：当前页的page对象（遍历page中的对象，可以得到result对象）
+result.objects: 当前遍历出来的SKU对象。
+```
+
+- 创建搜索模版
 
 `templates/base.html`
 
@@ -188,7 +197,10 @@ class SKUIndex(indexes.SearchIndex, indexes.Indexable):
 
 - 手动生成初始索引
 
+把数据库中的数据放入索引了，Haystack附带的一个命令行管理工具使它变得很容易。
+
 ```shell
 python manage.py rebuild_index
 ```
 
+`elasticsearch`生成的索引位于搜索引擎所在服务器上，`whoosh`生成的索引位于项目所在服务器上。

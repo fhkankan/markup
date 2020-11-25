@@ -252,7 +252,7 @@ docker run -d [image_name] command ...
 
 > 关闭、删除
 
-```
+```shell
 # 关闭容器
 docker stop [container_id]
 

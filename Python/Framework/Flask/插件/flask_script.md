@@ -4,7 +4,7 @@
 
 **创建程序**
 
-```
+```python
 from flask import Flask
 from flask_script import Manager
 
@@ -22,7 +22,7 @@ if __name__ == "__main__":
 
 **命令行启动**
 
-```
+```python
 # 来查看参数
 python hello.py runserver --help
 

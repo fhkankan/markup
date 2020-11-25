@@ -423,7 +423,7 @@ python manage.py migrate
 
 ## 与python交互
 
-```
+```python
 # 方法一：安装包
 # 进入虚拟环境py2_db，联网安装包redis
 pip install redis
@@ -442,13 +442,15 @@ from redis import *
 
 ### StrictRedis对象方法
 
-```
 通过init创建对象，指定参数host、port与指定的服务器和端口连接，host默认为localhost，port默认为6379
-client = StrictRedis()
+`client = StrictRedis()`
 
 根据不同的类型，拥有不同的实例方法可以调用，与前面学的redis命令对应，方法需要的参数与命令的参数一致
-client.命令('key','value')
+`client.命令('key','value')`
 
+命令方法
+
+```python
 # string
 set
 setex
@@ -499,107 +501,78 @@ zremrangebyscore
 
 ### string-增加
 
-```
 方法set，添加键、值，如果添加成功则返回True，如果添加失败则返回False
 
-创建文件redis_add.py，编写代码如下
-#coding=utf-8
+```python
 from redis import *
 
-if __name__=="__main__":
-    try:
-        #创建StrictRedis对象，与redis服务器建立连接
-        sr=StrictRedis()
-        #添加键py1，值为gj
-        result=sr.set('py1','gj')
-        #输出响应结果，如果添加成功则返回True，否则返回False
-        print result
-    except Exception as e:
-        print e
+
+#创建StrictRedis对象，与redis服务器建立连接
+sr=StrictRedis()
+#添加键py1，值为gj
+result=sr.set('py1','gj')
+#输出响应结果，如果添加成功则返回True，否则返回False
+print(result)
 ```
 
 ### string-获取
 
-```
 方法get，添加键对应的值，如果键存在则返回对应的值，如果键不存在则返回None
 
-创建文件redis_get.py，编写代码如下
-#coding=utf-8
+```python
 from redis import *
 
-if __name__=="__main__":
-    try:
-        #创建StrictRedis对象，与redis服务器建立连接
-        sr=StrictRedis()
-        #获取键py1的值
-        result = sr.get('py1')
-        #输出键的值，如果键不存在则返回None
-        print result
-    except Exception as e:
-        print e
+#创建StrictRedis对象，与redis服务器建立连接
+sr=StrictRedis()
+#获取键py1的值
+result = sr.get('py1')
+#输出键的值，如果键不存在则返回None
+print(result)
 ```
 
 ### string-修改
 
-```
 方法set，如果键已经存在则进行修改，如果键不存在则进行添加
 
-创建文件redis_set.py，编写代码如下
-#coding=utf-8
+```python
 from redis import *
 
-if __name__=="__main__":
-    try:
-        #创建StrictRedis对象，与redis服务器建立连接
-        sr=StrictRedis()
-        #设置键py1的值，如果键已经存在则进行修改，如果键不存在则进行添加
-        result = sr.set('py1','hr')
-        #输出响应结果，如果操作成功则返回True，否则返回False
-        print result
-    except Exception as e:
-        print e
+
+#创建StrictRedis对象，与redis服务器建立连接
+sr=StrictRedis()
+#设置键py1的值，如果键已经存在则进行修改，如果键不存在则进行添加
+result = sr.set('py1','hr')
+#输出响应结果，如果操作成功则返回True，否则返回False
+print(result)
 ```
 
 ### string-删除
 
-```
 方法delete，删除键及对应的值，如果删除成功则返回受影响的键数，否则则返回0
 
-创建文件redis_delete.py，编写代码如下
-#coding=utf-8
+```python
 from redis import *
 
-if __name__=="__main__":
-    try:
-        #创建StrictRedis对象，与redis服务器建立连接
-        sr=StrictRedis()
-        #设置键py1的值，如果键已经存在则进行修改，如果键不存在则进行添加
-        result = sr.delete('py1')
-        #输出响应结果，如果删除成功则返回受影响的键数，否则则返回0
-        print result
-    except Exception as e:
-        print e
+#创建StrictRedis对象，与redis服务器建立连接
+sr=StrictRedis()
+#设置键py1的值，如果键已经存在则进行修改，如果键不存在则进行添加
+result = sr.delete('py1')
+#输出响应结果，如果删除成功则返回受影响的键数，否则则返回0
+print(result)
 ```
 
 ### 获取键
 
-```
-方法keys，根据正则表达式获取键
-
-创建文件redis_keys.py，编写代码如下
-#coding=utf-8
+```python
+# 方法keys，根据正则表达式获取键
 from redis import *
 
-if __name__=="__main__":
-    try:
-        #创建StrictRedis对象，与redis服务器建立连接
-        sr=StrictRedis()
-        #获取所有的键
-        result=sr.keys()
-        #输出响应结果，所有的键构成一个列表，如果没有键则返回空列表
-        print result
-    except Exception as e:
-        print e
+#创建StrictRedis对象，与redis服务器建立连接
+sr=StrictRedis()
+#获取所有的键
+result=sr.keys()
+#输出响应结果，所有的键构成一个列表，如果没有键则返回空列表
+print(result)
 ```
 
 ## 与Django框架交互

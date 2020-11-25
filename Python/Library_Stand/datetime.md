@@ -162,7 +162,7 @@ timestamp的值与时区毫无关系，因为timestamp一旦确定，其UTC时�
 
 某些编程语言（如Java和JavaScript）的timestamp使用整数表示毫秒数，这种情况下只需要把timestamp除以1000就得到Python的浮点表示方法
 
-```
+```shell
 >>> from datetime import datetime
 >>> dt = datetime(2015, 4, 19, 12, 20) # 用指定日期时间创建datetime
 >>> dt.timestamp() # 把datetime转换为timestamp
@@ -178,7 +178,7 @@ time.mktime(dateTime.timetuple())
 
 注意到timestamp是一个浮点数，它没有时区的概念，而datetime是有时区的。上述转换是在timestamp和本地时间做转换。
 
-```
+```shell
 >>> from datetime import datetime
 >>> t = 1429417200.0
 >>> print(datetime.fromtimestamp(t)) # 本地时间
@@ -193,7 +193,7 @@ time.mktime(dateTime.timetuple())
 
 注意转换后的datetime是没有时区信息的
 
-```
+```shell
 >>> from datetime import datetime
 >>> cday = datetime.strptime('2015-6-1 18:19:59', '%Y-%m-%d %H:%M:%S')
 >>> print(cday)
@@ -253,7 +253,7 @@ datetime.datetime(2015, 5, 21, 4, 57, 3, 540997)
 
 一个`datetime`类型有一个时区属性`tzinfo`，但是默认为`None`，所以无法区分这个`datetime`到底是哪个时区，除非强行给`datetime`设置一个时区：
 
-```
+```shell
 >>> from datetime import datetime, timedelta, timezone
 >>> tz_utc_8 = timezone(timedelta(hours=8)) # 创建时区UTC+8:00
 >>> now = datetime.now()
@@ -274,7 +274,7 @@ datetime.datetime(2015, 5, 18, 17, 2, 10, 871012, tzinfo=datetime.timezone(datet
 
 注：不是必须从UTC+0:00时区转换到其他时区，任何带时区的`datetime`都可以正确转换
 
-```
+```shell
 # 拿到UTC时间，并强制设置时区为UTC+0:00:
 >>> utc_dt = datetime.utcnow().replace(tzinfo=timezone.utc)
 >>> print(utc_dt)
@@ -294,5 +294,18 @@ datetime.datetime(2015, 5, 18, 17, 2, 10, 871012, tzinfo=datetime.timezone(datet
 >>> tokyo_dt2 = bj_dt.astimezone(timezone(timedelta(hours=9)))
 >>> print(tokyo_dt2)
 2015-05-18 18:05:12.377316+09:00
+```
+
+## 获取当前时间距离次日凌晨的间隔
+
+```python
+import datetime
+
+def getRestSeconds():
+    now = datetime.datetime.now()
+    today_begin = datetime.datetime(now.year, now.month, now.day, 0, 0, 0)
+    tomorrow_begin = today_begin + datetime.timedelta(days=1)
+    rest_seconds = (tomorrow_begin - now).seconds
+    print(rest_seconds)
 ```
 

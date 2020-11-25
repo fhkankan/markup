@@ -2,6 +2,12 @@
 
 ## redis-py
 
+安装
+
+```
+pip install redis
+```
+
 ### 连接方式
 
 redis-py提供两个类Redis和StrictRedis用于实现Redis的命令，StrictRedis用于实现大部分官方的命令，并使用官方的语法和命令，Redis是StrictRedis的子类，用于向后兼容旧版本的redis-py
