@@ -188,7 +188,7 @@ try:
     Stu = session.query(Student).filter(
         Student.id>0).filter(Student.id<5).all()  # 多条件查询
     print('查询结果的类型：', type(Stu))
-    print('STUDENT表所有的数据：')
+    print('STUDENT表所有  的数据：')
     for row in Stus:
         print(row)
     session.close()

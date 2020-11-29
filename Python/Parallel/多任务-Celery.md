@@ -44,7 +44,7 @@ Celery是由Python开发、简单、灵活、可靠的分布式任务队列，�
 
 Celery由以下三部分构成：消息中间件(Broker)、任务执行单元Worker、结果存储(Backend)
 
-![消息中介架构](/home/henry/project/markup/Python/Parallel/images/消息中介架构.png)
+![消息中介架构](images/消息中介架构.png)
 
 celery通过消息进行通信，通常使用一个叫Broker(中间人)来协client(任务的发出者)和worker(任务的处理者). clients发出消息到队列中，broker将队列中的信息派发给worker来处理。
 
