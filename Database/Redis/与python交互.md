@@ -1,4 +1,4 @@
-# python交互
+# 与python交互
 
 ## redis-py
 
@@ -619,12 +619,12 @@ sscan(name, cursor=0, match=None, count=None)
 sscan_iter(name, match=None, count=None)
 
 ```python
-`# 同字符串的操作，用于增量迭代分批获取元素，避免内存消耗太大`
+# 同字符串的操作，用于增量迭代分批获取元素，避免内存消耗太大`
 ```
 
-有序集合：
+#### Zset
 
-　　在集合的基础上，为每元素排序，元素的排序需要根据另外一个值来进行比较，所以，对于有序集合，每一个元素有两个值，即：值和分数，分数专门用来做排序。
+在集合的基础上，为每元素排序，元素的排序需要根据另外一个值来进行比较，所以，对于有序集合，每一个元素有两个值，即：值和分数，分数专门用来做排序。值不可重复，分数可以重复。
 
 zadd(name, *args, **kwargs)
 
@@ -758,7 +758,7 @@ zscan(name, cursor=0, match=None, count=None, score_cast_func=float)
 zscan_iter(name, match=None, count=None,score_cast_func=float)
 
 ```python
-`# 同字符串相似，相较于字符串新增score_cast_func，用来对分数进行操作`
+# 同字符串相似，相较于字符串新增score_cast_func，用来对分数进行操作`
 ```
 
 #### 其他
@@ -826,6 +826,9 @@ scan_iter(match=None, count=None)
 ### 管道
 
 redis-py默认在执行每次请求都会创建（连接池申请连接）和断开（归还连接池）一次连接操作，如果想要在一次请求中指定多个命令，则可以使用pipline实现一次请求指定多个命令，并且默认情况下一次pipline 是原子性操作。
+
+- 在客户端统一收集操作指令
+- 补充上multi和exec指令，当作一个事务发送到redis服务器执行
 
 ```python
 import redis
@@ -899,7 +902,6 @@ pip install redis-py-cluster
 - 创建文件redis_cluster.py，示例代码如下
 
 ```python
-#coding=utf-8
 from rediscluster import StrictRedisCluster
 
 if __name__=="__main__":
@@ -911,7 +913,8 @@ if __name__=="__main__":
             {'host': '172.16.0.136', 'port': '7001'},
         ]
         
-        #构建StrictRedisCluster对象   client=StrictRedisCluster(startup_nodes=startup_nodes,decode_responses=True)
+        # 构建StrictRedisCluster对象   
+        client = StrictRedisCluster(startup_nodes=startup_nodes,decode_responses=True)
         #设置键为py2、值为hr的数据
         client.set('py2','hr')
         #获取键为py2的数据并输出
@@ -922,7 +925,7 @@ if __name__=="__main__":
 
 # 与Django的交互
 
-## 缓存
+以缓存形式处理数据
 
 - 安装
 

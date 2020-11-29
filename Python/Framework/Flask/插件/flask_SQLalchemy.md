@@ -183,9 +183,9 @@ db = SQLAlchemy(app)
 class Role(db.Model):
     # 定义表名，若不写，则默认创建为类名的小写格式
     __tablename__ = 'roles'
-    # 定义列对象
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(64), unique=True)
+    # 定义映射对象，若列对象名字和数据库列名字一致，可省略
+    id = db.Column('id', db.Integer, primary_key=True)
+    name = db.Column(db.String(64), unique=True, doc="角色名称")
     # 创建一对多的外键，在数据库中无实体，第一个参数为对应的类，第二个关键字参数值一般写为对象名小写(可任意)
     us = db.relationship('User', backref='role')
 
@@ -314,6 +314,7 @@ ret = query.all()
 
 # 聚合查询
 from sqlalchemy import func
+
 db.session.query(Relation.user_id, func.count(Relation.target_user_id)).filter(Relation.relation == Relation.RELATION.FOLLOW).group_by(Relation.user_id).all()
 ```
 
@@ -335,8 +336,9 @@ User.query.all()
 class Role(db.Model):
    	...
     id = db.Column(db.Integer, primary_key=True)
-    # 创建一对多的外键，在数据库中无实体，第一个参数为对应的类，第二个关键字参数值一般写为对象名小写(可任意)
-    us = db.relationship('User', backref='role')
+    # 创建一对多的外键，在数据库中无实体，
+    # 参数1为对应的类，参数2一般写为对象名小写(可任意)，参数3为返回值是list，省略时默认为list
+    us = db.relationship('User', backref='role', uselist=True)
 	...
 
     
@@ -370,7 +372,7 @@ class Role(db.Model):
 class User(db.Model):
     ...
     id = db.Column(db.Integer, primary_key=True)
-    role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
+    role_id = db.Column(db.Integer)
 	...   
 
 # 测试
@@ -381,6 +383,8 @@ user.followings
 
 - 指定字段关联查询
 
+之前的查询是惰性查询，使用join则可以一次性查询
+
 ```python
 # 模型类
 class Relation(db.Model):
@@ -389,7 +393,8 @@ class Relation(db.Model):
     ...
 
 # 测试    
-from sqlalchemy.orm import load_only, contains_eager
+from sqlalchemy.orm import load_only, contains_eager  
+# load_only过滤字段，contains_eager加载新的表
 
 Relation.query.join(Relation.target_user).options(load_only(Relation.target_user_id), contains_eager(Relation.target_user).load_only(User.name)).all()
 ```
@@ -459,6 +464,8 @@ db.session.commit()
 ```
 
 ### 事务
+
+在请求上下文中，falsk默认事务开启。注意：在flask视图函数中，也是在请求上下文中。
 
 ```python
 environ = {'wsgi.version':(1,0), 'wsgi.input': '', 'REQUEST_METHOD': 'GET', 'PATH_INFO': '/', 'SERVER_NAME': 'itcast server', 'wsgi.url_scheme': 'http', 'SERVER_PORT': '80'}
