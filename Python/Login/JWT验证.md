@@ -218,7 +218,7 @@ token 生成好之后，接下来就可以用token来和服务器进行通讯了
 - 安装第三方库
 
 ```
-pip install PyJWT
+pip install pyjwt
 ```
 
 - 后端代码实现
@@ -672,3 +672,56 @@ class JwtAuthorizationAuthentication(BaseAuthentication):
 请求后端登录接口得到token后，将token值存储到`localstorage`中
 
 在其他接口请求时，将Header中添加`Authorization`，对应值为`token` 
+
+## 刷新机制
+
+token设置有效期，但有效期不宜过长，所以需要刷新。
+
+解决无感知刷新流程：
+
+- 手机号+验证码（或帐号+密码）验证后颁发接口调用token与refresh_token（刷新token）
+- Token 有效期为2小时，在调用接口时携带，每2小时刷新一次
+- 提供refresh_token，refresh_token 有效期14天
+- 在接口调用token过期后凭借refresh_token 获取新token，之后前端重新请求
+- 未携带token 、错误的token或接口调用token过期，返回401状态码
+- refresh_token 过期返回403状态码，前端在使用refresh_token请求新token时遇到403状态码则进入用户登录界面从新认证。
+
+## 禁用问题
+
+此问题的应用场景：1. 用户修改密码，需要颁发新的token，禁用还在有效期内的老token；2.后台封禁用户。
+
+- 解决方案
+
+在redis中使用set类型保存新生成的token
+
+```python
+key = 'user:{}:token'.format(user_id)
+pl = redis_client.pipeline()
+pl.sadd(key, new_token)
+pl.expire(key, token有效期)
+pl.execute()
+```
+
+| 键                     | 类型 | 值      |
+| ---------------------- | ---- | ------- |
+| `user:{user_id}:token` | set  | 新token |
+
+客户端使用token进行请求时，如果验证token通过，则从redis中判断是否存在该用户的`user:{}:token`记录：
+
+1. 若不存在记录，放行，进入视图进行业务处理
+
+2. 若存在，则对比本次请求的token是否在redis保存的set中：
+
+若存在，则放行；若不在set的数值中，则返回403状态码，不再处理业务逻辑
+
+```python
+key = 'user:{}:token'.format(user_id)
+valid_tokens = redis_client.smembers(key, token)
+if valid_tokens and token not in valid_tokens:
+  return {'message': 'Invalid token'.}, 403
+```
+
+> 说明
+
+1. redis记录设置有效期的时长是一个token的有效期，保证旧token过期后，redis的记录也能自动清除，不占用空间。
+2. 使用set保存新token的原因是，考虑到用户可能在旧token的有效期内，在其他多个设备进行了登录，需要生成多个新token，这些新token都要保存下来，既保证新token都能正常登录，又能保证旧token被禁用

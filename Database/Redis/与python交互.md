@@ -1,6 +1,6 @@
 # 与python交互
 
-## redis-py
+## 连接
 
 安装
 
@@ -8,8 +8,7 @@
 pip install redis
 ```
 
-### 连接方式
-
+### 常规
 redis-py提供两个类Redis和StrictRedis用于实现Redis的命令，StrictRedis用于实现大部分官方的命令，并使用官方的语法和命令，Redis是StrictRedis的子类，用于向后兼容旧版本的redis-py
 
 ```python
@@ -33,9 +32,9 @@ r.set('name', 'zhangsan')   #添加
 print (r.get('name'))   #获取
 ```
 
-### 操作
+## 操作
 
-#### string
+### string
 
 redis中的String在在内存中按照一个name对应一个value来存储
 
@@ -187,7 +186,7 @@ r.append("name","lisi")
 print(r.get("name"))    #输出:zhangsanlisi
 ```
 
-#### Hash
+### Hash
 
 redis中的Hash 在内存中类似于一个name对应一个dic来存储 
 
@@ -325,7 +324,7 @@ for item in r.hscan_iter('xx'):
     print item
 ```
 
-#### List
+### List
 
 redis中的List在在内存中按照一个name对应一个List来存储 
 
@@ -511,7 +510,7 @@ for item in list_iter('pp'):
     print item
 ```
 
- #### Set
+ ### Set
 
 Set集合就是不允许重复的列表
 
@@ -622,7 +621,7 @@ sscan_iter(name, match=None, count=None)
 # 同字符串的操作，用于增量迭代分批获取元素，避免内存消耗太大`
 ```
 
-#### Zset
+### Zset
 
 在集合的基础上，为每元素排序，元素的排序需要根据另外一个值来进行比较，所以，对于有序集合，每一个元素有两个值，即：值和分数，分数专门用来做排序。值不可重复，分数可以重复。
 
@@ -761,7 +760,7 @@ zscan_iter(name, match=None, count=None,score_cast_func=float)
 # 同字符串相似，相较于字符串新增score_cast_func，用来对分数进行操作`
 ```
 
-#### 其他
+### 其他
 
 delete(*names)
 
@@ -823,7 +822,7 @@ scan_iter(match=None, count=None)
 `# 同字符串操作，用于增量迭代获取key`
 ```
 
-### 管道
+## 管道
 
 redis-py默认在执行每次请求都会创建（连接池申请连接）和断开（归还连接池）一次连接操作，如果想要在一次请求中指定多个命令，则可以使用pipline实现一次请求指定多个命令，并且默认情况下一次pipline 是原子性操作。
 
@@ -843,7 +842,7 @@ r.set('name', 'lisi')
 pipe.execute()
 ```
 
-### 发布和订阅
+## 发布和订阅
 
 首先定义一个RedisHelper类，连接Redis，定义频道为monitor，定义发布(publish)及订阅(subscribe)方法。
 
@@ -890,16 +889,58 @@ while True:
     print (msg)
 ```
 
-## redis-py-cluster
+## 高可用
 
-- 安装包如下
+为了保证redis最大程度上能够使用，redis提供了主从同步+Sentinel哨兵机制。
+
+Sentinel 哨兵，相关文档https://redis.io/topics/sentinel
+
+redis提供的哨兵是用来看护redis实例进程的，可以自动进行故障转移。具有监控、通知、自动故障转移、配置提供等功能。
+
+```python
+from redis.sentinel import Sentinel
+
+# redis 哨兵，不需要直接对接redis地址，直接对接哨兵即可
+REDIS_SENTINELS = [
+    ('127.0.0.1', '26380'),
+    ('127.0.0.1', '26381'),
+    ('127.0.0.1', '26382'),
+]
+REDIS_SENTINEL_SERVICE_NAME = 'mymaster'
+
+_sentinel = Sentinel(REDIS_SENTINELS)
+redis_master = _sentinel.master_for(REDIS_SENTINEL_SERVICE_NAME)
+redis_slave = _sentinel.slave_for(REDIS_SENTINEL_SERVICE_NAME)
+
+# 读数据，master读不到去slave读
+try:
+    real_code = redis_master.get(key)
+except ConnectionError as e:
+    real_code = redis_slave.get(key)
+
+# 写数据，只能在master里写
+try:
+    current_app.redis_master.delete(key)
+except ConnectionError as e:
+    logger.error(e)
+```
+
+## 集群
+
+Reids Cluster集群方案，内部已经集成了sentinel机制来做到高可用。
+
+> 注意
+
+- redis cluster 不支持事务
+- redis cluster 不支持多键操作，如mset
+
+安装
 
 ```
 pip install redis-py-cluster
 ```
 
-- [redis-py-cluster源码地址](https://github.com/Grokzen/redis-py-cluster)
-- 创建文件redis_cluster.py，示例代码如下
+创建文件redis_cluster.py，示例代码如下
 
 ```python
 from rediscluster import StrictRedisCluster

@@ -4,8 +4,6 @@ Memcached 是一个高性能的分布式内存对象缓存系统，用于动态W
 
 ## 安装
 
-安装
-
 ```shell
 wget http://memcached.org/latest
 tar -zxvf memcached-1.x.x.tar.gz
@@ -13,8 +11,8 @@ cd memcached-1.x.x
 ./configure && make && make test && sudo make install
  
 PS：依赖libevent
-       yum install libevent-devel
-       apt-get install libevent-dev
+yum install libevent-devel
+apt-get install libevent-dev
 ```
 
 ## 服务端
