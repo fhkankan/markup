@@ -22,6 +22,28 @@ rabbitmq的详细使用（包括各种系统的安装配置）可参见其[官�
 
 ### 安装
 
+原始安装
+
+```
+
+```
+
+docker安装
+
+```shell
+# 拉取
+docker pull rabbitmq:3.7.2-management
+
+# 运行
+docker run -d --name rabbitmq -p 5672:5672 -p 15672:15672 -e RABBITMQ_DEFAULT_USER=root -e RABBITMQ_DEFAULT_PASS=Wb2wvLc2knHyEy42WPs4 docker.io/rabbitmq:3.7.2-management
+
+# 检查
+http://ip:15672
+
+账号：root
+密码：Wb2wvLc2knHyEy42WPs4
+```
+
 ### 配置
 
 ### 使用
@@ -35,7 +57,7 @@ sudo rabbitmq-server -detached
 sudo rabbitmqctl stop
 ```
 
-## pika
+## python交互
 
 pika是python与Rabbitmq交互的客户端工具
 

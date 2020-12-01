@@ -346,10 +346,10 @@ n         ：重复前一个搜寻 (与 / 或 ? 有关！)
 N         ：反向的重复前一个搜寻 (与 / 或 ? 有关！)
 q         ：离开 less 这个程序；
 
-head [-n number] 文件
+head [-n number] 文件名
 # 只看头几行
 
-tail [-n number] 文件
+tail [-n number] 文件名
 # 只看尾巴几行
 
 |

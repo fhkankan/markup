@@ -555,16 +555,22 @@ service Demo {
 }
 ```
 
-- 生成
+- 生成python代码
+
+安装
+
+```
+pip install grpcio-tools
+```
 
 编译
 
 ```shell
 python -m grpc_tools.protoc -I. --python_out=.. --grpc_python_out=.. itcast.proto
 
-# -I 表示搜索proto文件中被导入文件的目录
-# --python_out 表示保存生成Python文件的目录，生成的文件中包含接口定义中的数据类型
-# --grpc_python_out 表示保存生成Python文件的目录，生成的文件中包含接口定义中的服务类型
+# -I表示搜索proto文件中被导入文件的目录
+# --python_out表示保存生成Python文件的目录，生成的文件中包含接口定义中的数据类型
+# --grpc_python_out表示保存生成Python文件的目录，生成的文件中包含接口定义中的服务类型
 ```
 
 生成目录
@@ -591,6 +597,7 @@ import time
 
 # 实现被调用的方法的具体代码
 class DemoServicer(test_pb2_grpc.DemoServicer):
+    """通过子类继承重写的方式"""
     def __init__(self):
         self.city_subjects_db = {
             'beijing': ['python', 'c++', 'go', '产品经理', '测试', '运维', 'java', 'php'],
@@ -600,6 +607,10 @@ class DemoServicer(test_pb2_grpc.DemoServicer):
         self.answers = list(range(10))
 
     def Calculate(self, request, context):
+        """
+        request：调用时请求参数对象
+        context：通过此对象可以设置调用返回的异常信息
+        """
         if request.op == test_pb2.Work.ADD:
             result = request.num1 + request.num2
             return test_pb2.Result(val=result)
@@ -653,14 +664,15 @@ def serve():
 
     # 开启服务
     print('服务器已开启')
-    server.start()
-
-    # 关闭服务
-    # 使用 ctrl+c 可以退出服务
-    try:
-        time.sleep(1000)
-    except KeyboardInterrupt:
-        server.stop(0)
+    server.start()  
+    
+    # start()是非阻塞方法，此处需要加上循环睡眠 防止程序退出
+    while True:
+        # 关闭服务，使用ctrl+c可以退出服务
+    	try:
+    	    time.sleep(1000)
+    	except KeyboardInterrupt:
+    	    server.stop(0)
 
 
 if __name__ == '__main__':
@@ -740,10 +752,12 @@ def invoke_guess_number(stub):  # 客户端stream
 
 
 def run():
+    """调用服务器方法"""
+    # 构建连接rpc服务的对象
     with grpc.insecure_channel('127.0.0.1:8888') as channel:
         # 创建辅助客户端调用的stub对象
         stub = test_pb2_grpc.DemoStub(channel)
-
+		# 通过stub进行rpc调用
         # invoke_calculate(stub)
         # invoke_get_subjects(stub)
         # invoke_accumulate(stub)

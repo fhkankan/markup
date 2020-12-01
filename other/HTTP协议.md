@@ -281,7 +281,7 @@ HTTP/2 是HTTP协议的最新版本，我们通过HTTP/1.x与HTTP/2的对比来�
 
 HTTP/1.x 可以说是一个文本协议，可读性很好，但是效率不高。
 
-<img src="../RPC/images/HTTP1.1.png" alt="HTTP1.1" style="zoom:50%;" />
+<img src="../Python/RPC/images/HTTP1.1.png" alt="HTTP1.1" style="zoom:50%;" />
 
 - 解析
 
@@ -318,7 +318,7 @@ HTTP/2 是一个二进制协议，这也就意味着它的可读性几乎为 0�
 
 HTTP/2 所有性能增强的核心在于新的二进制分帧层，它定义了如何封装 HTTP 消息并在客户端与服务器之间传输。
 
-<img src="../RPC/images/HTTP2二进制分帧层.png" alt="HTTP2二进制分帧层" style="zoom:50%;" />
+<img src="../Python/RPC/images/HTTP2二进制分帧层.png" alt="HTTP2二进制分帧层" style="zoom:50%;" />
 
 这里所谓的“层”，指的是位于套接字接口与应用可见的高级 HTTP API 之间一个经过优化的新编码机制：HTTP 的语义（包括各种动词、方法、标头）都不受影响，不同的是传输期间对它们的编码方式变了。HTTP/1.x 协议以换行符作为纯文本的分隔符，而 HTTP/2 将所有传输的信息分割为更小的消息和帧，并采用二进制格式对它们编码。
 
@@ -343,9 +343,9 @@ HTTP/2 所有性能增强的核心在于新的二进制分帧层，它定义了�
 - 帧是最小的通信单位，承载着特定类型的数据，例如 HTTP 标头、消息负载，等等。 来自不同数据流的帧可以交错发送，然后再根据每个帧头的数据流标识符重新组装。
 ```
 
-<img src="../RPC/images/HTTP2连接.png" alt="HTTP2连接" style="zoom:50%;" />
+<img src="../Python/RPC/images/HTTP2连接.png" alt="HTTP2连接" style="zoom:50%;" />
 
-<img src="../RPC/images/HTTP_2流.png" alt="HTTP_2流" style="zoom:50%;" />
+<img src="../Python/RPC/images/HTTP_2流.png" alt="HTTP_2流" style="zoom:50%;" />
 
 - 请求与响应复用
 
@@ -353,7 +353,7 @@ HTTP/2 所有性能增强的核心在于新的二进制分帧层，它定义了�
 
 HTTP/2 中新的二进制分帧层突破了这些限制，实现了完整的请求和响应复用：客户端和服务器可以将 HTTP 消息分解为互不依赖的帧，然后交错发送，最后再在另一端把它们重新组装起来。
 
-<img src="../RPC/images/HTTP2连接复用.png" alt="HTTP2连接复用" style="zoom:50%;" />
+<img src="../Python/RPC/images/HTTP2连接复用.png" alt="HTTP2连接复用" style="zoom:50%;" />
 
 上图展示了同一个连接内并行的多个数据流。客户端正在向服务器传输一个 `DATA` 帧（数据流 5），与此同时，服务器正向客户端交错发送数据流 1 和数据流 3 的一系列帧。因此，一个连接上同时有三个并行数据流。
 
@@ -388,7 +388,7 @@ HTTP/2 中的新二进制分帧层解决了 HTTP/1.x 中存在的队首阻塞问
 
 HTTP/2 新增的另一个强大的新功能是，服务器可以对一个客户端请求发送多个响应。 换句话说，除了对最初请求的响应外，服务器还可以向客户端推送额外资源，而无需客户端明确地请求。
 
-<img src="../RPC/images/HTTP_2流-1.png" alt="HTTP_2流-1" style="zoom:50%;" />
+<img src="../Python/RPC/images/HTTP_2流-1.png" alt="HTTP_2流-1" style="zoom:50%;" />
 
 - 数据流优先级
 
@@ -401,8 +401,6 @@ HTTP/2 新增的另一个强大的新功能是，服务器可以对一个客户�
 HTTP/2 也支持流控，如果 sender 端发送数据太快，receiver 端可能因为太忙，或者压力太大，或者只想给特定的 stream 分配资源，receiver 端就可能不想处理这些数据。譬如，如果 client 给 server 请求了一个视屏，但这时候用户暂停观看了，client 就可能告诉 server 别在发送数据了。
 
 虽然 TCP 也有 flow control，但它仅仅只对一个连接有效果。HTTP/2 在一条连接上面会有多个 streams，有时候，我们仅仅只想对一些 stream 进行控制，所以 HTTP/2 单独提供了流控机制。
-
-
 
 # URL
 

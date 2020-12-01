@@ -16,9 +16,7 @@ components
 clients
 ```
 
-
-
-example
+示例1
 
 ```python
 #!/usr/bin/env python
@@ -167,11 +165,7 @@ if __name__ == '__main__':
         print("Unable to connect.")
 ```
 
-
-
-
-
-
+示例2
 
 ```python
 import logging

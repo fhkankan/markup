@@ -101,7 +101,7 @@ bin/zkCli.sh
 bin/zkServer.sh stop
 ```
 
-## kazoo
+## python交互
 
 kazoo是Python连接操作ZooKeeper的客户端库。我们可以通过kazoo来使用ZooKeeper。
 
