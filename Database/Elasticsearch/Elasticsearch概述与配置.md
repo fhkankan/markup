@@ -164,7 +164,7 @@ the     |   X   |  X
 
 2. 之后，将这些词条统一化为标准格式以提高它们的“可搜索性” -> **标准化**
 
-分析工作是由**分析器** 完成的： analyzer
+分析工作是由**分析器**（ analyzer）完成的：
 
 **字符过滤器**
 
@@ -186,7 +186,7 @@ the     |   X   |  X
 
 评分的计算方式取决于查询类型 不同的查询语句用于不同的目的： `fuzzy` 查询（模糊查询）会计算与关键词的拼写相似程度，`terms` 查询（词组查询）会计算 找到的内容与关键词组成部分匹配的百分比，但是通常我们说的 相关性 是我们用来计算全文本字段的值相对于全文本检索词相似程度的算法。
 
-Elasticsearch 的相似度算法 被定义为检索词频率/反向文档频率， *TF/IDF* ，包括以下内容：
+Elasticsearch 的相似度算法被定义为检索词频率/反向文档频率， *TF/IDF* ，包括以下内容：
 
 **检索词频率**
 
@@ -592,6 +592,26 @@ curl 127.0.0.1:9200/*/_alias/articles
 curl 127.0.0.1:9200/articles_v2/_alias/*
 ```
 
+> 索引库类型修改方法
+
+常规方法
+
+```
+1.不能直接修改映射字段的数据类型
+2.新建索引库和新的类型映射额
+3.PUT /_reindex重新索引数据，将原库的数据添加到新库中
+4.为新库起别名(可能需要先删原库)
+```
+
+工程实践方法
+
+```
+1.创建库时就增加版本号
+PUT /articles_v1  ->起别名 /articles
+2.建设新库时不必停机即可覆盖旧索引
+PUT /articles_v2  ->起别名 /articles
+```
+
 ## 文档
 
 - Document
@@ -664,6 +684,8 @@ PUT /{index}/{type}/{id}
   "field": "value",
   ...
 }
+
+
 curl -X PUT 127.0.0.1:9200/articles/article/150000 -H 'Content-Type:application/json' -d '
 {
   "article_id": 150000,
@@ -709,7 +731,7 @@ curl -i -X HEAD 127.0.0.1:9200/articles/article/150000
 
 在 Elasticsearch 中文档是 *不可改变* 的，不能修改它们。 相反，如果想要更新现有的文档，需要 *重建索引*或者进行替换。我们可以使用相同的 `index` API 进行实现。
 
-例如修改title字段的内容，不可进行以下操作（仅传递title字段内容）
+例如修改title字段的内容，不可进行以下操作（这样做会自动删除旧文档，生成当前文档）
 
 ```shell
 curl -X PUT 127.0.0.1:9200/articles/article/150000 -H 'Content-Type:application/json' -d '
@@ -881,6 +903,7 @@ http.cors.allow-origin: "*"
 # 安装SmartCN
 ./bin/elasticsearch-plugin install analysis-smartcn
 # 2.重启软件，自动加载
+sudo systemctl restart elasticsearch
 # 3.配置引擎
 # 新建一个 Index，指定需要分词的字段。这一步根据数据结构而异。基本上，凡是需要搜索的中文字段，都要单独设置一下。
 $ curl -X PUT 'localhost:9200/accounts' -d '
@@ -938,9 +961,11 @@ $ curl -X PUT 'localhost:9200/accounts' -d '
 pkill -F id
 ```
 
-## Logstash导入数据
+## 导入数据
 
-使用logstash 导入工具从mysql中导入数据
+> 注意
+
+项目运行前，可以使用logstash等工具批量导入索引数据，项目运行中，新增索引需要手动处理（逻辑新增、脚本处理）
 
 - Logstach安装
 
@@ -974,9 +999,51 @@ tar -zxvf mysql-connector-java-8.0.13.tar.gz
 
 - 从MySQL导入数据到Elasticsearch
 
+> 常规索引
+
 创建配置文件logstash_mysql.conf
 
+```shell
+input{
+     jdbc {
+         jdbc_driver_library => "/home/python/mysql-connector-java-8.0.13/mysql-connector-java-8.0.13.jar"    # java连接mysql
+         jdbc_driver_class => "com.mysql.jdbc.Driver"  # 驱动类
+         jdbc_connection_string => "jdbc:mysql://127.0.0.1:3306/toutiao?tinyInt1isBit=false"  # mysql地址
+         jdbc_user => "root"
+         jdbc_password => "mysql"
+         jdbc_paging_enabled => "true"
+         jdbc_page_size => "1000"
+         jdbc_default_timezone =>"Asia/Shanghai"
+         statement => "select a.article_id as article_id,a.user_id as user_id, a.title as title, a.status as status, a.create_time as create_time,  b.content as content from news_article_basic as a inner join news_article_content as b on a.article_id=b.article_id"  # 获取数据的sql语句
+         use_column_value => "true"  # 
+         tracking_column => "article_id"  # 追踪列中的变量值设置为文档唯一标识
+         clean_run => true
+     }
+}
+output{
+      elasticsearch {
+         hosts => "127.0.0.1:9200"  # es数据库地址
+         index => "articles"
+         document_id => "%{article_id}"
+         document_type => "article"
+      }
+      stdout {
+         codec => json_lines  # 显示输出
+     }
+}
 ```
+
+执行命令导入数据
+
+```shell
+sudo /usr/share/logstash/bin/logstash -f ./logstash_mysql.conf
+```
+
+> 自动补全索引
+
+编辑logstash_mysql_completion.conf
+
+```shell
 input{
      jdbc {
          jdbc_driver_library => "/home/python/mysql-connector-java-8.0.13/mysql-connector-java-8.0.13.jar"
@@ -987,28 +1054,21 @@ input{
          jdbc_paging_enabled => "true"
          jdbc_page_size => "1000"
          jdbc_default_timezone =>"Asia/Shanghai"
-         statement => "select a.article_id as article_id,a.user_id as user_id, a.title as title, a.status as status, a.create_time as create_time,  b.content as content from news_article_basic as a inner join news_article_content as b on a.article_id=b.article_id"
-         use_column_value => "true"
-         tracking_column => "article_id"
+         statement => "select title as suggest from news_article_basic"
          clean_run => true
      }
 }
 output{
       elasticsearch {
          hosts => "127.0.0.1:9200"
-         index => "articles"
-         document_id => "%{article_id}"
-         document_type => "article"
+         index => "completions"
+         document_type => "words"
       }
-      stdout {
-         codec => json_lines
-     }
 }
 ```
 
-命令行操作
+执行命令导入数据
 
 ```shell
-sudo /usr/share/logstash/bin/logstash -f ./logstash_mysql.conf
+sudo /usr/share/logstash/bin/logstash -f ./logstash_mysql_completion.conf
 ```
-

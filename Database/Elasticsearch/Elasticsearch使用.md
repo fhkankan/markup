@@ -143,6 +143,8 @@ $ curl -X DELETE 'localhost:9200/accounts/person/1'
 
 ```bash
 $ curl -X PUT 'localhost:9200/accounts/person/1' -d '
+
+# 结果
 {
     "user" : "张三",
     "title" : "工程师",
@@ -175,47 +177,20 @@ $ curl -X PUT 'localhost:9200/accounts/person/1' -d '
 根据文档ID
 
 ```shell
-curl -X GET 127.0.0.1:9200/articles/article/1
+# 查询所有数据
+curl -X GET 127.0.0.1:9200/articles/article/1 
+# 查询source中指定字段
 curl -X GET 127.0.0.1:9200/articles/article/1?_source=title,user_id
+# 不查询source中的字段
 curl -X GET 127.0.0.1:9200/articles/article/1?_source=false
 ```
 
 查询所有
 
 ```shell
-curl -X GET 127.0.0.1:9200/articles/article/_search?_source=title,user_id
-```
-
-分页
-
-```shell
-// from 起始 size 每页数量
-curl -X GET 127.0.0.1:9200/articles/article/_search?_source=title,user_id\&size=3
-
-curl -X GET 127.0.0.1:9200/articles/article/_search?_source=title,user_id\&size=3\&from=10
-```
-
-全文检索
-
-```shell
-curl -X GET 127.0.0.1:9200/articles/article/_search?q=content:python%20web\&_source=title,article_id\&pretty
-
-curl -X GET 127.0.0.1:9200/articles/article/_search?q=title:python%20web,content:python%20web\&_source=title,article_id\&pretty
-
-curl -X GET 127.0.0.1:9200/articles/article/_search?q=_all:python%20web\&_source=title,article_id\&pretty
-
-// %20 表示空格
-```
-
-### 高级查询
-
-- 返回所有记录
-
-使用 GET 方法，直接请求`/Index/Type/_search`，就会返回所有记录。
-
-```bash
 $ curl 'localhost:9200/accounts/person/_search'
 
+# 结果
 {
   "took":2,  # 该操作的耗时（单位为毫秒）
   "timed_out":false,  # 是否超时
@@ -250,6 +225,28 @@ $ curl 'localhost:9200/accounts/person/_search'
   }
 }
 ```
+
+分页
+
+```shell
+# from 起始 size 每页数量
+curl -X GET 127.0.0.1:9200/articles/article/_search?_source=title,user_id\&size=3
+
+curl -X GET 127.0.0.1:9200/articles/article/_search?_source=title,user_id\&size=3\&from=10
+```
+
+全文检索
+
+```shell
+# %20 表示空格
+curl -X GET 127.0.0.1:9200/articles/article/_search?q=content:python%20web\&_source=title,article_id\&pretty
+
+curl -X GET 127.0.0.1:9200/articles/article/_search?q=title:python%20web,content:python%20web\&_source=title,article_id\&pretty
+
+curl -X GET 127.0.0.1:9200/articles/article/_search?q=_all:python%20web\&_source=title,article_id\&pretty
+```
+
+### 高级查询
 
 - 全文搜索
 
@@ -346,107 +343,107 @@ $ curl 'localhost:9200/accounts/person/_search'  -d '
 全文检索 match
 
 ```shell
-  curl -X GET 127.0.0.1:9200/articles/article/_search -d'
-  {
-      "query" : {
-          "match" : {
-              "title" : "python web"
-          }
-      }
-  }'
+curl -X GET 127.0.0.1:9200/articles/article/_search -d'
+{
+    "query" : {
+        "match" : {
+            "title" : "python web"
+        }
+    }
+}'
 
-  curl -X GET 127.0.0.1:9200/articles/article/_search?pretty -d'
-  {
-      "from": 0,
-      "size": 5,
-      "_source": ["article_id","title"],
-      "query" : {
-          "match" : {
-              "title" : "python web"
+curl -X GET 127.0.0.1:9200/articles/article/_search?pretty -d'
+{
+     "from": 0,
+     "size": 5,
+     "_source": ["article_id","title"],
+     "query" : {
+         "match" : {
+             "title" : "python web"
           }
       }
-  }'
+}'
 
-  curl -X GET 127.0.0.1:9200/articles/article/_search?pretty -d'
-  {
-      "from": 0,
-      "size": 5,
-      "_source": ["article_id","title"],
-      "query" : {
-          "match" : {
-              "_all" : "python web 编程"
-          }
-      }
-  }'
+curl -X GET 127.0.0.1:9200/articles/article/_search?pretty -d'
+{
+    "from": 0,
+    "size": 5,
+    "_source": ["article_id","title"],
+    "query" : {
+        "match" : {
+            "_all" : "python web 编程"
+        }
+    }
+}'
 ```
 
 短语搜索 match_phrase
 
 ```shell
-  curl -X GET 127.0.0.1:9200/articles/article/_search?pretty -d'
-  {
-      "size": 5,
-      "_source": ["article_id","title"],
-      "query" : {
-          "match_phrase" : {
-              "_all" : "python web"
-          }
-      }
-  }'
+curl -X GET 127.0.0.1:9200/articles/article/_search?pretty -d'
+{
+    "size": 5,
+    "_source": ["article_id","title"],
+    "query" : {
+        "match_phrase" : {
+            "_all" : "python web"
+        }
+    }
+}'
 ```
 
 精确查找 term
 
 ```shell
-  curl -X GET 127.0.0.1:9200/articles/article/_search?pretty -d'
-  {
-      "size": 5,
-      "_source": ["article_id","title", "user_id"],
-      "query" : {
-          "term" : {
-              "user_id" : 1
-          }
-      }
-  }'
+curl -X GET 127.0.0.1:9200/articles/article/_search?pretty -d'
+{
+    "size": 5,
+    "_source": ["article_id","title", "user_id"],
+    "query" : {
+        "term" : {
+            "user_id" : 1
+        }
+    }
+}'
 ```
 
 范围查找 range
 
 ```shell
-  curl -X GET 127.0.0.1:9200/articles/article/_search?pretty -d'
-  {
-      "size": 5,
-      "_source": ["article_id","title", "user_id"],
-      "query" : {
-          "range" : {
-              "article_id": { 
-                  "gte": 3,
-                  "lte": 5
-              }
-          }
-      }
-  }'
+curl -X GET 127.0.0.1:9200/articles/article/_search?pretty -d'
+{
+    "size": 5,
+    "_source": ["article_id","title", "user_id"],
+    "query" : {
+        "range" : {
+            "article_id": { 
+                "gte": 3,
+                "lte": 5
+            }
+        }
+    }
+}'
 ```
 
 高亮搜索 highlight
 
 ```shell
-  curl -X GET 127.0.0.1:9200/articles/article/_search?pretty -d '
-  {
-      "size":2,
-      "_source": ["article_id", "title", "user_id"],
-      "query": {
-          "match": {
-               "title": "python web 编程"
-           }
-       },
-       "highlight":{
-            "fields": {
-                "title": {}
-            }
-       }
-  }
-  '
+curl -X GET 127.0.0.1:9200/articles/article/_search?pretty -d '
+{
+    "size":2,
+    "_source": ["article_id", "title", "user_id"],
+    "query": {
+        "match": {
+             "title": "python web 编程"
+         }
+     },
+     "highlight":{
+          "fields": {
+              "title": {}
+          }
+     }
+}
+'
 ```
 
 组合查询
@@ -481,41 +478,127 @@ curl -X GET 127.0.0.1:9200/articles/article/_search?pretty -d '
 排序
 
 ```shell
-  curl -X GET 127.0.0.1:9200/articles/article/_search?pretty -d'
-  {
-      "size": 5,
-      "_source": ["article_id","title"],
-      "query" : {
-          "match" : {
-              "_all" : "python web"
-          }
-      },
-      "sort": [
-          { "create_time":  { "order": "desc" }},
-          { "_score": { "order": "desc" }}
-      ]
-  }'
+curl -X GET 127.0.0.1:9200/articles/article/_search?pretty -d'
+{
+    "size": 5,
+    "_source": ["article_id","title"],
+    "query" : {
+        "match" : {
+            "_all" : "python web"
+        }
+    },
+    "sort": [
+        { "create_time":  { "order": "desc" }},
+        { "_score": { "order": "desc" }}
+    ]
+}'
 ```
 
 boost 提升权重，优化排序
 
 ```shell
-  curl -X GET 127.0.0.1:9200/articles/article/_search?pretty -d'
-  {
-      "size": 5,
-      "_source": ["article_id","title"],
-      "query" : {
-          "match" : {
-              "title" : {
-                  "query": "python web",
-                  "boost": 4
-              }
-          }
-      }
-  }'
+curl -X GET 127.0.0.1:9200/articles/article/_search?pretty -d'
+{
+    "size": 5,
+    "_source": ["article_id","title"],
+    "query" : {
+        "match" : {
+            "title" : {
+                "query": "python web",
+                "boost": 4
+            }
+        }
+    }
+}'
 ```
 
+### 联想提示
 
+- 拼写纠错
+
+对于已经建立的articles索引库，elasticsearch还提供了一种查询模式，suggest建议查询模式
+
+```shell
+curl 127.0.0.1:9200/articles/article/_search?pretty -d '
+{
+    "from": 0,
+    "size": 10,
+    "_source": false,
+    "suggest": {
+        "text": "phtyon web",
+        "word-phrase": {
+            "phrase": {
+                "field": "_all",
+                "size": 1
+            }
+        }
+    }
+}'
+```
+
+当我们输入错误的关键词`phtyon web`时，es可以提供根据索引库数据得出的正确拼写`python web`
+
+- 自动补全
+
+使用elasticsearch提供的自动补全功能，因为文档的类型映射要特殊设置，所以原先建立的文章索引库不能用于自动补全，需要再建立一个自动补全的索引库
+
+建立索引
+
+```shell
+curl -X PUT 127.0.0.1:9200/completions -H 'Content-Type: application/json' -d'
+{
+   "settings" : {
+       "index": {
+           "number_of_shards" : 3,
+           "number_of_replicas" : 1
+       }
+   }
+}
+'
+
+curl -X PUT 127.0.0.1:9200/completions/_mapping/words -H 'Content-Type: application/json' -d'
+{
+     "words": {
+          "properties": {
+              "suggest": {
+                  "type": "completion",
+                  "analyzer": "ik_max_word"
+              }
+          }
+     }
+}
+'
+```
+
+建议查询
+
+```shell
+curl 127.0.0.1:9200/completions/words/_search?pretty -d '
+{
+    "suggest": {
+        "title-suggest" : {
+            "prefix" : "pyth", 
+            "completion" : { 
+                "field" : "suggest" 
+            }
+        }
+    }
+}
+'
+
+curl 127.0.0.1:9200/completions/words/_search?pretty -d '
+{
+    "suggest": {
+        "title-suggest" : {
+            "prefix" : "python web", 
+            "completion" : { 
+                "field" : "suggest" 
+            }
+        }
+    }
+}
+'
+```
 
 ### 第三方插件
 
@@ -556,6 +639,12 @@ pip install elasticsearch
 
 ### 连接集群
 
+注意区分版本
+
+```
+from elasticsearch5 import Elasticsearch
+```
+
 指定连接
 
 ```python
@@ -571,12 +660,9 @@ es = Elasticsearch(
 ```python
 es = Elasticsearch(
     ['esnode1:port', 'esnode2:port'],
-    # 在做任何操作之前，先进行嗅探
-    sniff_on_start=True,
-    # 节点没有响应时，进行刷新，重新连接
-    sniff_on_connection_fail=True,
-    # 每 60 秒刷新一次
-    sniffer_timeout=60
+    sniff_on_start=True,  # 在做任何操作之前，先进行嗅探
+    sniff_on_connection_fail=True,  # 节点没有响应时，进行刷新，重新连接
+    sniffer_timeout=60  # 每 60 秒刷新一次
 )
 ```
 
@@ -594,16 +680,11 @@ es = Elasticsearch([
 ```python
 es = Elasticsearch(
     ['localhost:443', 'other_host:443'],
-    ＃打开SSL 
-    use_ssl=True,
-    ＃确保我们验证了SSL证书（默认关闭）
-    verify_certs=True,
-    ＃提供CA证书的路径
-    ca_certs='/path/to/CA_certs',
-    ＃PEM格式的SSL客户端证书
-    client_cert='/path/to/clientcert.pem',
-    ＃PEM格式的SSL客户端密钥
-    client_key='/path/to/clientkey.pem'
+    use_ssl=True,  # 打开SSL 
+    verify_certs=True,  # 确保我们验证了SSL证书（默认关闭）
+    ca_certs='/path/to/CA_certs',  # 提供CA证书的路径
+    client_cert='/path/to/clientcert.pem',  # PEM格式的SSL客户端证书   
+    client_key='/path/to/clientkey.pem'  # PEM格式的SSL客户端密钥
 )
 ```
 
@@ -885,4 +966,3 @@ with open("D://ml/data.csv", 'w', newline='', encoding="gbk") as flow:
         csv_writer.writerow(res['_source'].values())
 print("done!")
 ```
-
