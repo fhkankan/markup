@@ -144,8 +144,6 @@ docker-compose [-f <arg>...] [options] [COMMAND] [ARGS...]
 | `bundle` | 其他 | 从合成文件生成Docker包 |
 | `port` | 其他 | 显示某个容器端口所映射的公共端口 |
 
-- 
-
 ```
 docker-compose pause [SERVICE...]		# 暂停一个服务容器
 docker-compose unpause [SERVICE...]		# 恢复处于暂停状态中的服务。

@@ -102,12 +102,12 @@ npm -v
 ```javascript
 // 全局安装
 npm list -g
-
 // 本地安装
 npm list
-
 // 某个模块
 npm list [name]
+// 查看在层级0下的安装模块
+npm list --depth 0
 ```
 
 卸载
@@ -171,8 +171,6 @@ repository - 包代码存放的地方的类型，可以是 git 或 svn，git 可
 main - main 字段指定了程序的主入口文件，require('moduleName') 就会加载这个文件。这个字段的默认值是模块根目录下面的 index.js。
 keywords - 关键字
 ```
-
-
 
 ### cnpm
 
@@ -247,7 +245,7 @@ $ cnpm info connect
 # 方法一：
 brew install nvm
 # 方法二
-curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.34.0/install.sh | bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.37.2/install.sh | bash
 或
 wget -qO- https://raw.githubusercontent.com/creationix/nvm/v0.34.0/install.sh | bash
 ```
@@ -256,11 +254,10 @@ wget -qO- https://raw.githubusercontent.com/creationix/nvm/v0.34.0/install.sh | 
 
 ```shell
 mkdir .nvm
-vim ~/.bash_profile
+vim ~/.bash_profile, ~/.zshrc, ~/.profile, or ~/.bashrc
 # 添加
-export NVM_DIR="$HOME/.nvm"
-  [ -s "/usr/local/opt/nvm/nvm.sh" ] && . "/usr/local/opt/nvm/nvm.sh"  # This loads nvm
-  [ -s "/usr/local/opt/nvm/etc/bash_completion" ] && . "/usr/local/opt/nvm/etc/bash_completion"  # This loads nvm bash_completio
+export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
 ```
 
 - 使用

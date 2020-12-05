@@ -47,13 +47,14 @@ $ sudo apt-get remove docker docker-engine docker.io
 
 安装
 
-```
+```shell
 # 安装基本软件
 $ sudo apt-get update
 $ sudo apt-get install \
     apt-transport-https \
     ca-certificates \
     curl \
+    gnupg-agent \
     software-properties-common
 # 使用官方源
 $ curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
@@ -63,15 +64,15 @@ $ sudo add-apt-repository \
    $(lsb_release -cs) \
    stable"
 # 或者使用阿里云的源
-curl -fsSL https://mirrors.aliyun.com/docker-ce/linux/ubuntu/gpg | sudo apt-key add -
-sudo add-apt-repository "deb [arch=amd64] https://mirrors.aliyun.com/docker-ce/linux/ubuntu $(lsb_release -cs) stable"
+$ curl -fsSL https://mirrors.aliyun.com/docker-ce/linux/ubuntu/gpg | sudo apt-key add - 
+$ sudo add-apt-repository "deb [arch=amd64] https://mirrors.aliyun.com/docker-ce/linux/ubuntu $(lsb_release -cs) stable"
 # 安装docker
 $ sudo apt-get update
-$ sudo apt-get install docker-ce
-# 安装指定版本
-$ sudo apt-get install docker-ce=<VERSION>
+$ sudo apt-get install docker-ce docker-ce-cli containerd.io
 # 查看支持的docker版本
-apt-cache madison docker-ce
+$ apt-cache madison docker-ce
+# 安装指定版本
+$ sudo apt-get install docker-ce=<VERSION> docker-ce-cli=<VERSION_STRING> containerd.io
 # 测试安装是否ok
 $ sudo docker run hello-world
 ```
