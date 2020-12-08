@@ -735,25 +735,23 @@ port 234
 ifconfig
 ```
 
-设置ip地址
+- 16版本
+
+配置
 
 ```shell
+# 配置ip
 sudo vi /etc/network/interface
 
-# The loopback network interface
 auto lo
 iface lo inet loopback
-# The primary network interface
 auto ens32  # 网卡名称
 iface ens32 inet static
 address 192.168.159.130  # 固定ip地址
 netmask 255.255.255.0
 gateway 192.168.2.1
-```
 
-设置dns
-
-```shell
+# 设置dns
 sudo vi /etc/resolvconf/resolv.conf.d/base
 
 nameserver 8.8.8.8
@@ -772,10 +770,29 @@ sudo resolvconf -u
 sudo /etc/init.d/networking restart
 ```
 
-重启电脑
+- 18及20
+
+配置
 
 ```shell
-# 重新启动电脑
-ifconfig
+sudo vim /etc/netplan/01-network-manager-all.yaml
+
+network:
+  version: 2
+  # render: NetworkManager
+  ethernets:
+    enp2s0:
+      dhcp4: no
+      dhcp6: no
+      addresses: [192.168.13.177/24]  # 固定ip
+      gateway4: 192.168.13.1
+      nameservers:
+        addresses: [223.5.5.5, 211.138.24.66]
+```
+
+应用
+
+```shell
+sudo netplan --debug apply
 ```
 

@@ -119,7 +119,10 @@ print(encoder.classes_)  # ['Chi' 'Eng' 'Spa']
 
 - OneHotEncoder
 ```python
+import numpy as np
 from sklearn.preprocessing import OneHotEncoder
+
+data_encode = np.array([[2, 1, 3]])
 
 one_hot = OneHotEncoder()
 # 整数转换为onehot
@@ -133,7 +136,7 @@ print(data_one_hot.toarray())
 ```
 - LabelBinarizer
 ```python
-from sklearn.preprocessing import label_binarize
+from sklearn.preprocessing import LabelBinarizer
 
 encoder2 = LabelBinarizer()
 # 文本转换为整数，整数转换为onehot
@@ -357,6 +360,39 @@ print(tfidf.inverse_transform(result))
 
 ### 特征预处理
 
+#### 缺失值
+
+API
+
+```python
+try:
+    from sklearn.impute import SimpleImputer # Scikit-Learn 0.20+
+except ImportError:
+    from sklearn.preprocessing import Imputer as SimpleImputer 
+```
+
+示例
+
+```python
+import numpy as np
+from sklearn.impute import SimpleImputer
+
+X = np.array([[np.nan, 0, 3],
+              [3, 7, 9],
+              [3, 5, 2],
+              [4, np.nan, 6],
+              [8, 8, 1]])
+y = np.array([14, 16, -1, 8, -5])
+imp = SimpleImputer(strategy="mean")
+X2 = imp.fit_transform(X)
+print(X2)
+# [[4.5 0.  3. ]
+#  [3.  7.  9. ]
+#  [3.  5.  2. ]
+#  [4.  5.  6. ]
+#  [8.  8.  1. ]]
+```
+
 #### 衍生特征
 
 ```python
@@ -428,39 +464,6 @@ ss = StandardScaler()
 result = ss.fit_transform(data)
 # 原始数据中每列特征的平均值
 print(ss.mean_)
-```
-
-#### 缺失值
-
-API
-
-```python
-try:
-    from sklearn.impute import SimpleImputer # Scikit-Learn 0.20+
-except ImportError:
-    from sklearn.preprocessing import Imputer as SimpleImputer 
-```
-
-示例
-
-```python
-import numpy as np
-from sklearn.impute import SimpleImputer
-
-X = np.array([[np.nan, 0, 3],
-              [3, 7, 9],
-              [3, 5, 2],
-              [4, np.nan, 6],
-              [8, 8, 1]])
-y = np.array([14, 16, -1, 8, -5])
-imp = SimpleImputer(strategy="mean")
-X2 = imp.fit_transform(X)
-print(X2)
-# [[4.5 0.  3. ]
-#  [3.  7.  9. ]
-#  [3.  5.  2. ]
-#  [4.  5.  6. ]
-#  [8.  8.  1. ]]
 ```
 
 ## 自定义转换器

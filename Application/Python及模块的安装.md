@@ -440,8 +440,6 @@ venv [-h] [--system-site-packages] [--symlinks | --copies] [--clear]
 # 创建环境后，您可能希望激活它，例如通过在其bin目录中找到一个激活脚本。
 ```
 
-
-
 ## pipenv
 
 依赖系统中python环境，基于项目文件夹创建python环境
@@ -559,6 +557,8 @@ Commands:
 
 不依赖于系统环境，在系统中安装多版本python环境
 
+- 安装
+
 > mac
 
 安装
@@ -585,7 +585,7 @@ source ~/.zshrc
 克隆pyenv仓库
 
 ```
-git clone https://github.com/yyuu/pyenv.git ~/.pyenv
+git clone https://github.com/pyenv/pyenv.git ~/.pyenv
 ```
 
 加入环境变量(.bashrc或.zshrc)
@@ -605,10 +605,14 @@ eval "$(pyenv init -)"
 激活pyenv
 
 ```
-spurce ~/.bashrc
+source ~/.bashrc
 ```
 
-> 常用命令
+- 删除
+
+删除`.pyenv`文件夹和修改`.bashrc`文件中添加部分
+
+- 常用命令
 
 查看
 
@@ -692,8 +696,6 @@ pyenv virtualenv-delete env364
 pyenv local env364
 pyenv uninstall env364 # 删除 env364 这个虚拟环境
 ```
-
-
 
 ## Django--web框架
 
@@ -848,7 +850,11 @@ $jupyter notebook
 
 # Anaconda
 
+[清华镜像](https://mirrors.tuna.tsinghua.edu.cn/help/anaconda/)
+
 ## 安装
+
+有anaconda和miniconda可供选择
 
 ```python
 1. 安装
@@ -859,14 +865,15 @@ $jupyter notebook
 bash Anaconda3-4.3.1-Linux-x86_64.sh 
 # mac
 brew cask install anaconda
+# 取消默认启用conda环境
+conda config --set auto_activate_base false
 
 2. 环境变量
 # windows
 在系统环境变量path处添加安装路径
 C:\ProgramData\Anaconda3;C:\ProgramData\Anaconda3\Scripts
 # Ubuntu
-在 ~/.bashrc中添加anaconda的bin目录加入PATH
-echo 'export PATH="~/anaconda2/bin:$PATH"' >> ~/.bashrc
+会自动在.bashrc文件中生成配置项
 # 更新bashrc以立即生效
 source ~/.bashrc
 # mac 
@@ -879,6 +886,8 @@ conda -V
 ## 修改源
 
 ```python
+# 添加新的镜像源，自动添加至~/.condrac
+conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/
 conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free
 conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main
 conda config --set show_channel_urls yes
@@ -909,7 +918,7 @@ conda update package_name
 conda remove package_name
 
 # 模糊查询
-conda  search search_term
+conda search search_term
 
 # 将当前环境下的 package 信息存入名为 environment 的 YAML 文件中
 conda env export > environment.yaml
