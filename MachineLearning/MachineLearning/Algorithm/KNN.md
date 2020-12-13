@@ -122,41 +122,48 @@ y_predict = knn_clf.predict(X_predict)[0]
 
 ## sklearn
 
-### 函数
-
-用于分类
+### 最近邻
 
 ```python
-from sklearn.neighbors import KNeighborsClassifier
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.neighbors import NearestNeighbors
 
-# KNeighborsClassifiler训练模型
-knn = KNeighborsClassifier(n_neighbors=3)
-knn.fit(x_train, y_train)
-# 使用测试集的特征值，预测测试集的特征值对应的目标值
-y_predict = knn.predict(x_test)
-print(y_predict)
-# 测试模型在测试集上的准确性
-score = knn.score(x_test, y_test)
-print(score)
+X = np.array([[1, 1], [1, 3], [2, 2], [2.5, 5], [3, 1],
+              [4, 2], [2, 3.5], [3, 3], [3.5, 4]])
+
+# 寻找最近邻的数量
+num_neighbors = 3
+
+# 输入数据点
+input_point = [[2.6, 1.7]]
+
+# 画出数据点
+plt.figure()
+plt.scatter(X[:, 0], X[:, 1], marker='o', s=25, color='k')
+
+# 建立最近邻
+knn = NearestNeighbors(n_neighbors=num_neighbors, algorithm='ball_tree').fit(X)
+distances, indices = knn.kneighbors(input_point)
+
+# Print the 'k' nearest neighbors
+print("\nk nearest neighbors")
+for rank, index in enumerate(indices[0][:num_neighbors]):
+    print(str(rank + 1) + " -->", X[index])
+
+# Plot the nearest neighbors
+plt.figure()
+plt.scatter(X[:, 0], X[:, 1], marker='o', s=25, color='k')
+plt.scatter(X[indices][0][:][:, 0], X[indices][0][:][:, 1],
+            marker='o', s=150, color='k', facecolors='none')
+plt.scatter(input_point[0][0], input_point[0][1],
+            marker='x', s=150, color='k', facecolors='none')
+
+plt.show()
+
 ```
 
-用于回归
-
-```python
-from sklearn.neighbors import KNeighborsRegressor
-
-# 创建实例对象
-knn_reg = KNeighborsRegressor()  
-knn_reg.fit(x_train, y_train)
-# 使用测试集的特征值，预测测试集的特征值对应的目标值
-y_predict = knn_reg.predict(x_test)
-print(y_predict)
-# 测试模型在测试集上的准确性
-score = knn_reg.score(x_test, y_test)
-print(score)
-```
-
-### 示例
+### KNN分类
 
 ```python
 # 1.导入所需的包
@@ -214,5 +221,49 @@ print(y_predict)
 # 测试模型在测试集上的准确性
 score = knn.score(x_test, y_test)
 print(score)
+```
+
+### KNN回归
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn import neighbors
+
+amplitude = 10
+num_points = 100
+X = amplitude * np.random.rand(num_points, 1) - 0.5 * amplitude
+
+# 计算目标并添加噪声
+y = np.sinc(X).ravel()
+y += 0.2 * (0.5 - np.random.rand(y.size))
+
+# 画出输入数据图形
+plt.figure()
+plt.scatter(X, y, s=40, c='k', facecolors='none')
+plt.title('Input data')
+
+# 用输入数据的10倍的密度创建一维网格
+x_values = np.linspace(-0.5*amplitude, 0.5*amplitude, 10*num_points)[:, np.newaxis]
+
+# 定义最近邻的个数
+n_neighbors = 8
+
+# 定义并训练回归器 
+knn_regressor = neighbors.KNeighborsRegressor(n_neighbors, weights='distance')
+y_values = knn_regressor.fit(X, y).predict(x_values)
+
+# 将输入输出数据交叠，查看回归器效果
+plt.figure()
+plt.scatter(X, y, s=40, c='k', facecolors='none', label='input data')
+plt.plot(x_values, y_values, c='k', linestyle='--', label='predicted values')
+plt.xlim(X.min() - 1, X.max() + 1)
+plt.ylim(y.min() - 0.2, y.max() + 0.2)
+plt.axis('tight')
+plt.legend()
+plt.title('K Nearest Neighbors Regressor')
+
+plt.show()
+
 ```
 

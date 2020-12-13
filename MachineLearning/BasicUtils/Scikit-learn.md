@@ -72,11 +72,11 @@ fetch_20newsgroups(data_home=None,subset='all')  # 20类新闻数据集
 ```python
 print(data.keys())  # 打印数据字典对象的keys
 
-DESCR			 数据集描述
-feature_names	 特征名
-data			 特征值数据数组，是[n_samples*n_features]的二维numpy.ndarry数组
-target_names	 标签名，回归数据集没有
-target			 目标值数组
+data.DESCR			 # 数据集描述
+data.feature_names	 # 特征名
+data.data			 # 特征值数据数组，是[n_samples*n_features]的二维numpy.ndarry数组
+data.target_names	 # 标签名，回归数据集没有
+data.target			 # 目标值数组
 ```
 
 - 创建数据集
@@ -190,8 +190,6 @@ print(res)
 #### 文本特征
 
 - 单词统计
-
-API
 
 ```python
 from sklearn.feature_extraction.text import CountVectorizer
@@ -430,12 +428,32 @@ plt.plot(x, yfit, c='y')
 plt.show()
 ```
 
-#### 归一化
+#### 缩放与归一化
 
-- 最值归一化
+二值化
 
-[API](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.MinMaxScaler.html#sklearn.preprocessing.MinMaxScaler)
+```python
+import numpy as np
+from sklearn.preprocessing import binarize
 
+data = np.array([[3, 1.5, 2, -5.6], [0, 4, -0.2, 3.1], [1, 3.3, -1.9, -4.3]])
+
+data_binarized = binarize(data, threshold=1.4)
+print(data_binarized)
+```
+均值移除
+```python
+import numpy as np
+from sklearn.preprocessing import scale
+
+data = np.array([[3, 1.5, 2, -5.6], [0, 4, -0.2, 3.1], [1, 3.3, -1.9, -4.3]])
+
+data_standardized = scale(data)
+print(data_standardized)
+print(data_standardized.mean(axis=0))
+print(data_standardized.std(axis=0))
+```
+最值归一化
 ```python
 from sklearn.preprocessing import MinMaxScaler
 
@@ -449,11 +467,7 @@ result = mm.fit_transform(data)
 print(mm.data_min_)
 print(mm.data_max_)
 ```
-
-- 均值方差归一化
-
-[API](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html#sklearn.preprocessing.StandardScaler)
-
+均值方差归一化
 ```python
 from sklearn.preprocessing import StandardScaler
 
@@ -464,6 +478,94 @@ ss = StandardScaler()
 result = ss.fit_transform(data)
 # 原始数据中每列特征的平均值
 print(ss.mean_)
+```
+范数归一化，参数norm可以为l1,l2,max
+```python
+import numpy as np
+from sklearn.preprocessing import Normalizer
+
+data = np.array([[3, 1.5, 2, -5.6], [0, 4, -0.2, 3.1], [1, 3.3, -1.9, -4.3]])
+
+# l1范数
+n_t = Normalizer(norm="l1")
+# l2范数
+n_t = Normalizer(norm="l2")
+# max范数
+n_t = Normalizer(norm="max")
+res = n_t.fit_transform(data)
+print(res)
+```
+
+### 特征选择
+
+#### 阈值
+
+函数
+
+```python
+# 类
+sklearn.feature_selection.VarianceThreshold
+# 实例化
+VarianceThreshold(threshold = 0.0)
+删除所有低方差特征
+
+Variance.fit_transform(X,y)       
+X:numpy array格式的数据[n_samples,n_features]
+返回值：训练集差异低于threshold的特征将被删除。
+默认值是保留所有非零方差特征，即删除所有样本
+中具有相同值的特征。
+```
+
+实现
+
+```python
+from sklearn.feature_selection import VarianceThreshold
+
+data = [[0, 2, 0, 3],
+        [0, 1, 4, 3],
+        [0, 1, 1, 3]]
+        
+# 删除所有低方差特征，默认0.0
+vt = VarianceThreshold()
+# 输入值：numpy array格式数据
+# 返回值：训练集差异低于threshold的特征将被删除
+result = vt.fit_transform(data)
+print(result)
+print(result.shape)
+```
+
+#### 重要性
+
+将某个特征对应的样本值加入干扰值之后获取error，与原本特征的样本获取的error，进行对比，若相差较大，则说明此特征比较重要
+
+```python
+import numpy as np
+from sklearn.feature_selection import SelectKBest, f_classif
+import matplotlib.pyplot as plt
+
+predictors = ["Pclass", "Sex", "Age", "Fare"]
+
+# 特征选择
+selector = SelectKBest(f_classif, k=5)
+selector.fit(titanic[predictors], titanic["Survived"])
+# 获取每个特征对应的p-value，然后将其转换为score
+scores = -np.log10(selector.pvalues_)
+
+# 画图
+plt.bar(range(len(predictors)), scores)
+plt.xticks(range(len(predictors)), predictos, totation="vertical")
+plt.show()
+```
+
+#### 降维
+
+```python
+# PCA
+from sklearn.decomposition import PCA
+# 核PCA
+from sklearn.decomposition import KernelPCA
+# ICA
+from sklearn.decomposition import FastICA
 ```
 
 ## 自定义转换器
@@ -500,6 +602,35 @@ class CombinedAttributesAdder(BaseEstimator, TransformerMixin):
 
 attr_adder = CombinedAttributesAdder(add_bedrooms_per_room=False)
 housing_extra_attribs = attr_adder.transform(housing.values)
+```
+
+## 函数组合
+
+在数据被输入到机器学习算法中进行训练之前，需要对数据做各种方式的处理，有很多基本的函数功能可以使用，通常数据处理的流水线就是这些基本函数的组合。不推荐使用嵌套或循环方式来调用这些函数，而是用函数式编程的方式构建函数组合。
+
+```python
+from functools import reduce
+import numpy as np
+
+
+def add3(input_array):
+    return map(lambda x: x + 3, input_array)
+
+def mul2(input_array):
+    return map(lambda x: x * 2, input_array)
+
+def sub5(input_array):
+    return map(lambda x: x - 5, input_array)
+
+def function_composer(*args):
+    return reduce(lambda f, g: lambda x: g(f(x)), args)
+
+
+if __name__ == '__main__':
+    arr = np.array([2, 5, 4, 7])
+    print("常规:", list(add3(mul2(sub5(arr)))))
+    res = function_composer(sub5, mul2, add3)
+    print("函数式：", list(res(arr)))
 ```
 
 ## 管道
@@ -541,6 +672,9 @@ pipe = Pipeline(estimators)
 # make_pipeline省去名称，程序自动填充
 pipe = make_pipeline(PCA(), SVC())
 
+# 修改参数
+pipe.set_params(步骤名__参数名=value)
+
 print(pipe)  # 评估器
 print('-----------')
 print(pipe.steps)  # 评估器执行步骤
@@ -550,8 +684,6 @@ print(pipe.named_steps['clf'])  # 评估器具体步骤
 params = dict(reduce_dim__n_components=[2, 5, 10],
               clf__C=[0.1, 10, 100])
 grid_search = GridSearchCV(pipe, param_grid=params)  
-     
-
 ```
 
 - FeatureUnion
@@ -574,6 +706,7 @@ from sklearn.pipeline import FeatureUnion
 from sklearn.pipeline import make_union
 from sklearn.decomposition import PCA
 from sklearn.decomposition import KernelPCA
+
 # FeatureUnion
 estimators = [('linear_pca', PCA()), ('kernel_pca', KernelPCA())]
 combined = FeatureUnion(estimators)
@@ -939,8 +1072,10 @@ from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 # 随机森林
 from skleran.ensemble import RandomForestClassifier
-# k-近邻算法
-sklearn.neighbors
+# 近邻算法
+from sklearn.neighbors import NearestNeighbors  # 最近邻
+from sklearn.neighbors import KNeighborsClassifier  # k近邻分类
+from sklearn.neighbors import KNeighborsRegressor  # k近邻回归
 # 朴素贝叶斯
 from sklearn.naive_bayes import GaussianNB  # 高斯
 from sklearn.naive_bayes import MultinomialNB  # 多项式
@@ -981,70 +1116,34 @@ from sklearn.neighbors import KernelDensity
 
 ### 回归
 
-均方误差
-
 ```python
-from sklearn.metrics import mean_squared_error
-```
-
-根均方误差
-
-```python
-sqrt(mean_squared_error())
-```
-
-平均绝对误差
-
-```python
+# 平均绝对误差
 from sklearn.metrics import mean_absolute_error
-```
-
-R方
-
-```python
+# 均方误差
+from sklearn.metrics import mean_squared_error
+# 根均方误差
+sqrt(mean_squared_error())
+# 中位数绝对误差
+from sklearn.metrics import median_absolute_error
+# 解释方差分
+from sklearn.metrics import explained_variance_score
+# R方
 from sklearn.metrics import r2_score
 ```
 
 ### 分类
 
-准确度
-
 ```python
+# 准确度
 from sklearn.metrics import accuracy_score
-
-res = accuracy_score(y_test, y_predict)
-```
-
-混淆矩阵
-
-```python
+# 混淆矩阵
 from sklearn.metrics import confusion_matrix
-
-res = confusion_matrix(y_test, y_predict)  # xlabel是predict,ylabel是true；即行表示实际的列表，列表示预测的列表
-```
-
-精准率
-
-```python
+# 精准率
 from sklearn.metrics import precision_score
-
-res = precision_score(y_test, y_predict)
-```
-
-召回率
-
-```python
+# 召回率
 from sklearn.metics import recall_score
-
-res = recall_score(y_test, y_predict)
-```
-
-F1 Score
-
-```python
+# F1得分
 from sklearn.metics import f1_score
-
-res = f1_score(y_test, y_predict)
 ```
 
 PR曲线
@@ -1081,7 +1180,22 @@ res = classification_report(y_test, y_predict, target_names=data.target_names)
 from sklearn.metrics import silhouette_score
 ```
 
-## 模型保存加载
+## 模型相关
+
+### 属性方法
+
+```python
+model.fit()  # 训练数据
+model.trasform()  # 
+model.predict()  # 预测
+
+model.feature_importances_  # 特征的相对重要性
+model.coef_  # 斜率
+model.intercept_  # 截距
+model.predict_proba()[0]  # 数据点的置信度
+```
+
+### 保存加载
 
 ```python
 from sklearn.externals import joblib

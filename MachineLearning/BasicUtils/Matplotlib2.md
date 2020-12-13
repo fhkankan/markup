@@ -1,5 +1,121 @@
 # Matplotlib2
 
+## 动态图
+
+### 动态气泡图
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+
+def tracker(cur_num):
+    # 获取当前索引
+    cur_index = cur_num % num_points
+
+    # 定义数据点颜色 
+    datapoints['color'][:, 3] = 1.0
+
+    # 更新圆圈的大小
+    datapoints['size'] += datapoints['growth']
+
+    # 更新集合中最老的数据点的位置 
+    datapoints['position'][cur_index] = np.random.uniform(0, 1, 2)
+    datapoints['size'][cur_index] = 7
+    datapoints['color'][cur_index] = (0, 0, 0, 1)
+    datapoints['growth'][cur_index] = np.random.uniform(40, 150)
+
+    # 更新三点图的参数 
+    scatter_plot.set_edgecolors(datapoints['color'])
+    scatter_plot.set_sizes(datapoints['size'])
+    scatter_plot.set_offsets(datapoints['position'])
+
+if __name__=='__main__':
+    # 生成一个图像
+    fig = plt.figure(figsize=(9, 7), facecolor=(0,0.9,0.9))
+    ax = fig.add_axes([0, 0, 1, 1], frameon=False)
+    ax.set_xlim(0, 1), ax.set_xticks([])
+    ax.set_ylim(0, 1), ax.set_yticks([])
+
+    # 在随机位置创建和初始化数据点，并以随机的增长率进行初始化
+    num_points = 20
+    datapoints = np.zeros(num_points, dtype=[('position', float, 2),
+            ('size', float, 1), ('growth', float, 1), ('color', float, 4)])
+    datapoints['position'] = np.random.uniform(0, 1, (num_points, 2))
+    datapoints['growth'] = np.random.uniform(40, 150, num_points)
+
+    # 创建一个每一帧都会更新的散点图
+    scatter_plot = ax.scatter(datapoints['position'][:, 0], datapoints['position'][:, 1],
+                      s=datapoints['size'], lw=0.7, edgecolors=datapoints['color'],
+                      facecolors='none')
+
+    # 用tracker函数启动动态模拟
+    animation = FuncAnimation(fig, tracker, interval=10)
+
+    plt.show()
+```
+
+### 动态信号模拟
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+
+# 生成信号数据
+def generate_data(length=2500, t=0, step_size=0.05):
+    for count in range(length):
+        t += step_size
+        signal = np.sin(2*np.pi*t)
+        damper = np.exp(-t/8.0)
+        yield t, signal * damper 
+
+# 初始化函数
+def initializer():
+    peak_val = 1.0
+    buffer_val = 0.1
+    ax.set_ylim(-peak_val * (1 + buffer_val), peak_val * (1 + buffer_val))
+    ax.set_xlim(0, 10)
+    del x_vals[:]
+    del y_vals[:]
+    line.set_data(x_vals, y_vals)
+    return line
+
+def draw(data):
+    # 更新数据
+    t, signal = data
+    x_vals.append(t)
+    y_vals.append(signal)
+    x_min, x_max = ax.get_xlim()
+
+    if t >= x_max:
+        ax.set_xlim(x_min, 2 * x_max)
+        ax.figure.canvas.draw()
+
+    line.set_data(x_vals, y_vals)
+
+    return line
+
+if __name__=='__main__':
+    # 创建画图
+    fig, ax = plt.subplots()
+    ax.grid()
+
+    # 提取线
+    line, = ax.plot([], [], lw=1.5)
+
+    # 创建变量
+    x_vals, y_vals = [], []
+
+    # 定义动画器对象
+    animator = animation.FuncAnimation(fig, draw, generate_data, 
+            blit=False, interval=10, repeat=False, init_func=initializer)
+
+    plt.show()
+
+
+```
+
 ## 三维图
 
 导入`mplot3d`工具箱可以画三维图

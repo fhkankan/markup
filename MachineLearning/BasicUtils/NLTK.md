@@ -23,12 +23,13 @@ pip install nltk
 ```
  - 在弹出的窗口，建议安装所有的包
 
-# 自然语言文本处理流程
 ## 语料库的使用
-nltk的都语料库包含在 nltk.corpus 中
 ```python
 import nltk
 # 需要下载brown语料库
+nltk.download('brown')
+
+# nltk的都语料库包含在nltk.corpus中
 from nltk.corpus import brown 
 # 引用布朗大学的语料库
 
@@ -39,7 +40,9 @@ print(brown.categories())
 print('共有{}个句子'.format(len(brown.sents())))
 print('共有{}个单词'.format(len(brown.words())))
 ```
-## 分词(tokenize)
+## 分词
+
+tokenize
 
 ```
 - 将句子拆分成 具有语言语义学上有意义的词
@@ -55,16 +58,34 @@ print('共有{}个单词'.format(len(brown.words())))
 ```python
 import nltk
 # 需要事先安装 punkt 分词模型
+nltk.download('punkt')
 
-text = "Python is a high-level programming language, and i like it!"
+text = "Are you curious about tokenization? Let's see how it works! We need to analyze a couple of sentences with punctuations to see it in action."
 
-# 对文本进行分词
-seg_list = nltk.word_tokenize(text)
+# 句子解析器
+from nltk.tokenize import sent_tokenize
 
-print(seg_list)
+sent_tokenize_list = sent_tokenize(text)
+print("Sentence tokenizer:", sent_tokenize_list)
 
-# 运行结果：
-# ['Python', 'is', 'a', 'high-level', 'programming', 'language', '!']
+# 单词解析器
+# 最基本的单词解析器
+from nltk.tokenize import word_tokenize
+
+print("Word tokenizer:", word_tokenize(text))
+
+# Punktword单词解析器，以标点符号分割文本，如果是单词中的标点符号，则保留不做分割
+from nltk.tokenize import PunktWordTokenizer
+
+punkt_word_tokenizer = PunktWordTokenizer()
+print("Punkt word tokenizer:", punkt_word_tokenizer.tokenize(text))
+
+# wordPunct单词解析器，将标点符号保留到不同的句子标记中
+from nltk.tokenize import WordPunctTokenizer
+
+word_punct_tokenizer = WordPunctTokenizer()
+print("Word punct tokenizer:", word_punct_tokenizer.tokenize(text))
+
 ```
 - 中文分词
 
@@ -83,18 +104,19 @@ seg_list = jieba.cut_for_search("小明硕士毕业于中国科技大学，后�
 print("搜索引擎模式: "+"/".join(seg_list))
 ```
 ## 词形问题
-- look, looked, looking
+- 同词不同形：look, looked, looking
 - 影响语料学习的准确度
 - 词形归一化
-### 词干提取(stemming)
+### 词干提取
+
+stemming
 
 - 英文
 
-stemming，词干提取，如将ing, ed去掉，只保留单词主干
+处理文本文档时，可能会碰到单词的不同形式。在文本分析中，提取这些单词的原形非常有用，有助于提取一些统计信息来分析整个文本。词干提取的目的是将不同词形的单词都变为其原形。词干提取使用启发式处理方法截取单词的尾部，以提取单词的原形。
 
-NLTK中常用的stemmer：
+NLTK中常用的stemmer：`PorterStemmer, SnowballStemmer, LancasterStemmer`，其中`Porter`提取规则最宽松，`Lancaster`提取规则最严格，会造成单词模糊难以理解，故常用`Snowball`.
 
->PorterStemmer, SnowballStemmer, LancasterStemmer
 ```python
 # PorterStemmer
 from nltk.stem.porter import PorterStemmer
@@ -103,9 +125,6 @@ porter_stemmer = PorterStemmer()
 print(porter_stemmer.stem('looked'))
 print(porter_stemmer.stem('looking'))
 
-# 运行结果：
-# look
-# look
 
 # SnowballStemmer
 from nltk.stem import SnowballStemmer
@@ -114,9 +133,6 @@ snowball_stemmer = SnowballStemmer('english')
 print(snowball_stemmer.stem('looked'))
 print(snowball_stemmer.stem('looking'))
 
-# 运行结果：
-# look
-# look
 
 # LancasterStemmer
 from nltk.stem.lancaster import LancasterStemmer
@@ -125,9 +141,6 @@ lancaster_stemmer = LancasterStemmer()
 print(lancaster_stemmer.stem('looked'))
 print(lancaster_stemmer.stem('looking'))
 
-# 运行结果：
-# look
-# look
 ```
 - 中文关键词提取
 
@@ -155,27 +168,26 @@ for item in keywords:
     print item[0], item[1]
 ```
 
+### 词形归并
 
+lemmatization
 
-### 词形归并(lemmatization) 
+词形归并的目标也是将单词转换为其原形，但它是一个更结构化的方法。若用词干提取技术提取`wolves`，则结果`wolv`不是一个有意义的单词。词形归并通过对单词进行词汇和语法分析来实现，故可解决上述问题，得到结果`wolf`。
 
-- lemmatization，词形归并，将单词的各种词形归并成一种形式，如am, is, are -> be, went->go
-- NLTK中的lemma
+lemmatization，词形归并，将单词的各种词形归并成一种形式，如am, is, are -> be, went->go
 
-> WordNetLemmatizer
+NLTK中的lemma：`WordNetLemmatizer`，其中指明词性可以更准确地进行lemma
 
-- 指明词性可以更准确地进行lemma
-
-> went 动词 -> go， 走
->
-> Went 名词 -> Went，文特
-
-```
-# WordNetLemmatizer 示例：
-from nltk.stem import WordNetLemmatizer 
+```python
+import nltk
 # 需要下载wordnet语料库
+nltk.download('wordnet')
+
+from nltk.stem import WordNetLemmatizer 
+
 
 wordnet_lematizer = WordNetLemmatizer()
+# lemmatize 默认为名词n
 print(wordnet_lematizer.lemmatize('cats'))
 print(wordnet_lematizer.lemmatize('boxes'))
 print(wordnet_lematizer.lemmatize('are'))
@@ -189,7 +201,6 @@ print(wordnet_lematizer.lemmatize('went'))
 
 
 # 指明词性可以更准确地进行lemma
-# lemmatize 默认为名词
 print(wordnet_lematizer.lemmatize('are', pos='v'))
 print(wordnet_lematizer.lemmatize('went', pos='v'))
 
@@ -202,9 +213,7 @@ print(wordnet_lematizer.lemmatize('went', pos='v'))
 
 - 英文
 
-NLTK中的词性标注
-
-> nltk.word_tokenize()
+NLTK中的词性标注`nltk.word_tokenize()`
 
 ```python
 import nltk
@@ -218,7 +227,7 @@ print(nltk.pos_tag(words)) # 需要下载 averaged_perceptron_tagger
 
 - 中文
 
-jie在进程中文分词的同时，可以完成词性标注任务。根据分词结果中每个词的词性，可以初步实现命名实体是被，即将标注为nr的词视为人名，将标注为ns的词视为地名等。所有标点符号都被标注为x，因此可以根据这个方法去除分词结果中的标点符号
+jie在进程中文分词的同时，可以完成词性标注任务。根据分词结果中每个词的词性，可以初步实现命名实体识别，即将标注为nr的词视为人名，将标注为ns的词视为地名等。所有标点符号都被标注为x，因此可以根据这个方法去除分词结果中的标点符号
 
 ```python
 # 加载jie.posseg并取个别名，方便调用
@@ -228,8 +237,6 @@ for word, flag in words:
     # 格式化模板并传入参数
     print('%s, %s' % (word, flag)) 
 ```
-
-
 
 ## 去除停用词
 
@@ -261,8 +268,12 @@ for word, flag in words:
 
   > stopwords.words()
 
-```
-from nltk.corpus import stopwords # 需要下载stopwords
+```python
+import nltk
+# 需要下载stopwords
+nltk.download('stopwords')
+
+from nltk.corpus import stopwords 
 
 filtered_words = [word for word in words if word not in stopwords.words('english')]
 print('原始词：', words)
@@ -273,106 +284,329 @@ print('去除停用词后：', filtered_words)
 # 去除停用词后： ['Python', 'widely', 'used', 'programming', 'language', '.']
 ```
 
-# 典型的文本预处理流程
+## 分块划分文本
 
-原始文本--->分词--->[词性标注]--->词形归一化--->去除停用词--->处理好的单词列表
+分块是指基于任意随机条件将输入文本分割成块。与标记解析不同的是，分块没有条件约束，分块的结果不需要有实际意义。当处理非常大的文本文档时，就需要将文本进行分块，以便进行下一步分析。
 
 ```python
-import nltk
-from nltk.stem import WordNetLemmatizer
+import numpy as np
+from nltk.corpus import brown
+
+# 将文本分割成块
+def splitter(data, num_words):
+    words = data.split(' ')
+    output = []
+
+    # 初始化变量
+    cur_count = 0
+    cur_words = []
+    # 对单词进行迭代
+    for word in words:
+        cur_words.append(word)
+        cur_count += 1
+        # 获得的单词数量与所需的单词数量相等时，重置相应变量
+        if cur_count == num_words:
+            output.append(' '.join(cur_words))
+            cur_words = []
+            cur_count = 0
+
+    # 将块添加到输出变量列表的最后
+    output.append(' '.join(cur_words) )
+
+    return output 
+
+if __name__=='__main__':
+    # 从布朗语料库加载数据
+    data = ' '.join(brown.words()[:10000])
+
+    # 定义每块包含的单词数目 
+    num_words = 1700
+
+    chunks = []
+    counter = 0
+	# 调用分块逻辑
+    text_chunks = splitter(data, num_words)
+    print("Number of text chunks =", len(text_chunks))
+
+```
+
+## 词袋模型
+
+如果要处理包含数百万单词的文本文档，需要将其转化成某种数值表示形式，以便让机器用这些数据来学习算法。这些算法需要数值数据，以便可以对这些数据进行分析，并输出有用的信息。这里需要用到词袋(bag-of-words)。词袋是从所有文档的所有单词中学习词汇的模型。学习之后，词袋通过构建文档中所有单词的直方图来对每篇文档进行建模
+
+```python
+import numpy as np
+from nltk.corpus import brown
+from chunking import splitter
+
+if __name__ == '__main__':
+    # 加载布朗语料库数据
+    data = ' '.join(brown.words()[:10000])
+
+    # 将文本按块划分
+    num_words = 2000
+    chunks = []
+    counter = 0
+    text_chunks = splitter(data, num_words)
+
+    # 创建基于文本块的词典
+    for text in text_chunks:
+        chunk = {'index': counter, 'text': text}
+        chunks.append(chunk)
+        counter += 1
+
+    # 提取一个文档-词矩阵：记录文档中每个单词出现的频次
+    # 使用sklearn而不是nltk，由于sklearn更简洁
+    from sklearn.feature_extraction.text import CountVectorizer
+
+    vectorizer = CountVectorizer(min_df=5, max_df=.95)
+    doc_term_matrix = vectorizer.fit_transform([chunk['text'] for chunk in chunks])
+
+    vocab = np.array(vectorizer.get_feature_names())
+    print("Vocabulary:", vocab)
+
+    print("Document term matrix:")
+    chunk_names = ['Chunk-0', 'Chunk-1', 'Chunk-2', 'Chunk-3', 'Chunk-4']
+    formatted_row = '{:>12}' * (len(chunk_names) + 1)  # 表格样式
+    print(formatted_row.format('Word', *chunk_names))
+    for word, item in zip(vocab, doc_term_matrix.T):
+        # 'item'是压缩的稀疏矩阵(csr_matrix)数据结构 
+        output = [str(x) for x in item.data]
+        print(formatted_row.format(word, *output))
+
+```
+
+## 文本分类器
+
+文本分类的目的是将文本文档分为不同的类，这里使用一种`tf-idf`的统计方法，表示词频-逆文档频率(`term frequency-inverse document frequency`)。这个统计工具有助于理解一个单词在一组文档中对某一个文档的重要性。可以作为特征向量来做文档分类。
+
+```python
+from sklearn.datasets import fetch_20newsgroups
+
+# 创建一个类型列表，用词典映射的方式定义
+category_map = {'misc.forsale': 'Sales', 'rec.motorcycles': 'Motorcycles',
+                'rec.sport.baseball': 'Baseball', 'sci.crypt': 'Cryptography',
+                'sci.space': 'Space'}
+# 基于定义的类型加载训练数据
+training_data = fetch_20newsgroups(subset='train', categories=category_map.keys(), shuffle=True, random_state=7)
+
+# 特征提取
+from sklearn.feature_extraction.text import CountVectorizer
+
+vectorizer = CountVectorizer()
+X_train_termcounts = vectorizer.fit_transform(training_data.data)
+print("Dimensions of training data:", X_train_termcounts.shape)
+
+# 训练分类器
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.feature_extraction.text import TfidfTransformer
+
+input_data = [
+    "The curveballs of right handed pitchers tend to curve to the left",
+    "Caesar cipher is an ancient form of encryption",
+    "This two-wheeler is really good on slippery roads"
+]
+
+# 定义tf-idf变换器对象并训练 
+tfidf_transformer = TfidfTransformer()
+X_train_tfidf = tfidf_transformer.fit_transform(X_train_termcounts)
+
+# 得到特征向量，使用该数据训练多项式朴素贝叶斯分类器 
+classifier = MultinomialNB().fit(X_train_tfidf, training_data.target)
+# 用词频统计转换输入数据
+X_input_termcounts = vectorizer.transform(input_data)
+# 用tf-idf变换器变换输入数据
+X_input_tfidf = tfidf_transformer.transform(X_input_termcounts)
+
+# 预测输入句子的输出类型 
+predicted_categories = classifier.predict(X_input_tfidf)
+
+for sentence, category in zip(input_data, predicted_categories):
+    print('Input:', sentence, 'Predicted category:', category_map[training_data.target_names[category]])
+
+```
+
+## 性别识别
+
+通过姓名识别性别，这里使用启发式方法，即姓名的最后几个字符可以界定性别特征。
+
+```python
+import random
+from nltk.corpus import names
+from nltk import NaiveBayesClassifier
+from nltk.classify import accuracy as nltk_accuracy
+
+
+# 提取输入单词的特性
+def gender_features(word, num_letters=2):
+    return {'feature': word[-num_letters:].lower()}
+
+
+if __name__ == '__main__':
+    # 提取标记名称
+    labeled_names = ([(name, 'male') for name in names.words('male.txt')] +
+                     [(name, 'female') for name in names.words('female.txt')])
+
+    # 设置随机种子，并混合搅乱训练数据
+    random.seed(7)
+    random.shuffle(labeled_names)
+    input_names = ['Leonardo', 'Amy', 'Sam']
+
+    # 搜索参数空间：由于不知需要多少个末尾字符，初步设置1～5
+    for i in range(1, 5):
+        print('Number of letters:', i)
+        featuresets = [(gender_features(n, i), gender) for (n, gender) in labeled_names]
+        # 训练集、测试集
+        train_set, test_set = featuresets[500:], featuresets[:500]
+        # 朴素贝叶斯分类
+        classifier = NaiveBayesClassifier.train(train_set)  
+
+        # 使用参数空间的每一个值评估分类器的效果
+        print('Accuracy ==>', str(100 * nltk_accuracy(classifier, test_set)) + str('%'))
+
+        # 预测
+        for name in input_names:
+            print(name, '==>', classifier.classify(gender_features(name, i)))
+
+```
+
+## 句子情感
+
+情感分析是指确定一段歌诶定的文本是积极还是消极的过程。有一些场景中，会将"中性"作为第三个选项。情感分析常用于发现人们对于一个特定主题的看法。情感分析用于分析很多场景中用户的情绪，如营销活动、社交媒体、电子商务客户等。
+
+```python
+import nltk.classify.util
+from nltk.classify import NaiveBayesClassifier
+from nltk.corpus import movie_reviews
+
+
+# 用于提取特征
+def extract_features(word_list):
+    return dict([(word, True) for word in word_list])
+
+
+if __name__ == '__main__':
+    # 加载积极与消极评论
+    positive_fileids = movie_reviews.fileids('pos')
+    negative_fileids = movie_reviews.fileids('neg')
+    # 将评论分成积极和消极
+    features_positive = [(extract_features(movie_reviews.words(fileids=[f])),
+                          'Positive') for f in positive_fileids]
+    features_negative = [(extract_features(movie_reviews.words(fileids=[f])),
+                          'Negative') for f in negative_fileids]
+
+    # 训练数据(80%)、测试数据
+    threshold_factor = 0.8
+    threshold_positive = int(threshold_factor * len(features_positive))
+    threshold_negative = int(threshold_factor * len(features_negative))
+
+    # 提取特征
+    features_train = features_positive[:threshold_positive] + features_negative[:threshold_negative]
+    features_test = features_positive[threshold_positive:] + features_negative[threshold_negative:]
+    print("Number of training datapoints:", len(features_train))
+    print("Number of test datapoints:", len(features_test))
+
+    # 训练朴素贝叶斯分类器
+    classifier = NaiveBayesClassifier.train(features_train)
+    print("Accuracy of the classifier:", nltk.classify.util.accuracy(classifier, features_test))
+    print("Top 10 most informative words:")
+    for item in classifier.most_informative_features()[:10]:
+        print(item[0])
+
+    # 输入一些评论进行预测
+    input_reviews = [
+        "It is an amazing movie",
+        "This is a dull movie. I would never recommend it to anyone.",
+        "The cinematography is pretty great in this movie",
+        "The direction was terrible and the story was all over the place"
+    ]
+
+    print("Predictions:")
+    for review in input_reviews:
+        print("Review:", review)
+        probdist = classifier.prob_classify(extract_features(review.split()))
+        pred_sentiment = probdist.max()
+        print("Predicted sentiment:", pred_sentiment)
+        print("Probability:", round(probdist.prob(pred_sentiment), 2))
+
+```
+
+## 主题建模
+
+主题建模指识别文本数据隐藏模式的过程，其目的是发现一组文档的隐藏主题结构。主题建模可以更好地组织文档，以便对这些文档进行分析。
+
+主题建模通过识别文档中最有意义、最能表征主题的词来实现主题的分类。这些单词往往可以确定主题的内容。
+
+```python
+from nltk.tokenize import RegexpTokenizer
+from nltk.stem.snowball import SnowballStemmer
+from gensim import models, corpora
 from nltk.corpus import stopwords
 
-# 原始文本
-# '生活就像一盒巧克力. 你永远也不知道下一个你会拿到什么.' ——《阿甘正传》经典台词
-raw_text = 'Life is like a box of chocolates. You never know what you\'re gonna get.'
 
-# 分词
-raw_words = nltk.word_tokenize(raw_text)
+# 加载输入数据
+def load_data(input_file):
+    data = []
+    with open(input_file, 'r') as f:
+        for line in f.readlines():
+            data.append(line[:-1])
 
-# 词形归一化
-wordnet_lematizer = WordNetLemmatizer()
-words = [wordnet_lematizer.lemmatize(raw_word) for raw_word in raw_words]
+    return data
 
-# 去除停用词
-filtered_words = [word for word in words if word not in stopwords.words('english')]
 
-print('原始文本：', raw_text)
-print('预处理结果：', filtered_words)
-```
+# 类预处理文本
+class Preprocessor(object):
+    # 对各种操作进行初始化
+    def __init__(self):
+        # 创建正则表达式解析器，使用正则是因为只需要那些没有标点或其他标记的单词
+        self.tokenizer = RegexpTokenizer(r'\w+')
 
-## NLTK 中的分句与分词
+        # 获取停用词列表，使用停用词可以减少干扰
+        self.stop_words_english = stopwords.words('english')
 
-```
-import nltk
+        # 创建Snowball词干提取器
+        self.stemmer = SnowballStemmer('english')
 
-text = "The first time I heard that song was in Hawaii on radio.  I was just a kid, and loved it very much! What a fantastic song!"  
+    # 标记解析、移除停用词、词干提取
+    def process(self, input_text):
+        # 标记解析(分词)
+        tokens = self.tokenizer.tokenize(input_text.lower())
 
-# 分句
-sents = nltk.sent_tokenize(text)
-print(sents)
+        # 移除停用词
+        tokens_stopwords = [x for x in tokens if not x in self.stop_words_english]
 
-# 按小写字母 分词
-words = nltk.word_tokenize(text.lower()))
-print(words)
-```
+        # 词干提取
+        tokens_stemmed = [self.stemmer.stem(x) for x in tokens_stopwords]
 
-# 词嵌入
+        return tokens_stemmed
 
-词嵌入(Word Embedding)可以将文本和词语转换为机器能够接受的数值向量
 
-- 语言的表示
+if __name__ == '__main__':
+    input_file = 'data_topic_modeling.txt'
 
-> 符号主义
+    data = load_data(input_file)
 
-```
-符号主义中典型的代表是Bag of words，即词袋模型。基于词袋模型可以方便地用一个N维向量表示任何一句话，每个维度的值即对应的词出现的次数。
+    # 创建预处理对象
+    preprocessor = Preprocessor()
 
-优点：简单
-缺点：当词典中词的数量增大时，向量的维度将随之增大；无论是词还是句子的表示，向量过于稀疏，除了少数维度外其他维度均为0；每个词对应的向量在空间上都两两正交，任意一堆向量之间的内积等数值特征为0，无法表达词语之间的语义关联和差异；句子的向量表示丢失了词序特征，"我很不高兴"和“不我很高兴”对应的向量相同
-```
+    # 创建一组经过预处理的文档
+    processed_tokens = [preprocessor.process(x) for x in data]
 
-> 分布式表示
+    # 创建基于标记文档的词典
+    dict_tokens = corpora.Dictionary(processed_tokens)
 
-```
-分布式表示的典型代表是Word Embedding，即词嵌入。使用低维、稠密、实值得词向量来表示每一个词，从而赋予词语丰富的语义含义，并使得计算词语相关度成为可能。两个词具有语义相关或相似，则它们对应得词向量之间距离相近，度量向量之间的距离可以使用经典的欧拉距离和余弦相似度等。
+    # 创建文档-词矩阵
+    corpus = [dict_tokens.doc2bow(text) for text in processed_tokens]
 
-词嵌入可以将词典中的每个词映射成对应的词向量，好的词嵌入模型具有：相关性好，类比关联
-```
+    # 假设文档可分为2个主题，使用隐含狄利克雷分布(LDA)做主题建模
+    # 基于刚刚创建的语料库生成LDA模型
+    num_topics = 2
+    num_words = 4
+    ldamodel = models.ldamodel.LdaModel(corpus, num_topics=num_topics, id2word=dict_tokens, passes=25)
 
-- 训练词向量
+    print("Most contributing words to the topics:")
+    for item in ldamodel.print_topics(num_topics=num_topics, num_words=num_words):
+        print("Topic", item[0], "==>", item[1])
 
-词向量的训练主要是基于无监督学习，从大量文本语料中学习出每个词的最佳词向量。训练的核心思想是，语义相关或相似的词语，大多具有相似的上下文，即它们经常在相似的语境中出现。
-
-词嵌入模型中的典型代表是Word2Vec
-
-- 代码实现
-
-gensim是开源python工具包，用于从非结构化文本中无监督地学习文本隐层的主题向量表示，支持包括TF-IDF,LSA,LDA和Word2Vec在内的多种主题模型算法，并提供了诸如相似度计算、信息检索等常用任务的API接口。
-
-```python
-# 加载包
-from gensim.models import Word2Vec
-from gensim.models.word2vec import LineSentence
-
-# 训练模型
-sentences = LineSentence('wiki.zh.word.text')
-# size词向量的维度，window上下文环境的窗口大小，min_count忽略出现次数低于min_count的词
-model = Word2Vec(sentences, size=128, window=5， min_count=5, workers=4)
-
-# 保存模型
-model.save('word_embedding_128')
-
-# 若已经保存过模型，则直接加载即可
-# 训练及保存代码可省略
-# model = Word2Vec.load('word_embedding_128')
-
-# 使用模型
-# 返回一个词语最相关的多个词语及对应的相关度
-items = model.most_similar(u'中国')
-for item in items:
-    # 词的内容，词的相关度
-    print item[0], item[1]
-# 返回连个词语之间的相关度
-model.similarity(u'男人', u'女人')
 ```
 

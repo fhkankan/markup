@@ -266,6 +266,8 @@ plt.show()
 
 ## 常用图表
 
+[其他参见](../DataAnalysis/02.基本统计图形.md)
+
 ### 线型图
 
 ```python
