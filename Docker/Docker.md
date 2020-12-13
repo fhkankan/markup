@@ -66,20 +66,19 @@ $ sudo add-apt-repository \
 # 或者使用阿里云的源
 $ curl -fsSL https://mirrors.aliyun.com/docker-ce/linux/ubuntu/gpg | sudo apt-key add - 
 $ sudo add-apt-repository "deb [arch=amd64] https://mirrors.aliyun.com/docker-ce/linux/ubuntu $(lsb_release -cs) stable"
-# 安装docker
+# 安装默认版本docker
 $ sudo apt-get update
 $ sudo apt-get install docker-ce docker-ce-cli containerd.io
-# 查看支持的docker版本
-$ apt-cache madison docker-ce
-# 安装指定版本
-$ sudo apt-get install docker-ce=<VERSION> docker-ce-cli=<VERSION_STRING> containerd.io
+# 安装指定版本docker
+$ apt-cache madison docker-ce  # 查看支持的docker版本
+$ sudo apt-get install docker-ce=<VERSION> docker-ce-cli=<VERSION_STRING> containerd.io  # 安装指定版本
 # 测试安装是否ok
 $ sudo docker run hello-world
 ```
 
 配置加速器
 
-```
+```shell
 # 访问daocloud.io,登录daocloud账户
 # 点击右上角"加速器"
 # 复制“配置Docker加速器”中Linux的内容并在终端执行
@@ -92,7 +91,7 @@ systemctl restart docker
 
 删除docker
 
-```
+```shell
 apt-get purge docker-ce -y
 # 删除docker的应用目录
 rm -rf /var/lib/docker
@@ -102,7 +101,7 @@ rm -rf /etc/docker
 
 修改docker镜像源
 
-```
+```shell
 # 1.打开配置文件
 sudo vim /etc/docker/daemon.json
 # 2.添加信息
@@ -117,7 +116,7 @@ sudo service docker restart
 
 修改docker镜像源
 
-```
+```shell
 # 1.打开配置文件
 vim ~/.ssh/daemon.json
 # 2.添加信息

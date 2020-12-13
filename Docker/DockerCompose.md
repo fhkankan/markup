@@ -91,13 +91,13 @@ pip uninstall docker-compose
 
 格式
 
-```
+```shell
 docker-compose [-f <arg>...] [options] [COMMAND] [ARGS...]
 ```
 
 选项
 
-```
+```shell
 -f --file FILE指定Compose模板文件，默认为docker-compose.yml
 -p --project-name NAME 指定项目名称，默认使用当前所在目录为项目名
 --verbose  输出更多调试信息
