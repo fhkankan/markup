@@ -2,7 +2,7 @@
 
 # Seafile内网部署
 
-(参考文档](https://cloud.seafile.com/published/seafile-manual-cn/overview/components.md)
+[参考文档](https://cloud.seafile.com/published/seafile-manual-cn/overview/components.md)
 
 ## 安装部署
 ### 脚本安装
@@ -351,6 +351,10 @@ ONLYOFFICE_APIJS_URL = 'http{s}://{your OnlyOffice server's domain or IP}/web-ap
 ONLYOFFICE_FILE_EXTENSION = ('doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'odt', 'fodt', 'odp', 'fodp', 'ods', 'fods')
 ONLYOFFICE_EDIT_FILE_EXTENSION = ('docx', 'pptx', 'xlsx')
 ```
+
+# 客户端
+
+客户端有同步盘、挂载盘、web页三种选择方式，进入[官网选择](https://www.seafile.com/en/download/)
 
 
 

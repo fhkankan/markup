@@ -963,6 +963,11 @@ conda remove -n your_env_name --all
 
 # 删除环境中的某个包
 conda remove --name your_env_name package_name
+
+# 虚环境改名字
+1.修改env中的文件夹名字
+2.修改env中文件夹中bin/pip和bin/pip3中的路径名字
+3.修改.conda/environments.txt中的文件名映射
 ```
 
 
