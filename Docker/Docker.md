@@ -161,7 +161,7 @@ docker images -a  # 列出所有本地的images(包括已删除的镜像记录)
 
 > 重命名、删除
 
-```
+```shell
 # 重命名
 docker tag [old_image]:[old_version] [new_image]:[new_version]  # 方式一
 docker tag image_id [new_image]:[new_version]  # 方式二

@@ -1089,8 +1089,9 @@ usermod -s /bin/ksh -d /home/z –g developer sam
 sudo userdel -r 用户名
 ```
 
-
 # 包管理器
+
+apt
 
 ```shell
 sudo apt-cache search package             --->搜索软件包
@@ -1109,46 +1110,43 @@ sudo apt-get build-dep package            --->安装相关的编译环境
 sudo apt-get remove package               --->删除包
 sudo apt-get remove package --purge       --->删除包，包括配置文件等
 sudo apt-get clean && sudo apt-get autoclean--->清理无用的包
-
-
-# 安装离线deb包
-第一种：使用Ubuntu软件中心安装，即直接双击软件包就可以了；
-第二种：使用dpkg命令方法安装：sudo dpkg -i package.deb；
-第三种：使用apt命令方法安装：sudo apt-get install package.deb；
-第四中：使用gbebi:sudo apt-get install gdebi,sudo gbedi package.deb
-
-
-
-# 安装二进制包(.bin)
-chmod u+x 软件名  # 添加可执行权限
-./软件名  # 执行要安装的二进制文件
-
-安装python第三方库
-pip install  libname
-python setup.py install
 ```
 
-> deb包
+snap
+
+```shell
+sudo snap list				# 查看所有snap安装情况
+sudo snap find 软件包		  # 在应用商店查找软件包 
+sudo snap install 软件包	  # 安装snap包
+sudo snap refresh 软件包	  # 更新snap包
+sudo snap refresh all		# 更新所有snap包
+sudo snap revert 软件包	  # 将snap包恢复到以前安装版本
+sudo snap remove 软件包	  # 卸载snap包
+```
+
+deb包
 
 ```bash
 # 方法一
-安装deb软件包 dpkg -i xxx.deb
-删除软件包 dpkg -r xxx.deb
-连同配置文件一起删除 dpkg -r --purge xxx.deb
-查看软件包信息 dpkg -info xxx.deb
-查看文件拷贝详情 dpkg -L xxx.deb
-查看系统中已安装软件包信息 dpkg -l
-重新配置软件包 dpkg-reconfigure xxx
+使用Ubuntu软件中心安装，即直接双击软件包就可以了；
 
 # 方法二
+dpkg -i xxx.deb  			安装deb软件包 
+dpkg -r xxx.deb  			删除软件包 
+dpkg -r --purge xxx.deb  	连同配置文件一起删除 
+dpkg -info xxx.deb  		查看软件包信息 
+dpkg -L xxx.deb  			查看文件拷贝详情 
+dpkg -l  					查看系统中已安装软件包信息 
+dpkg-reconfigure xxx  		重新配置软件包
 
-安装gbebi: sudo apt-get install gdebi
-安装软件 sudo gbedi package.deb
+# 方法三
+sudo apt-get install gdebi  安装gbebi
+sudo gbedi package.deb  	安装软件
 ```
 
-> 源码
+源码
 
-```
+```shell
 # 安装源码包
 tar -zvxf 源码压缩包  # 解压源码包
 cd 目录中  # 进入安装包目录
@@ -1165,8 +1163,6 @@ make clean
 make uninstall
 rm -rf 目录
 ```
-
-
 
 # 系统管理
 
