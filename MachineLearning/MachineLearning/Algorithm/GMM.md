@@ -1,5 +1,7 @@
 # 高斯混合模型
 
+Gaussian Mixture Model
+
 高斯混合模型可被看作是kmeans思想的一个扩展，也是一种非常强大的聚类评估工具。
 
 ## kmeans的缺陷

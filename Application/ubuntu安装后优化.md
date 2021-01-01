@@ -95,6 +95,15 @@ sudo apt-get update
 | vmware               |          |                   |
 
 ## 常规安装
+
+snap
+
+```
+sudo snap install dbeaver-ce code typora thunderbird gimp handbrake-jz
+```
+
+apt
+
 ```
 sudo apt-get install git vpnc vlc unrar gparted nginx mongodb bleachbit htop openssh-server meld filezilla
 ```
@@ -508,8 +517,6 @@ http://www.utorrent.com/intl/zh/downloads/linux
 5.浏览器打开
 浏览器输入http://localhost:8080/gui/，账号admin密码无  
 ```
-
-
 
 ## 设置开启小键盘
 
