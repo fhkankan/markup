@@ -262,7 +262,7 @@ docker stop [container_id]
 docker rm [container_id]
 # 强制删除(删除正在运行的)
 docker rm -f [container_id]
-# 批量删除相关容器
+# 批量删除已退出容器
 docker rm -f $(docker ps -a -q)
 ```
 

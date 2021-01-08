@@ -6,11 +6,13 @@ Scipy ：基于Numpy提供了一个在Python中做科学计算的工具集，专
 - 线性代数、常微分方程求解、信号处理、图像处理
 - 一般的数据处理numpy已经够用
 
-**参考学习**
+安装
 
+```
+pip install scipy
+```
 
-
-> 引用
+引用
 
 ```
 import scipy as sp
