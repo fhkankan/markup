@@ -70,6 +70,38 @@ kmeans的两个缺点：类的形状缺少灵活性、缺少簇分配的概率�
 
 高斯混合模型解决了这两个不足：通过比较每个点与所有簇中心点的距离来度量簇分配的不确定性，而不仅仅是关注最近的簇；将簇的边界由圆形放宽至椭圆形，从而得到非圆形的簇。
 
+## API
+
+```python
+from sklearn.mixture import GaussianMixture
+
+# 初始化参数
+n_components
+# 聚类分组个数，必须提供
+convariance_type
+# 协方差矩阵类型，可以是spherical,diag, full,tied
+tol
+# EM算法廋脸阈值
+max_iter
+# EM算法最大迭代次数
+n_init
+# 训练开始前选择p(k),\mu_k,\Sigma_k参数的次数，对数据匹配最好的一次将杯用于开始EM迭代
+init_Params
+# 用什么方法初始化p(k),\mu_k,\Sigma_k参数，可选K-means或random
+weights_init/means_init/precisions_init
+# 可以传入调用者自定义的厨师p(k),\mu_k,\Sigma_k，其中\Sigma_k以精度矩阵的形式给出
+
+# 模型属性
+weights_							# 每个聚类分组的比重
+means_								# 每个高斯分布的均值点
+covariances_					# 每个高斯分布的协方差矩阵，矩阵的形状取决于协方差矩阵类型
+precisions_						# 精度矩阵
+precisions_cholesky_	# 精度矩阵的cholesky_分解
+converged_						# EM算法最终是否收敛(如果由于达到max_iter而停止迭代，则不算收敛)
+n_inter_							# 迭代次数
+lower_bound_					# 最终在训练数据上达到的似然度水平，以对数方式表达
+```
+
 ## 一般化EM
 
 一个高斯混合模型试图找到多维高斯概率分布的混合题，从而获得任意数据集最好的模型。
