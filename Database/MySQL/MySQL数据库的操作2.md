@@ -573,9 +573,5 @@ mysql -u用户名 -p密码 数据库名 < 数据库名.sql
 #mysql -uabc_f -p abc < abc.sql
 ```
 
-12351
-
-ps -elf |grep python
-
 
 
