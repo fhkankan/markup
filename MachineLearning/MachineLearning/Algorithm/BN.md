@@ -267,14 +267,219 @@ Gibbs采样的目标是，在不知道确切的联合分布的情况下，仅仅
 
 注意：在贝叶斯网络中，每个结点由条件概率分布CPD构成，因此在其中获得各种条件分布比获得联合分布容易。
 
-例如有某个推理需求是求$P(x=1,y=1,z=0)$，则需要对联合分布$P(x,y,z)$进行采样。但是此时联合分布$P()$
+例如有某个推理需求是求$P(x=1,y=1,z=0)$，则需要对联合分布$P(x,y,z)$进行采样。但是此时联合分布$P(x,y,z)$ 过于复杂难于计算，而条件分布$P(x|y=?,z=?),(y|x=?,z=?),p(z|y=?,x=?)$ 非常容易获得，则可利用如下步骤进行Gibbs采样：
+
+1. 堆积定义初始样本$x_0,y_0,z_0$ (马尔可夫链的初始概率分布并不重要)。
+2. 用条件分布$P(x|y=y_0,z=z_0)$ 随机采样一个新的$x$值，计为$x_1$；并用$P(y|x=x_1,z=z_0)$ 采样得$y_1$，用$p(z|x=x_1,y=y_1)$采样得$z_1$。因此得到了样本$x_1,y_1,z_1$(条件分布起到了马尔可夫链上转移概率的作用)。
+3. 重复第二步的采样步骤可以一直产生新的样本(每个样本构成了马尔可夫链上的一个结点)。
+
+上述过程可以构造出一个任意长度的马尔可夫链。只有平稳状态下的马尔可夫链才可以真正用于MCMC采样结果，因此Gibbs采样在获取结果时通常跳过最开始的 $n$ 个样本(如n=1000)，只将其后的样本作为真正的采样结果，这个过程被称为burn-in period.
+
+可以将上述的三维特征空间的采样过程轻易地扩展到任意高的纬度，不同点只在于每个迭代中需要用到更多的条件分布逐个计算每个维度的采样值。
 
 ### 变分贝叶斯
 
+变分贝叶斯(VB)是除MCMC外另一个重要的近似推理方法，理解VB需要较深的数学功底。泛函是一种描述"函数<->数值"映射关系的工具；变分(Variation)是对泛函的一种处理方法，相当于对函数的微积分处理；变分贝叶斯是用欧拉-拉格朗日方程、平均场定理等变分工具求解的方法。
+
+- 变分贝叶斯的目标
+
+所有的贝叶斯网络推理问题可以归结为某种条件概率或分布的问题，即$P(Z|D)$，其中D是已观测数据，Z是待求参数或无法观测的数据。
+
+由于Z可以是任意多个事件的组合，所以按照概率公式分解$P(Z|D)$ 并求值非常复杂：
+$$
+P(Z|D) = P(Z_1,Z_2,\cdots,Z_n,|D)=P(Z_1|D)P(Z_2|D,Z_1)\cdots P(Z_n|D,Z_1,Z_n,\cdots)
+$$
+每个分解项都是一个复杂的条件分布。而利用平均场理论，可以找出另一个概率模型Q使得：
+$$
+p(Z|D)\approx q(Z)=q(Z_1,Z_2,\cdots,Z_n)=q(Z_1)q(Z_2)\cdots q(Z_n)
+$$
+这样就把原本求复杂条件分布的问题转化为了求独立事件的概率问题，因此寻找合适的Q分布就成为了VB的目标。
+
+- 用Kullback-Leibler寻找Q分布
+
+Kullback-Leibler是评估两个概率分布之间相似性的工具。而在VB中仍然用该公式衡量$P(Z|D),Q(Z)$ 的近似程度，根据Kullback-Leibler公式的定义，有
+$$
+KL(qp) = -\int{q(Z)\ln (\frac{p(Z|D)}{q(Z)})}\mathrm{d}Z=\ln(p(D))-\int{q(Z)\ln (\frac{p(Z,D)}{q(Z)})}\mathrm{d}Z
+$$
+如果设$\zeta {(q)}=\int{q(Z)\ln (\frac{p(Z,D)}{q(Z)})}\mathrm{d}Z$，则有
+$$
+\ln{(p(D))} = \zeta{(q)} - KL(qp)
+$$
+最合适的Q分布无疑是使得$KL(qp)$值最小的Q分布，因为$\ln(p(Q))$在给定观测数据的情况下固定，因此最小化$KL(qp)$的任务等同于最大化$\zeta{(q)}$。
+
+对于解决这类优化目标，数学上使用拉格朗日乘子法，或者近似求解算法-EM算法、梯度上升等。
+
+由于$\zeta{(q)}$中参数$q$ 是一个概率分布，在数学上$q$ 本身就是一个函数，则$\zeta{(q)}$ 就是一个泛函，而最大化$\zeta{(q)}$ 的过程就是一个变分过程，这就是变分贝叶斯名称的由来。
+
+- VB与MCMC对比
+
+对比VB和MCMC在推理效果上有如下论断：VB方法合适于数据量非常大、对推理时间要求高的额场景；而MCMC适合于数据规模较小、但对推理精度要求较高的场景。也就是说，VB推理速度更快，MCMC推理效果更好。
+
 ## 利用共轭建模
+
+在贝叶斯网络中理论上事件的概率分布函数可以是任意形式的，但在实际建模中常用的是集中供暖经典的概率分布。原因是为什么呢？
 
 ### 共轭分布
 
-### 隐含变量与显式变量
+共轭分布(Conjugate Distribution)的概念来源于对简化贝叶斯公式计算的需求。在$P(A|D)=\frac{P(D|A)P(A)}{P(D)}->P(D|A)P(A)$中，如果允许$P(A|D),P(A),P(D|A)$是任何形式的函数，用该公式计算概率分布时会充斥着分解、积分、求和等运算。
+
+对于指数家族的概率函数来说则无须这样，它们有一个很好的性质，即在贝叶斯公式计算过程中后验$P(A|D)$和先验$P(A)$具有相同的函数形式，并且在计算过程中也不需要分解所有条件并积分。此时，称$P(A|D),P(A)$的分布函数是似然函数$P(D|A)$的共轭分布，特别地，称先验$P(A)$为共轭先验。
+
+常用共轭分布
+
+| 类型         | 似然函数分布          | 共轭分布              | 说明                   |
+| ------------ | --------------------- | --------------------- | ---------------------- |
+| 离散变量分布 | Bernoulli             | Beta                  | 单次二值事件实验       |
+|              | Binomial              | Beta                  | 多次二值事件实验       |
+|              | Poisson               | Gamma                 | 单位事件内计数事件实验 |
+|              | Categorical           | Dirichlet             | 单次多值事件实验       |
+|              | Multinomial           | Dirichlet             | 多次多值事件实验       |
+| 连续变量分布 | Gaussian              | Gaussian              | 高斯分布               |
+|              | Multivariate Gaussian | Multivariate Gaussian | 多元高斯分布           |
+|              | Exponential           | Gamma                 | 时间间隔事件实验       |
+
+### 隐含/显式变量
+
+将共轭分布应用在贝叶斯网络中，就产生了隐含变量(Latent Variable)与显式变量(Manifest Variable)的概念。任何一个独立的不确定性事件可以在贝叶斯网络中用两个变量表示：隐含变量用于表达该事件的先验和后验概率，而显式变量用相对应的似然函数建模。
 
 ## 实战
+
+### 诊断需求
+
+<img src="../images/bayesian-network-sample.jpeg" alt="bayesian-network-sample" style="zoom:50%;" />
+
+这是一个经典的贝叶斯网络应用场景，该网络丛上到下分为三层：
+
+1. 第一层是两种生病的原因：最近去过亚洲(假设当时亚洲流行肺结核疾病)、有吸烟习惯。
+2. 第二层是三种可能的疾病：肺结核、肺癌、支气管炎。
+3. 第三层是病人的症状：X-ray检查是否有异样、呼吸困难。
+
+通过网络中的边可知，是否去过亚洲会影响患肺结核的概率，吸烟会导致肺癌和支气管炎，只有肺结核和肺癌能通过X-ray检查到病灶，但三种疾病都会导致呼吸困难。
+
+所有结点都有是、否两种结果，所以该网络中的所有结点均用Bernoulli建模。利用该网络希望获得的推理能力是给定任何病因或症状的组合，能够计算出患任意一种疾病的概率，比如：
+
+1. 某个病人去过亚洲，且呼吸困难，则他/她患肺结核、肺癌的概率是多少？
+2. 某个病人吸烟、X-Ray检查结果异常、呼吸困难，他/她患肺癌的可能性是多少？
+
+### 工具包
+
+BayesPy、PyMC3、Edward、Pomegranate
+
+```shell
+pip install pymc3 patsy pandas
+```
+
+### 建立模型
+
+```python
+import pymc3 as pm
+
+# Model对象表示贝叶斯网络
+basic_model = pm.Model()
+# 用with语句引入该对象上下文，定义网络内结构
+with basic_model:
+    # 第一层，病因结点
+    asia_p = pm.Beta('asia_p', 5, 95)  # 隐含变量，用于表达变量asia的共轭先验
+    asia = pm.Bernoulli('asia', p=asia_p)
+    smoking = pm.Bernoulli('smoking', p=0.3)  # 显式变量，没有使用隐含变量，使用固定概率值
+    # 第二层，疾病结点
+    # Deterministic对象定义隐含变量，该对象用于表示丛其他变量值通过确定性计算获得先验概率。实际描述了不同事件️之间的条件概率表
+    tuberculosis_p = pm.Deterministic('tuberculosis_p', pm.math.switch(asia, 0.4, 0.1))  # 表示aisa为True时tuberculosis概率为0.4，aisa为False时tuberculosis概率为0.1
+    tuberculosis = pm.Bernoulli('tuberculosis', p=tuberculosis_p)
+    cancer_p = pm.Deterministic('cancer_p', pm.math.switch(smoking, 0.3, 0.1))
+    cancer = pm.Bernoulli('cancer', p=cancer_p)
+    bronchitis_p = pm.Deterministic('bronchitis_p', pm.math.switch(smoking, 0.3, 0.1))
+    bronchitis = pm.Bernoulli('bronchitis', p=cancer_p)
+    # 第三层，症状结点
+    xray_p = pm.Deterministic('xray_p',
+                              pm.math.switch(tuberculosis, pm.math.switch(cancer, 0.9, 0.7),
+                                             pm.math.switch(cancer, 0.8, 0.1)))
+    xray = pm.Bernoulli('xray', p=xray_p)
+    dyspnea_p = pm.Deterministic('dyspnea_p',
+                                 pm.math.switch(tuberculosis,
+                                                pm.math.switch(cancer, pm.math.switch(bronchitis, 1.0, 0.9),
+                                                               pm.math.switch(bronchitis, 0.8, 0.7)),
+                                                pm.math.switch(cancer, pm.math.switch(bronchitis, 0.7, 0.5),
+                                                               pm.math.switch(bronchitis, 0.6, 0.1))))
+    dyspnea = pm.Bernoulli('dyspnea', p=dyspnea_p)
+ 
+```
+
+### 采样分析
+
+PyMC3的推理主要通过采样、分析两步完成，其中采样默认使用MCMC方式，并提供若干文本、可视化工具进行分析。
+
+- 采样
+
+MCMC
+
+```python
+with basic_model:
+    # 使用sample函数直接对模型进行采样，采样会自动根据网络中的结点分析分布类型选择合适的采样算法。
+    trace = pm.sample(100)   
+    # 变量trace是一个MultiTrace类型的对戏那个，可以通过它的points()方法获得轮询采样结果的迭代器
+    for i, s in enumerate(trace.points()):
+        print(i, s)
+```
+
+变分贝叶斯
+
+```python
+with basic_model:
+	approx = pm.fit()
+    trace = approx.sample(1000)
+    
+# 相对于MCMC，计算速度更快，适合网络较复杂的连续类型分布推理
+```
+
+- 分析
+
+```python
+with basic_model:
+    # 使用summary函数获得采样总体的统计结果
+    print(pm.summary(trace))
+    # 变量分析
+    # mean：均值，即预测值。如果没有任何观测值，该值与网络中的先验概率相近
+    # sd：衡量变量数据值的集中程度
+    # mc_error：蒙特卡洛统计的可信度，样本数越多该值越小(越好)
+    # hdp：样本最集中值域的长度。hdp_2.5是最集中的2.5%样本，hdp_97.5是最集中的97.5%样本，该值一般与sd有反向关联
+    # n_eff：有效样本数
+```
+
+- 可视化
+
+```python
+import matplotlib.pyplot as plt
+
+with basic_model:
+    # 绘制分析采样结果
+    # 参数varnames是可选参数，用于指定需要绘制的变量，若不指定，则绘制网络中所有变量
+    pm.traceplot(trace, varnames=['xray_p', 'xray'])
+    plt.show()
+```
+
+### 近似推理
+
+在pyMC3中，推理是输入已观测额到的数据并对模型进行采样和分析的过程。
+
+配置已观测数据
+
+```python
+with basic_model:
+    # 省略其他变量定义
+    # 已观测数据通过结点显式变量的observed属性进行配置
+    asia = pm.Bernoulli('asia', p=asia_p, observed=False)
+    smoking = pm.Bernoulli('smoking', p=0.3, observed=True)
+    xray = pm.Bernoulli('xray', p=xray_p, observed=True)
+    dyspnea = pm.Bernoulli('dyspnea', p=dyspnea_p, observed=True)
+```
+
+完成推理
+
+```python
+with basic_model:
+    # 通过采样与分析完成推理
+    trace = pm.sample(1000)
+    print(pm.summary(trace, varnames=['tuberculosis', 'cancer', 'bronchitis']))
+```
+
