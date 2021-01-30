@@ -886,7 +886,7 @@ conda -V
 ## 修改源
 
 ```python
-# 添加新的镜像源，自动添加至~/.condrac
+# 添加新的镜像源，自动添加至~/.condarc
 conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/
 conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free
 conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main
