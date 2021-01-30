@@ -403,7 +403,7 @@ select count(字段名) from 表名;
 select sum(字段名) from 表名;
 ```
 
-###条件查询运算符
+### 条件查询运算符
 
 ```python
 # =,>,>=,<,<=
