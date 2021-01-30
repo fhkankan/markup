@@ -4,15 +4,34 @@
 
 >类似ubuntu中的apt-get包管理器，主要装非图形化界面，需下载源码，编译，安装
 
-命令行安装
+命令安装卸载
 
-```
+```shell
+# 安装
 /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+# 卸载
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/uninstall.sh)"
+```
+
+独立安装卸载
+
+```shell
+# 安装
+
+# 卸载
+cd `brew --prefix`
+rm -rf Cellar
+brew prune
+rm -rf Library .git .gitignore bin/brew README.md share/man/man1/brew
+rm -rf ~/Library/Caches/Homebrew
 ```
 
 使用
 
-```
+```shell
+brew update                # brew自身更新
+brew cleanup             	#清除下载的缓存
+
 brew search [pack]		# 搜索brew支持的软件
 brew info [pack]		# 显示软件的各种信息
 brew list               # 列出通过brew安装的所有软件
@@ -26,8 +45,7 @@ brew upgrade 			# 更新所有软件包，不包括标记了auto_updates或者la
 brew upgrade [pack]     # 更新安装过的软件
 brew upgrade --greedy 	# 更新所有可用软件包
 
-brew update                # brew自身更新
-brew cleanup             	#清除下载的缓存
+
 (PS:详见man brew)
 ```
 
