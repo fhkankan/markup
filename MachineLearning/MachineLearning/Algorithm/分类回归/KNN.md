@@ -122,7 +122,7 @@ y_predict = knn_clf.predict(X_predict)[0]
 
 ## sklearn
 
-### 最近邻
+### 聚类
 
 ```python
 import numpy as np
@@ -163,7 +163,7 @@ plt.show()
 
 ```
 
-### KNN分类
+### 分类
 
 ```python
 # 1.导入所需的包
@@ -223,7 +223,7 @@ score = knn.score(x_test, y_test)
 print(score)
 ```
 
-### KNN回归
+### 回归
 
 ```python
 import numpy as np

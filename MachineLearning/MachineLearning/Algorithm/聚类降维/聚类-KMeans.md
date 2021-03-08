@@ -942,6 +942,201 @@ plt.show()
 
 ```
 
+#### 最优类的数量
+
+- 优化惯性
+
+假设合适数量的聚类会产生小的惯性。然而，当累的数目等于样本数时，该值为最小值(0.0)。因此，不能寻找最小值，而应该找一个可以平衡惯性与泪的数目的值
+
+- 轮廓分数
+
+轮廓分数基于最大内部凝聚和最大类分离原理。想找到使得数据集细分为彼此互相分离的密集块的剧烈数目。以这种方式，每个类将包含非常相似的元素，选择属于不同类的两个元素，它们的距离应该大于类内元素的最大距离
+
+- Calinski-Harabasz指标
+
+该指标基于类内密集且分类合适的概念。
+
+- 类的不稳定性
+
+基于类的不稳定性的概念，直观来说，如果对相同数据集受到干扰后的样本进行聚类能产生非常相似的结果，那么这种聚类方法是稳定的。
+
+```python
+from __future__ import print_function
+
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+
+from sklearn.datasets import make_blobs
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score, silhouette_samples, calinski_harabaz_score, \
+    homogeneity_score, completeness_score, adjusted_rand_score
+from sklearn.metrics.pairwise import pairwise_distances
+
+
+# For reproducibility
+np.random.seed(1000)
+
+
+nb_samples = 1000
+
+
+if __name__ == '__main__':
+    # Create dataset
+    X, _ = make_blobs(n_samples=nb_samples, n_features=2, centers=3, cluster_std=1.5, random_state=1000)
+
+    # Show the dataset
+    fig, ax = plt.subplots(1, 1, figsize=(30, 25))
+
+    ax.grid()
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+
+    ax.scatter(X[:, 0], X[:, 1], marker='o', color='b')
+
+    plt.show()
+
+    # Analyze the inertia
+    nb_clusters = [2, 3, 5, 6, 7, 8, 9, 10]
+
+    inertias = []
+
+    for n in nb_clusters:
+        km = KMeans(n_clusters=n)
+        km.fit(X)
+        inertias.append(km.inertia_)
+
+    fig, ax = plt.subplots(figsize=(15, 8))
+
+    ax.plot(nb_clusters, inertias)
+    ax.set_xlabel('Number of clusters')
+    ax.set_ylabel('Inertia')
+    ax.grid()
+
+    plt.show()
+
+    # Analyze the silhouette scores
+    avg_silhouettes = []
+
+    for n in nb_clusters:
+        km = KMeans(n_clusters=n)
+        Y = km.fit_predict(X)
+        avg_silhouettes.append(silhouette_score(X, Y))
+
+    fig, ax = plt.subplots(figsize=(15, 8))
+
+    ax.plot(nb_clusters, avg_silhouettes)
+    ax.set_xlabel('Number of clusters')
+    ax.set_ylabel('Average Silhouette score')
+    ax.grid()
+
+    plt.show()
+
+    # Draw the silhouette plots
+    fig, ax = plt.subplots(2, 2, figsize=(15, 10))
+
+    nb_clusters = [2, 3, 4, 8]
+    mapping = [(0, 0), (0, 1), (1, 0), (1, 1)]
+
+    for i, n in enumerate(nb_clusters):
+        km = KMeans(n_clusters=n)
+        Y = km.fit_predict(X)
+
+        silhouette_values = silhouette_samples(X, Y)
+
+        ax[mapping[i]].set_xticks([-0.15, 0.0, 0.25, 0.5, 0.75, 1.0])
+        ax[mapping[i]].set_yticks([])
+        ax[mapping[i]].set_title('%d clusters' % n)
+        ax[mapping[i]].set_xlim([-0.15, 1])
+        ax[mapping[i]].grid()
+        y_lower = 20
+
+        for t in range(n):
+            ct_values = silhouette_values[Y == t]
+            ct_values.sort()
+
+            y_upper = y_lower + ct_values.shape[0]
+
+            color = cm.Accent(float(t) / n)
+            ax[mapping[i]].fill_betweenx(np.arange(y_lower, y_upper), 0,
+                                         ct_values, facecolor=color, edgecolor=color)
+
+            y_lower = y_upper + 20
+
+    # Analyze the Calinski-Harabasz scores
+    ch_scores = []
+
+    km = KMeans(n_clusters=n)
+    Y = km.fit_predict(X)
+
+    for n in nb_clusters:
+        km = KMeans(n_clusters=n)
+        Y = km.fit_predict(X)
+        ch_scores.append(calinski_harabaz_score(X, Y))
+
+    fig, ax = plt.subplots(figsize=(15, 8))
+
+    ax.plot(nb_clusters, ch_scores)
+    ax.set_xlabel('Number of clusters')
+    ax.set_ylabel('Calinski-Harabasz scores')
+    ax.grid()
+
+    plt.show()
+
+    # Analyze the cluster instability
+    nb_noisy_datasets = 10
+
+    X_noise = []
+
+    for _ in range(nb_noisy_datasets):
+        Xn = np.ndarray(shape=(1000, 2))
+
+        for i, x in enumerate(X):
+            if np.random.uniform(0, 1) < 0.25:
+                Xn[i] = X[i] + np.random.uniform(-2.0, 2.0)
+            else:
+                Xn[i] = X[i]
+
+        X_noise.append(Xn)
+
+    instabilities = []
+
+    for n in nb_clusters:
+        Yn = []
+
+        for Xn in X_noise:
+            km = KMeans(n_clusters=n)
+            Yn.append(km.fit_predict(Xn))
+
+        distances = []
+
+        for i in range(len(Yn) - 1):
+            for j in range(i, len(Yn)):
+                d = pairwise_distances(Yn[i].reshape(-1, 1), Yn[j].reshape(-1, 1), 'hamming')
+                distances.append(d[0, 0])
+
+        instability = (2.0 * np.sum(distances)) / float(nb_noisy_datasets ** 2)
+        instabilities.append(instability)
+
+    fig, ax = plt.subplots(figsize=(15, 8))
+
+    ax.plot(nb_clusters, instabilities)
+    ax.set_xlabel('Number of clusters')
+    ax.set_ylabel('Cluster instability')
+    ax.grid()
+
+    plt.show()
+
+    # Analyze the homegeneity, completeness, and Adjusted Rand score
+    km = KMeans(n_clusters=3)
+    Yp = km.fit_predict(X)
+
+    print('Homegeneity: %.3f' % homogeneity_score(Y, Yp))
+    print('Completeness: %.3f' % completeness_score(Y, Yp))
+    print('Adjusted Rand score: %.3f' % adjusted_rand_score(Y, Yp))
+
+```
+
 #### 限制
 
 ```python
@@ -1066,8 +1261,6 @@ plt.title("Inertia = {:.1f}".format(kmeans_bad.inertia_), fontsize=14)
 save_fig("bad_kmeans_diagram")
 plt.show()
 ```
-
-
 
 #### 图片压缩
 
@@ -1390,7 +1583,151 @@ print(res)
 """
 ```
 
+### tensorflow
 
+将iris数据集聚类成三类
+
+```python
+# -*- coding: utf-8 -*-
+# K-means with TensorFlow
+#----------------------------------
+#
+# This script shows how to do k-means with TensorFlow
+
+import numpy as np
+import matplotlib.pyplot as plt
+import tensorflow as tf
+from sklearn import datasets
+from scipy.spatial import cKDTree
+from sklearn.decomposition import PCA  # 为后续将四维的结果转换为二维数据可视化
+from sklearn.preprocessing import scale
+from tensorflow.python.framework import ops
+ops.reset_default_graph()
+
+sess = tf.Session()
+
+iris = datasets.load_iris()
+
+num_pts = len(iris.data)
+num_feats = len(iris.data[0])
+
+# Set k-means parameters
+# There are 3 types of iris flowers, see if we can predict them
+k = 3
+generations = 25
+
+data_points = tf.Variable(iris.data)
+cluster_labels = tf.Variable(tf.zeros([num_pts], dtype=tf.int64))
+
+# Randomly choose starting points
+rand_starts = np.array([iris.data[np.random.choice(len(iris.data))] for _ in range(k)])
+
+centroids = tf.Variable(rand_starts)
+
+# In order to calculate the distance between every data point and every centroid, we
+#  repeat the centroids into a (num_points) by k matrix.
+centroid_matrix = tf.reshape(tf.tile(centroids, [num_pts, 1]), [num_pts, k, num_feats])
+# Then we reshape the data points into k (3) repeats
+point_matrix = tf.reshape(tf.tile(data_points, [1, k]), [num_pts, k, num_feats])
+distances = tf.reduce_sum(tf.square(point_matrix - centroid_matrix), axis=2)
+
+# Find the group it belongs to with tf.argmin()
+centroid_group = tf.argmin(distances, 1)
+
+
+# Find the group average
+def data_group_avg(group_ids, data):
+    # Sum each group
+    sum_total = tf.unsorted_segment_sum(data, group_ids, 3)
+    # Count each group
+    num_total = tf.unsorted_segment_sum(tf.ones_like(data), group_ids, 3)
+    # Calculate average
+    avg_by_group = sum_total/num_total
+    return avg_by_group
+
+
+means = data_group_avg(centroid_group, data_points)
+
+update = tf.group(centroids.assign(means), cluster_labels.assign(centroid_group))
+
+init = tf.global_variables_initializer()
+
+sess.run(init)
+
+for i in range(generations):
+    print('Calculating gen {}, out of {}.'.format(i, generations))
+    _, centroid_group_count = sess.run([update, centroid_group])
+    group_count = []
+    for ix in range(k):
+        group_count.append(np.sum(centroid_group_count==ix))
+    print('Group counts: {}'.format(group_count))
+    
+
+[centers, assignments] = sess.run([centroids, cluster_labels])
+
+
+# Find which group assignments correspond to which group labels
+# First, need a most common element function
+def most_common(my_list):
+    return max(set(my_list), key=my_list.count)
+
+
+label0 = most_common(list(assignments[0:50]))
+label1 = most_common(list(assignments[50:100]))
+label2 = most_common(list(assignments[100:150]))
+
+group0_count = np.sum(assignments[0:50] == label0)
+group1_count = np.sum(assignments[50:100] == label1)
+group2_count = np.sum(assignments[100:150] == label2)
+
+accuracy = (group0_count + group1_count + group2_count)/150.
+
+print('Accuracy: {:.2}'.format(accuracy))
+
+# Also plot the output
+# First use PCA to transform the 4-dimensional data into 2-dimensions
+pca_model = PCA(n_components=2)
+reduced_data = pca_model.fit_transform(iris.data)
+# Transform centers
+reduced_centers = pca_model.transform(centers)
+
+# Step size of mesh for plotting
+h = .02
+
+# Plot the decision boundary. For that, we will assign a color to each
+x_min, x_max = reduced_data[:, 0].min() - 1, reduced_data[:, 0].max() + 1
+y_min, y_max = reduced_data[:, 1].min() - 1, reduced_data[:, 1].max() + 1
+xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
+
+# Get k-means classifications for the grid points
+xx_pt = list(xx.ravel())
+yy_pt = list(yy.ravel())
+xy_pts = np.array([[x, y] for x, y in zip(xx_pt, yy_pt)])
+mytree = cKDTree(reduced_centers)
+dist, indexes = mytree.query(xy_pts)
+
+# Put the result into a color plot
+indexes = indexes.reshape(xx.shape)
+plt.figure(1)
+plt.clf()
+plt.imshow(indexes, interpolation='nearest', extent=(xx.min(), xx.max(), yy.min(), yy.max()), cmap=plt.cm.Paired,
+           aspect='auto', origin='lower')
+
+# Plot each of the true iris data groups
+symbols = ['o', '^', 'D']
+label_name = ['Setosa', 'Versicolour', 'Virginica']
+for i in range(3):
+    temp_group = reduced_data[(i*50):(50)*(i+1)]
+    plt.plot(temp_group[:, 0], temp_group[:, 1], symbols[i], markersize=10, label=label_name[i])
+# Plot the centroids as a white X
+plt.scatter(reduced_centers[:, 0], reduced_centers[:, 1], marker='x', s=169, linewidths=3, color='w', zorder=10)
+plt.title('K-means clustering on Iris Dataset Centroids are marked with white cross')
+plt.xlim(x_min, x_max)
+plt.ylim(y_min, y_max)
+plt.legend(loc='lower right')
+plt.show()
+
+```
 
 
 
