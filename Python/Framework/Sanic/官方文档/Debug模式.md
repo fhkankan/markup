@@ -14,7 +14,7 @@
 from sanic import Sanic
 from sanic.response import json
 
-app = Sanic()
+app = Sanic(__name__)
 
 @app.route('/')
 async def hello_world(request):
@@ -32,7 +32,7 @@ Sanic提供了一种手动启用或禁用自动重新加载器的方法，`auto_
 from sanic import Sanic
 from sanic.response import json
 
-app = Sanic()
+app = Sanic(__name__)
 
 @app.route('/')
 async def hello_world(request):

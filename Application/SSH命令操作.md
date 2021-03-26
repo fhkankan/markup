@@ -227,8 +227,6 @@ ssh-keygen; ssh-copy-id user@host; ssh user@host
 这个命令组合允许你无密码SSH登录，注意，如果在本地机器的~/.ssh目录下已经有一个SSH密钥对，ssh-keygen命令生成的新密钥可能会覆盖它们，ssh-copy-id将密钥复制到远程主机，并追加到远程账号的~/.ssh/authorized_keys文件中，使用SSH连接时，如果你没有使用密钥口令，调用ssh user@host后不久就会显示远程shell。
 ```
 
-
-
 **将标准输入（stdin）复制到你的X11缓冲区**
 
 ```

@@ -36,7 +36,7 @@ brew search [pack]		# 搜索brew支持的软件
 brew info [pack]		# 显示软件的各种信息
 brew list               # 列出通过brew安装的所有软件
 
-brew install [pack]     # 安装源码
+brew install [pack]     # 安装源码, 多软件时空格区分
 brew uninstall [pack]	# 卸载软件
 
 brew outdated 			# 查看可用的更新

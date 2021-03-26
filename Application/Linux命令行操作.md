@@ -74,6 +74,14 @@ source ~/.bashrc
 
 # 查看信息
 
+帮助命令
+
+```
+man [命令]
+help [命令]
+info [命令]
+```
+
 网络连接
 
 ```python
