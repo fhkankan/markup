@@ -441,7 +441,7 @@ select * from 表名 where 字段名 like '%\%%';
 
 ```python
 # 特定条件
-select 字段名 from 表名where 查询条件 group by 字段名 having 查询条件;
+select 字段名 from 表名 where 查询条件 group by 字段名 having 查询条件;
 # group_concat
 select 字段名1,group_concat(字段名2) from 表名where 查询条件 group by 字段名1 having 查询条件;
 # 聚合函数max,min,avg,sum,count

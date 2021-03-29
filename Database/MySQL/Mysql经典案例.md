@@ -83,21 +83,20 @@ insert into Score values('07' , '03' , 98);
 
 ```sql
 -- 1、查询"01"课程比"02"课程成绩高的学生的信息及课程分数	
-	
 select a.* ,b.s_score as 01_score,c.s_score as 02_score from 
 student a 
 	join score b on a.s_id=b.s_id and b.c_id='01'
 	left join score c on a.s_id=c.s_id and c.c_id='02' or c.c_id = NULL where b.s_score>c.s_score
 	
 --也可以这样写
-	select a.*,b.s_score as 01_score,c.s_score as 02_score from student 		  a,score b,score c 
+select a.*,b.s_score as 01_score,c.s_score as 02_score from student a,score b,score c 
 			where a.s_id=b.s_id 
 			and a.s_id=c.s_id 
 			and b.c_id='01' 
 			and c.c_id='02' 
 			and b.s_score>c.s_score
+			
 -- 2、查询"01"课程比"02"课程成绩低的学生的信息及课程分数
-	
 select a.* ,b.s_score as 01_score,c.s_score as 02_score from 
 	student a left join score b on a.s_id=b.s_id and b.c_id='01' or b.c_id=NULL 
 	 join score c on a.s_id=c.s_id and c.c_id='02' where b.s_score<c.s_score
@@ -111,8 +110,7 @@ select b.s_id,b.s_name,ROUND(AVG(a.s_score),2) as avg_score from
 	
 
 -- 4、查询平均成绩小于60分的同学的学生编号和学生姓名和平均成绩
-		-- (包括有成绩的和无成绩的)
-		
+		-- (包括有成绩的和无成绩的)		
 select b.s_id,b.s_name,ROUND(AVG(a.s_score),2) as avg_score from 
 	student b 
 	left join score a on b.s_id = a.s_id
