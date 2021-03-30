@@ -70,8 +70,9 @@ close()  # 关闭连接
 用于执行sql语句，使用频度最高的语句为select、insert、update、delete
 
 游标对象
-```
-cs1=conn.cursor()
+```python
+cs1=conn.cursor() # 执行后返回由远组组成的列表
+cs2=conn.cursor(pymysql.cursors.DictCursor)  # 执行后返回由字典组成的列表
 ```
 
 对象方法
@@ -418,6 +419,108 @@ python manage.py migrate
 
 5)确认是否已经生成了对应的数据库表
 ```
+
+## 批量读取数据
+
+```python
+import time
+from math import ceil
+import pymysql as MySQLdb
+import csv
+
+
+def mysql_start():
+    # 数据库连接属性
+    host = '127.0.0.1'
+    usr = 'root'
+    passwd = ''
+    db = 'polls'
+
+    # 连接数据库
+    conn = MySQLdb.connect(host=host, user=usr, password=passwd, database=db)
+    return conn
+
+
+def batch_query_write1(conn):
+    # 创建游标
+    cur = conn.cursor()
+    # 总共多少数据
+    allData = 1000100
+    # 每个批次多少条数据
+    dataOfEach = 200000
+    # 批次
+    batch = ceil(allData / dataOfEach)
+
+    # 文件名
+    global IDctrl
+    IDctrl = 1
+    filename = str(IDctrl) + '.txt'
+    sum = 0
+    f = open("sync.txt", "w")
+    while IDctrl < batch:
+        # 读取数据库
+        sql = 'SELECT * from polls.question where ID>=' + str(IDctrl) + ' and ID <' + str(IDctrl + dataOfEach)
+        cur.execute(sql)
+        rows = cur.fetchall()
+        sum += len(rows)
+        # 同步写文件
+        f.writelines(str(rows))
+        # 文件名加1
+        IDctrl += 1
+    print(sum)
+    f.close()
+
+
+def batch_query_write2(conn):
+    cur = conn.cursor()
+    sql = "SELECT * from polls.question where id < 5"
+    cur.execute(sql)
+    row = cur.fetchone()
+    sum = 0
+    f = open("sync.csv", "a")
+    f_csv = csv.writer(f)
+    while row is not None:
+        print(row, type(row))
+        sum += 1
+        f_csv.writerow(row)
+        row = cur.fetchone()
+    print(sum)
+    f.close()
+
+
+def batch_query_write3(conn):
+    cur = MySQLdb.cursors.SSCursor(conn)
+    sql = "SELECT * from polls.question"
+    cur.execute(sql)
+    sum = 0
+    while True:
+        row = cur.fetchone()
+        if not row:
+            break
+        else:
+            sum += 1
+
+    print(sum)
+
+
+def mysql_end(conn):
+    # 关闭数据库连接
+    conn.close()
+
+
+if __name__ == '__main__':
+    start = time.process_time()
+    conn = mysql_start()
+    # batch_query_write1(conn)
+    # batch_query_write2(conn)
+    # batch_query_write3(conn)
+    mysql_end(conn)
+    end = time.process_time()
+    print('total_time2', end - start)
+
+```
+
+
 
 # Redis
 
