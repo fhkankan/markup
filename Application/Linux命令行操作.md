@@ -268,6 +268,14 @@ netstat -anlp | grep 端口号
 netstat -tunlp|grep 端口号
 # 查看所有端口状态
 netstat -ntlup  
+# 显示详细的网络状况
+netstat -a
+# 显示UDP端口号的使用情况
+netstat -apu
+# 显示网卡列表
+netstat -i
+# 显示网络统计信息
+netstat -s
 ```
 
 lsof
@@ -555,6 +563,19 @@ w：2,写入，可以在目录下创建新文件
 x：1,执行，可以通过cd进入
 -: 0,不具有任何权限
 
+# 将文件 file1.txt 设为所有人皆可读取 
+chmod ugo+r file1.txt
+chmod a+r file1.txt
+chmod 444 file1.txt
+# 将文件 file1.txt 与 file2.txt 设为该文件拥有者，与其所属同一个群体者可写入，但其他以外的人则不可写入
+chmod ug+w,o-w file1.txt file2.txt
+# 为 ex1.py 文件拥有者增加可执行权限:
+chmod u+x ex1.py
+# 将目前目录下的所有文件与子目录皆设为任何人可读取 :
+chmod -R a+r *
+# 此外chmod也可以用数字来表示权限如
+chmod 777 file
+
 chown
 # 更改文件的所有者
 chown [option]...[owner][:[group]]file
@@ -562,6 +583,10 @@ chown [option]...--reference=rfile file
 -c:显示文件所有者更改后的信息
 -f:忽略错误消息的输出
 -R:以递归的方式更改目录及子目录的所有者
+
+chown root /var/run/httpd.pid
+chown runoob:runoobgroup file1.txt
+chown -R runoob:runoobgroup *
 ```
 
 ## 链接
