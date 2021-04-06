@@ -149,7 +149,7 @@ print '创建excel文件完成！'
 
 处理excel表格的时候经常遇到合并单元格的情况，使用xlrd中的merged_cells的方法可以获取当前文档中的所有合并单元格的位置信息。
 
-```
+```python
 import xlrd
 
 xls = xlrd.open_workbook('test.xls')
