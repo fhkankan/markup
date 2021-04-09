@@ -1084,7 +1084,7 @@ whoami
 # 当前哪些用户在登录
 who
 # 切换用户
-su 用户名
+su 用户名 
 
 # 创建超级用户密码
 sudo passwd

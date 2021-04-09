@@ -53,6 +53,9 @@ sheet1.col_values(i)
 cell_value = sheet1.cell(a,b).value.encode('utf-8')
 cell_value = sheet1.cell_value(a,b).encode('utf-8')
 cell_value = sheet1.row(a)[0].value.encode('utf-8')
+
+# 日期格式
+ date_time = xlrd.xldate_as_datetime(time_str, 0).strftime("%Y-%m-%d %H:%M:%S")
 ```
 
 ## 写入
