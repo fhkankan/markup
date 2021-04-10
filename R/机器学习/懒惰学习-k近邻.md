@@ -26,6 +26,15 @@ id,diagnosis,radius_mean,texture_mean,perimeter_mean,area_mean,smoothness_mean,c
 
 ## 实现
 
+采用包和方法
+
+```
+library(class)
+knn()
+```
+
+实现过程
+
 ```R
 ##### Chapter 3: Classification using Nearest Neighbors --------------------
 
