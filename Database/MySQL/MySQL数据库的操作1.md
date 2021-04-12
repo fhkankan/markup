@@ -426,7 +426,8 @@ select * from 表名 where 字段名 = ? or 字段名 = ?;
 
 ```python
 # % 表示任意个数的任意字符
-select * from 表名 where 字段名 like '%xxx'; 
+select * from 表名 where 字段名 like '%xxx%';
+select * from 表名 where 字段名 not like '%xxx%'; 
 # _ 表示单个的任意字符
 select * from 表名 where 字段名 like '_xxx';
 # [] 表示单个字符的取值范围
@@ -654,7 +655,7 @@ select case sex when 1 then '男' when 2 then '女' else '人妖' end from 表�
 
 # 数据表列的查询
 
-```
+```sql
 SHOW DATABASES                                //列出 MySQL Server 数据库。
 SHOW TABLES [FROM db_name]                    //列出数据库数据表。
 SHOW CREATE TABLES tbl_name                    //导出数据表结构。
