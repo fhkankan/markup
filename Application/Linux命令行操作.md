@@ -1312,7 +1312,7 @@ hwclock[options][--ser--date=<date and time>]
 
 # 关机重启
 
-```
+```shell
 sync			将数据由内存同步到硬盘中
 reboot	        重新启动操作系统
 halt			关闭系统
@@ -1322,8 +1322,6 @@ shutdown -h now	立刻关机，其中now相当于时间为0的状态
 shutdown -h 20:25	系统在今天的20:25 会关机
 shutdown -h +10	系统再过十分钟后自动关机
 ```
-
-# 
 
 
 
