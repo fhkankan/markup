@@ -229,7 +229,8 @@ http {
 
 ```
 server {
-        listen       8080;  # 端口号
+        # listen       8080;  # 端口号
+        listen       0.0.0.0:8080;
         server_name  localhost;  # 可为ip地址
         location / {
             root   html;  # 根目录位置

@@ -1,6 +1,6 @@
 # 启动环境
 
-## ubuntu
+- ubuntu
 
 ```python
 # 启动服务
@@ -22,7 +22,7 @@ mysql -h 192.168.5.400 -uroot -pmysql -P 5001
 quit/exit/ctrl+d
 ```
 
-## windows
+- windows
 
 ```python
 # 启动服务
@@ -37,7 +37,7 @@ mysql -uroot -pmysql
 quit/exit
 ```
 
-#数据库引擎
+# 数据库引擎
 
 ```python
 # 查看默认引擎
@@ -118,8 +118,6 @@ set password for bforta = password('new password')
 # 当前用户更改
 set password = password('new password')
 ```
-
-
 
 # 对用户的操作
 
@@ -333,7 +331,7 @@ select * from 表名;
 select 字段名,字段名 from 表名;
 ```
 
-###查询指定行
+### 查询指定行
 
 ```
 select 字段名 from 表名 where 字段名 = ?;
@@ -372,9 +370,13 @@ select 字段名 + 字段名 as '别名' from 表名;
 
 ### 字符串拼接
 
-```
-select concat(str1,str2,...) as '别名' from 表名;
+`concat`
 
+```
+# 功能
+将多个字符串连接为一个字符串
+
+# 语法
 CONCAT(str1,str2,…)  
 返回结果为连接参数产生的字符串。如有任何一个参数为NULL ，则返回值为 NULL。
 注意：
@@ -383,13 +385,47 @@ CONCAT(str1,str2,…)
 一个数字参数被转化为与之相等的二进制字符串格式；若要避免这种情况，可使用显式类型 cast,
 SELECT CONCAT(CAST(int_col AS CHAR), char_col)
 
+# 举例
+select concat(id,name,score) as info from t1;  # 中间无间隔
+select concat(id, ',', name, ',', score) as info from t1;  # 中间用逗号间隔
+
+
+
+
+
+```
+
+`concat_ws`
+
+```
+# 功能
+和concat()一样，将多个字符串连接成一个字符串，但是可以一次性指定分隔符～（concat_ws就是concat with separator，是CONCAT()的特殊形式）
+
+# 语法
 CONCAT_WS(separator,str1,str2,...)
-CONCAT_WS() 代表 CONCAT With Separator ，是CONCAT()的特殊形式。第一个参数是其它参数的分隔符。分隔符的位置放在要连接的两个字符串之间。分隔符可以是一个字符串，也可以是其它参数。
+第一个参数是其它参数的分隔符。分隔符的位置放在要连接的两个字符串之间。分隔符可以是一个字符串，也可以是其它参数。
 注意：
 如果分隔符为 NULL，则结果为 NULL。函数会忽略任何分隔符参数后的 NULL 值。
 
-group_concat([DISTINCT] 要连接的字段 [Order BY ASC/DESC 排序字段] [Separator '分隔符'])
+# 举例
+selct concat_ws(',',id,name,score) as info from t1;
+```
 
+`group_concat`
+
+```
+在有group by的查询语句中，select指定的字段要么就包含在group by语句的后面，作为分组的依据，要么就包含在聚合函数中。
+# 功能
+将group by产生的同一个分组中的值连接起来，返回一个字符串结果
+
+# 语法
+group_concat([DISTINCT] 要连接的字段 [Order BY ASC/DESC 排序字段] [Separator '分隔符'])
+通过使用distinct可以排除重复值；如果希望对结果中的值进行排序，可以使用order by子句；separator是一个字符串值，缺省为一个逗号
+
+# 举例
+selct name, group_concat(id) from t2 group by name;
+selct name, group_concat(id order by id desc separator '_') from t2 group by name;
+selct name, group_concat(concat_ws('-', id, score) order by id) from t2 group by name;
 ```
 
 ### 常用函数
@@ -455,9 +491,9 @@ select gender,count(*) from students group by gender with rollup;
 
 ```python
 # asc 表示升序
-select * from 表名 where 查询条件 order by 字段名 asc; 
+select * from 表名 where 查询条件 order by 字段名 asc, 字段名 asc; 
 # desc 表示降序排列
-select * from 表名 where 查询条件 order by 字段名 desc;
+select * from 表名 where 查询条件 order by 字段名 desc, 字段名 desc;
 ```
 
 ### 嵌套查询
@@ -707,38 +743,44 @@ where match(note_text) against('匹配字符串的布尔操作' in boolean mode)
 | *          | 词尾的通配符                                                 |
 | ""         | 定义一个短句<br>匹配整个短语以便包含或排除这个短语           |
 
-#索引
+# 索引
 
-##普通索引
+普通索引
+
 ```python
 create index 索引名 on 表名(字段名(索引长度));
 alter table 表名 add index 索引名 (字段名(索引长度));
 create table 表名(字段名 字段类型,字段名 字段类型,index 索引名(字段名(索引长度));
 ```
-##唯一索引
+唯一索引
+
 ```
 create unique index 索引名 on 表名(字段名(索引长度));
 alter table 表名 add unique 索引名 (字段名(索引长度));
 create table 表名(字段名 字段类型,字段名 字段类型,unique 索引名 (字段名(索引长度));
 ```
-##全文索引
+全文索引
+
 ```
 # 只支持 MyISAM 引擎
 create fulltext index 索引名 on 表名(字段名);
 alter table 表名 add fulltext 索引名(字段名);
 create table 表名(字段名 字段类型,字段名 字段类型,fulltext (字段名)）;
 ```
-##组合索引
+组合索引
+
 ```
 create index 索引名 on 表名(字段名(索引长度),字段名(索引长度),...);
 alter table 表名 add index 索引名 (字段名(索引长度),字段名(索引长度),...;
 create table 表名(字段名 字段类型,字段名 字段类型,index 索引名 (字段名(索引长度),字段名(索引长度));
 ```
-## 查看索引
+查看索引
+
 ```
 show index from 表名;
 ```
-##删除索引
+删除索引
+
 ```
 alter table 表名 drop index 索引名;
 ```
