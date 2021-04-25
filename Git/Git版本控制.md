@@ -10,6 +10,8 @@
 - Stash(存放；贮藏)： 工作状态保存栈，用于保存和恢复工作区的临时工作状态（代码状态）。
 ```
 
+# git版本控制
+
 ## 安装和配置
 
 ```
@@ -22,26 +24,113 @@ git config --global user.name "Your Name"
 git config --global user.email "youremail@example.com"
 ```
 
-## 基本使用
+## 创建查看
 
-### 创建版本库
+### 初始化
 
+新建仓库
+
+```shell 
+git clone xxx  # xxx表示地址
+touch README.md
+git add README.md
+git commit -m "add README"
+git push -u origin master
 ```
-# 进入需要提交的文件夹及文件所在目录中
-cd 目标文件夹下
-# 初始化仓库
+
+已存在的文件
+
+```shell
+cd existing_folder
 git init
+git remote add origin xxx  # xxx表示地址
+git add .
+git commit -m "Initial commit"
+git push -u origin master
 ```
 
-### 提交代码
+已存在仓库
 
+```shell
+cd existing_repo
+git remote rename origin old-origin
+git remote add origin xxx  # xxx表示地址
+git push -u origin --all
+git push -u origin --tags
 ```
-# 提交代码（代码修改）到 暂存区
-git add 文件名		# 一个文件作了修改
-git add .		  # 多个文件作了修改
 
-# 提交暂存区的代码到本地仓库
-git commit -m "代码修改说明"
+### 查看
+
+查看状态
+
+```python
+git status  # 显示工作区状态
+```
+
+查看日志
+
+```python
+# 产看历史版本的所有信息（包括用户名和日期）
+git log
+
+# 用带参数的git log，输出的信息会短一些
+git log --graph --pretty=oneline
+
+git log --oneline
+
+git reflog (HEAD@{移动到当前版本需要多少步})
+```
+
+查看差异
+
+```python
+git diff [文件名]  # 将工作区中的文件和暂存区的进行比较
+git diff [本地库历史版本] [文件名]  # 将工作区中的文件和本地库历史记录比较，不带文件名的话，会比较多个文件
+
+# 说明：
+# 减号表示： 本地仓库的代码
+# 加号表示： 工作区的代码
+```
+
+查看其他
+
+```python
+git bisect	# 通过二分法查找定位引入bug的提交
+git grep		# 输出和模式匹配的行
+git show		# 显示各种类型的对象
+```
+
+## 管理修改
+
+### 修改
+
+- 添加
+
+```shell
+git add path1  						# 添加文件内容至索引
+git add .  								# 添加所有变动的文件至索引
+```
+
+- 移动
+
+```shell
+git mv		# 移动或重命名一个文件、目录或符号链接
+```
+
+- 删除
+
+```python
+git rm 		# 从工作区和索引中删除文件
+git branch -d 分支名  # 删除一个已合并的分支(非当前分支)
+git branch -D 分支名  # 强行删除分支(未合并则丢失修改)
+```
+
+- 记录
+
+```shell
+git commit -m '修改注释'    # 记录变更到仓库
+git commit --amend  修改注释
+git reset --soft HEAD^  # 撤销上次commit，不撤销add
 ```
 
 > 注意事项
@@ -53,41 +142,38 @@ git commit -m "代码修改说明"
 - 第2种： 在打开的Nano编缉器中输入提交的注释说明， 再按 ctrl + o 保存， 接着按回车确认文件名， 最后再按ctrl + x退出， 回去之后，git就会提交之前的代码了。
 ```
 
-### 查看历史版本
+- 合并
 
-```
-# 产看历史版本的所有信息（包括用户名和日期）
-git log
-
-# 用带参数的git log，输出的信息会短一些
-git log --graph --pretty=oneline
+```shell
+git checkout dev	# 切换至要合并到的分支dev
+git merge f1			# 合并需要合并的分支f1
 ```
 
-## 管理修改
+- 转移
 
-### 查看和提交修改
-
-```
-# 查看工作区修改
-git status
-
-# 了解修改后提交代码
-git add .
-git commit -m "注释" 
+```python
+git rebase		# 本地提交转移至更新后的上游分支中
 ```
 
-### 对比文件
+- 标记
 
+```shell
+git tag						# 查看标签
+git tag tag-name  			# 创建新标签/查看标签内容
+git tag tag-name commit-id  # 对以往的记录进行标签 
+
+git pull --tags  			# 拉取所有标签
+
+git push origin tag-name 	# 推送某个标签
+git push --tags			 	# 推送所有标签
+
+git tag -d tage-name		# 删除本地标签
+git push origin :refs/tags/tag-name  # 删除远程标签
 ```
-# 对比工作区和暂存区的某个文件，了解作了哪些修改
-git diff 文件名
 
-说明：
-减号表示： 本地仓库的代码
-加号表示： 工作区的代码
-```
+### 回退撤销
 
-### 版本回退
+回退
 
 ```shell
 # 查看历史提交版本,只能看到当前版本之前的版本
@@ -99,94 +185,79 @@ git reflog
 git reset --hard <commit版本号>
 选项说明：
 hard  重置： 本地仓库HEAD指针、暂存区、工作区
-mixed 重置： 本地仓库HEAD指针、暂存区         【默认值】
+mixed 重置： 本地仓库HEAD指针、暂存区  【默认值】
 soft  重置： 本地仓库HEAD指针
 
-
-# 回退到上个版本
-git reset --hard HEAD^
-
-# 回退到上上个版本
-git reset --hard HEAD^^
-
-# 往上10个版本
-git reset --hard HEAD~10
-
-# 强制提交
-git push -f
+# 例子
+git reset --soft HEAD^  # 撤销上次commit，不撤销add
+git reset --hard <commit-id>  # 撤销上次commit的内容
+git reset --hard HEAD^		# 后退1步(一个^表示后退一步)
+git reset --hard HEAD^^		# 回退到上上个版本
+git reset --hard HEAD~2		# 后退2步(~后的数字n摆哦是后退n步)
+git push -f  # 强制提交
 ```
 
-### 撤销修改
+撤销
 
-```
-场景1： 改乱了工作区的代码，想撤销工作区的代码修改
+```python
+# 场景1： 改乱了工作区的代码，想撤销工作区的代码修改
 git checkout -- <file>  # 撤销指定文件的修改
 git checkout -- .		# 撤销当前目录下所有修改
 
-说明：git checkout会用本地仓库中的版本替换工作区的版本，无论工作区是修改还是删除，都可以“一键还原”。 
+# 说明：git checkout会用本地仓库中的版本替换工作区的版本，无论工作区是修改还是删除，都可以“一键还原”。 
 
-场景2： 改乱了工作区的代码，提交到了暂存区，同时撤销工作区和暂存区修改：
-方法一： 
+# 场景2： 改乱了工作区的代码，提交到了暂存区，同时撤销工作区和暂存区修改：
+# 方法一： 
 # 撤销暂存区修改
 git reset HEAD <file>     # 撤销暂存区指定文件的修改
 git reset HEAD            # 撤销暂存区所有修改
 # 撤销工作区的代码修改
 git checkout -- <file>    # 撤销指定文件的修改
 git checkout -- .		  # 撤销当前目录下所有修改
-方法二：
+# 方法二：
 # 同时撤销暂存区和工作区的修改：
 git reset --hard HEAD
 ```
 
-## 删除文件
+## 分支管理
 
-```
-场景1： 如果该文件是属于误删，那么要恢复回来：
-git checkout -- 文件名
-
-场景2： 确实要删除该文件：
-# 提交代码修改到暂存区：	
-git add <文件名>	    # 把文件修改操作，提交到暂存区
-# 工作区删除后，提交代码修改到本地仓库
-git commit -m "注释"
-```
-
-# 分支管理
-
-在实际开发中，我们会创建多个分支，按照几个基本原则进行分支管理：
+常用分支
 
 ```
 - master 主分支： 该分支是非常稳定的，仅用来发布新版本，不会提交开发代码到这里
-- dev 开发分支： 不稳定的，团队成员都把各自代码提交到这里。当需要发布一个新版本，经测试通过后，把dev分支合并到master分支上, 作为一个稳定版本，比如v1.0
+- develop 开发分支： 不稳定的，团队成员都把各自代码提交到这里。当需要发布一个新版本，经测试通过后，把dev分支合并到master分支上, 作为一个稳定版本，比如v1.0
 - featrue 功能分支： 团队每个人负责不同的功能，分别有各的分支，在各自的分支中干活，适当的时候往 dev开发分支合并代码。
 ```
 
-## 基本使用
+### 基本使用
 
-HEAD指针： 表示工作区当前版本，HEAD指向哪个版本，当前工作区就是哪个版本；
-
-每个分支都有一个指针，指向当前分支的最新版本
-
-每次提交一个版本，分支指针就会向前移动一步，HEAD指针也会往前移动一步； 
+查看
 
 ```shell
-git branch			# 列出所有分支,当前分支前面会标一个*号
-
+git branch  			# 本地分支， 当前分支有*
+git branch -r  		# 远程分支
+git branch -a			# 所有分支
+git remote show origin  # 查看远程分支详细情况
+```
+切换
+```shell
 git branch dev	   	# 创建分支 (开发分支)
-git checkout dev   	# 切换分支
-# 以上两个操作，可以使用以下一个命令代替
+git checkout dev   	# 切换本地已存在的分支f1
+# 创建+切换
 git checkout -b dev # 创建+切换分支
+git branch --set-upstream-to=origin/远程分支名字 本地分支名字  # 追踪分支
+# 创建+切换+远程
+git checkout -b f1 origin/f1  # 跟踪拉去远程分支f1，在本地起名为f1，并切换至分支f1
 
-git add readme.md	# 增加内容
-git commit -m "branch test"	# 提交本地
+
 
 git checkout master	# 切回master分支
 git merge dev		# 合并指定分支到当前分支
 
-git branch --set-upstream-to=origin/远程分支名字 本地分支名字  # 追踪分支
+
 ```
 
-## 合并冲突解决
+### 合并冲突解决
 
 |      | master分支       | feature1分支     | feature1合并到master的结果 |
 | ---- | -------------- | -------------- | -------------------- |
@@ -218,7 +289,7 @@ git log --graph --pretty=oneline
 分支的新文件，在master分支中不存在，所以合并到master分支后，要把该新文件提交到主分支上，就需要指定commit命令的提交注释。
 ```
 
-## 分支删除
+### 分支删除
 
 ```
 # 删除一个已合并的分支，注意，无法删除当前所在的分支，需要切换到其它分支，才能删除
@@ -231,7 +302,7 @@ git branch -D 分支名
  git branch
 ```
 
-## BUG分支(保存工作现场)
+### BUG分支(保存工作现场)
 
 - **bug分支：**当你接到修复一个bug任务的时候，可以创建一个bug临时分支（例如：issue01）来修复它，修改完成再把该分支删除掉
 - **问题：**当前正在dev上进行的工作还没有提交, 工作只进行到一半，还没法提交，但如果不提交就切换到其它分支工作，代码会丢失，怎么办呢？
@@ -664,155 +735,12 @@ git remote rm origin
 git remote add origin git@ieit.github.com
 ```
 
-## 初始
-
-- 新建仓库
-
-```shell 
-git clone xxx  # xxx表示地址
-touch README.md
-git add README.md
-git commit -m "add README"
-git push -u origin master
-```
-
-- 已存在的文件夹
-
-```shell
-cd existing_folder
-git init
-git remote add origin xxx  # xxx表示地址
-git add .
-git commit -m "Initial commit"
-git push -u origin master
-```
-
-- 已存在仓库
-
-```shell
-cd existing_repo
-git remote rename origin old-origin
-git remote add origin xxx  # xxx表示地址
-git push -u origin --all
-git push -u origin --tags
-```
-
-## 查看
-
-查看分支
-
-```shell
-git branch  			# 本地分支
-git branch -r  		# 远程分支
-git branch -a			# 所有分支
-git remote show origin  # 查看远程分支详细情况
-```
-
-查看状态
-
-```shell
-git status  # 显示工作区状态
-```
-
-产看其他
-
-```
-git bisect	# 通过二分法查找定位引入bug的提交
-git grep		# 输出和模式匹配的行
-git show		# 显示各种类型的对象
-```
-
-查看日志
-
-```shell
-git log 
-git log --pretty=oneline
-git log --oneline
-git reflog (HEAD@{移动到当前版本需要多少步})
-```
-
-查看差异
-
-```shell
-git diff [文件名]  # 将工作区中的文件和暂存区的进行比较
-git diff [本地库历史版本] [文件名]  # 将工作区中的文件和本地库历史记录比较，不带文件名的话，会比较多个文件
-```
-
 ## 切换
 
 ```shell
 git checkout f1			# 切换本地已存在的分支f1
 git checkout -b f1  # 创建并切换到新分支f1
 git checkout -b f1 origin/f1  # 跟踪拉去远程分支f1，在本地起名为f1，并切换至分支f1
-```
-
-## 变更
-
-- 添加
-
-```shell
-git add path1  						# 添加文件内容至索引
-git add .  								# 添加所有变动的文件至索引
-```
-
-- 移动
-
-```shell
-git mv		# 移动或重命名一个文件、目录或符号链接
-```
-
-- 删除
-
-```python
-git rm 		# 从工作区和索引中删除文件
-git branch -d 分支名  # 删除一个已合并的分支(非当前分支)
-git branch -D 分支名  # 强行删除分支(未合并则丢失修改)
-```
-
-- 回退
-
-```
-git reset --soft HEAD^  # 撤销上次commit，不撤销add
-git reset --hard <commit-id>  # 撤销上次commit的内容
-git reset --hard HEAD^		# 后退1步(一个^表示后退一步)
-git reset --hard HEAD~2		# 后退2步(~后的数字n摆哦是后退n步)
-```
-
-- 记录
-
-```shell
-git commit -m '修改注释'    # 记录变更到仓库
-git commit --amend  修改注释
-git reset --soft HEAD^  # 撤销上次commit，不撤销add
-```
-
-- 合并
-
-```shell
-git checkout dev	# 切换至要合并到的分支dev
-git merge f1			# 合并需要合并的分支f1
-```
-
-- 转移
-
-```
-git rebase		# 本地提交转移至更新后的上游分支中
-```
-
-- 标记
-
-```shell
-git tag						# 查看标签
-git tag tag-name  			# 创建新标签/查看标签内容
-git tag tag-name commit-id  # 对以往的记录进行标签 
-
-git pull --tags  			# 拉取所有标签
-
-git push origin tag-name 	# 推送某个标签
-git push --tags			 	# 推送所有标签
-
-git tag -d tage-name		# 删除本地标签
-git push origin :refs/tags/tag-name  # 删除远程标签
 ```
 
 ## 协同

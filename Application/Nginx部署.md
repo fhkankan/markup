@@ -83,9 +83,7 @@ sudo sbin/nginx
 
 ## 使用
 
-> Mac
-
-- 方法一
+Mac
 
 ```shell
 # 启动
@@ -98,24 +96,19 @@ brew services reload nginx
 brew services restart nginx
 ```
 
-- 方法二
-
-```shell
-# 启动
-sudo nginx
-# 重启
-sudo nginx -s reload
-# 关闭
-sudo nginx -s stop
-sudo nginx -s quit
-```
-
-> ubuntu
-
-操作
+ubuntu
 
 ```
 nginx {start|stop|restart|reload|force-reload|status|configtest|rotate|upgrade}
+```
+
+其他
+
+```shell
+sudo nginx -s reload	# 重新加载配置文件
+sudo nginx -s restart	# 重启
+sudo nginx -s stop    # 快速停止nginx
+sudo nginx -s quit 		# 不再接受新的请求，等正在处理的请求出完成后在进行停止（优雅的关闭）
 ```
 
 浏览器访问
