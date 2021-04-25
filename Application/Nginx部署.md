@@ -92,6 +92,8 @@ sudo sbin/nginx
 brew services start nginx
 # 停止
 brew services stop nginx
+# 重新加载配置
+brew services reload nginx
 # 重启
 brew services restart nginx
 ```
