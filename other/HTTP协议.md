@@ -46,7 +46,7 @@ Web采用的HTTP协议采用了非常简单的请求-响应模式，从而大大
 
 HTTP协议同时具备极强的扩展性，虽然浏览器请求的是http://www.sina.com.cn/的首页，但是新浪在HTML中可以链入其他服务器的资源，比如<img src="http://i1.sinaimg.cn/home/2013/1008/U8455P30DT20131008135420.png">，从而将请求压力分散到各个服务器上，并且，一个站点可以链接到其他站点，无数个站点互相链接起来，就形成了World Wide Web，简称WWW。
 
-##HTTP请求
+## HTTP请求
 
 跟踪了新浪的首页，我们来总结一下HTTP请求的流程：
 
@@ -129,7 +129,7 @@ name1=value1&name2=value2
 | OPTIONS | 返回服务器支持的 HTTP 方法。                      |
 | CONNECT | 把请求连接转换到透明的 TCP/IP 通道。              |
 
-##消息结构
+## 消息结构
 
 每个HTTP请求和响应都遵循相同的格式，一个HTTP包含Header和Body两部分，其中Body是可选的。
 

@@ -147,7 +147,7 @@ git reset --soft HEAD^  # 撤销上次commit，不撤销add
 git reset --hard <commit-id>  # 撤销上次commit的内容
 git reset --hard HEAD^		# 后退1步(一个^表示后退一步)
 git reset --hard HEAD^^		# 回退到上上个版本
-git reset --hard HEAD~2		# 后退2步(~后的数字n摆哦是后退n步)
+git reset --hard HEAD~2		# 后退2步(~后的数字n是后退n步)
 git push -f  # 强制提交
 ```
 
