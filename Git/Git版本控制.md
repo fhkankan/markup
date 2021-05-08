@@ -337,16 +337,16 @@ git push -u origin --tags
 ### 协同
 
 ```python
-git checkout -b f1 origin/f1  # 跟踪拉去远程分支f1，在本地起名为f1，并切换至分支f1
+git fetch			# 从另外一个仓库下载对象和引用
+git pull			# 获取并整合另外的仓库或一个本地分支
+git push  		# 更新远程引用和相关对象
 
+# 远程有此分支
+git checkout -b f1 origin/f1  # 跟踪拉去远程分支f1，在本地起名为f1，并切换至分支f1
 git branch --set-upstream-to=origin/develop dev  # 本地分支与远程分支未建立关联，需要先建立本地与远程分支的链接关系再拉取
 
-git fetch			# 从另外一个仓库下载对象和引用
-
-git pull			# 获取并整合另外的仓库或一个本地分支
-
-git push  								# 更新远程引用和相关对象
-git push --set-upstream origin f1  # 若远程不存在此分支,创建新的远程分支，并追踪push和pull
+# 远程无此分支
+git push --set-upstream origin f1  # 若远程不存在此分支,创建新的远程分支，方法一：追踪push和pull
 git puh origin f1  # 方法二，只追踪push
 
 git remote show origin  # 查看远程分支情况

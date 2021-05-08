@@ -1094,6 +1094,7 @@ ssh 用户名@ip地址
 exit
 # 进入root用户
 sudo -s
+sudo su -  # 携带bash配置进入root
 # 当前登录用户名
 whoami
 # 当前哪些用户在登录
