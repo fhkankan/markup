@@ -378,7 +378,7 @@ listen unix:path;
 | ssl              | 表明该端口仅接受HTTPS的链接                          | 允许更紧凑的配置                                             |
 | so_keepalive     | 为TCP监听套接字配置keepalive                         |                                                              |
 
-### Location指令
+#### Location指令
 
 用在虚拟服务器的server部分，提供来自客户端的URI或者内部的重定向访问
 
