@@ -27,6 +27,15 @@ ssh user_name@远端计算机IP
 ssh -p 8022 user_name@远端计算机ip
 ```
 
+保持长链接
+
+```shell
+# 编辑ssh_config文件
+sudo vi /etc/ssh/ssh_config
+# 在Host *下面加入如下命令，命令含义：每隔60s客户端向服务器发送一个空包
+ServerAliveInterval 60   
+```
+
 ## 隧道建立
 
 [参考](https://www.cnblogs.com/fbwfbi/p/3702896.html)
