@@ -4,7 +4,9 @@
 
 >类似ubuntu中的apt-get包管理器，主要装非图形化界面，需下载源码，编译，安装
 
-命令安装卸载
+[官网](https://brew.sh)
+
+官方命令安装卸载
 
 ```shell
 # 安装
@@ -13,10 +15,12 @@
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/uninstall.sh)"
 ```
 
-独立安装卸载
+国内安装卸载
 
 ```shell
-# 安装
+# 方法一：安装配置
+/bin/zsh -c "$(curl -fsSL https://gitee.com/cunkai/HomebrewCN/raw/master/Homebrew.sh)"
+# 方法二：安装dmg，配置启动
 
 # 卸载
 cd `brew --prefix`

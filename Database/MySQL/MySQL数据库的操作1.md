@@ -18,6 +18,9 @@ mysql --help
 mysql -uroot -pmysql
 # 远程连接
 mysql -h 192.168.5.400 -uroot -pmysql -P 5001
+# 若数据库过大，可以使用快捷方式进入，防止预读
+mysql -h 192.168.5.400 -uroot -pmysql -P 5001 -A
+
 # 退出
 quit/exit/ctrl+d
 ```

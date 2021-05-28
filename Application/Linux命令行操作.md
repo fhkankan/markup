@@ -456,17 +456,18 @@ grep [-选项] '搜索内容串' 文件名
 -c	只能输出匹配行的计数
 -n	显示匹配行及行号
 -v	显示不包含匹配文本的所有行
-# 显示filename文件中不含有’s'字符的所有行
-grep  -v 's' filename.txt
-# 显示filename文件中含有’s'字符的行数
-grep  -c 's' filename.txt
-# 显示filename文件中含有’s'字符的行数和内容
-grep  -n 's' filename.txt
-# 忽略大小写，显示filename文件中含有’s'字符的内 
-grep  -i 's' filename.txt
-# 精确定位错误代码
-grep -nr [错误关键字] *
 
+grep  -v 's' filename.txt  # 显示filename文件中不含有’s'字符的所有行
+grep  -c 's' filename.txt # 显示filename文件中含有’s'字符的行数
+grep  -n 's' filename.txt  # 显示filename文件中含有’s'字符的行数和内容
+grep  -i 's' filename.txt  # 忽略大小写，显示filename文件中含有’s'字符的内 
+grep -nr [错误关键字] *  # 精确定位错误代码
+
+# 与或非
+grep 'pattern1' filename | grep 'pattern2'  # 与
+grep 'pattern1\|pattern2' filename  # 或
+grep -E 'pattern1|pattern2' filename  # 或
+grep -v 'pattern' filename  # 非
 
 find
 # 查找符合条件文件并将查找结果输出
@@ -525,6 +526,8 @@ tail -f notes.log  # 跟踪文件实时最后10行
 tail -f -n 20 notes.log # 跟踪文件实时最后20行
 tail -n +20 notes.log  # 从第20行到末尾
 tail -c 10 notes.log	# 显示最后10个字符
+
+tail -f notes.log |grep getUserInfo\ response # 跟踪用户的日志中getUserInfo\ response信息
 
 
 tac

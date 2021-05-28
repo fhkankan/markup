@@ -248,15 +248,96 @@ http {
 反向代理
 
 ```
-server{
-    listen [你要监听的端口号];
-    server_name [你要监听的域名/IP];
- 
-    location / {
-        proxy_pass [代理的目标地址];
-     }
+upstream burn_backend {
+    server xx.xx.xx.xx:12000;
+    server xx.xx.xx.xx:12001;
+    keepalive 100;
+}
+
+server {
+    charset utf-8;
+    client_max_body_size 128M;
+    proxy_headers_hash_bucket_size 6400;
+    proxy_headers_hash_max_size 51200;
+
+    listen 80;
+    server_name  api.xx.cn;
+
+    root /opt/www/api.xx.cn;
+    access_log /opt/log/api.xx.cn.log main;
+		
+		location /micro/burn {
+        proxy_pass http://burn_backend/prod;
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-Server $server_name;
+        proxy_set_header X-Forwarded-For $http_x_forwarded_for;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
 }
 ```
+
+https
+
+```
+server {
+    charset utf-8;
+    client_max_body_size 128M;
+    proxy_headers_hash_bucket_size 6400;
+    proxy_headers_hash_max_size 51200;
+
+
+    listen 443;
+    server_name  stg.xx.cn;
+
+    root /home/apollo/coupon_backendV2/public;
+    index frontend.php index.html index.htm;
+
+    ssl on;
+    ssl_certificate  stg_cert/1_stg.miniapp.mcdonalds.com.cn_bundle.crt;
+    ssl_certificate_key  stg_cert/2_stg.miniapp.mcdonalds.com.cn.key;
+    ssl_session_timeout 5m;
+    ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE:ECDH:AES:HIGH:!NULL:!aNULL:!MD5:!ADH:!RC4;
+    ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+    ssl_prefer_server_ciphers on;
+
+    access_log /opt/log/stg-443.log main;
+    #access_log off;
+    #resolver 8.8.8.8;
+
+    include ./conf.d/flyer-trial-debug.part;
+
+
+    # 网站后台
+    location /backend.php {
+        #root /home/apollo/coupon_backend/public;
+        rewrite ^/backend.php(.*)$ /backend.php;
+    }
+    
+    location ~ /trial/imcd/openapi/token/member_info {
+        proxy_pass http://xx.xx.xx.xx:28000;
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-Server $server_name;
+        proxy_set_header X-Forwarded-For $http_x_forwarded_for;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+
+
+
 
 ## 常见问题
 
@@ -350,11 +431,7 @@ server{
 | tcp_nodelay              | 启用或禁用tcp_nodelay，用于keep-alive连接                    |
 | tcp_push                 | 仅依赖于sendfile的使用，使Nginx在一个数据包中尝试发送响应头以及在数据包中发送一个完成的文件 |
 
-### 虚拟服务器
-
-server开始的部分被称为"虚拟服务器"部分。描述的是一组根据不同的server_name指令逻辑分割的资源。响应http请求。
-
-一个虚拟服务器由listen和server_name指令组合定义。
+#### listen指令
 
 ```
 listen address[:port];
@@ -362,7 +439,7 @@ listen port;
 listen unix:path;
 ```
 
-#### listen指令
+参数
 
 | Listen指令的参数 | 说明                                                 | 注解                                                         |
 | ---------------- | ---------------------------------------------------- | ------------------------------------------------------------ |
@@ -389,11 +466,70 @@ location [modifier] uri ...
 location @name ...
 ```
 
+- 匹配规则
+
+```shell
+# 默认选择最长前缀
+location = / {
+   #规则A
+}
+location = /login {
+   #规则B
+}
+location ^~ /static/ {
+   #规则C
+}
+location ~ \.(gif|jpg|png|js|css)$ {
+   #规则D，注意：是根据括号内的大小写进行匹配。括号内全是小写，只匹配小写
+}
+location ~* \.png$ {
+   #规则E
+}
+location !~ \.xhtml$ {
+   #规则F
+}
+location !~* \.xhtml$ {
+   #规则G
+}
+location / {
+   #规则H
+}
+
+
+# 含义
+http://localhost/ 将匹配规则A
+http://localhost/login 将匹配规则B
+http://localhost/register 则匹配规则H
+http://localhost/static/a.html 将匹配规则C
+http://localhost/a.gif, http://localhost/b.jpg 将匹配规则D和规则E，但是规则D顺序优先，规则E不起作用， 而 http://localhost/static/c.png 则优先匹配到规则C
+http://localhost/a.PNG 则匹配规则E， 而不会匹配规则D，因为规则E不区分大小写。
+http://localhost/a.xhtml 不会匹配规则F和规则G
+http://localhost/a.XHTML不会匹配规则G，（因为!）。规则F，规则G属于排除法，符合匹配规则也不会匹配到，所以想想看实际应用中哪里会用到。
+http://localhost/category/id/1111 则最终匹配到规则H，因为以上规则都不匹配，这个时候nginx转发请求给后端应用服务器，比如FastCGI（php），tomcat（jsp），nginx作为方向代理服务器存在。
+```
+- 指令
+
 | location的指令 | 说明                                                         |
 | -------------- | ------------------------------------------------------------ |
-| alias          | 定义location的其他名字，在文件系统中能够找到。若location指定了一个正则表达式，alias将会引用正则表达式中定义的捕获。alias指令替代location中匹配的URI部分，没有匹配的部分会在文件系统中搜索。当配置改变一点，配置中使用alias指令则会有脆弱的表现，因此推荐用root。除非为了找问价而需要修改URI |
+| root           | root将外部的URI拼接在其后                                    |
+| alias          | 定义location的其他名字，在文件系统中能够找到。若location指定了一个正则表达式，alias将会引用正则表达式中定义的捕获。alias指令替代location中匹配的URI部分，没有匹配的部分会在文件系统中搜索。当配置改变一点，配置中使用alias指令则会有脆弱的表现，因此推荐用root。除非为了找文件而需要修改URI |
 | internal       | 指定一个仅用于内部请求的location(其他指定定义的重定向、rewrite请求、error请求等) |
 | limit_except   | 限定一个location可以执行的HTTP操作(GET也包括HEAD)            |
+示例
+
+```
+location ^~ /t/ {
+     root /www/root/html/;
+}
+
+# 如果一个请求的URI是/t/a.html时，web服务器将会返回服务器上的/www/root/html/t/a.html的文件。
+
+location ^~ /t/ {
+ alias /www/root/html/new_t/;
+}
+
+# 如果一个请求的URI是/t/a.html时，web服务器将会返回服务器上的/www/root/html/new_t/a.html的文件。注意这里是new_t，因为alias会把location后面配置的路径丢弃掉，把当前匹配到的目录指向到指定的目录
+```
 
 ## 反向代理
 
@@ -688,19 +824,20 @@ access_log /var/log/nginx/access.log.gz combined gzip=4 flush=1m;
 
 日志格式变量名称
 
-| 日子格式变量名称     | 值                                                           |
-| -------------------- | ------------------------------------------------------------ |
-| $body_bytes_sent     | 指定发送到客户端的字节数，不包括响应头                       |
-| $bytes_sent          | 指定发送到客户端的字节数                                     |
-| $connection          | 指定一个串号，用于标识一个唯一的连接                         |
-| $connection_requests | 指定通过一个特定连接的请求数                                 |
-| $msec                | 指定以秒为单位的时间，毫秒级别                               |
-| $pipe *              | 指示请求是否是管道(p)                                        |
-| $request_length *    | 指定请求的长度，包括HTTP方法、URI、HTTP协议、头和请求体      |
-| $request_time        | 指定请你去的处理时间，毫秒级，从客户端接收到第一个字节到客户端接收完最后一个字节 |
-| $status              | 指定响应状态                                                 |
-| $time_iso8601 *      | 指定本地时间，ISO8601格式                                    |
-| $time_local *        | 指定本地时间普通日志格式(%d/%b/%y:%H:%M:%S %z)               |
+| 日子格式变量名称          | 值                                                           |
+| ------------------------- | ------------------------------------------------------------ |
+| `$body_bytes_sent`        | 指定发送到客户端的字节数，不包括响应头                       |
+| `$bytes_sent`             | 指定发送到客户端的字节数                                     |
+| `$connection`             | 指定一个串号，用于标识一个唯一的连接                         |
+| `$connection_requests`    | 指定通过一个特定连接的请求数                                 |
+| `$msec`                   | 指定以秒为单位的时间，毫秒级别                               |
+| `$pipe `                  | 指示请求是否是管道(p)                                        |
+| `$request_length`         | 指定请求的长度，包括HTTP方法、URI、HTTP协议、头和请求体      |
+| `$request_time`           | 单位秒，从接受用户请求的第一个字节到发送完响应数据的时间，包括接收客户端请求数据的时间、后端程序响应的时间、发送响应数据给客户端的时间(不包含写日志的时间) |
+| `$upstream_response_time` | 单位秒，从Nginx向后端建立连接开始到接受完数据然后关闭连接为止的时间 |
+| `$status`                 | 指定响应状态                                                 |
+| `$time_iso8601`           | 指定本地时间，ISO8601格式                                    |
+| `$time_local`             | 指定本地时间普通日志格式(%d/%b/%y:%H:%M:%S %z)               |
 
 #### 查找文件
 

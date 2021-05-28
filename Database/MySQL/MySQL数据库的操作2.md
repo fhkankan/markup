@@ -318,6 +318,8 @@ row in set (0.00 sec)
 
 # 视图
 
+视图只能用于查询，当原始表中数据变化时，视图会自动更新。
+
 ```python
 # 创建视图
 create view 视图名 as 查询的SQL语句
@@ -331,7 +333,7 @@ drop view 视图名
 # 更新视图
 # 方法一：drop + create
 # 方法二：create or replace view
-
+# 方法三：alter view 视图名 as 查询的SQL语句
 ```
 
 # 事务
@@ -353,6 +355,12 @@ rollback to 保留点名
 
 # 触发器
 
+使用触发器可以定制用户对表进行【增、删、改】操作时前后的行为，注意：没有查询
+
+触发器无法由用户直接调用，而知由于对表的【增/删/改】操作被动引发的。
+
+- 创建
+
 ```python
 # 创建触发器
 # 行触发器,MySQL不支持语句触发器
@@ -366,11 +374,77 @@ begin
 #如果要获取表中的数据当作条件,insert时用NEW，delete时用OLD,update时都可以
 # 结束
 end;
+```
+示例
+```shell
+# 插入前
+CREATE TRIGGER tri_before_insert_tb1 BEFORE INSERT ON tb1 FOR EACH ROW
+# 插入后
+CREATE TRIGGER tri_after_insert_tb1 AFTER INSERT ON tb1 FOR EACH ROW
+# 删除前
+CREATE TRIGGER tri_before_delete_tb1 BEFORE DELETE ON tb1 FOR EACH ROW
+# 删除后
+CREATE TRIGGER tri_after_delete_tb1 AFTER DELETE ON tb1 FOR EACH ROW
+# 更新前
+CREATE TRIGGER tri_before_update_tb1 BEFORE UPDATE ON tb1 FOR EACH ROW
+# 更新后
+CREATE TRIGGER tri_after_update_tb1 AFTER UPDATE ON tb1 FOR EACH ROW
 
+# 样例
+# 创建表
+create table user(
+    id int primary key auto_increment,
+    name varchar(20) not null,
+    reg_time datetime, # 注册用户的时间
+    affirm enum('yes','no') # no表示该用户执行失败
+);
+
+create table userLog(
+    id int primary key auto_increment,
+    u_name varchar(20) not null,
+    u_reg_time datetime # 注册用户的时间
+);
+
+# 创建触发器 delimiter 默认情况下，delimiter是分号 触发器名称应遵循命名约定[trigger time]_[table name]_[trigger event]
+delimiter //
+create trigger after_user_insert after insert on user for each row
+begin
+    if new.affirm = 'yes' then
+        insert into userLog(u_name,u_reg_time) values(new.name,new.reg_time);
+    end if;
+
+end //
+delimiter ;
+
+
+#往用户表中插入记录，触发触发器，根据if的条件决定是否插入数据
+insert into user(name,reg_time,affirm) values ('张三',now(),'yes'),('李四',now(),'yes'),('王五',now(),'no');
+
+
+# 查看日志表，发现多了两条记录 ，大家应该看到for each row就明白了
+
+mysql> select * from userlog;
++----+--------+---------------------+
+| id | u_name | u_reg_time          |
++----+--------+---------------------+
+|  1 | 张三   | 2018-06-14 17:52:49 |
+|  2 | 李四   | 2018-06-14 17:52:49 |
++----+--------+---------------------+
+2 rows in set (0.00 sec)
+
+# 注意：请注意，在为INSERT定义的触发器中，可以仅使用NEW关键字。不能使用OLD关键字。但是，在为DELETE定义的触发器中，没有新行，因此您只能使用OLD关键字。在UPDATE触发器中，OLD是指更新前的行，而NEW是更新后的行
+```
+- 删除
+
+```
 # 删除触发器
 drop trigger 触发器名
 
 ```
+
+
+
+
 
 # 存储过程
 
