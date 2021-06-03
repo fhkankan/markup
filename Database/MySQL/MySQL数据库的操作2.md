@@ -312,10 +312,6 @@ mysql> select j->'$."0"' from test_json where id=7;
 row in set (0.00 sec)
 ```
 
-
-
-
-
 # 视图
 
 视图只能用于查询，当原始表中数据变化时，视图会自动更新。
