@@ -563,22 +563,24 @@ public class Test {
 
 ## Scanner类
 
-`Scanner`是从jdk1.5开始的一个类，位于`java.util`包中，该类对IO流进行了封装。
-
-构造方法
+导包
 
 ```java
-Scanner(File source)
-// 构造一个新的Scanner，产生从指定文件扫描的值
-Scanner(InputStream source)
-// 构造一个新的Scanner，产生从指定输入流扫描的值
+import java.util.Scanner
 ```
 
-获取数据
+构造
+
+```java
+Scanner(File source)  // 构造一个新的Scanner，产生从指定文件扫描的值
+Scanner(InputStream source)  // 构造一个新的Scanner，产生从指定输入流扫描的值
+```
+
+创建
 
 ```java
 Scanner input = new Scanner(new FileInputStream("./demo.txt"))
-Scanner input = new Scanner(System.in)
+Scanner input = new Scanner(System.in)  // 从键盘输入
 ```
 
 使用
