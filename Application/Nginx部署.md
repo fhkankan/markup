@@ -515,20 +515,29 @@ http://localhost/category/id/1111 则最终匹配到规则H，因为以上规则
 | alias          | 定义location的其他名字，在文件系统中能够找到。若location指定了一个正则表达式，alias将会引用正则表达式中定义的捕获。alias指令替代location中匹配的URI部分，没有匹配的部分会在文件系统中搜索。当配置改变一点，配置中使用alias指令则会有脆弱的表现，因此推荐用root。除非为了找文件而需要修改URI |
 | internal       | 指定一个仅用于内部请求的location(其他指定定义的重定向、rewrite请求、error请求等) |
 | limit_except   | 限定一个location可以执行的HTTP操作(GET也包括HEAD)            |
+| proxy_pass     | 对location的uri，proxy_pass不带URI时进行拼接，带URI时则进行替换 |
 示例
 
-```
+```shell
 location ^~ /t/ {
-     root /www/root/html/;
+     root /www/root/html/;  # 进行拼接
 }
-
-# 如果一个请求的URI是/t/a.html时，web服务器将会返回服务器上的/www/root/html/t/a.html的文件。
+# 请求是/t/a.html时，返回服务器上的/www/root/html/t/a.html的文件。
 
 location ^~ /t/ {
- alias /www/root/html/new_t/;
+ 		alias /www/root/html/new_t/;   # 进行替换
 }
+# 请求有/t/a.html时，返回服务器上的/www/root/html/new_t/a.html的文件。
 
-# 如果一个请求的URI是/t/a.html时，web服务器将会返回服务器上的/www/root/html/new_t/a.html的文件。注意这里是new_t，因为alias会把location后面配置的路径丢弃掉，把当前匹配到的目录指向到指定的目录
+location /api/ {
+		proxy_pass http://localhost:8080;  # 不带URI，进行拼接
+}
+# 访问http://localhost/api/xxx时，代理到http://localhost:8080/api/xxx
+
+location /api/ {
+		proxy_pass http://localhost:8080/;  # 带URI，进行替换
+}
+# 访问http://localhost/api/xxx时，代理到http://localhost:8080/xxx
 ```
 
 ## 反向代理
