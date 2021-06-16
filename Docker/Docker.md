@@ -140,7 +140,7 @@ status		状态
 登陆
 
 ```
-docker login --username=xxxx
+docker login --username=xxxx registry.cn-hangzhou.aliyuncs.com
 ```
 
 ### 镜像管理
@@ -153,7 +153,7 @@ docker login --username=xxxx
 # 搜索镜像
 docker search [image_name]
 # 获取镜像
-docker pull [image_name]  # 下载的镜像在/var/lib/docker目录下
+docker pull [image_name]  =# 下载的镜像在/var/lib/docker目录下
 # 查看镜像
 docker images <image_name>
 docker images -a  # 列出所有本地的images(包括已删除的镜像记录)

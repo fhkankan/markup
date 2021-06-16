@@ -10,17 +10,6 @@ ssh user_name@远端计算机IP
 *****
 ```
 
-**无密码登录**
-
-```bash
-# 首先使用生成密钥
-ssh-keygen -t rsa
-# 将id_rsa.pub中的内容复制到远端计算机的.ssh/authorized_keys文件中，就可无密码访问远端计算机
-ssh-copy-id user@host
-# 无密码访问
-ssh user_name@远端计算机IP
-```
-
 非22端口
 
 ```shell
@@ -34,6 +23,31 @@ ssh -p 8022 user_name@远端计算机ip
 sudo vi /etc/ssh/ssh_config
 # 在Host *下面加入如下命令，命令含义：每隔60s客户端向服务器发送一个空包
 ServerAliveInterval 60   
+```
+
+- 别名访问
+
+```
+# 配置
+sudo vi ~/.ssh/config  # 创建打开文件
+
+Host master1  # 指定别名为 master1
+hostname 192.168.56.11  # 指定目标 ip
+user root  # 指定登录用户名
+
+# 效果
+ssh root@192.168.56.11 ==> ssh master1
+```
+
+- 无密登陆
+
+```
+# 首先使用生成密钥
+ssh-keygen -t rsa
+# 将id_rsa.pub中的内容复制到远端计算机的.ssh/authorized_keys文件中，就可无密码访问远端计算机
+ssh-copy-id user@host
+# 无密码访问
+ssh user_name@远端计算机IP
 ```
 
 ## 隧道建立
