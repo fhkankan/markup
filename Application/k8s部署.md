@@ -268,89 +268,32 @@ http://192.168.184.138:30880 ddd
 
 ## dashboard
 
-### 安装
+- 安装
 
 ```
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-beta4/aio/deploy/recommended.yaml
 
+# 查看
 kubectl get pods -A
 
 kubectl get namespaces
 
 kubectl cluster-info
-
-# 访问
-https://172.16.35.16:6443/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
-
-
 ```
 
-### 创建账号配置
+- 创建账号
 
-创建服务账号
-
-```
-# 1.创建一个叫admin-user的服务账号，并放在kube-system名称空间下
-# admin-user.yaml
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: admin-user
-  namespace: kube-system
-  
-# 2.执行
-kubectl create -f admin-user.yaml
+```shell
+# 创建用户
+kubectl create serviceaccount dashboard-admin -n kube-system
+# 用户授权
+kubectl create clusterrolebinding dashboard-admin --clusterrole=cluster-admin --serviceaccount=kube-system:dashboard-admin
+# 获取用户Token
+kubectl describe secrets -n kube-system $(kubectl -n kube-system get secret | awk '/dashboard-admin/{print $1}')  # 方法一
+kubectl -n kubernetes-dashboard describe secret $(kubectl -n kubernetes-dashboard get secret | grep dashboard-admin | awk '{print $1}')  # 方法二
 ```
 
-绑定角色
-
-```
-# 1. 默认情况下，kubeadm创建集群时已经创建了admin角色，我们直接绑定即可
-# admin-user-role-binding.yaml
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: ClusterRoleBinding
-metadata:
-  name: admin-user
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: cluster-admin
-subjects:
-- kind: ServiceAccount
-  name: admin-user
-  namespace: kube-system
- 
-# 2.执行
-kubectl create -f  admin-user-role-binding.yaml
-```
-
-获取Token
-
-```
-kubectl -n kubernetes-dashboard describe secret $(kubectl -n kubernetes-dashboard get secret | grep dashboard-admin | awk '{print $1}')
-```
-
-### 制作证书
-
-k8s默认启用了RBAC，并为未认证用户赋予了一个默认的身份：anonymous
-
-对于API Server来说，它是使用证书进行认证的，我们需要先创建一个证书：
-
-```
-# 我们使用client-certificate-data和client-key-data生成一个p12文件，可使用下列命令：
-# 生成client-certificate-data
-grep 'client-certificate-data' ~/.kube/config | head -n 1 | awk '{print $2}' | base64 -d >> kubecfg.crt
-
-# 生成client-key-data
-grep 'client-key-data' ~/.kube/config | head -n 1 | awk '{print $2}' | base64 -d >> kubecfg.key
-
-# 生成p12
-openssl pkcs12 -export -clcerts -inkey kubecfg.key -in kubecfg.crt -out kubecfg.p12 -name "kubernetes-client"
-```
-
-### 访问
-
-浏览器访问
+- 浏览器访问
 
 ```
 https://172.16.35.16:6443/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/
@@ -358,7 +301,7 @@ https://172.16.35.16:6443/api/v1/namespaces/kubernetes-dashboard/services/https:
 
 进去，输入token即可进入,注意：token的值一行，不要分行
 
-权限不足
+异常：权限不足
 
 ```
 # 配置
@@ -401,21 +344,110 @@ kubectl -n kubernetes-dashboard describe secret $(kubectl -n kubernetes-dashboar
 退出，重新输入token
 ```
 
+## 身份认证
+
+三种客户端身份认证
+
+```
+- HTTPS 证书认证：基于CA证书签名的数字证书认证
+- HTTP Token认证：通过一个Token来识别用户
+- HTTP Base认证：用户名+密码的方式认证（不用）
+```
+
+获取信息
+
+```shell
+# 获取host
+kubectl config view --minify | grep server | cut -f 2- -d ":" | tr -d " "
+kubectl config view | grep server  # 方法二
+
+# 获取token
+# 方法一：
+kubectl get secret -nkube-system | grep admin  # 获取admin配置项目
+kubectl describe secret xxx -nkube-system | grep token  # 获取配置项的token
+# 方法二
+kubectl describe secret $(kubectl get secret -n kube-system | grep ^admin-user | awk '{print $1}') -n kube-system | grep -E '^token'| awk '{print $2}'  # 拼接命令直接获取token
+```
+
+### token配置
+
+- 直接命令行
+
+见dashboard的创建账号
+
+- YAML创建
+
+创建YAML
+
+```
+# 创建服务账号
+# admin-user.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: admin-user
+  namespace: kube-system
+  
+# 绑定角色
+# admin-user-role-binding.yaml
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: admin-user
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: admin-user
+  namespace: kube-system
+```
+
+执行命令
+
+```
+kubectl create -f admin-user.yaml
+kubectl create -f  admin-user-role-binding.yaml
+```
+
+获取Token
+
+```
+kubectl describe secret $(kubectl get secret -n kube-system | grep ^admin-user | awk '{print $1}') -n kube-system | grep -E '^token'| awk '{print $2}'
+```
+
+### 制作证书
+
+k8s默认启用了RBAC，并为未认证用户赋予了一个默认的身份：anonymous
+
+对于API Server来说，它是使用证书进行认证的，我们需要先创建一个证书：
+
+```
+# 我们使用client-certificate-data和client-key-data生成一个p12文件，可使用下列命令：
+# 生成client-certificate-data
+grep 'client-certificate-data' ~/.kube/config | head -n 1 | awk '{print $2}' | base64 -d >> kubecfg.crt
+
+# 生成client-key-data
+grep 'client-key-data' ~/.kube/config | head -n 1 | awk '{print $2}' | base64 -d >> kubecfg.key
+
+# 生成p12
+openssl pkcs12 -export -clcerts -inkey kubecfg.key -in kubecfg.crt -out kubecfg.p12 -name "kubernetes-client"
+```
+
+## 其他
+
 单节点k8s,默认pod不被调度在master节点
 
 ```
 kubectl taint nodes --all node-role.kubernetes.io/master-  # 去污点，master节点可以被调度
 ```
 
-## 重启服务恢复k8s
+重启服务恢复k8s
 
 ```
 docker start $(docker ps -a | awk '{print $1}' |tail -n +2)
 ```
-
-
-
-
 
 # 应用项目
 
