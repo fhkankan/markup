@@ -69,6 +69,9 @@ git diff [本地库历史版本] [文件名]  # 将工作区中的文件和本�
 git bisect	# 通过二分法查找定位引入bug的提交
 git grep		# 输出和模式匹配的行
 git show		# 显示各种类型的对象
+
+git blame filename   # 查看每一行的修改人以及commit-id
+git show commit-id   # 查看详细的修改提交记录
 ```
 
 ## 管理修改
