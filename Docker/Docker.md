@@ -140,7 +140,7 @@ status		状态
 登陆
 
 ```
-docker login --username=xxxx
+docker login --username=xxxx registry.cn-hangzhou.aliyuncs.com
 ```
 
 ### 镜像管理
@@ -153,7 +153,7 @@ docker login --username=xxxx
 # 搜索镜像
 docker search [image_name]
 # 获取镜像
-docker pull [image_name]  # 下载的镜像在/var/lib/docker目录下
+docker pull [image_name]  =# 下载的镜像在/var/lib/docker目录下
 # 查看镜像
 docker images <image_name>
 docker images -a  # 列出所有本地的images(包括已删除的镜像记录)
@@ -262,7 +262,7 @@ docker stop [container_id]
 docker rm [container_id]
 # 强制删除(删除正在运行的)
 docker rm -f [container_id]
-# 批量删除相关容器
+# 批量删除已退出容器
 docker rm -f $(docker ps -a -q)
 ```
 
@@ -281,7 +281,6 @@ docker run --name [container_name] -it [docker_image] /bin/bash
 
 # 方式二：手工方式进入
 docker exec -it container_id /bin/bash
-
 # 方式三：生产中进入容器,会用脚本,
 # 脚本docker_in.sh内容
 #!/bin/bash

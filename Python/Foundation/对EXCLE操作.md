@@ -53,6 +53,9 @@ sheet1.col_values(i)
 cell_value = sheet1.cell(a,b).value.encode('utf-8')
 cell_value = sheet1.cell_value(a,b).encode('utf-8')
 cell_value = sheet1.row(a)[0].value.encode('utf-8')
+
+# 日期格式
+ date_time = xlrd.xldate_as_datetime(time_str, 0).strftime("%Y-%m-%d %H:%M:%S")
 ```
 
 ## 写入
@@ -149,7 +152,7 @@ print '创建excel文件完成！'
 
 处理excel表格的时候经常遇到合并单元格的情况，使用xlrd中的merged_cells的方法可以获取当前文档中的所有合并单元格的位置信息。
 
-```
+```python
 import xlrd
 
 xls = xlrd.open_workbook('test.xls')

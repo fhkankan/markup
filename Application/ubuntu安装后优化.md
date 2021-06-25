@@ -1,9 +1,19 @@
-# 屏幕分辨率
+# 基础
+
+屏幕分辨率
 
 ```
 xrandr -s 1920x1080 
 
 # 注意：x是英文字母x，临时生效
+```
+
+目录文件夹改为英文
+
+```shell
+export LANG=en_US  # 设置系统语言为英文
+xdg-user-dirs-gtk-update  # 更新目录
+export LANG=zh_CN  # 设置系统语言为中文
 ```
 
 # 卸载
@@ -96,16 +106,39 @@ sudo apt-get update
 
 ## 常规安装
 
+apt
+
+```
+sudo apt-get install git curl vpnc vlc unrar gparted nginx mongodb bleachbit htop openssh-server meld filezilla
+```
+
+brew 
+
+```shell
+# 前提
+sudo apt-get install build-essential curl file git
+# 方法一
+# 1.安装brew
+/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+# 2.设置全局变量
+test -d ~/.linuxbrew && eval $(~/.linuxbrew/bin/brew shellenv)
+test -d /home/linuxbrew/.linuxbrew && eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv)
+test -r ~/.bash_profile && echo "eval \$($(brew --prefix)/bin/brew shellenv)" >>~/.bash_profile
+echo "eval \$($(brew --prefix)/bin/brew shellenv)" >>~/.profile
+# 方法二
+# 独立安装
+git clone https://github.com/Homebrew/brew ~/.linuxbrew/Homebrew
+mkdir ~/.linuxbrew/bin
+ln -s ~/.linuxbrew/Homebrew/bin/brew ~/.linuxbrew/bin
+eval $(~/.linuxbrew/bin/brew shellenv)
+# 安装软件
+brew install gimp
+```
+
 snap
 
 ```
 sudo snap install dbeaver-ce code typora thunderbird gimp handbrake-jz
-```
-
-apt
-
-```
-sudo apt-get install git vpnc vlc unrar gparted nginx mongodb bleachbit htop openssh-server meld filezilla
 ```
 
 ## 添加仓库

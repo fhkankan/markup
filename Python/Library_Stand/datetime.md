@@ -210,10 +210,14 @@ print(localtime)
 
 通过`strftime()`实现的，同样需要一个日期和时间的格式化字符串：
 
-```
->>> from datetime import datetime
->>> now = datetime.now()
->>> print(now.strftime('%a, %b, %Y %m %d %H:%M:%S'))
+```python
+from datetime import datetime
+now = datetime.now()
+print(now.strftime('%a, %b, %Y %m %d %H:%M:%S'))
+
+# python3.6开始可以使用f
+time_obj = datetime.now()
+print(f"当前时间:{time_obj:%Y-%m-%d %H:%M:%S}")
 ```
 
 ## str ---> timestamp

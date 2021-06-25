@@ -30,9 +30,36 @@ web服务器可以解析HTTP，当微博、服务器接收到一个HTTP请求时
 
 主流服务器都实现了主流语言的可调用接口标准，这些标准有
 
+[参考](https://www.biaodianfu.com/cgi-fastcgi-wsgi.html)
+
 - CGI：common Gateway Interface，CGI规范允许web服务器执行外部程序，并将它们的输出发送给web服务器，CGI将web服务器的一组简单的静态超媒体文档变成一个完整的新的交互式媒体
 - ISAPI：Internet Server Application Program Interface，是微软提供的一套面向web服务的API接口，它能实现CGI提供的全部功能，并在此基础上进行了扩展，如提供了过滤器应用程序的接口
 - WSGI：Web Server Gateway Interface，是一套专为python语言制定的网络服务器标准接口。 
+
+## CGI&FastCGI
+
+[参考](https://www.jianshu.com/p/565217337247)
+
+- CGI
+
+CGI全称"通用网关接口"（Common Gateway Interface），用于HTTP服务器与其它机器上的程序服务通信交流的一种工具，CGI程序须运行在网络服务器上。
+
+传统CGI接口方式的主要缺点是性能较差，因为每次HTTP服务器遇到动态程序时都需要重启解析器来执行解析，然后结果被返回给HTTP服务器。这在处理高并发访问几乎是不可用的，因此就诞生了FastCGI。另外传统的CGI接口方式安全性也很差。
+
+- FastCCGI
+
+FastCGI是一个可伸缩地、高速地在HTTP服务器和动态脚本语言间通信的接口（FastCGI接口在Linux下是socket（可以是文件socket，也可以是ip socket）），主要优点是把动态语言和HTTP服务器分离开来。多数流行的HTTP服务器都支持FastCGI，包括Apache、Nginx和lightpd。
+
+同时，FastCGI也被许多脚本语言所支持，比较流行的脚本语言之一为PHP。FastCGI接口方式采用C/S架构，可以将HTTP服务器和脚本解析服务器分开，同时在脚本解析服务器上启动一个或多个脚本解析守护进程。当HTTP服务器每次遇到动态程序时，可以将其直接交付给FastCGI进程执行，然后将得到的结构返回给浏览器。这种方式可以让HTTP服务器专一地处理静态请求或者将动态脚本服务器的结果返回给客户端，这在很大程度上提高了整个应用系统的性能。
+
+FastCGI的重要特点：
+
+- 1、FastCGI是HTTP服务器和动态脚本语言间通信的接口或者工具。
+- 2、FastCGI优点是把动态语言解析和HTTP服务器分离开来。
+- 3、Nginx、Apache、Lighttpd以及多数动态语言都支持FastCGI。
+- 4、FastCGI接口方式采用C/S架构，分为客户端（HTTP服务器）和服务端（动态语言解析服务器）。
+- 5、PHP动态语言服务端可以启动多个FastCGI的守护进程。
+- 6、HTTP服务器通过FastCGI客户端和动态语言FastCGI服务端通信。
 
 ## WSGI&ASGI
 
@@ -64,3 +91,4 @@ web服务器可以解析HTTP，当微博、服务器接收到一个HTTP请求时
 - 区别
 
 以上，`WSGI`是基于`HTTP`协议模式的，不支持`WebSocket`，而`ASGI`的诞生则是为了解决`Python`常用的`WSGI`不支持当前`Web`开发中的一些新的协议标准。同时，`ASGI`对于`WSGI`原有的模式的支持和`WebSocket`的扩展，即`ASGI`是`WSGI`的扩展。
+

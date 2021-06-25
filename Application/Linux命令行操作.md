@@ -74,6 +74,14 @@ source ~/.bashrc
 
 # 查看信息
 
+帮助命令
+
+```
+man [命令]
+help [命令]
+info [命令]
+```
+
 网络连接
 
 ```python
@@ -260,6 +268,14 @@ netstat -anlp | grep 端口号
 netstat -tunlp|grep 端口号
 # 查看所有端口状态
 netstat -ntlup  
+# 显示详细的网络状况
+netstat -a
+# 显示UDP端口号的使用情况
+netstat -apu
+# 显示网卡列表
+netstat -i
+# 显示网络统计信息
+netstat -s
 ```
 
 lsof
@@ -346,32 +362,10 @@ n         ：重复前一个搜寻 (与 / 或 ? 有关！)
 N         ：反向的重复前一个搜寻 (与 / 或 ? 有关！)
 q         ：离开 less 这个程序；
 
-head [-n number] 文件名
-# 只看头几行
-
-tail [-n number] 文件名
-# 只看尾巴几行
-
 |
 管道：一个命令的输出可以通过管道作为另一个命令的输入
 # 对于容量长的内容可以不用写入文件直接通过|在终端分屏输出
 ls -ih | more
-
-
-
-tac
-# 从最后一行开始显示
-
-nl [-bnw] 文件
-# 显示的时候，输出行号
--b ：指定行号指定的方式，主要有两种：
--b a ：表示不论是否为空行，也同样列出行号(类似 cat -n)；
--b t ：如果有空行，空的那一行不要列出行号(默认值)；
--n ：列出行号表示的方法，主要有三种：
--n ln ：行号在荧幕的最左方显示；
--n rn ：行号在自己栏位的最右方显示，且不加 0 ；
--n rz ：行号在自己栏位的最右方显示，且加 0 ；
--w ：行号栏位的占用的位数。
 ```
 
 # 目录管理
@@ -462,17 +456,18 @@ grep [-选项] '搜索内容串' 文件名
 -c	只能输出匹配行的计数
 -n	显示匹配行及行号
 -v	显示不包含匹配文本的所有行
-# 显示filename文件中不含有’s'字符的所有行
-grep  -v 's' filename.txt
-# 显示filename文件中含有’s'字符的行数
-grep  -c 's' filename.txt
-# 显示filename文件中含有’s'字符的行数和内容
-grep  -n 's' filename.txt
-# 忽略大小写，显示filename文件中含有’s'字符的内 
-grep  -i 's' filename.txt
-# 精确定位错误代码
-grep -nr [错误关键字] *
 
+grep  -v 's' filename.txt  # 显示filename文件中不含有’s'字符的所有行
+grep  -c 's' filename.txt # 显示filename文件中含有’s'字符的行数
+grep  -n 's' filename.txt  # 显示filename文件中含有’s'字符的行数和内容
+grep  -i 's' filename.txt  # 忽略大小写，显示filename文件中含有’s'字符的内 
+grep -nr [错误关键字] *  # 精确定位错误代码
+
+# 与或非
+grep 'pattern1' filename | grep 'pattern2'  # 与
+grep 'pattern1\|pattern2' filename  # 或
+grep -E 'pattern1|pattern2' filename  # 或
+grep -v 'pattern' filename  # 非
 
 find
 # 查找符合条件文件并将查找结果输出
@@ -509,6 +504,45 @@ cat [option][file]...
 -s : 将连续的两个空白行合并为一行
 # eg:
 cat 1.txt 2.txt > 3.txt
+
+
+head [-n number] 文件名
+# 只看头几行
+
+tail
+# 只看尾巴几行
+tail [参数] 文件名
+-f 循环读取
+-q 不显示处理信息
+-v 显示详细的处理信息
+-c<数目> 显示的字节数
+-n<行数> 显示文件的尾部 n 行内容
+--pid=PID 与-f合用,表示在进程ID,PID死掉之后结束
+-q, --quiet, --silent 从不输出给出文件名的首部
+-s, --sleep-interval=S 与-f合用,表示在每次反复的间隔休眠S秒
+
+tail notes.log  # 显示最后10行
+tail -f notes.log  # 跟踪文件实时最后10行
+tail -f -n 20 notes.log # 跟踪文件实时最后20行
+tail -n +20 notes.log  # 从第20行到末尾
+tail -c 10 notes.log	# 显示最后10个字符
+
+tail -f notes.log |grep getUserInfo\ response # 跟踪用户的日志中getUserInfo\ response信息
+
+
+tac
+# 从最后一行开始显示
+
+nl [-bnw] 文件
+# 显示的时候，输出行号
+-b ：指定行号指定的方式，主要有两种：
+-b a ：表示不论是否为空行，也同样列出行号(类似 cat -n)；
+-b t ：如果有空行，空的那一行不要列出行号(默认值)；
+-n ：列出行号表示的方法，主要有三种：
+-n ln ：行号在荧幕的最左方显示；
+-n rn ：行号在自己栏位的最右方显示，且不加 0 ；
+-n rz ：行号在自己栏位的最右方显示，且加 0 ；
+-w ：行号栏位的占用的位数。
 ```
 
 ## 创建文件
@@ -547,6 +581,19 @@ w：2,写入，可以在目录下创建新文件
 x：1,执行，可以通过cd进入
 -: 0,不具有任何权限
 
+# 将文件 file1.txt 设为所有人皆可读取 
+chmod ugo+r file1.txt
+chmod a+r file1.txt
+chmod 444 file1.txt
+# 将文件 file1.txt 与 file2.txt 设为该文件拥有者，与其所属同一个群体者可写入，但其他以外的人则不可写入
+chmod ug+w,o-w file1.txt file2.txt
+# 为 ex1.py 文件拥有者增加可执行权限:
+chmod u+x ex1.py
+# 将目前目录下的所有文件与子目录皆设为任何人可读取 :
+chmod -R a+r *
+# 此外chmod也可以用数字来表示权限如
+chmod 777 file
+
 chown
 # 更改文件的所有者
 chown [option]...[owner][:[group]]file
@@ -554,6 +601,10 @@ chown [option]...--reference=rfile file
 -c:显示文件所有者更改后的信息
 -f:忽略错误消息的输出
 -R:以递归的方式更改目录及子目录的所有者
+
+chown root /var/run/httpd.pid
+chown runoob:runoobgroup file1.txt
+chown -R runoob:runoobgroup *
 ```
 
 ## 链接
@@ -1046,23 +1097,27 @@ ssh 用户名@ip地址
 exit
 # 进入root用户
 sudo -s
+sudo su -  # 携带bash配置进入root
 # 当前登录用户名
 whoami
 # 当前哪些用户在登录
 who
 # 切换用户
-su 用户名
+su 用户名 
 
 # 创建超级用户密码
 sudo passwd
 
-# 用户口令的管理
+# 密码管理
 passwd 选项 用户名
 -l 锁定口令，即禁用账号。
 -u 口令解锁。
 -d 使账号无口令。
 -f 强迫用户下次登录时修改口令。
-当前用户下，使用passwd,为修改当前用户密码
+# 例子
+passwd 用户名  # root登陆，设置修改其他用户密码
+passwd 				# 修改当前用户密码(若是root则修改root，普通则修改普通)
+sudo passwd root  # 普通用户修改root账户密码，输入当前账户和root用户密码修改
 
 # 添加用户
 sudo useradd 选项 用户名
@@ -1279,7 +1334,7 @@ hwclock[options][--ser--date=<date and time>]
 
 # 关机重启
 
-```
+```shell
 sync			将数据由内存同步到硬盘中
 reboot	        重新启动操作系统
 halt			关闭系统
@@ -1289,8 +1344,6 @@ shutdown -h now	立刻关机，其中now相当于时间为0的状态
 shutdown -h 20:25	系统在今天的20:25 会关机
 shutdown -h +10	系统再过十分钟后自动关机
 ```
-
-# 
 
 
 

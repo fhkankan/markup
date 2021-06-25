@@ -4,20 +4,47 @@
 
 >类似ubuntu中的apt-get包管理器，主要装非图形化界面，需下载源码，编译，安装
 
-命令行安装
+[官网](https://brew.sh)
 
-```
+官方命令安装卸载
+
+```shell
+# 安装
 /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+# 卸载
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/uninstall.sh)"
+```
+
+国内安装卸载
+
+```shell
+# 方法一：安装配置
+/bin/zsh -c "$(curl -fsSL https://gitee.com/cunkai/HomebrewCN/raw/master/Homebrew.sh)"
+# 方法二：安装dmg，配置启动
+
+# 卸载
+cd `brew --prefix`
+rm -rf Cellar
+brew prune
+rm -rf Library .git .gitignore bin/brew README.md share/man/man1/brew
+rm -rf ~/Library/Caches/Homebrew
 ```
 
 使用
 
-```
+```shell
+brew commands		#显示内置的命令
+
+brew update                # brew自身更新
+brew cleanup             	#清除下载的缓存
+brew autoremove						# 自动删除不需要的包
+
 brew search [pack]		# 搜索brew支持的软件
 brew info [pack]		# 显示软件的各种信息
 brew list               # 列出通过brew安装的所有软件
 
-brew install [pack]     # 安装源码
+brew install [pack]     # 安装源码, 多软件时空格区分
+brew reinstall [pack]  # 再次安装
 brew uninstall [pack]	# 卸载软件
 
 brew outdated 			# 查看可用的更新
@@ -26,8 +53,7 @@ brew upgrade 			# 更新所有软件包，不包括标记了auto_updates或者la
 brew upgrade [pack]     # 更新安装过的软件
 brew upgrade --greedy 	# 更新所有可用软件包
 
-brew update                # brew自身更新
-brew cleanup             	#清除下载的缓存
+
 (PS:详见man brew)
 ```
 

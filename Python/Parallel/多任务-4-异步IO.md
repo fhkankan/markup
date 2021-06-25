@@ -1196,8 +1196,6 @@ loop.reun_until_complete(coro)
 # ({Task(<sleep>)<result=NOne>, Task(<sleep>)<result=None>}, set())
 ```
 
-
-
 ### 多线程
 
 很多时候，我们的事件循环用于注册协程，而有的协程需要动态的添加到事件循环中。一个简单的方式就是使用多线程。当前线程创建一个事件循环，然后再新建一个线程，在新线程中启动事件循环。当前线程不会被`block(阻塞)`。

@@ -267,7 +267,7 @@ df_obj["raw_label1":"raw_label2"]
 df_obj[pos1:pos2]
 
 # 按条件索引(布尔索引)
-df_obj[df_obj["column_label] >= 2]
+df_obj[df_obj["column_label"] >= 2]
 
 # 取值
 # 取某列的某个数据

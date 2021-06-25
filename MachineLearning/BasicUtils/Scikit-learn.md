@@ -38,6 +38,8 @@ import sklearn
 
 ## 数据集
 
+### 使用内置数据集
+
 ```
 from sklearn import datasets
 ```
@@ -96,6 +98,38 @@ X, y = datasets.make_blobs(n_samples=100, n_features=2, centers=2, random_state=
 # random_state	随机种子
 # cluster_std	方差
 ```
+
+### 测试训练分离
+
+```python
+import numpy as np
+from sklearn.datasets import load_boston
+from sklearn.model_selection import train_test_split
+from sklearn.utils import check_random_state
+
+
+# For reproducibility
+np.random.seed(1000)
+
+
+if __name__ == '__main__':
+    # Load the dataset
+    boston = load_boston()
+    X = boston.data
+    Y = boston.target
+
+    print(X.shape)
+    print(Y.shape)
+
+    # Create train and test sets
+    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.25, random_state=1000)
+
+    # Use a random state
+    rs = check_random_state(1000)
+    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.25, random_state=rs)
+```
+
+
 
 ## 特征工程
 
@@ -381,7 +415,7 @@ X = np.array([[np.nan, 0, 3],
               [4, np.nan, 6],
               [8, 8, 1]])
 y = np.array([14, 16, -1, 8, -5])
-imp = SimpleImputer(strategy="mean")
+imp = SimpleImputer(strategy="mean")  # 参数有mean,median,most_frequent等
 X2 = imp.fit_transform(X)
 print(X2)
 # [[4.5 0.  3. ]
@@ -479,10 +513,33 @@ result = ss.fit_transform(data)
 # 原始数据中每列特征的平均值
 print(ss.mean_)
 ```
+对异常值进行控制并选择分位数大的范围
+
+```python
+from sklearn.preprocessing import RobustScaler
+
+data = np.ndarray(shape=(100, 2))
+
+for i in range(100):
+    data[i, 0] = 2.0 + np.random.normal(1.5, 3.0)
+    data[i, 1] = 0.5 + np.random.normal(1.5, 3.0)
+
+rs = RobustScaler(quantile_range=(15, 85))
+scaled_data = rs.fit_transform(data)
+
+
+rs1 = RobustScaler(quantile_range=(25, 75))
+scaled_data1 = rs1.fit_transform(data)
+    
+rs2 = RobustScaler(quantile_range=(30, 65)) 
+scaled_data2 = rs2.fit_transform(data)
+```
+
 范数归一化，参数norm可以为l1,l2,max
+
 ```python
 import numpy as np
-from sklearn.preprocessing import Normalizer
+from sklearn.preprocessing import Normalizer  # 为每个样本归一化
 
 data = np.array([[3, 1.5, 2, -5.6], [0, 4, -0.2, 3.1], [1, 3.3, -1.9, -4.3]])
 
@@ -495,6 +552,76 @@ n_t = Normalizer(norm="max")
 res = n_t.fit_transform(data)
 print(res)
 ```
+
+白化
+
+```python
+"""
+standardScaler类以特征方式运行，但是，有时需要变换整个数据集使它具有单位协方差矩阵以提高许多对独立组元数据敏感的算法的性能：\frac{1}{N}{X^T}X=>I
+目标是找到变换矩阵A(白化矩阵)，以便新数据集X^'=XA^T具有单位协方差C^'(假设X是以零为中心的，或者其具有零均值)。
+
+白化程序适用于整个数据集，因此无论何时在线执行训练过程都是不可接受的。然而，在大多数情况下，它可以无限制地使用，并且对训练速度和准确度非常有帮助。
+"""
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+# For reproducibility
+np.random.seed(1000)
+
+
+nb_samples = 1000
+
+
+def zero_center(X):
+    return X - np.mean(X, axis=0)
+
+
+def whiten(X, correct=True):
+    Xc = zero_center(X)
+    _, L, V = np.linalg.svd(Xc)
+    W = np.dot(V.T, np.diag(1.0 / L))
+    return np.dot(Xc, W) * np.sqrt(X.shape[0]) if correct else 1.0
+
+
+if __name__ == '__main__':
+    # Create the dataset
+    X = np.random.normal(0.0, [2.5, 1.0], size=(nb_samples, 2))
+
+    theta = np.pi / 4.0
+    R = np.array([[np.cos(theta), -np.sin(theta)], [np.sin(theta), np.cos(theta)]])
+
+    Xr = np.dot(X, R)
+
+    # Create a whitened version
+    Xw = whiten(Xr)
+
+    # Print the whitened covariance matrix
+    print(np.cov(Xw.T))
+
+    # Show original and whitened datasets
+    fig, ax = plt.subplots(1, 2, figsize=(15, 5))
+
+    ax[0].scatter(Xr[:, 0], Xr[:, 1])
+    ax[0].set_xticks(np.arange(-10, 10), 2)
+    ax[0].set_yticks(np.arange(-8, 8), 2)
+    ax[0].set_xlabel(r'$x_1$')
+    ax[0].set_ylabel(r'$x_2$')
+    ax[0].set_title(r'Original dataset')
+    ax[0].grid()
+
+    ax[1].scatter(Xw[:, 0], Xw[:, 1])
+    ax[1].set_xticks(np.arange(-10, 10), 2)
+    ax[1].set_yticks(np.arange(-8, 8), 2)
+    ax[1].set_xlabel(r'$x_1$')
+    ax[1].set_ylabel(r'$x_2$')
+    ax[1].set_title(r'Whitened dataset')
+    ax[1].grid()
+
+    plt.show()
+```
+
+
 
 ### 特征选择
 
@@ -525,7 +652,7 @@ data = [[0, 2, 0, 3],
         [0, 1, 4, 3],
         [0, 1, 1, 3]]
         
-# 删除所有低方差特征，默认0.0
+# 删除所有低方差特征，默认threshold=0.0
 vt = VarianceThreshold()
 # 输入值：numpy array格式数据
 # 返回值：训练集差异低于threshold的特征将被删除
@@ -540,7 +667,7 @@ print(result.shape)
 
 ```python
 import numpy as np
-from sklearn.feature_selection import SelectKBest, f_classif
+from sklearn.feature_selection import SelectKBest, f_classif,  f_regression, SelectPercentile, chi2, # SelectKBest选择最佳K高分特征，SelectPercentile选择属于某个百分位数的功能的子集
 import matplotlib.pyplot as plt
 
 predictors = ["Pclass", "Sex", "Age", "Fare"]
@@ -555,17 +682,390 @@ scores = -np.log10(selector.pvalues_)
 plt.bar(range(len(predictors)), scores)
 plt.xticks(range(len(predictors)), predictos, totation="vertical")
 plt.show()
+
+# Load Boston data
+regr_data = load_boston()
+print('Boston data shape')
+print(regr_data.data.shape)
+
+# Select the best k features with regression test
+kb_regr = SelectKBest(f_regression)
+X_b = kb_regr.fit_transform(regr_data.data, regr_data.target)
+print('K-Best-filtered Boston dataset shape')
+print(X_b.shape)
+print('K-Best scores')
+print(kb_regr.scores_)
+
+# Load iris data
+class_data = load_iris()
+print('Iris dataset shape')
+print(class_data.data.shape)
+
+# Select the best k features using Chi^2 classification test
+perc_class = SelectPercentile(chi2, percentile=15)
+X_p = perc_class.fit_transform(class_data.data, class_data.target)
+print('Chi2-filtered Iris dataset shape')
+print(X_p.shape)
+print('Chi2 scores')
+print(perc_class.scores_)
+
 ```
 
 #### 降维
 
+API
+
 ```python
 # PCA
 from sklearn.decomposition import PCA
+# NMF
+from sklearn.decomposition import NMF
+# 稀疏PCA
+from sklearn.decomposition import SparsePCA
 # 核PCA
 from sklearn.decomposition import KernelPCA
+```
+
+pca
+
+```python
+from __future__ import print_function
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+from sklearn.datasets import load_digits
+from sklearn.decomposition import PCA
+
+# For reproducibility
+np.random.seed(1000)
+
+if __name__ == '__main__':
+    # Load MNIST digits
+    digits = load_digits()
+
+    # Show some random digits
+    selection = np.random.randint(0, 1797, size=100)
+
+    fig, ax = plt.subplots(10, 10, figsize=(10, 10))
+
+    samples = [digits.data[x].reshape((8, 8)) for x in selection]
+
+    for i in range(10):
+        for j in range(10):
+            ax[i, j].set_axis_off()
+            ax[i, j].imshow(samples[(i * 8) + j], cmap='gray')
+
+    plt.show()
+
+    # Perform a PCA on the digits dataset
+    pca = PCA(n_components=36, whiten=True)
+    X_pca = pca.fit_transform(digits.data / 255)
+
+    print('Explained variance ratio')
+    print(pca.explained_variance_ratio_)
+
+    # Plot the explained variance ratio
+    fig, ax = plt.subplots(1, 2, figsize=(16, 6))
+
+    ax[0].set_xlabel('Component')
+    ax[0].set_ylabel('Variance ratio (%)')
+    ax[0].bar(np.arange(36), pca.explained_variance_ratio_ * 100.0)
+
+    ax[1].set_xlabel('Component')
+    ax[1].set_ylabel('Cumulative variance (%)')
+    ax[1].bar(np.arange(36), np.cumsum(pca.explained_variance_)[::-1])
+
+    plt.show()
+
+    # Rebuild from PCA and show the result
+    fig, ax = plt.subplots(10, 10, figsize=(10, 10))
+
+    samples = [pca.inverse_transform(X_pca[x]).reshape((8, 8)) for x in selection]
+
+    for i in range(10):
+        for j in range(10):
+            ax[i, j].set_axis_off()
+            ax[i, j].imshow(samples[(i * 8) + j], cmap='gray')
+
+    plt.show()
+
+
+```
+
+nmf(非负矩阵分解)
+
+```python
+from __future__ import print_function
+
+import numpy as np
+
+from sklearn.datasets import load_iris
+from sklearn.decomposition import NMF
+
+# For reproducibility
+np.random.seed(1000)
+
+if __name__ == '__main__':
+    # Load iris dataset
+    iris = load_iris()
+    print('Irid dataset shape')
+    print(iris.data.shape)
+
+    # Perform a non-negative matrix factorization
+    nmf = NMF(n_components=3, init='random', l1_ratio=0.1)
+    Xt = nmf.fit_transform(iris.data)
+
+    print('Reconstruction error')
+    print(nmf.reconstruction_err_)
+
+    print('Original Iris sample')
+    print(iris.data[0])
+
+    print('Compressed Iris sample (via Non-Negative Matrix Factorization)')
+    print(Xt[0])
+
+    print('Rebuilt sample')
+    print(nmf.inverse_transform(Xt[0]))
+```
+
+稀疏pca
+
+```python
+from __future__ import print_function
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+from sklearn.datasets import load_digits
+from sklearn.decomposition import SparsePCA
+
+# For reproducibility
+np.random.seed(1000)
+
+
+if __name__ == '__main__':
+    # Load MNIST digits
+    digits = load_digits()
+
+    # Show some random digits
+    selection = np.random.randint(0, 1797, size=100)
+
+    fig, ax = plt.subplots(10, 10, figsize=(10, 10))
+
+    samples = [digits.data[x].reshape((8, 8)) for x in selection]
+
+    for i in range(10):
+        for j in range(10):
+            ax[i, j].set_axis_off()
+            ax[i, j].imshow(samples[(i * 8) + j], cmap='gray')
+
+    plt.show()
+
+    # Perform a PCA on the digits dataset
+    spca = SparsePCA(n_components=60, alpha=0.1)
+    X_spca = spca.fit_transform(digits.data / 255)
+
+    print('SPCA components shape:')
+    print(spca.components_.shape)
+
+```
+
+核PCA
+
+```python
+from __future__ import print_function
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+from sklearn.datasets import make_circles
+from sklearn.decomposition import KernelPCA
+
+# For reproducibility
+np.random.seed(1000)
+
+if __name__ == '__main__':
+    # Create a dummy dataset
+    Xb, Yb = Xb, Yb = make_circles(n_samples=500, factor=0.1, noise=0.05)
+
+    # Show the dataset
+    fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+    ax.scatter(Xb[:, 0], Xb[:, 1])
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.grid()
+
+    plt.show()
+
+    # Perform a kernel PCA (with radial basis function)
+    kpca = KernelPCA(n_components=2, kernel='rbf', fit_inverse_transform=True, gamma=1.0)
+    X_kpca = kpca.fit_transform(Xb)
+
+    # Plot the dataset after PCA
+    fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+    ax.scatter(kpca.X_transformed_fit_[:, 0], kpca.X_transformed_fit_[:, 1])
+    ax.set_xlabel('First component')
+    ax.set_ylabel('Second component')
+    ax.grid()
+
+    plt.show()
+```
+
+#### 独立成分
+
+api
+
+```python
 # ICA
 from sklearn.decomposition import FastICA
+```
+
+实现
+
+```python
+from __future__ import print_function
+
+import matplotlib.pyplot as plt
+import numpy as np
+import os
+
+from shutil import copyfileobj
+from six.moves import urllib
+
+from sklearn.datasets.base import get_data_home
+from sklearn.datasets import fetch_mldata
+from sklearn.decomposition import FastICA
+
+"""
+从MNIST数据集原来的256个独立变量中提取出独立主元
+"""
+
+# Set random seed for reproducibility
+np.random.seed(1000)
+
+
+# mldata.org can be subject to outages
+# Alternative original MNIST source (provided by Aurélien Geron)
+def fetch_mnist(data_home=None):
+    mnist_alternative_url = "https://github.com/amplab/datascience-sp14/raw/master/lab7/mldata/mnist-original.mat"
+    data_home = get_data_home(data_home=data_home)
+    data_home = os.path.join(data_home, 'mldata')
+    if not os.path.exists(data_home):
+        os.makedirs(data_home)
+    mnist_save_path = os.path.join(data_home, "mnist-original.mat")
+    if not os.path.exists(mnist_save_path):
+        mnist_url = urllib.request.urlopen(mnist_alternative_url)
+        with open(mnist_save_path, "wb") as matlab_file:
+            copyfileobj(mnist_url, matlab_file)
+
+
+def zero_center(Xd):
+    return Xd - np.mean(Xd, axis=0)
+
+
+if __name__ == '__main__':
+    # 加载数据集并将其均值置于0（算法对对称数据敏感）
+    mnist = fetch_mnist()
+    digits = fetch_mldata("MNIST original")
+    X = zero_center(digits['data'].astype(np.float64))
+    np.random.shuffle(X)
+
+    # Peform Fast ICA with 64 components
+    fastica = FastICA(n_components=256, max_iter=5000, random_state=1000)
+    fastica.fit(X)
+
+    # Plot the indipendent components
+    fig, ax = plt.subplots(8, 8, figsize=(11, 11))
+
+    for i in range(8):
+        for j in range(8):
+            ax[i, j].imshow(fastica.components_[(i * 8) + j].reshape((28, 28)), cmap='gray')
+            ax[i, j].axis('off')
+
+    plt.show()
+
+```
+
+### 其他
+
+#### 字典学习
+
+字典学习可以从原子的稀疏词典(类似主成分)重建样本。传统上，当字典包含少于样本的维数m的多个元素时，它被称为不完备字典。当原子数大于m时，被称为超完备字典。
+
+```python
+from __future__ import print_function
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+from sklearn.datasets import load_digits
+from sklearn.decomposition import DictionaryLearning
+
+# For reproducibility
+np.random.seed(1000)
+
+if __name__ == '__main__':
+    # Load MNIST digits
+    digits = load_digits()
+
+    # Perform a dictionary learning (and atom extraction) from the MNIST dataset
+    dl = DictionaryLearning(n_components=36, fit_algorithm='lars', transform_algorithm='lasso_lars')
+    X_dict = dl.fit_transform(digits.data)
+
+    # Show the atoms that have been extracted
+    fig, ax = plt.subplots(6, 6, figsize=(8, 8))
+
+    samples = [dl.components_[x].reshape((8, 8)) for x in range(34)]
+
+    for i in range(6):
+        for j in range(6):
+            ax[i, j].set_axis_off()
+            ax[i, j].imshow(samples[(i * 5) + j], cmap='gray')
+
+    plt.show()
+```
+
+#### 可视化高维数据
+
+t-Distributed随机邻域嵌入(t-SNE)算法，可用于在2D图中可视化高维数据集
+
+```python
+from __future__ import print_function
+
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+import numpy as np
+
+from sklearn.datasets import load_digits
+from sklearn.manifold import TSNE
+
+
+# Set random seed for reproducibility
+np.random.seed(1000)
+
+
+if __name__ == '__main__':
+    # Load the dataset
+    digits = load_digits()
+    X = digits['data'] / np.max(digits['data'])
+
+    # Perform a t-SNE
+    tsne = TSNE(n_components=2, perplexity=20, random_state=1000)
+    X_tsne = tsne.fit_transform(X)
+
+    # Plot the t-SNE result
+    fig, ax = plt.subplots(figsize=(18, 10))
+
+    for i in range(400):
+        ax.scatter(X_tsne[:, 0], X_tsne[:, 1], color=cm.rainbow(digits['target'] * 10), marker='o', s=20)
+        ax.annotate('%d' % digits['target'][i], xy=(X_tsne[i, 0] + 1, X_tsne[i, 1] + 1))
+
+    ax.set_xlabel(r'$x_0$')
+    ax.set_ylabel(r'$x_1$')
+    ax.grid()
+
+    plt.show()
 ```
 
 ## 自定义转换器
@@ -1133,6 +1633,10 @@ from sklearn.metrics import r2_score
 
 ### 分类
 
+- 指标
+
+api
+
 ```python
 # 准确度
 from sklearn.metrics import accuracy_score
@@ -1141,35 +1645,131 @@ from sklearn.metrics import confusion_matrix
 # 精准率
 from sklearn.metrics import precision_score
 # 召回率
-from sklearn.metics import recall_score
+from sklearn.metrics import recall_score
 # F1得分
-from sklearn.metics import f1_score
+from sklearn.metrics import f1_score
+from sklearn.metrics import fbeta_score # beta=1时等价于f1_score 
+# kappa
+from sklearn.metrics import cohen_kappa_score
+# 分类结果报告
+from sklearn.metrics import classification_report
 ```
 
-PR曲线
+实现
 
 ```python
+from __future__ import print_function
+
+import numpy as np
+
+from sklearn.datasets import make_classification
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, zero_one_loss, jaccard_similarity_score, confusion_matrix, \
+    precision_score, recall_score, fbeta_score, cohen_kappa_score, classification_report
+
+
+# For reproducibility
+np.random.seed(1000)
+
+nb_samples = 500
+
+
+if __name__ == '__main__':
+    # Create dataset
+    X, Y = make_classification(n_samples=nb_samples, n_features=2, n_informative=2, n_redundant=0,
+                               n_clusters_per_class=1, random_state=1000)
+
+    # Split dataset
+    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.25, random_state=1000)
+
+    # Create and train logistic regressor
+    lr = LogisticRegression()
+    lr.fit(X_train, Y_train)
+
+    print('Accuracy score: %.3f' % accuracy_score(Y_test, lr.predict(X_test)))
+    print('Zero-one loss (normalized): %.3f' % zero_one_loss(Y_test, lr.predict(X_test)))
+    print('Zero-one loss (unnormalized): %.3f' % zero_one_loss(Y_test, lr.predict(X_test), normalize=False))
+    print('Jaccard similarity score: %.3f' % jaccard_similarity_score(Y_test, lr.predict(X_test)))
+
+    # Compute confusion matrix
+    cm = confusion_matrix(y_true=Y_test, y_pred=lr.predict(X_test))
+    print('Confusion matrix:')
+    print(cm[::-1, ::-1])
+
+    print('Precision score: %.3f' % precision_score(Y_test, lr.predict(X_test)))
+    print('Recall score: %.3f' % recall_score(Y_test, lr.predict(X_test)))
+    print('F-Beta score (1): %.3f' % fbeta_score(Y_test, lr.predict(X_test), beta=1))
+    print('F-Beta score (0.75): %.3f' % fbeta_score(Y_test, lr.predict(X_test), beta=0.75))
+    print('F-Beta score (1.25): %.3f' % fbeta_score(Y_test, lr.predict(X_test), beta=1.25))
+    print('Cohen-Kappa score: %.3f' % cohen_kappa_score(Y_test, lr.predict(X_test)))
+
+    # Print the classification report
+    print('\n\nClassification report:')
+    print(classification_report(Y_test, lr.predict(X_test)))
+```
+
+- 曲线
+
+api
+
+```python
+# PR曲线
 from sklearn.metrics import precision_recall_curve
-
-precisions, recalls, thresholds = precision_recall_curve(y_test, decision_scores)
+# ROC曲线
+from sklearn.metrics import roc_curve
+from sklearn.metrics import roc_auc_score
 ```
 
-ROC/AUC曲线
+实现
 
 ```python
+import numpy as np
+from sklearn import datasets
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import precision_score
+from sklearn.metrics import recall_score
+from sklearn.metrics import f1_score
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import precision_recall_curve
 from sklearn.metrics import roc_curve
 from sklearn.metrics import roc_auc_score
 
-fprs, tprs, thresholds = roc_curve(Y_test, decision_scores)
+digits = datasets.load_digits()
+X = digitis.data
+y = digitis.target.copy()
+# 对数据手动偏斜
+y[digits.target==9] = 1
+y[digits.target!=9] = 0
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=666)
+
+log_reg = LogisticRegression()
+log_reg.fit(X_train, y_train)
+log_reg.score(X_test, y_test)  # 准确度
+
+y_log_predict = log_reg.predict(X_test)
+
+confusion_matrix(y_test, y_log_predict)  # 混淆矩阵
+precision = precision_score(y_test, y_log_predict)  # 精确度
+recall = recall_score(y_test, y_log_predict)  # 召回率
+f1_score = f1_score(y_test, y_log_predict)  # f1
+
+# precision-recall曲线
+precisions, recalls, thresholds = precision_recall_curve(y_test, decision_scores)
+plt.plot(thresholds, precisions[:-1])
+plt.plot(thresholds, recalls[:-1])
+plt.show()
+plt.plot(precisions, recalls)
+plt.show()
+
+# ROC
+fprs, tprs, thresholds = roc_curve(y_test, decision_scores)
+plt.plot(fprs, tprs)
+plt.show()
+
 roc_auc_score(y_test, decision_scores)
-```
-
-分类结果报告
-
-```python
-from sklearn.metrics import classification_report
-
-res = classification_report(y_test, y_predict, target_names=data.target_names)
 ```
 
 ### 聚类
@@ -1178,6 +1778,17 @@ res = classification_report(y_test, y_predict, target_names=data.target_names)
 
 ```python
 from sklearn.metrics import silhouette_score
+```
+
+基于样本标记的评价方法
+
+```python
+# 同质性
+from sklearn.metrics import homogeneity_score
+# 完整性
+from sklearn.metrics import completeness_score
+# 修正兰德指数
+from sklearn.metrics import adjusted_rand_score
 ```
 
 ## 模型相关

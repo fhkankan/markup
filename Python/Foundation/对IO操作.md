@@ -1243,6 +1243,3 @@ with open('test.dat', 'rb') as fp:  # 打开二进制文件
 
 # 与pickle类似，marshal也提供了dumps()和loads()函数来实现数据的序列化和反序列化。序列化后的字节串更短，可以减少磁盘空间或网络宽带的占用
 ```
-
-> 
-
