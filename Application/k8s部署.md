@@ -609,7 +609,7 @@ spec: # 资源规范字段
                 - amd64
 ```
 
-svc
+service
 
 ```yaml
 apiVersion: v1 # 指定api版本，此值必须在kubectl api-versions中 
@@ -623,7 +623,7 @@ spec: # 资源规范字段
   type: ClusterIP # ClusterIP 类型
   ports:
     - port: 8080 # service 端口
-      targetPort: http # 容器暴露的端口
+      targetPort: 80 # 容器暴露的端口
       protocol: TCP # 协议
       name: http # 端口名称
   selector: # 选择器

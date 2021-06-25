@@ -281,7 +281,6 @@ docker run --name [container_name] -it [docker_image] /bin/bash
 
 # 方式二：手工方式进入
 docker exec -it container_id /bin/bash
-
 # 方式三：生产中进入容器,会用脚本,
 # 脚本docker_in.sh内容
 #!/bin/bash

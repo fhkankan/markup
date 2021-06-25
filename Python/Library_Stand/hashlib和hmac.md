@@ -67,7 +67,7 @@ MD5是最常见的摘要算法，速度很快，生成结果是固定的128 bit�
 
 另一种常见的摘要算法是SHA1，调用SHA1和调用MD5完全类似：
 
-```
+```python
 import hashlib
 
 sha1 = hashlib.sha1()
@@ -122,7 +122,7 @@ SHA1的结果是160 bit字节，通常用一个40位的16进制字符串表示�
 
 由于常用口令的MD5值很容易被计算出来，所以，要确保存储的用户口令不是那些已经被计算出来的常用口令的MD5，这一方法通过对原始口令加一个复杂字符串来实现，俗称“加盐”：
 
-```
+```python
 def calc_md5(password):
     return get_md5(password + 'the-Salt')
 ```
@@ -145,7 +145,7 @@ Python自带的hmac模块实现了标准的Hmac算法。我们来看看如何使
 
 我们首先需要准备待计算的原始消息message，随机key，哈希算法，这里采用MD5，使用hmac的代码如下：
 
-```
+```shell
 >>> import hmac
 >>> message = b'Hello, world!'
 >>> key = b'secret'
@@ -159,12 +159,13 @@ Python自带的hmac模块实现了标准的Hmac算法。我们来看看如何使
 
 将上一节的salt改为标准的hmac算法，验证用户口令：
 
-```
+```python
 # -*- coding: utf-8 -*-
 import hmac, random
 
 def hmac_md5(key, s):
     return hmac.new(key.encode('utf-8'), s.encode('utf-8'), 'MD5').hexdigest()
+
 
 class User(object):
     def __init__(self, username, password):
@@ -181,7 +182,7 @@ db = {
 
 登录函数
 
-```
+```python
 def login(username, password):
     user = db[username]
     return user.password == hmac_md5(user.key, password)
