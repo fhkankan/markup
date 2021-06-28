@@ -4,6 +4,12 @@
 
 Paramiko 是 SSHv2 协议 [1] 的 Python (2.7, 3.4) 实现，提供客户端和服务器功能。虽然它利用 Python C 扩展进行低级加密（密码学），但 Paramiko 本身是一个围绕 SSH 网络概念的纯 Python 接口。
 
+- 安装
+
+```
+pip install paramiko
+```
+
 ## 核心
 
 paramiko包含两个核心组件：SSHClient和SFTPClient。
@@ -63,20 +69,21 @@ sftp.put('test.txt','text.txt')
 
 - 使用示例
 
-密钥连接方式
+连接方式
 
 ```python
-# 配置私人密钥文件位置
-private = paramiko.RSAKey.from_private_key_file('/Users/ch/.ssh/id_rsa')
- 
 #实例化SSHClient
 client = paramiko.SSHClient()
  
 #自动添加策略，保存服务器的主机名和密钥信息，如果不添加，那么不再本地know_hosts文件中记录的主机将无法连接
 client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
- 
-#连接SSH服务端，以用户名和密码进行认证
-client.connect(hostname='10.0.0.1',port=22,username='root',pkey=private)
+
+# 方法一：密钥连接
+private = paramiko.RSAKey.from_private_key_file('/Users/ch/.ssh/id_rsa')  # 配置私人密钥文件位置
+client.connect(hostname='10.0.0.1',port=22,username='root',pkey=private) 
+
+# 方法二：账号连接
+client.connect(hostname='192.168.1.105', port=22, username='root', password='123456')  # 连接SSH服务端，以用户名和密码进行认证
 ```
 
 SSHClient封装Transport

@@ -92,7 +92,7 @@ var Socket = new WebSocket(url, [protocol] );
 
 ## 使用
 
-示例
+前端示例
 
 ```javascript
 var ws = new WebSocket("ws://localhost:8080");
@@ -115,5 +115,11 @@ ws.onclose = function()
    // 关闭 websocket
    alert("连接已关闭..."); 
 };
+```
+
+后端示例
+
+```
+见各个应用框架
 ```
 
