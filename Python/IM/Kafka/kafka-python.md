@@ -1,6 +1,8 @@
 # kafka-python
 
-[官网](https://kafka-python.readthedocs.io/en/master/usage.html#)
+[首页](https://github.com/dpkp/kafka-python)
+
+[文档](https://kafka-python.readthedocs.io/en/master/usage.html#)
 
 ## 安装
 
