@@ -340,9 +340,14 @@ git push -u origin --tags
 ### 协同
 
 ```python
-git fetch			# 从另外一个仓库下载对象和引用
-git pull			# 获取并整合另外的仓库或一个本地分支
-git push  		# 更新远程引用和相关对象
+git fetch origin master  # 更新本地仓库中origin/master对远程仓库origin/master的下载引用
+git log -p master..origin/master  # 比对本地master分支和origin/master分支区别
+git merge origin/master  # 对本地仓库的master和origin/master进行合并
+
+git pull origin master # 从远程获取最新版本并merge到本地
+
+
+git push  		# 推送本地代码，更新远程引用和相关对象
 
 # 远程有此分支
 git checkout -b f1 origin/f1  # 跟踪拉去远程分支f1，在本地起名为f1，并切换至分支f1
