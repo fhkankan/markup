@@ -449,6 +449,48 @@ git push -u origin --all
 git push -u origin --tags
 ```
 
+一份代码多个仓库
+
+```shell
+# 方法一：需要push两次，但是优点是可以pull两次
+git remote add origin2 地址2  # 在gitA项目中添加另一个gitB远程的地址，origin2可以自定义
+git pull origin2 master --allow-unrelated-histories   # 先拉取gitB地址上的数据，allow-unrelated-histories是为了解决冲突
+git push origin2 master  # 在gitA项目中把项目内容同步到gitB地址中
+# --实现推送--
+git push origin  master 
+git push origin2 master
+# --删除--
+git remote -v  // 查看此时的包括两个远程地址
+git remote rm origin2  // 删除gitB的远程地址
+git remote -v  //此时应该只有gitA的远程地址
+
+# 方法二：push一次
+git remote set-url --add origin 地址   # 给origin添加一个远程push地址，这样一次push就能同时push到两个地址上面
+git remote -v # 查看是否多了一条push地址（这个可不执行）
+git push origin master -f    # 一份代码就可以提交到两个git仓库上了，如果第一次推不上去代码，可以使用强推的方式
+# --实现推送--
+git push origin master
+# --删除--
+git remote set-url --delete origin 地址
+
+# 方法三：直接修改.git/config
+# --单仓库--
+[remote "origin"]
+	url = 地址
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "master"]
+	remote = origin
+	merge = refs/heads/master
+# --多仓库--
+[remote "origin"]
+	url = 地址
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "master"]
+	url = 地址2
+	remote = origin
+	merge = refs/heads/master
+```
+
 ### 协同
 
 操作远程
