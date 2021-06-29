@@ -20,4 +20,3 @@
 | Python          | Python相关               |
 | R               | R语言相关                |
 | Work            | 工作相关                 |
-test

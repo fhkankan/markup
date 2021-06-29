@@ -1,4 +1,4 @@
-# Redis
+# 与python交互
 
 ## 连接
 
@@ -15,8 +15,12 @@ redis-py提供两个类Redis和StrictRedis用于实现Redis的命令，StrictRed
 import redis
 
 r = redis.Redis(host='192.168.0.110', port=6379,db=0)
-r.set('name', 'zhangsan')   #添加
-print(r.get('name'))   #获取
+r.set('name', 'zhangsan') 
+print(r.get('name')) 
+
+sr=StrictRedis()
+result=sr.set('py1','gj')
+print(result)  #输出响应结果，如果添加成功则返回True，否则返回False
 ```
 
 ### 连接池
@@ -33,6 +37,57 @@ print (r.get('name'))   #获取
 ```
 
 ## 操作
+
+常用命令
+
+```python
+# string
+set
+setex
+mset
+append
+get
+mget
+
+# key
+keys
+exists
+type
+delete
+expire
+getrange
+ttl
+
+# hash
+hset
+hmset
+hkeys
+hget
+hmget
+hvals
+hdel
+
+# list
+lpush
+rpush
+linsert
+lrange
+lset
+lrem
+
+# set
+sadd
+smembers
+srem
+
+# zset
+zadd
+zrange
+zrangebyscore
+zscore
+zrem
+zremrangebyscore
+```
 
 ### string
 
@@ -760,21 +815,22 @@ zscan_iter(name, match=None, count=None,score_cast_func=float)
 # 同字符串相似，相较于字符串新增score_cast_func，用来对分数进行操作`
 ```
 
-### 其他
+### 通用
 
-delete(*names)
+`delete(*names)`
 
 ```python
 # 根据name删除redis中的任意数据类型
+r.delete("py1")
 ```
 
-exists(name)
+`exists(name)`
 
 ```python
 # 检测redis的name是否存在
 ```
 
-keys(pattern='*')
+`keys(pattern='*')`
 
 ```python
 # 根据* ？等通配符匹配获取redis的name
@@ -966,15 +1022,37 @@ if __name__=="__main__":
 
 # 与Django的交互
 
-以缓存形式处理数据
+[文档说明](http://django-redis-chs.readthedocs.io/zh_CN/latest/#id8)
 
-- 安装
+优点
+
+```
+持续更新
+本地化的 redis-py URL 符号连接字符串
+可扩展客户端
+可扩展解析器
+可扩展序列器
+默认客户端主/从支持
+完善的测试
+已在一些项目的生产环境中作为 cache 和 session 使用
+支持永不超时设置
+原生进入 redis 客户端/连接池支持
+高可配置 ( 例如仿真缓存的异常行为 )
+默认支持 unix 套接字
+支持 Python 2.7, 3.4, 3.5 以及 3.6
+```
+
+安装
 
 ```
 pip install django-redis
 ```
 
-- 配置
+## 配置
+
+- 作为cache backend使用
+
+为了使用 django-redis , 你应该将你的 django cache setting 改成这样
 
 ```python
 # project/settings
@@ -991,36 +1069,41 @@ CACHES = {
 }
 ```
 
-- 测试
+- 作为session backend使用配置
 
-代码中或shell中
+Django 默认可以使用任何 cache backend 作为 session backend, 将 django-redis 作为 session 储存后端不用安装任何额外的 backend
+
+```python
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_CACHE_ALIAS = "default"
+```
+
+## 使用
+
+- 代码中集成
 
 ```shell
-# 直接使用cache
 from django.core.cache import cache
+
 cache.set('user', 'Aaron', 600) # 保存缓存有效时间为600秒，即10分钟
 cache.get('user')  # 获取缓存结果
+```
 
-# 使用redis连接对象
+- 原生客户端使用
+
+在某些情况下你的应用需要进入原生 Redis 客户端使用一些 django cache 接口没有暴露出来的进阶特性. 为了避免储存新的原生连接所产生的另一份设置, django-redis 提供了方法 `get_redis_connection(alias)` 使你获得可重用的连接字符串.
+
+```python
 from django_redis import get_redis_connection 
+
 redis_client = get_redis_connection('default') # 连接cache配置
 for i in range(99999):  
     redis_client.set(i,i)  # 普通方法多次写入，会发多次连接多次发送
  
-p1 = redis_client.pipeline() # 实例化一个pipeline对象，提高多次发送的服务器性能
+# 实例化一个pipeline对象，提高多次发送的服务器性能
+p1 = redis_client.pipeline() 
 for i in range(99999):
     p1.set(i,i) # 使用pipeline执行，会一次连接一次发送多个数据
 p1.execute()  # 执行命令
-```
-
-redis-cli
-
-```shell
-127.0.0.1:6379> select 0  # 选择数据库0，默认也是0
-OK
-127.0.0.1:6379> keys *    # 显示所有的key
-1) ":1:user"              # 刚刚在python shell里设置的key
-127.0.0.1:6379> get :1:user # get(key)
-"\x80\x04\x95\t\x00\x00\x00\x00\x00\x00\x00\x8c\x05Aaron\x94."
 ```
 
