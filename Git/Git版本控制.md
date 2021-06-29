@@ -464,12 +464,12 @@ git remote -v  // 查看此时的包括两个远程地址
 git remote rm origin2  // 删除gitB的远程地址
 git remote -v  //此时应该只有gitA的远程地址
 
-# 方法二：push一次
+# 方法二：push一次，注意备用库中不能改主库中相同代码，避免冲突无法推送
 git remote set-url --add origin 地址   # 给origin添加一个远程push地址，这样一次push就能同时push到两个地址上面
 git remote -v # 查看是否多了一条push地址（这个可不执行）
 git push origin master -f    # 一份代码就可以提交到两个git仓库上了，如果第一次推不上去代码，可以使用强推的方式
 # --实现推送--
-git push origin master
+git push
 # --删除--
 git remote set-url --delete origin 地址
 
@@ -478,17 +478,11 @@ git remote set-url --delete origin 地址
 [remote "origin"]
 	url = 地址
 	fetch = +refs/heads/*:refs/remotes/origin/*
-[branch "master"]
-	remote = origin
-	merge = refs/heads/master
 # --多仓库--
 [remote "origin"]
 	url = 地址
 	fetch = +refs/heads/*:refs/remotes/origin/*
-[branch "master"]
-	url = 地址2
-	remote = origin
-	merge = refs/heads/master
+	url = 地址2	
 ```
 
 ### 协同
