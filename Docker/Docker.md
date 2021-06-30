@@ -220,7 +220,7 @@ docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}
 
 基于镜像创建新容器并启动
 
-```
+```shell
 docker run <参数，可选> [docker_image] [执行的命令]
 eg:docker run nginx /bin/echo "hello docker"
 参数选项：
@@ -270,7 +270,7 @@ docker rm -f $(docker ps -a -q)
 
 进入
 
-```
+```shell
 # 方式一：创建并进入容器
 docker run --name [container_name] -it [docker_image] /bin/bash
 # 参数
