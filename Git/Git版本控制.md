@@ -449,7 +449,9 @@ git push -u origin --all
 git push -u origin --tags
 ```
 
-一份代码多个仓库
+- 一份代码多个仓库
+
+多关联，即拉取也推送
 
 ```shell
 # 方法一：需要push两次，但是优点是可以pull两次
@@ -463,7 +465,9 @@ git push origin2 master
 git remote -v  // 查看此时的包括两个远程地址
 git remote rm origin2  // 删除gitB的远程地址
 git remote -v  //此时应该只有gitA的远程地址
-
+```
+多推送，一拉取
+```shell
 # 方法二：push一次，注意备用库中不能改主库中相同代码，避免冲突无法推送
 git remote set-url --add origin 地址   # 给origin添加一个远程push地址，这样一次push就能同时push到两个地址上面
 git remote -v # 查看是否多了一条push地址（这个可不执行）
@@ -472,13 +476,26 @@ git push origin master -f    # 一份代码就可以提交到两个git仓库上�
 git push
 # --删除--
 git remote set-url --delete origin 地址
+```
+随意配置
 
+```shell
 # 方法三：直接修改.git/config
-# --单仓库--
+
+# 默认
 [remote "origin"]
 	url = 地址
 	fetch = +refs/heads/*:refs/remotes/origin/*
-# --多仓库--
+
+# 多推送，多拉取
+[remote "origin"]
+	url = 地址
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[remote "origin2"]
+    url = 地址
+    fetch = +refs/heads/*:refs/remotes/origin2/*
+
+# 多推送，一拉取
 [remote "origin"]
 	url = 地址
 	fetch = +refs/heads/*:refs/remotes/origin/*

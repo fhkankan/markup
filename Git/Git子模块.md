@@ -311,72 +311,14 @@ git add .
 git commit -m "remove submodule"
 ```
 
-## 项目拆分子模块
+## 文件软链接
 
-- 项目拆分
-
-项目结构
+在项目中创建其他仓库的项目的软连接，也可以实现多模块管理，需要注意，部署时，需要将所有代码模块进行同位置下载与维护
 
 ```
-# 旧结构
-- project
-	- test
-	- lib1
-
-# 新结构
-- project-fresh
-	- test
-- lib1
-```
-
-拆分一个子目录为独立仓库
-
-```shell
-# 获取仓库project
-git clone git@project.git
 cd project
-
-# 把所有lib1目录下的相关提交整理为一个新的分支srcTemp
-git subtree split -P lib1 -b srcTemp
-
-# 另建一个新目录并初始化为 git 仓库
-mkdir ../lib1
-cd ../lib1
-git init
-
-# 拉取旧仓库的srcTemp分支到当前的 master 分支
-git pull ../project srcTemp
-```
-
-清除一个子目录下所有内容和记录
-
-```shell
-# 获取仓库project
-git clone git@project.git
-cd project
-
-# 清理master分支上所有跟lib1目录有关的痕迹
-git filter-branch --index-filter "git rm -rf --cached --ignore-unmatch lib1" --prune-empty master
-
-# 另建一个新目录并初始化为 git 仓库
-mkdir ../project-fresh
-cd ../project-fresh
-git init
-
-# 拉取project的master分支到新仓库的 master 分支
-git pull ../project master
-```
-
-推送给新的远端仓库
-
-```shell
-cd lib1
-git remote add origin git@lib1.git
-git push origin -u master
-
-cd porject-fresh
-git remote add origin git@project-fresh.git
-git push origin -u master
+ln -s ../project2 lib1
+ln -s ../project2 lib2
 ```
 
 
