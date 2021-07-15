@@ -530,11 +530,13 @@ git push --force  # 强制本地覆盖远程
 git push origin --delete serverfix  # 本地推送删除远程分支(服务器会暂存一段儿时间待垃圾回收，故异常删除时可恢复)
 ```
 
-### 忽略
+## 忽略
+
+### 本地远程
 
 - 概述
 
-`.gitignore`文件提供了可以忽略提交的文件配置。
+`.gitignore`文件提供了可以忽略提交的文件配置，同时此文件会提交到git仓库中，会影响其他人。
 
 GitHub的示例配置文件：[https://github.com/github/gitignore](https://github.com/github/gitignore)
 
@@ -560,4 +562,21 @@ git rm -r --cached .
 git add .
 git commit -m 'update .gitignore'
 ```
+
+### 只本地
+
+`.git/info/exclude` 设置你自己本地需要排除的文件。不会提交到版本库中去，所以不会影响他人。
+
+```shell
+# 进入/创建文件进行编辑
+vim .git/info/exclude
+# 输入忽略内容
+*.sample 　　 # 忽略所有.sample 结尾的文件
+!lib.sample 　　 # 但 lib.sample 除外
+/TODO 　　 # 仅仅忽略项目根目录下的 TODO 文件，不包括 subdir/TODO
+build/ 　　 # 忽略 build/ 目录下的所有文件
+doc/*.txt 　　# 会忽略 doc/notes.txt 但不包括 doc/server/arch.txt
+```
+
+
 
