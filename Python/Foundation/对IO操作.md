@@ -1025,38 +1025,29 @@ en_url = base64.urlsafe_b64encode(en)  # b'abcd--__'
 de_url = base64.urlsafe_b64decode(en_url)  # b'i\xb7\x1d\xfb\xef\xff'
 ```
 
-## json
+## json/ujson
 
-| JSON类型(UTF-8) | Python类型 |
-| --------------- | ---------- |
-| {}              | dict       |
-| []              | list       |
-| "string"        | str        |
-| 1234.56         | int/float  |
-| true/false      | True/False |
-| null            | None       |
+ujson相对json来说，效率更高。
 
-列表list
-
+常用类型
 ```python
-import json
-
+# list
 x = [1,2,3]
 json.dumps(x)
-json.dumps(_)
-```
+json.dumps()
 
-字典dict
 
-```python
-# 把Python对象变成一个JSON，json.dumps()/json.dump(),前者把Python中的字典序列化为str，后者把JSON写入一个file-like Object
+# dict
 import json
 d = dict(name='Bob', age=20, score=88)
 json.dumps(d)
 
-# 把JSON反序列化为Python对象， loads()/load(),前者把JSON的字符串反序列化，后者从file-like Object中读取字符串并反序列化
 json_str = '{"age": 20, "score": 88, "name": "Bob"}'
 json.loads(json_str)
+
+# 序列化时不转换为unicode码
+a  = {"1": "中国"}
+json.dumps(a, ensure_asccii=False)
 ```
 
 类class
