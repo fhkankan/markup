@@ -95,6 +95,8 @@ redis中的String在在内存中按照一个name对应一个value来存储
 
 - set
 
+`set()`
+
 ```python
 set(name, value, ex=None, px=None, nx=False, xx=False)
 #在Redis中设置值，默认不存在则创建，存在则修改
@@ -103,13 +105,6 @@ ex，过期时间（秒）
 px，过期时间（毫秒）
 nx，如果设置为True，则只有name不存在时，当前set操作才执行,同setnx(name, value)
 xx，如果设置为True，则只有name存在时，当前set操作才执行
-
-mset(*args, **kwargs)
-#批量设置值
-r.mset(name1='zhangsan', name2='lisi')
-
-setnx(name, value)
-# 设置值，只有name不存在时，执行设置操作（添加）
 
 setex(name, value, time)
 # 设置过期时间(秒)
@@ -120,6 +115,13 @@ psetex(name, time_ms, value)
 # 设置过期时间(豪秒)
 # 参数
 time_ms，过期时间（数字毫秒 或 timedelta对象）
+
+setnx(name, value)
+# 设置值，只有name不存在时，执行设置操作（添加）
+
+mset(*args, **kwargs)
+#批量设置值
+r.mset(name1='zhangsan', name2='lisi')
 
 setrange(name, offset, value)
 #修改字符串内容，从指定字符串索引开始向后替换，如果新值太长时，则向后添加
@@ -133,7 +135,7 @@ r.setrange("name",6,"zzzzzzz")
 print(r.get("name")) #输出:zzangszzzzzzz
 ```
 
-setbit(name, offset, value)
+`setbit(name, offset, value)`
 
 ```python
 # 对二进制表示位进行操作
@@ -155,60 +157,7 @@ r.setbit("name",6,0)#把第7位改为0，也就是3对应的变成了0b110001
 print(r.get("name"))#输出：145
 ```
 
-- get
-
-```python
-get(name)
-# 获取值
-
-mget(keys, *args)
-#批量获取
-print(r.mget("name1","name2"))
-#或
-li=["name1","name2"]
-print(r.mget(li))
-
-getset(name, value)
-#设置新值，打印原值
-print(r.getset("name1","wangwu")) #输出:zhangsan
-print(r.get("name1")) #输出:wangwu
-
-getrange(key, start, end)
-#根据字节获取子序列
-# 参数
-key	redis的name
-start	起始位置(字节)
-end		结束位置(字节)
-r.set("name","zhangsan")
-print(r.getrange("name",0,3))#输出:zhan
-
-getbit(name, offset)
-#获取name对应值的二进制中某位的值(0或1)
-r.set("name","3") # 对应的二进制0b110011
-print(r.getbit("name",5))   #输出:0
-print(r.getbit("name",6))   #输出:1
-```
-
-bitcount(key, start=None, end=None)
-
-```python
-#获取对应二进制中1的个数
-r.set("name","345")#0b110011 0b110100 0b110101
-print(r.bitcount("name",start=0,end=1)) #输出:7
-''' key:Redis的name
-    start:字节起始位置
-    end:字节结束位置'''
-```
-
-strlen(name)
-
-```python
-#返回name对应值的字节长度（一个汉字3个字节）
-r.set("name","zhangsan")
-print(r.strlen("name")) #输出:8
-```
-
-incr(self, name, amount=1)
+`incr(self, name, amount=1)`
 
 ```python
 #自增mount对应的值，当mount不存在时，则创建mount＝amount，否则，则自增,amount为自增数(整数)
@@ -219,19 +168,19 @@ print(r.incr("mount",amount=6))#输出:12
 print(r.get("mount")) #输出:12
 ```
 
-incrbyfloat(self, name, amount=1.0)
+`incrbyfloat(self, name, amount=1.0)`
 
 ```python
 #类似 incr() 自增,amount为自增数(浮点数)
 ```
 
-decr(self, name, amount=1)
+`decr(self, name, amount=1)`
 
 ```python
 #自减name对应的值,当name不存在时,则创建name＝amount，否则，则自减，amount为自增数(整数)
 ```
 
-append(name, value)
+`append(name, value)`
 
 ```python
 #在name对应的值后面追加内容
@@ -241,11 +190,68 @@ r.append("name","lisi")
 print(r.get("name"))    #输出:zhangsanlisi
 ```
 
+`getset(name, value)`
+
+```python
+# 设置新值，打印原值
+print(r.getset("name1","wangwu")) #输出:zhangsan
+print(r.get("name1")) #输出:wangwu
+```
+- get
+
+```python
+get(name)
+# 获取值
+
+getbit(name, offset)
+#获取name对应值的二进制中某位的值(0或1)
+r.set("name","3") # 对应的二进制0b110011
+print(r.getbit("name",5))   #输出:0
+print(r.getbit("name",6))   #输出:1
+
+getrange(key, start, end)
+#根据字节获取子序列
+# 参数
+key	redis的name
+start	起始位置(字节)
+end		结束位置(字节)
+r.set("name","zhangsan")
+print(r.getrange("name",0,3))#输出:zhan
+
+mget(keys, *args)
+#批量获取
+print(r.mget("name1","name2"))
+#或
+li=["name1","name2"]
+print(r.mget(li))
+```
+
+`bitcount(key, start=None, end=None)`
+
+```python
+#获取对应二进制中1的个数
+r.set("name","345")#0b110011 0b110100 0b110101
+print(r.bitcount("name",start=0,end=1)) #输出:7
+''' key:Redis的name
+    start:字节起始位置
+    end:字节结束位置'''
+```
+
+`strlen(name)`
+
+```python
+#返回name对应值的字节长度（一个汉字3个字节）
+r.set("name","zhangsan")
+print(r.strlen("name")) #输出:8
+```
+
 ### Hash
 
 redis中的Hash 在内存中类似于一个name对应一个dic来存储 
 
- hset(name, key, value)
+- set
+
+`hset(name, key, value)`
 
 ```python
 #name对应的hash中设置一个键值对（不存在，则创建，否则，修改） 
@@ -257,7 +263,7 @@ value，name对应的hash中的value
 r.hset("dic_name","a1","aa")
 ```
 
-hmset(name, mapping)
+`hmset(name, mapping)`
 
 ```python
 # 在name对应的hash中批量设置键值对,mapping:字典
@@ -270,7 +276,31 @@ r.hmset("dic_name",dic)
 print(r.hget("dic_name","b1"))#输出:bb
 ```
 
-hget(name,key)
+`hincrby(name, key, amount=1)`
+
+```python
+# 自增hash中key对应的值，不存在则创建key=amount(amount为整数)
+# 参数：
+name，redis中的name
+key， hash对应的key
+amount，自增数（整数）
+
+print(r.hincrby("demo","a",amount=2))
+```
+
+`hincrbyfloat(name, key, amount=1.0)`
+
+```python
+# 自增hash中key对应的值，不存在则创建key=amount(amount为浮点数)
+# 参数：
+name，redis中的name
+key， hash对应的key
+amount，自增数（浮点数）
+```
+
+- get
+
+`hget(name,key)`
 
 ```python
 r.hset("dic_name","a1","aa")
@@ -278,7 +308,7 @@ r.hset("dic_name","a1","aa")
 print(r.hget("dic_name","a1"))#输出:aa
 ```
 
-hmget(name, keys, *args)
+`hmget(name, keys, *args)`
 
 ```python
 # 在name对应的hash中获取多个key的值
@@ -292,14 +322,14 @@ print(r.hmget("dic_name",li))
 print(r.hmget("dic_name","a1","b1"))
 ```
 
-hgetall(name)
+`hgetall(name)`
 
 ```python
 #获取name对应hash的所有键值
 print(r.hgetall("dic_name"))
 ```
 
-hlen(name)、hkeys(name)、hvals(name)
+`hlen(name)、hkeys(name)、hvals(name)`
 
 ```python
 dic={"a1":"aa","b1":"bb"}
@@ -315,43 +345,14 @@ print(r.hkeys("dic_name"))
 print(r.hvals("dic_name"))
 ```
 
-hexists(name, key)
+`hexists(name, key)`
 
 ```python
 #检查name对应的hash是否存在当前传入的key
 print(r.hexists("dic_name","a1"))#输出:True
 ```
 
-hdel(name,*keys)
-
-```python
-#删除指定name对应的key所在的键值对
-r.hdel("dic_name","a1")
-```
-
-hincrby(name, key, amount=1)
-
-```python
-# 自增hash中key对应的值，不存在则创建key=amount(amount为整数)
-# 参数：
-name，redis中的name
-key， hash对应的key
-amount，自增数（整数）
-
-print(r.hincrby("demo","a",amount=2))
-```
-
-hincrbyfloat(name, key, amount=1.0)
-
-```python
-# 自增hash中key对应的值，不存在则创建key=amount(amount为浮点数)
-# 参数：
-name，redis中的name
-key， hash对应的key
-amount，自增数（浮点数）
-```
-
-hscan(name, cursor=0, match=None, count=None)
+`hscan(name, cursor=0, match=None, count=None)`
 
 ``` python
 # 增量式迭代获取，对于数据大的数据非常有用，hscan可以实现分片的获取数据，并非一次性将数据全部获取完，从而放置内存被撑爆
@@ -367,7 +368,7 @@ count，每次分片最少获取个数，默认None表示采用Redis的默认分
 直到返回值cursor的值为0时，表示数据已经通过分片获取完毕
 ```
 
-hscan_iter(name, match=None, count=None)
+`hscan_iter(name, match=None, count=None)`
 
 ```python
 # 利用yield封装hscan创建生成器，实现分批去redis中获取数据
@@ -379,44 +380,22 @@ for item in r.hscan_iter('xx'):
     print item
 ```
 
+- delete
+
+`hdel(name,*keys)`
+
+```python
+#删除指定name对应的key所在的键值对
+r.hdel("dic_name","a1")
+```
+
 ### List
 
 redis中的List在在内存中按照一个name对应一个List来存储 
 
-lpush(name,values)
+- set
 
-```python
-# 在name对应的list中添加元素，每个新的元素都添加到列表的最左边
-r.lpush("list_name",2)
-r.lpush("list_name",3,4,5)#保存在列表中的顺序为5，4，3，2
-```
-
-rpush(name,values)
-
-```python
-# 同lpush，但每个新的元素都添加到列表的最右边
-```
-
-lpushx(name,value)
-
-```python
-# 在name对应的list中添加元素，只有name已经存在时，值添加到列表的最左边
-```
-
-rpushx(name,value)
-
-```python
-# 在name对应的list中添加元素，只有name已经存在时，值添加到列表的最右边
-```
-
-llen(name)
-
-```python
-# name对应的list元素的个数
-print(r.llen("list_name"))
-```
-
-linsert(name, where, refvalue, value))
+`linsert(name, where, refvalue, value)`
 
 ```python
 # 在name对应的列表的某一个值前或后插入一个新值
@@ -429,7 +408,33 @@ value: 要插入的数据'''
 r.linsert("list_name","BEFORE","2","SS")#在列表内找到第一个元素2，在它前面插入SS
 ```
 
-r.lset(name, index, value)
+`lpush(name,values)`
+
+```python
+# 在name对应的list中添加元素，每个新的元素都添加到列表的最左边
+r.lpush("list_name",2)
+r.lpush("list_name",3,4,5)#保存在列表中的顺序为5，4，3，2
+```
+
+`rpush(name,values)`
+
+```python
+# 同lpush，但每个新的元素都添加到列表的最右边
+```
+
+`lpushx(name,value)`
+
+```python
+# 在name对应的list中添加元素，只有name已经存在时，值添加到列表的最左边
+```
+
+`rpushx(name,value)`
+
+```python
+# 在name对应的list中添加元素，只有name已经存在时，值添加到列表的最右边
+```
+
+`lset(name, index, value)`
 
 ```python
 # 对list中的某一个索引位置重新赋值
@@ -441,65 +446,20 @@ value，要设置的值
 r.lset("list_name",0,"bbb")
 ```
 
-r.lrem(name, value, num)
+`lpop(name)`
 
 ```python
-# 删除name对应的list中的指定值
-# 参数：
-name:  redis的name
-value: 要删除的值
-num:   num=0 删除列表中所有的指定值；
-       num=2 从前到后，删除2个；
-       num=-2 从后向前，删除2个
-           
-r.lrem("list_name","SS",num=0)
-```
-
-lpop(name)
-
-```
-#移除列表的左侧第一个元素，返回值则是第一个元素
+# 移除列表的左侧第一个元素，返回值则是第一个元素
 print(r.lpop("list_name"))
 ```
 
-rpop(name)
+`rpop(name)`
 
 ```python
 # 从右向左操作
 ```
 
-lindex(name, index)
-
-```python
-# 根据索引获取列表内元素
-print(r.lindex("list_name",1))
-```
-
-lrange(name, start, end)
-
-```python
-# 在name对应的列表分片获取数据
-# 参数：
-name，redis的name
-start，索引的起始位置
-end，索引结束位置
-
-print(r.lrange("list_name",0,-1))
-```
-
-ltrim(name, start, end)
-
-```python
-# 在name对应的列表中移除没有在start-end索引之间的值
-# 参数：
-name，redis的name
-start，索引的起始位置
-end，索引结束位置
-    
-r.ltrim("list_name",0,2)
-```
-
-rpoplpush(src, dst)
+`rpoplpush(src, dst)`
 
 ```python
 # 从一个列表取出最右边的元素，同时将其添加至另一个列表的最左边
@@ -508,19 +468,7 @@ src 要取数据的列表
 dst 要添加数据的列表
 ```
 
-brpoplpush(src, dst, timeout=0)
-
-```python
-# 从一个列表的右侧移除一个元素并将其添加到另一个列表的左侧
-# 参数：
-src，取出并要移除元素的列表对应的name
-dst，要插入元素的列表对应的name
-timeout，当src对应的列表中没有数据时，阻塞等待其有数据的超时时间（秒），0 表示永远阻塞
-
-r.brpoplpush("list_name","l ist_name1",timeout=0)
-```
-
-blpop(keys, timeout)
+`blpop(keys, timeout)`
 
 ```python
 # 将多个列表排列,按照从左到右去移除各个列表内的元素
@@ -536,10 +484,68 @@ while True:
     print(r.lrange("list_name",0,-1),r.lrange("list_name1",0,-1))
 ```
 
-brpop(keys, timeout)
+`brpop(keys, timeout)`
 
 ```python
 # 同blpop，将多个列表排列,按照从右像左去移除各个列表内的元素
+```
+
+`brpoplpush(src, dst, timeout=0)`
+
+```python
+# 从一个列表的右侧移除一个元素并将其添加到另一个列表的左侧
+# 参数：
+src，取出并要移除元素的列表对应的name
+dst，要插入元素的列表对应的name
+timeout，当src对应的列表中没有数据时，阻塞等待其有数据的超时时间（秒），0 表示永远阻塞
+
+r.brpoplpush("list_name","l ist_name1",timeout=0)
+```
+
+`lrem(name, value, num)`
+
+```python
+# 删除name对应的list中的指定值
+# 参数：
+name:  redis的name
+value: 要删除的值
+num:   num=0 删除列表中所有的指定值；
+       num=2 从前到后，删除2个；
+       num=-2 从后向前，删除2个
+           
+r.lrem("list_name","SS",num=0)
+```
+
+`ltrim(name, start, end)`
+
+```python
+# 在name对应的列表中移除没有在start-end索引之间的值
+# 参数：
+name，redis的name
+start，索引的起始位置
+end，索引结束位置
+    
+r.ltrim("list_name",0,2)
+```
+
+- get
+
+```python
+lindex(name, index)
+# 根据索引获取列表内元素
+print(r.lindex("list_name",1))
+
+llen(name)
+# name对应的list元素的个数
+print(r.llen("list_name"))
+
+lrange(name, start, end)
+# 在name对应的列表分片获取数据
+# 参数：
+name，redis的name
+start，索引的起始位置
+end，索引结束位置
+print(r.lrange("list_name",0,-1))
 ```
 
 自定义增量迭代
@@ -569,7 +575,9 @@ for item in list_iter('pp'):
 
 Set集合就是不允许重复的列表
 
-sadd(name,values)
+- set
+
+`sadd(name,values)`
 
 ```python
 # 给name对应的集合中添加元素
@@ -577,20 +585,53 @@ r.sadd("set_name","aa")
 r.sadd("set_name","aa","bb")
 ```
 
-smembers(name)
+`sdiffstore(dest, keys, *args)`
 
 ```python
-# 获取name对应的集合的所有成员
+# 相当于把sdiff获取的值加入到dest对应的集合中
 ```
 
-scard(name)
+`sinterstore(dest, keys, *args)`
+
+```python
+# 获取多个name对应集合的并集，再讲其加入到dest对应的集合中
+```
+
+`sunionstore(dest,keys, *args)`
+
+```python
+# 获取多个name对应的集合的并集，并将结果保存到dest对应的集合中
+```
+
+`smove(src, dst, value)`
+
+```python
+# 将某个元素从一个集合中移动到另外一个集合
+```
+
+`spop(name)`
+
+```python
+# 从集合的右侧移除一个元素，并将其返回
+```
+
+`srem(name, values)`
+
+```python
+# 删除name对应的集合中的某些值
+print(r.srem("set_name2","bb","dd"))
+```
+
+- get
+
+`scard(name)`
 
 ```python
 # 获取name对应的集合中的元素个数
 r.scard("set_name")
 ```
 
-sdiff(keys, *args)
+`sdiff(keys, *args)`
 
 ```python
 # 在第一个name对应的集合中且不在其他name对应的集合的元素集合
@@ -601,13 +642,7 @@ r.sadd("set_name2","bb","cc","dd")
 print(r.sdiff("set_name","set_name1","set_name2"))  # 输出:｛aa｝
 ```
 
-sdiffstore(dest, keys, *args)
-
-```python
-# 相当于把sdiff获取的值加入到dest对应的集合中
-```
-
-sinter(keys, *args)
+`sinter(keys, *args)`
 
 ```python
 # 获取多个name对应集合的并集
@@ -618,59 +653,34 @@ r.sadd("set_name2","bb","cc","dd")
 print(r.sinter("set_name","set_name1","set_name2"))#输出:｛bb｝
 ```
 
-sinterstore(dest, keys, *args)
+`smembers(name)`
 
 ```python
-# 获取多个name对应集合的并集，再讲其加入到dest对应的集合中
+# 获取name对应的集合的所有成员
 ```
 
-sismember(name, value)
+`sismember(name, value)`
 
 ```python
 # 检查value是否是name对应的集合内的元素
 ```
 
-smove(src, dst, value)
-
-```python
-# 将某个元素从一个集合中移动到另外一个集合
-```
-
-spop(name)
-
-```python
-# 从集合的右侧移除一个元素，并将其返回
-```
-
-srandmember(name, numbers)
+`srandmember(name, numbers)`
 
 ```python
 # 从name对应的集合中随机获取numbers个元素
 print(r.srandmember("set_name2",2))
 ```
 
-srem(name, values)
-
-```python
-# 删除name对应的集合中的某些值
-print(r.srem("set_name2","bb","dd"))
-```
-
-sunion(keys, *args)
+`sunion(keys, *args)`
 
 ```python
 # 获取多个name对应的集合的并集
 r.sunion("set_name","set_name1","set_name2")
 ```
 
-sunionstore(dest,keys, *args)
-
-```python
-# 获取多个name对应的集合的并集，并将结果保存到dest对应的集合中
-```
-
-sscan(name, cursor=0, match=None, count=None)
-sscan_iter(name, match=None, count=None)
+`sscan(name, cursor=0, match=None, count=None)`
+`sscan_iter(name, match=None, count=None)`
 
 ```python
 # 同字符串的操作，用于增量迭代分批获取元素，避免内存消耗太大`
@@ -680,7 +690,9 @@ sscan_iter(name, match=None, count=None)
 
 在集合的基础上，为每元素排序，元素的排序需要根据另外一个值来进行比较，所以，对于有序集合，每一个元素有两个值，即：值和分数，分数专门用来做排序。值不可重复，分数可以重复。
 
-zadd(name, *args, **kwargs)
+- set
+
+`zadd(name, *args, **kwargs)`
 
 ```python
 # 在name对应的有序集合中添加元素
@@ -689,27 +701,66 @@ r.zadd("zset_name", "a1", 6, "a2", 2,"a3",5)
 r.zadd('zset_name1', b1=10, b2=5)
 ```
 
-zcard(name)
-
-```python
-# 获取有序集合内元素的数量
-```
-
-zcount(name, min, max)
-
-```python
-# 获取有序集合中分数在[min,max]之间的个数
-print(r.zcount("zset_name",1,5))
-```
-
-zincrby(name, value, amount)
+`zincrby(name, value, amount)`
 
 ```python
 # 自增有序集合内value对应的分数
 r.zincrby("zset_name","a1",amount=2)#自增zset_name对应的有序集合里a1对应的分数
 ```
 
-zrange( name, start, end, desc=False, withscores=False, score_cast_func=float)
+`zinterstore(dest, keys, aggregate=None)`
+
+```python
+# 获取两个有序集合的交集并放入dest集合，如果遇到相同值不同分数，则按照aggregate进行操作
+# aggregate的值为: SUM  MIN  MAX
+r.zadd("zset_name", "a1", 6, "a2", 2,"a3",5)
+r.zadd('zset_name1', a1=7,b1=10, b2=5)
+
+r.zinterstore("zset_name2",("zset_name1","zset_name"),aggregate="MAX")
+print(r.zscan("zset_name2"))
+```
+
+`zunionstore(dest, keys, aggregate=None)`
+
+```python
+# 获取两个有序集合的并集并放入dest集合，其他同zinterstore，
+```
+
+`zrem(name, values)`
+
+```python 
+# 删除name对应的有序集合中值是values的成员
+r.zrem("zset_name","a1","a2")
+```
+
+`zremrangebyrank(name, min, max)`
+
+```python
+# 根据排行范围删除
+```
+
+`zremrangebyscore(name, min, max)`
+
+```python
+# 根据分数范围删除
+```
+
+- get
+
+`zcard(name)`
+
+```python
+# 获取有序集合内元素的数量
+```
+
+`zcount(name, min, max)`
+
+```python
+# 获取有序集合中分数在[min,max]之间的个数
+print(r.zcount("zset_name",1,5))
+```
+
+`zrange( name, start, end, desc=False, withscores=False, score_cast_func=float)`
 
 ```python
 # 按照索引范围获取name对应的有序集合的元素
@@ -725,13 +776,13 @@ aa=r.zrange("zset_name",0,1,desc=False,withscores=True,score_cast_func=int)
 print(aa)
 ```
 
-zrevrange(name, start, end, withscores=False, score_cast_func=float)
+`zrevrange(name, start, end, withscores=False, score_cast_func=float)`
 
 ```python
 # 同zrange，集合是从大到小排序的
 ```
 
-zrangebylex(name, min, max, start=None, num=None)
+`zrangebylex(name, min, max, start=None, num=None)`
 
 ```python
 # 当有序集合的所有成员都具有相同的分值时，有序集合的元素会根据成员的 值 （lexicographical ordering）来进行排序，而这个命令则可以返回给定的有序集合键 key 中， 元素的值介于 min 和 max 之间的成员
@@ -749,13 +800,13 @@ ZADD myzset 0 aa 0 ba 0 ca 0 da 0 ea 0 fa 0 ga
 r.zrangebylex('myzset', "-", "[ca")  # 结果为：['aa', 'ba', 'ca']
 ```
 
-zrevrangebylex(name, max, min, start=None, num=None)
+`zrevrangebylex(name, max, min, start=None, num=None)`
 
 ```python
 # 从大到小排序
 ```
 
-zrank(name, value)、zrevrank(name, value)
+`zrank(name, value)、zrevrank(name, value)`
 
 ```python
 # 获取value值在name对应的有序集合中的排行位置（从0开始）
@@ -764,55 +815,18 @@ print(r.zrank("zset_name", "a2"))
 print(r.zrevrank("zset_name", "a2"))
 ```
 
-zscore(name, value)
+`zscore(name, value)`
 
 ```python
 # 获取name对应有序集合中 value 对应的分数
 print(r.zscore("zset_name","a1"))
 ```
 
-zrem(name, values)
-
-```python 
-# 删除name对应的有序集合中值是values的成员
-r.zrem("zset_name","a1","a2")
-```
-
-zremrangebyrank(name, min, max)
+`zscan(name, cursor=0, match=None, count=None, score_cast_func=float)`
+`zscan_iter(name, match=None, count=None,score_cast_func=float)`
 
 ```python
-# 根据排行范围删除
-```
-
-zremrangebyscore(name, min, max)
-
-```python
-# 根据分数范围删除
-```
-
-zinterstore(dest, keys, aggregate=None)
-
-```python
-# 获取两个有序集合的交集并放入dest集合，如果遇到相同值不同分数，则按照aggregate进行操作
-# aggregate的值为: SUM  MIN  MAX
-r.zadd("zset_name", "a1", 6, "a2", 2,"a3",5)
-r.zadd('zset_name1', a1=7,b1=10, b2=5)
-
-r.zinterstore("zset_name2",("zset_name1","zset_name"),aggregate="MAX")
-print(r.zscan("zset_name2"))
-```
-
-zunionstore(dest, keys, aggregate=None)
-
-```python
-# 获取两个有序集合的并集并放入dest集合，其他同zinterstore，
-```
-
-zscan(name, cursor=0, match=None, count=None, score_cast_func=float)
-zscan_iter(name, match=None, count=None,score_cast_func=float)
-
-```python
-# 同字符串相似，相较于字符串新增score_cast_func，用来对分数进行操作`
+# 同字符串相似，相较于字符串新增score_cast_func，用来对分数进行操作
 ```
 
 ### 通用

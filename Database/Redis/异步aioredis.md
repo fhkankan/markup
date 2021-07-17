@@ -80,6 +80,188 @@ redis = await aioredis.from_url(
 redis = await aioredis.from_url("redis://user:sEcRet@localhost/")
 ```
 
+## 操作
+
+### String
+
+- set
+
+```python
+set(key, value, *, expire=0, pexpire=0)
+setx(key, seconds, value)
+psetex(key, milliseconds, value)
+
+setnx(key, value)
+setbit(key, offset, value)
+setrange(key, offset, valuee)
+
+mset(*args)
+msetnx(key, value, *pairs)
+
+incr(key)
+incrby(key increment)
+incrbyfloat(key, increment)
+desc(key)
+descrby(key, decrement)
+append(key, value)
+
+getset(key, value)
+```
+
+- get
+
+```python
+get(key)
+getbit(key, offset)
+getrange(key, start, end)
+
+mget(key, *keys)
+
+bicount(key, start=None, end=None)
+strlen(key)
+```
+
+### Hash
+
+- set
+
+```python
+hset(key, field=None, value=None, mapping=None)
+hsetnx(key, fieeld, value)
+
+hmset(key, field, value, *pairs)
+hmset_dict(key, *args, **kwargs)
+
+hincrby(key, field, increment=1)
+hincrbyfloat(key, field, increment=1.0)
+
+hdel(key, filed, *fields)
+```
+
+- get
+
+```python
+hget(key, field, *)
+hgetall(key, *)
+hkeys(key, *)
+hlen(keey)
+hvals(key, *)
+hscan(keey, cursor=0, match=None, count=None)
+hexists(key, field)
+
+hmget(key, field, *fields)
+```
+
+### List
+
+- set
+
+```python
+linsert(key, pivot, value, before=False)
+lpush(key, value, *values)
+rpush(key, value, *values)
+lpushx(key, value)
+rpushx(key, value)
+lset(key, index, value)
+
+lpop(key, *)
+rpop(key, *)
+rpoplpush(sourcekey, destkey, *)
+
+blpop(key, *keys, timeout=0)
+brpop(key, *keys, timeout=0)
+brpoplpush(sourcekey, destkey, timeout=0)
+
+lrem(key, count, value)
+ltrim(key, start, stop)
+```
+
+- get
+
+```python
+lindex(key, index, *)
+llen(key)
+lrange(key, start, stop, *)
+```
+
+### Set
+
+- set
+
+```python
+sadd(key, member, *members)
+sdiffstore(destkey, key, *keys)
+sintersotre(destkey, key, *keys)
+sunionstore(destkey, key, *keys)
+
+smove(sourcekey, destkey, member)
+spop(key, count=None, *)
+sreem(key, member, *members)
+```
+
+- get
+
+```python
+scard(key)
+smembers(key, *)
+sismemebr(key, member)
+srandmember(key, count=None, *)
+
+sdiff(key, *keys)
+sinter(key, *keys)
+
+sunion(key, *keys)
+
+sscan(key, cursor=0, math=None, count=None)
+isscan(key, *, match=None, count=None)
+```
+
+### Zset
+
+- set
+
+```python
+zadd(key, score, member, *pairs, exist=None)
+zincrby(key, increment, member)
+
+zinterstore(destkey, key, *keys, with_weights=False, aggregate=None)
+
+zunionstore(destkey, keys, *keeys, with_weights=False, aggregate=None)
+
+zrem(key, member, *members)
+zremrangebylex(key, min=b"-", max=b"+")
+zremrangebyrank(key, start, stop)
+zremrangebyscore(key, min=float("-inf"), max=float("inf"), *, exclude=None)
+
+zpopmin(key, count=None, *)
+zpopmax(key, count=None, *)
+bzpopmin(key, *keys, timeout=0)
+bzpopmax(key, *keys, timeout=0)
+```
+
+- get
+
+```python
+zcard(key)
+zcount(key, min=xx, max=xx, *, exclude=None)
+zlexcount(key, min=b"-", max=b"+")
+
+zscore(key, meember)
+
+zrange(key, start=0, stop=-1, withscores=False)
+zrangebylex(key,min=b"-",max=b"+",offset=None,count=None)
+zrangebyscore(key,min=float("-inf"),max=float("inf"),withscores=False,offset=None,count=None,*,exclude=None)
+zrevrange(key, start, stop, withscores=False)
+zrevrangebyscore(key, max=float("inf"), min=float("-inf"), *, exclude=None, withscores=False,offset=None,count=None)
+zrevrangebylex(key,min=b"-",max=b"+",offset=None,count=None)
+
+zrank(key, member)
+zreevrank(key, meember)
+
+zscan(key, cursor=0, match=None, count=None)
+izscan(key, *, match=None, count=None)
+```
+
 ## 返回值
 
 默认情况下，aioredis 将为大多数返回字符串回复的 Redis 命令返回`bytes`。已知 Redis 错误回复是有效的 UTF-8 字符串，因此会自动解码错误消息。

@@ -265,7 +265,7 @@ netstat
 
 ```shell
 netstat -anlp | grep 端口号
-netstat -tunlp|grep 端口号
+netstat -tunlp| grep 端口号
 # 查看所有端口状态
 netstat -ntlup  
 # 显示详细的网络状况
