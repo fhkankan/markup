@@ -232,6 +232,7 @@ git status  # 查看冲突文件
 git add .
 git commit -m 'merge ...'
 # ---完成合并
+git push master
 ```
 说明
 ```shell
@@ -246,6 +247,7 @@ git commit -m 'merge ...'
 
 # 应用场景
 对公共仓库代码合并处理时使用
+在主分支进行冲突解决
 ```
 - rebase
 
@@ -259,8 +261,10 @@ git add .
 git commit -m 'merge...' 
 git rebase --continue
 # -----
+git push develop  # 更新远程仓库引用位置
 git checkout master
 git merge develop
+git push master
 ```
 
 说明
@@ -278,6 +282,7 @@ git merge develop
 
 # 应用场景
 合并未推送的本地修改分支至公共分支时
+在子分支进行冲突解决
 ```
 
 更详细指令
@@ -346,8 +351,8 @@ git branch -D 分支名
 
 ```python
 # 保存
-git stash [save "save message"]  # 保存当前工作现场,添加备注，方便查找，也可不添加备注
-
+git stash   		# 不添加备注
+git stash save demo # 添加备注，仅为了区分显示
 # 查看
 git stash list  # 查看stash了哪些存储
 git stash show # 显示做了哪些改动，默认show第一个存储stash@{0},显示其他存贮，后面加stash@{$num}
@@ -526,7 +531,7 @@ git merge origin/master  # 对本地仓库的master和origin/master进行合并
 
 
 git pull origin master # 从远程获取最新版本并合并远程分支到当前分支
-git pull --rebase  # 把你的本地当前分支里的每个提交(commit)取消掉，并且把它们临时 保存为补丁(patch)(这些补丁放到".git/rebase"目录中),然后把本地当前分支更新 为最新的"origin"分支，最后把保存的这些补丁应用到本地当前分支上。
+git pull --rebase  # 把你的本地当前分支里的每个提交(commit)取消掉，并且把它们临时 保存为补丁(patch)(这些补丁放到".git/rebase"目录中),然后把本地当前分支更新为最新的"origin"分支，最后把保存的这些补丁应用到本地当前分支上。
 ```
 
 本地->远程
