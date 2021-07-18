@@ -39,6 +39,7 @@ git init
 
 ```python
 git status  # 显示工作区状态
+git status -s # 显示缩略信息
 ```
 
 查看日志
@@ -48,6 +49,10 @@ git log  # 产看历史版本的所有信息（包括用户名和日期）
 git log --graph --pretty=oneline  # 用带参数的git log，输出的信息会短一些
 
 git log --oneline  # 美化后的日志输出
+git log --stat  # 产看提交的简略统计信息
+
+git log -p -2  # 查看最近2次提交的引入差异
+git log --since="2021-01-01" --until="2021-06-06" # 查看一段儿时间的日志
 
 git reflog (HEAD@{移动到当前版本需要多少步})
 
@@ -61,6 +66,8 @@ git log -L :git_deflate_bound:zlib.c  # 想查看zlib.c文件中git_deflate_boun
 ```python
 git diff [文件名]  # 将工作区中的文件和暂存区的进行比较
 git diff [本地库历史版本] [文件名]  # 将工作区中的文件和本地库历史记录比较，不带文件名的话，会比较多个文件
+git diff  # 查看当前与暂存区之间的文件差异
+git diff --staged  # 查看已暂存与最后一次提交的文件差异
 
 # 说明：
 # 减号表示： 本地仓库的代码
@@ -101,13 +108,13 @@ git add .  	# 添加所有变动的文件至索引
 - 移动
 
 ```shell
-git mv  # 移动或重命名一个文件、目录或符号链接
+git mv file_from file_to # 移动或重命名一个文件、目录或符号链接
 ```
 
 - 删除
 
 ```python
-git rm 		# 从工作区和索引中删除文件
+git rm 	文件	# 从工作区和索引中删除文件
 git branch -d 分支名  # 删除一个已合并的分支(非当前分支)
 git branch -D 分支名  # 强行删除分支(未合并则丢失修改)
 ```
@@ -116,8 +123,8 @@ git branch -D 分支名  # 强行删除分支(未合并则丢失修改)
 
 ```shell
 git commit -m '修改注释'    # 记录变更到仓库
-git commit --amend  修改注释
-git reset --soft HEAD^  # 撤销上次commit，不撤销add
+git commit --amend  # 若是上次commit后未push，直接使用则修改注释重新提交，添加其他文件使用则合并上次的commit使用这次的注释
+git reset --soft HEAD^  # 撤销上次commit，不撤销add，再次commit时作用等同amend
 ```
 
 > 注意事项
@@ -133,7 +140,11 @@ git reset --soft HEAD^  # 撤销上次commit，不撤销add
 
 ```shell
 git tag						# 查看标签
-git tag tag-name  			# 创建新标签/查看标签内容
+
+git tag -a tag-name -m tag-info  # 创建附注标签
+git tag -a tag_name commit-id  # 对以往的记录进行标签
+
+git tag tag-name  			# 创建轻量标签/查看标签内容
 git tag tag-name commit-id  # 对以往的记录进行标签 
 
 git pull --tags  			# 拉取所有标签
@@ -143,6 +154,8 @@ git push --tags			 	# 推送所有标签
 
 git tag -d tage-name		# 删除本地标签
 git push origin :refs/tags/tag-name  # 删除远程标签
+
+git checkout tag-name  # 签出标签指向的版本
 ```
 
 ### 回退
@@ -202,10 +215,16 @@ git reset --hard HEAD
 ### 查看
 
 ```shell
-git branch  			# 本地分支， 当前分支有*
-git branch -r  		# 远程分支
 git branch -a			# 所有分支
+
+git branch  			# 本地分支， 当前分支有*
+git branch -v 		# 查看每个分支的最后一次提交
+git branch --merged # 查看已经合并到当前分支的分支
+git branch --no-merged # 查看尚未合并到当前分支的分支
+
+git branch -r  		# 远程分支
 git remote show origin  # 查看远程分支详细情况
+
 ```
 ### 切换
 
@@ -220,7 +239,7 @@ git checkout -b f1 origin/f1  # 跟踪拉去远程分支f1，在本地起名为f
 ```
 ### 合并
 
-- merge
+先合并后解决冲突
 
 指令
 
@@ -249,7 +268,7 @@ git push master
 对公共仓库代码合并处理时使用
 在主分支进行冲突解决
 ```
-- rebase
+### 变基
 
 指令
 
@@ -278,11 +297,15 @@ git push master
 
 # 优缺点
 优点：可以对某一段线性提交历史进行编辑、删除、复制、粘贴，提交历史干净简洁，形成线性提交历史。
-缺点：操作不当，可能误改他人的提交commit，如对公共库进行rebase
+缺点：如果变基中要打散的提交被其他人正在开发，则会在此次变基提交后，其他人提送代码时需要合并此次变基操作，同时自己在变基后推送代码也需要合并他人的处理，造成工作繁琐且记录中有多条重复记录，造成混乱。
+
+摘录来自: Scott Chacon. “Pro Git。” Apple Books. 
+
+摘录来自: Scott Chacon. “Pro Git。” Apple Books. 
 
 # 应用场景
 合并未推送的本地修改分支至公共分支时
-在子分支进行冲突解决
+在子分支进行冲突解决，注意适用于其他人没有使用变基中要改变的提交进行开发
 ```
 
 更详细指令
@@ -525,18 +548,20 @@ git remote remove paul  # 删除远程仓库paul
 远程->本地
 
 ```shell
-git fetch origin master  # 更新本地仓库中origin/master对远程仓库origin/master的下载引用
+git fetch origin master  # 从远程获取最新版本，不会自动合并或修改当前的工作
 git log -p master..origin/master  # 比对本地master分支和origin/master分支区别
 git merge origin/master  # 对本地仓库的master和origin/master进行合并
 
-
-git pull origin master # 从远程获取最新版本并合并远程分支到当前分支
+git pull origin master # 从远程获取最新版本，自动合并远程分支到到当前的工作
 git pull --rebase  # 把你的本地当前分支里的每个提交(commit)取消掉，并且把它们临时 保存为补丁(patch)(这些补丁放到".git/rebase"目录中),然后把本地当前分支更新为最新的"origin"分支，最后把保存的这些补丁应用到本地当前分支上。
 ```
 
 本地->远程
 
 ```python
+# 查看本地记录的远程信息
+git remote -v  # 查看远程配置
+
 # 远程有此分支
 git checkout -b f1 origin/f1  # 跟踪拉去远程分支f1，在本地起名为f1，并切换至分支f1
 git branch --set-upstream-to=origin/develop dev  # 本地分支与远程分支未建立关联，需要先建立本地与远程分支的链接关系再拉取
