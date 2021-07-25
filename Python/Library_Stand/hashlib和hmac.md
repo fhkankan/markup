@@ -13,15 +13,19 @@ Python的hashlib提供了常见的摘要算法，如MD5，SHA1等等。
 ```python
 import hashlib
 
+# 方法一，最常用
+hashlib.md5('你好'.encode('utf-8')).hexdigest()
+# 7eca689f0d3389d9dea66ae112e5cfd7
+
+# 方法二，hashlib.new(name[, data])，name传入的是哈希加密算法的名称，如md5
+hashlib.new('md5', '123'.encode('utf-8')).hexdigest()
+# 202cb962ac59075b964b07152d234b70
+
+# 方法三， update是拼接，m.update(a); m.update(b)等价于m.update(a+b)
 md5 = hashlib.md5()
 md5.update('how to use md5 in python hashlib?'.encode('utf-8'))
 print(md5.hexdigest())
-```
-
-计算结果如下：
-
-```
-d26a53750bc40b38b65a520292f69306
+# d26a53750bc40b38b65a520292f69306
 ```
 
 如果数据量很大，可以分块多次调用`update()`，最后计算的结果是一样的：

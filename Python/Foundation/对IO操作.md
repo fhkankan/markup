@@ -1047,7 +1047,7 @@ json.loads(json_str)
 
 # 序列化时不转换为unicode码
 a  = {"1": "中国"}
-json.dumps(a, ensure_asccii=False)
+json.dumps(a, ensure_ascii=False)
 ```
 
 类class

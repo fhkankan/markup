@@ -88,7 +88,7 @@ redis = await aioredis.from_url("redis://user:sEcRet@localhost/")
 
 ```python
 set(key, value, *, expire=0, pexpire=0)
-setx(key, seconds, value)
+setex(key, seconds, value)
 psetex(key, milliseconds, value)
 
 setnx(key, value)
