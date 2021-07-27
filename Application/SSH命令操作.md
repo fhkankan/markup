@@ -22,7 +22,7 @@ ssh -p 8022 user_name@远端计算机ip
 # 编辑ssh_config文件
 sudo vi /etc/ssh/ssh_config
 # 在Host *下面加入如下命令，命令含义：每隔60s客户端向服务器发送一个空包
-ServerAliveInterval 60   
+ServerAliveInterval 60
 ```
 
 - 别名访问
