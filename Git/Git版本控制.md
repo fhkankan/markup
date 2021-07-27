@@ -77,7 +77,6 @@ git diff --staged  # 查看已暂存与最后一次提交的文件差异
 查看其他
 
 ```python
-git bisect	# 通过二分法查找定位引入bug的提交
 git show		# 显示各种类型的对象
 
 git blame filename   # 查看每一行的修改人以及commit-id
@@ -92,6 +91,26 @@ git show commit-id   # 查看详细的修改提交记录
 git grep -n gmtime_r  # 查找工作目录的文件，-n选项数来输出 Git 找到的匹配行的行号
 git grep -c gmtime_r  # 不想打印所有匹配的项，-c或--count选项输出概述的信息， 其中仅包括那些包含匹配字符串的文件，以及每个文件中包含了多少个匹配
 git grep -p gmtime_r *.c  # 关心搜索字符串的上下文，-p或--show-function选项来显示每一个匹配的字符串所在的方法或函数
+```
+
+定位bug提交
+
+```shell
+ # 启动二分法查找
+git bisect start 
+
+# 告诉git当前commit是good/bad，git会自动调整到二分处理范围的那个commit
+git bisect bad  # 告诉系统当前所在的提交是有问题的
+git bisect good <good_commit>	# 告诉系统已知的最后一次正常状态是哪次提交
+# git会发现在good和bad之间检出中间的提交，此时执行测试，查看问题是否还存在
+# 若不存在问题，说明问题在这个提交之后，告诉git，然后git会继续寻找
+git bisect good
+# 若存在问题，说明问题这个提交及之前，git会继续缩小范围
+git bisect bad
+# 直到缩减范围至一个good与bad紧挨时可以确定产生bad的commit
+
+# 重置HEAD指针到最开始的位置
+git bisect reset
 ```
 
 ## 管理修改
@@ -117,6 +136,9 @@ git mv file_from file_to # 移动或重命名一个文件、目录或符号链�
 git rm 	文件	# 从工作区和索引中删除文件
 git branch -d 分支名  # 删除一个已合并的分支(非当前分支)
 git branch -D 分支名  # 强行删除分支(未合并则丢失修改)
+
+git clean  # 去除冗余文件或清理工作目录
+git clean -f -d  # 移除工作目录中所有未追踪的文件已经空的子目录
 ```
 
 - 记录
@@ -388,6 +410,9 @@ git stash pop  # 恢复之前缓存的工作目录，将缓存堆栈中的对应
 # 删除
 git stash drop stash@{$num} # 丢弃stash@{$num}存储，从列表中删除这个存储
 git stash clear # 删除所有缓存的stash
+
+# 从贮藏创建一个分支
+git stash branch testchanges  # 以指定的分支名创建一个新分支，检出贮藏工作时所在的提交，重新在那应用工作，然后在应用成功后丢弃贮藏
 ```
 
 ## 远程仓库
