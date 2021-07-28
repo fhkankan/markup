@@ -383,6 +383,23 @@ async def hello():
 
 异步操作需要在`coroutine`中通过`yield from`完成；多个`coroutine`可以封装成一组Task然后并发执行。
 
+不需要事件循环执行code
+
+```python
+# >Python3.7
+import asyncio
+
+async def main():
+    pass
+
+asyncio.run(main())
+
+# 注意：会调用asyncio.new_event_loop,asyncio.set_event_loop
+# API以非线程安全的方式取消剩余的任务（它不使用loop.call_soon_threadsafe来取消任务），并且有一个传递给循环的可选调试参数。
+# 此API还将在循环上调用名为loop.shutdown_asyncgens的异步生成器清理挂钩
+# 适用于简单且单线程的asyncio应用
+```
+
 ### 事件循环
 
 在计算机系统中，能够产生事件的尸体被称为事件源(evnet source)，而负责协商管理事件的实体被称为事件处理器(evnet handler)。有时可能还存在被称为事件循环的第三个实体。它实现了管理计算代码中所有事件的功能。更准确地说，在沉痼执行期间事件循环不断周期反复，追踪某个数据结构内部发生的事件，将其纳入队列，如果主线程空闲则调用事件处理器一个一个地处理这些事件。如下是一段事件循环管理器的伪代码。while循环中的所有事件被事件处理器捕捉，然后逐一处理。事件的处理器是系统中唯一进行的活动，在处理器结束后，控制被传递给下一个执行的事件。
@@ -417,8 +434,34 @@ while (1) {
 | `loop.stop()`                               | 停止事件循环                                                 |
 | `loop.close()`                              | 关闭事件循环                                                 |
 
+- 定位当前执行循环
 
-- 创建循环
+```python
+import asyncio
+
+# 方法一
+loop = asyncio.get_event_loop()
+
+# 执行过程
+# 1.检查函数调用时是否有正在运行event_loop
+# 2.将当前进程pid与运行循环pid匹配，若匹配上，则返回匹配上的event_loop
+# 3.若没有匹配上，则获取存储在asyncio模块的全局变量中的线程全局LoopPolicy实例
+# 4.如果没有设置，则使用一个锁，用DefaultLoopPolicy实例化它
+# 5.注意，DefaultLoopPolicy依赖于操作系统，并且子类BaseDefaultEventLoopPolicy提供了loop.get_evnet_loop的默认实现。
+# 6.loop_policy.get_event_loop方法仅在主线程上实例化循环，并将其分配给线程局部变量
+# 若是不在主线程上，同时没有通过其他方式实例化正在运行的循环，则引发RuntimeError
+
+# 方法二,python3.7才有
+try:
+    loop = asyncio.get_running_loop()
+except RuntimeError:
+    print("No loop running")
+# 执行过程
+# 如果有一个循环实例在运行，将返回当前正在运行的循环实例，若是没有，则引发RuntimeError
+```
+
+
+- 创建循环实例
 
 在大多数情况下，并不需要自己创建一个事件循环对象。可以通过`asyncio.get_event_loop()`函数返回一个BaseEventLoop对象。实际上，获得的是一个子类，具体是哪个子类会根据平台的不同而不同，不必过多考虑细节。所有平台的API相同，但在某些平台上会有功能限制
 
@@ -427,6 +470,207 @@ import asyncio
 
 loop = asyncio.get_event_loop()
 loop.is_runing()  # False,第一次获得循环对象，其并未执行
+
+```
+
+创建新循环
+
+```python
+import asyncio
+import sys
+
+loop = asyncio.new_event_loop()
+
+print(loop)  # Print the loop
+asyncio.set_event_loop(loop)
+
+if sys.platform != "win32":
+    watcher = asyncio.get_child_watcher()
+    watcher.attach_loop(loop)
+```
+
+`asyncio.get_event_loop`仅在从主线程调用时实例化循环。不要使用任何方便的包装器来创建循环并自己存储，如上所示。这肯定可以在任何线程上工作，并使循环的创建没有副作用（除了`asyncio.DefaultLoopPolicy`的全局创建之外）。
+
+```python
+import asyncio
+from threading import Thread
+
+class LoopShowerThread(Thread):
+    def run(self):
+        try:
+            loop = asyncio.get_event_loop()
+            print(loop)
+        except RuntimeError:
+            print("no event loop!")
+
+
+loop = asyncio.get_event_loop()
+print(loop)
+thread = LoopShowerThread()
+thread.start()
+thread.join()
+```
+
+- 在线程上附加循环
+
+```python
+import asyncio
+import threading
+
+
+def create_event_loop_thread(worker, *args, **kwargs):
+    def _worker(*args, **kwargs):
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            loop.run_until_complete(worker(*args, **kwargs))
+        finally:
+            loop.close()
+
+    return threading.Thread(target=_worker, args=args, kwargs=kwargs)
+
+
+async def print_coro(*args, **kwargs):
+    print(f"Inside the print coro on {threading.get_ident()}:", (args, kwargs))
+
+
+def start_threads(*threads):
+    [t.start() for t in threads if isinstance(t, threading.Thread)]
+
+
+def join_threads(*threads):
+    [t.join() for t in threads if isinstance(t, threading.Thread)]
+
+
+def main():
+    workers = [create_event_loop_thread(print_coro) for i in range(10)]
+    start_threads(*workers)
+    join_threads(*workers)
+
+
+if __name__ == '__main__':
+    main()
+```
+
+- 在进程上附加循环
+
+unix中，可使用系统级api`os.fork()`
+
+```python
+import asyncio
+import os
+
+pid_loops = {}
+
+
+def get_event_loop():
+    pid = os.getpid()
+    if pid not in pid_loops:
+        pid_loops[pid] = asyncio.new_event_loop()
+    return pid_loops[pid]
+
+
+def asyncio_init():
+    pid = os.getpid()
+    pid_loops[pid] = asyncio.new_event_loop()
+    pid_loops[pid].pid = pid
+
+
+os.register_at_fork(after_in_parent=asyncio_init, after_in_child=asyncio_init)
+
+if os.fork() == 0:
+    # Child
+    loop = get_event_loop()
+    assert os.getpid() == loop.pid
+else:
+    # Parent
+    loop = get_event_loop()
+    assert os.getpid() == loop.pid
+
+```
+
+通用高级多处理模块
+
+```python
+import asyncio
+import os
+import random
+import typing
+from multiprocessing import Lock
+from multiprocessing import Process
+
+lock = Lock()
+pid_loops = {}
+processes = []
+
+
+def cleanup():
+    global processes
+    while processes:
+        proc = processes.pop()
+        proc.join()
+
+
+def get_event_loop():
+    global lock, pid_loops
+    pid = os.getpid()
+    with lock:
+        if pid not in pid_loops:
+            pid_loops[pid] = asyncio.new_event_loop()
+            pid_loops[pid].pid = pid
+        return pid_loops[pid]
+
+
+def asyncio_init():
+    with lock:
+        pid = os.getpid()
+        pid_loops[pid] = asyncio.new_event_loop()
+        pid_loops[pid].pid = pid
+
+
+async def worker(*, loop: asyncio.AbstractEventLoop):
+    print(await asyncio.sleep(random.randint(0, 3), result=f"Work {os.getpid()}"))
+
+
+def process_main(coro_worker: typing.Coroutine, num_of_coroutines: int):
+    """
+    This is the main method of the process.
+    We create the infrastructure for the coroutine worker here.
+    We assert that we run one loop per process and use our own helper to get an event loop instance for that matter.
+    :param coro_worker:
+    :param url:
+    :param num_of_coroutines:
+    :return:
+    """
+    asyncio_init()
+    loop = get_event_loop()
+    assert os.getpid() == loop.pid
+    try:
+        workers = [coro_worker(loop=loop) for i in range(num_of_coroutines)]
+        loop.run_until_complete(asyncio.gather(*workers, loop=loop))
+    except KeyboardInterrupt:
+        print(f"Stopping {os.getpid()}")
+        loop.stop()
+    finally:
+        loop.close()
+
+
+def main(number_of_processes, number_of_coroutines, *, process_main):
+    global processes
+    for _ in range(number_of_processes):
+        proc = Process(target=process_main, args=(worker, number_of_coroutines))
+        processes.append(proc)
+        proc.start()
+    cleanup()
+
+
+try:
+    main(number_of_processes=10, number_of_coroutines=2, process_main=process_main)
+except KeyboardInterrupt:
+    print("CTRL+C was pressed.. Stopping all subprocesses..")
+    cleanup()
+    print("Cleanup finished")
+
 ```
 
 - 执行循环
@@ -438,6 +682,30 @@ loop.run_forever()
 ```
 
 若执行上述代码，将失去对python解释器的控制权，程序陷入了死循环。使用Ctrl+C来结束循环重新获得解释器的控制权。对于大多数应用程序来说，编写一个服务或者守护程序的目的获取是在前台执行，并等待其他进程发起命令，所以死循环并不是一个大障碍。但是在测试或实验中，应避免陷入死循环。
+
+```python
+import asyncio
+import sys
+
+loop = asyncio.new_event_loop()  # 实例化DefaultLoopPolicy
+asyncio.set_event_loop(loop)
+
+if sys.platform != "win32":
+    # 如果我们想使用循环的子进程API，我们需要手动连接当前子进程观察程序，以确保我们可以侦听子进程终止SIGCHLD信号。因为这是一个UNIX API—意味着SIGCHLD信号，所以我们首先检查是否在Windows系统上。
+    watcher = asyncio.get_child_watcher()
+    watcher.attach_loop(loop)
+
+# Use asyncio.ensure_future to schedule your first coroutines
+# here or call loop.call_soon to schedule a synchronous callback
+
+try:
+    loop.run_forever()  # 一直执行，直到手动loop.stop或异常
+finally:
+    try:
+        loop.run_until_complete(loop.shutdown_asyncgens())
+    finally:
+        loop.close()
+```
 
 - 注册任务并执行循环
 

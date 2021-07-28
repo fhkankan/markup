@@ -234,22 +234,42 @@ time.strftime("%Y-%m-%d-%H", tiem.localtime(stamp))
 
 ## datetime加减
 
-对日期和时间进行加减实际上就是把datetime往后或往前计算，得到新的datetime。加减可以直接用`+`和`-`运算符，不过需要导入`timedelta`这个类：
+对日期和时间进行加减实际上就是把datetime往后或往前计算，得到新的datetime。
+
+方法一
 
 ```python
->>> from datetime import datetime, timedelta
->>> now = datetime.now()
->>> now
-datetime.datetime(2015, 5, 18, 16, 57, 3, 540997)
->>> now + timedelta(hours=10)
-datetime.datetime(2015, 5, 19, 2, 57, 3, 540997)
->>> now - timedelta(days=1)
-datetime.datetime(2015, 5, 17, 16, 57, 3, 540997)
->>> now + timedelta(days=-1)
-datetime.datetime(2015, 5, 17, 16, 57, 3, 540997)
->>> now + timedelta(days=2, hours=12)
-datetime.datetime(2015, 5, 21, 4, 57, 3, 540997)
+from datetime import datetime, timedelta
+
+now = datetime.now()
+res = now - timedelta(days=1)
+res = now + timedelta(days=-1)
+# 参数为weeks,days,hours,minutes,seconds,milliseconds,microsecond，对时间进行相对值的加减
 ```
+
+方法二
+
+```python
+# 安装
+pip install python-dateutil
+
+# 使用
+from datetime import date
+from dateutil.relativedelta import relativedelta, MO
+
+today = date.today()
+res = today + relativedelta(years=1)
+res = today + relativedelta(years=-1)
+res = today - relativedelta(years=1)
+# 参数可为years, months, weeks, days, hours, minutes, seconds, microseconds，对时间进行相对值的加减
+# 注意，从hours起，返回值类型为datetime，之前为date
+
+# 参数为year, month, day, hour, minute, second, microsecond，对时间进行绝对值赋值
+# 参数为weekday,对时间进行赋值
+res = today + relativedelta(day=1, weekday=MO(1))  # 首先将日设置为1号，然后设置为周一
+```
+
+
 
 ## 本地时间转换为UTC时间
 
