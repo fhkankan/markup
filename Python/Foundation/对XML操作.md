@@ -27,12 +27,11 @@ python 标准库包含SAX解析器，SAX用事件驱动模型，通过在解析X
 
 - ElementTree
 提供了轻量级python式API，相对于DOM来说，快了很多，性能与SAX差不多
-
 ```
 
 XML实例文件movies.xml内容如下:
 
-```
+```xml
 <collection shelf="New Arrivals">
 <movie title="Enemy Behind">
    <type>War, Thriller</type>
@@ -90,7 +89,7 @@ SAX是一种基于事件驱动的API。
 
 ContentHandler
 
-```
+```python
 characters(content)方法
 
 调用时机：
@@ -113,7 +112,7 @@ endElement(name)方法
 
 make_parse
 
-```
+```python
 # 创建一个新的解析器对象并返回。
 xml.sax.make_parser( [parser_list] )
 
@@ -123,7 +122,7 @@ parser_list - 可选参数，解析器列表
 
 parse
 
-```
+```python
 # 创建一个 SAX 解析器并解析xml文档：
 xml.sax.parse( xmlfile, contenthandler[, errorhandler])
 
@@ -135,7 +134,7 @@ errorhandler - 如果指定该参数，errorhandler必须是一个SAX ErrorHandl
 
 parseString
 
-```
+```python
 # 创建一个XML解析器并解析xml字符串：
 xml.sax.parseString(xmlstring, contenthandler[, errorhandler])
 
@@ -147,7 +146,7 @@ errorhandler - 如果指定该参数，errorhandler必须是一个SAX ErrorHandl
 
 > 实例
 
-```
+```python
 #!/usr/bin/python3
 
 import xml.sax
@@ -223,7 +222,7 @@ if ( __name__ == "__main__"):
 
 python中用xml.dom.minidom来解析xml文件，实例如下：
 
-```
+```python
 #!/usr/bin/python3
 
 from xml.dom.minidom import parse
@@ -258,7 +257,7 @@ for movie in movies:
 
 > 解析
 
-```
+```xml
 <? xml version="1.0" encoding="utf-8"?>
 <zoo>
 	<animal id='1'>
@@ -274,7 +273,7 @@ for movie in movies:
 
 解析代码
 
-```
+```python
 # 导入模块
 import xml.etree.ElementTree as ET
 
@@ -290,7 +289,7 @@ for node in animal_node:
 
 element对象的属性
 
-```
+```python
 element.tag 	标签
 element.attrib	属性
 element.text	值
@@ -298,7 +297,7 @@ element.text	值
 
 查找方法
 
-```
+```python
 # find用于查找指定的第一个节点
 zoo_find = root.find('animal')
 # findall用于查找指定的所有节点
@@ -307,7 +306,7 @@ zoo = root.findall('animal')
 
 > 创建
 
-```
+```python
 import xml.etree.ElementTree as ET
 
 # 创建根节点
@@ -328,7 +327,7 @@ tree.write("new.xml")
 
 > 修改
 
-```
+```python
 ElementTree.write("xmlfile")  更新xml文件
 Element.append()	为当前的element对象添加子元素(element)
 Element.set(key, value)	为当前element的key属性设置value值
@@ -337,7 +336,7 @@ Element.remove(element)	删除为element的节点
 
 实例
 
-```
+```python
 import xml.etree.ElementTree as ET
 
 # 读取文件
