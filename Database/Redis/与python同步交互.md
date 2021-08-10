@@ -831,65 +831,34 @@ print(r.zscore("zset_name","a1"))
 
 ### 通用
 
-`delete(*names)`
+- set
 
 ```python
-# 根据name删除redis中的任意数据类型
-r.delete("py1")
+delete(*names)	# 根据name删除redis中的任意数据类型
+expire(name, time) # 为某个name设置超时时间
+rename(src, dst)  # 对redis的name重命名为
+move(name, db)  # 将redis的某个值移动到指定的db下
 ```
 
-`exists(name)`
+- get
 
 ```python
-# 检测redis的name是否存在
-```
+exists(name) 	# 检测redis的name是否存在
+randomkey()		# 随机获取一个redis的name（不删除）
+type(name)		# 获取name对应值的类型
 
-`keys(pattern='*')`
-
-```python
+keys(pattern='*')
 # 根据* ？等通配符匹配获取redis的name
-# 更多：
+"""
 * 				匹配数据库中所有 key 。
 h?llo 		匹配 hello ， hallo 和 hxllo 等。
 h*llo 		匹配 hllo 和 heeeeello 等。
 h[ae]llo 	匹配 hello 和 hallo ，但不匹配 hillo
-```
-
-expire(name ,time)
-
-```python
-# 为某个name设置超时时间
-```
-
-rename(src, dst)
-
-```python
-# 对redis的name重命名为
-```
-
-move(name, db))
-
-```python
-# 将redis的某个值移动到指定的db下
-```
-
-randomkey()
-
-```python
-# 随机获取一个redis的name（不删除）
-```
-
-type(name)
-
-```python
-# 获取name对应值的类型
-```
+"""
 
 scan(cursor=0, match=None, count=None)
 scan_iter(match=None, count=None)
-
-```python
-`# 同字符串操作，用于增量迭代获取key`
+# 同字符串操作，用于增量迭代获取key
 ```
 
 ## 管道

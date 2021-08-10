@@ -127,10 +127,10 @@ strlen(key)
 
 ```python
 hset(key, field=None, value=None, mapping=None)
-hsetnx(key, fieeld, value)
+hsetnx(key, field, value)
 
-hmset(key, field, value, *pairs)
-hmset_dict(key, *args, **kwargs)
+hmset(key, field, value, *pairs)  # 不建议
+hmset_dict(key, *args, **kwargs)  # 不建议
 
 hincrby(key, field, increment=1)
 hincrbyfloat(key, field, increment=1.0)
@@ -144,7 +144,7 @@ hdel(key, filed, *fields)
 hget(key, field, *)
 hgetall(key, *)
 hkeys(key, *)
-hlen(keey)
+hlen(key)
 hvals(key, *)
 hscan(keey, cursor=0, match=None, count=None)
 hexists(key, field)
@@ -260,6 +260,42 @@ zreevrank(key, meember)
 
 zscan(key, cursor=0, match=None, count=None)
 izscan(key, *, match=None, count=None)
+```
+
+###  通用
+
+- set
+
+```python
+delete(key, *keys)
+dump(key)
+
+expire(key, timeout)  # 秒
+expireat(key, timestamp)  # 秒级别的时间戳
+persist(key)
+pexpire(key, timeout)	# 毫秒
+pexpireat(key, timestamp)  # 毫秒级别的时间戳
+
+rename(key, newkey)
+renamenx(key, newkey)
+
+reestore(key, ttl, value)
+move(key, db)
+```
+
+- get
+
+```python
+exists(key, *keys)
+randomkey()
+keys(pattern)
+scan(cursor=0, match=None, count=None, key_type=None)
+iscan(*, match=None, count=None)
+sort( key,*get_patterns,by=None,offset=None,count=None,asc=None,alpha=False,store=None)
+
+ttl(key)
+touch(key, *keys)
+type(key)
 ```
 
 ## 返回值

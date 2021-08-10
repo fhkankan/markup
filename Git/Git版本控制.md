@@ -501,6 +501,9 @@ git branch -d 分支名
 
 # 如果分支还没有被合并，删除分支将会丢失修改。如果要强行删除，需要使用如下命令：
 git branch -D 分支名
+
+# 本地推送删除远程分支(服务器会暂存一段儿时间待垃圾回收，故异常删除时可恢复)
+git push origin --delete serverfix  
 ```
 
 ### 暂存
@@ -585,7 +588,7 @@ cat .git/config
 新建仓库
 
 ```shell 
-git clone xxx  # xxx表示地址
+git clone xxx [文件夹名字] # xxx表示地址，有文件夹名字时将代码写入，无时自动命名
 touch README.md
 git add README.md
 git commit -m "add README"
@@ -650,6 +653,9 @@ git remote set-url --delete origin 地址
 [remote "origin"]
 	url = 地址
 	fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "master"]
+	remote = origin
+	merge = refs/heads/master
 
 # 多推送，多拉取
 [remote "origin"]
@@ -658,12 +664,18 @@ git remote set-url --delete origin 地址
 [remote "origin2"]
     url = 地址
     fetch = +refs/heads/*:refs/remotes/origin2/*
+[branch "master"]  
+	remote = origin  # 默认的推拉，若要多拉推，需手动置顶origin/origin2
+	merge = refs/heads/master
 
 # 多推送，一拉取
 [remote "origin"]
 	url = 地址
 	fetch = +refs/heads/*:refs/remotes/origin/*
-	url = 地址2	
+	url = 地址2
+[branch "master"]  
+	remote = origin  # 默认的推拉
+	merge = refs/heads/master
 ```
 
 ### 协同
