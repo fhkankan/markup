@@ -590,7 +590,7 @@ location / {
 
 ### 带有cookie的遗留应用程序
 
-```
+```shell
 server{
     server_name app.example.com;
     location /legacy1{
@@ -620,11 +620,11 @@ upstream模块将会启用一个新的配置区段，在该区段定义了一组
 | ip_hash          | 该指令通过IP地址的哈希值确保客户端均匀地连接所有服务器，键值基于C类地址 |
 | keepalive        | 该指令指定每一个worker进程缓存到上游服务器的连接数，在使用HTTP连接时，proxy_http_version应设置为1.1,并将proxy_set_header设置为Connection "" |
 | least_conn       | 该指令激活负载均衡算法，将请求发送到活跃连接数最少的那台服务器 |
-| server           | 该指令为upstream定义一个服务器地址(带TCP端口号的域名、IP地址，或者是UNIX域套接字)和可选参数。参数如下：<br>1.weight:设置一个服务器的优先级优于其他服务器<br>2.max_fails:设置在fail_timeout时间之内尝试对一个服务器连接的最大次数，若超过，则标记为down<br>3.fail_timeout:在这个指定的时间内服务器必须提供响应，若在这个时间内未收到响应，则服务器标记为down<br>4.backup:一旦其他服务器宕机，那么仅有该参数标记的机器才会接收请求<br>5.down:该参数标记为一个服务器不再接受任何请求 |
+| server           | 该指令为upstream定义一个服务器地址(带TCP端口号的域名、IP地址，或者是UNIX域套接字)和可选参数。参数如下：<br>1.weight:设置一个服务器的优先级优于其他服务器<br>2.max_fails:设置在fail_timeout时间之内尝试对一个服务器连接的最大次数，若超过，则标记为down，默认为1<br>3.fail_timeout:在这个指定的时间内服务器必须提供响应，若在这个时间内未收到响应，则服务器标记为down，默认为10s<br>4.backup:一旦其他服务器宕机，那么仅有该参数标记的机器才会接收请求<br>5.down:该参数标记为一个服务器不再接受任何请求 |
 
-### 保持活动连接
+保持活动连接
 
-```
+```shell
 # http连接
 upstream apache{
     server 127.0.0.1:8080;
@@ -656,7 +656,7 @@ upstream apache{
 
 > 单个服务器
 
-```
+```shell
 # Nginx会终止所有客户端连接，然后将代理所有请求到本地主机的TCP协议的8080端口上
 server {
     location / {
@@ -677,7 +677,7 @@ server {
 
 > 多个上游服务器
 
-```
+```shell
 upstream app {
     server 127.0.0.1:9000;
     server 127.0.0.1:9001;
