@@ -263,6 +263,10 @@ git checkout -b f1 origin/f1  # 跟踪拉去远程分支f1，在本地起名为f
 
 先合并后解决冲突
 
+<img src="/Users/henry/Markup/Git/images/分叉的提交历史.png" alt="分叉的提交历史" style="zoom:50%;" />
+
+<img src="/Users/henry/Markup/Git/images/通过合并操作来整合分叉的历史.png" alt="通过合并操作来整合分叉的历史" style="zoom:50%;" />
+
 指令
 
 ```shell
@@ -290,9 +294,69 @@ git push master
 对公共仓库代码合并处理时使用
 在主分支进行冲突解决
 ```
+### 撤销合并
+假设现在在一个主题分支上工作，不小心将其合并到 master 中，有两种方法解决
+![撤销合并-意外的合并提交](/Users/henry/Markup/Git/images/撤销合并-意外的合并提交.png)
+
+- 修复引用
+
+如果这个不想要的合并提交至存在于本地仓库，最简单且最好的方法就是移动分支到想要它指向的地方。
+
+```shell
+git reset --hard HEAD~
+```
+
+<img src="/Users/henry/Markup/Git/images/撤销合并-reset之后的历史.png" alt="撤销合并-reset之后的历史" style="zoom:50%;" />
+
+> 注意
+
+这个方法的缺点是它会重写历史，在一个共享的仓库中这会造成问题的。如果其他人已经有你将要重写的提交，你应当避免使用 reset。 如果有任何其他提交在合并之后创建了，那么这个方法也会无效；移动引用实际上会丢失那些改动。
+
+- 还原提交
+
+如果移动分支指针并不适合你，Git 给你一个生成一个新提交的选项，提交将会撤消一个已存在提交的所有修改。 Git 称这个操作为“还原”。
+
+```shell
+git revert -m 1 HEAD
+
+# -m 1 标记指出 “mainline” 需要被保留下来的父结点。 当你引入一个合并到 HEAD（git merge topic），新提交有两个父结点：第一个是 HEAD（C6），第二个是将要合并入分支的最新提交（C4）。 在本例中，我们想要撤消所有由父结点 #2（C4）合并引入的修改，同时保留从父结点 #1（C6）开始的所有内容。
+```
+
+有还原提交的历史看起来像这样
+
+<img src="/Users/henry/Markup/Git/images/撤销合并-revert后的历史.png" alt="撤销合并-revert后的历史" style="zoom:50%;" />
+
+新的提交 ^M 与 C6 有完全一样的内容，所以从这儿开始就像合并从未发生过，除了“现在还没合并”的提交依然在 HEAD 的历史中。 如果你尝试再次合并 topic 到 master Git 会感到困惑
+
+```shell
+git merge topic
+# Already up-to-date
+```
+
+topic 中并没有东西不能从 master 中追踪到达。 更糟的是，如果你在 topic 中增加工作然后再次合并，Git 只会引入被还原的合并 之后 的修改。
+
+<img src="/Users/henry/Markup/Git/images/撤销合并-含有坏掉合并的历史.png" alt="撤销合并-含有坏掉合并的历史" style="zoom:50%;" />
+
+解决这个最好的方式是撤消还原原始的合并，因为现在你想要引入被还原出去的修改，然后 创建一个新的合并提交
+
+```shell
+git revert ^M
+git merge topic
+```
+
+<img src="/Users/henry/Markup/Git/images/撤销合并-在重新合并一个还原合并后的历史.png" alt="撤销合并-在重新合并一个还原合并后的历史" style="zoom:50%;" />
+
+在本例中，M 与 ^M 抵消了。 ^^M 事实上合并入了 C3 与 C4 的修改，C8 合并了 C7 的修改，所以现在 topic 已经完全被合并了。
+
 ### 变基
 
-指令
+- 基础指令
+
+<img src="/Users/henry/Markup/Git/images/变基-将C4中的修改变基到C3.png" alt="将C4中的修改变基到C3" style="zoom:50%;" />
+
+<img src="/Users/henry/Markup/Git/images/变基-master分支的快进合并.png" alt="master分支的快进合并" style="zoom:50%;" />
+
+命令
 
 ```shell
 git checkout develop
@@ -330,7 +394,7 @@ git push master
 在子分支进行冲突解决，注意适用于其他人没有使用变基中要改变的提交进行开发
 ```
 
-更详细指令
+- 更详细指令
 
 ```shell
 git rebase -i  [startpoint]  [endpoint]
@@ -348,7 +412,7 @@ exec：执行其他shell命令（缩写:x）
 drop：丢弃该commit（缩写:d）
 ```
 
-合并多个commit为一个完整commit
+- 合并多个commit为一个完整commit
 
 ```shell
 # 查看提交历史
@@ -367,7 +431,7 @@ git rebase --abort		# 放弃压缩命令
 git push -f
 ```
 
-将某一段commit粘贴到另一个分支
+- 将某一段commit粘贴到另一个分支
 
 ```shell
 git rebase [startpoint] [endpoint]  --onto [branchName]
@@ -380,6 +444,53 @@ git status  # 当前HEAD处于游离状态，指向内容正确但是master分�
 # 对master处理
 git checkout master
 git reset --hard  0c72e64
+```
+
+- 多层分支挑拣合并
+
+<img src="/Users/henry/Markup/Git/images/变基-从一个主题分支里再分出一个主题分支的提交历史.png" alt="变基-从一个主题分支里再分出一个主题分支的提交历史" style="zoom:50%;" />
+<img src="/Users/henry/Markup/Git/images/变基-截取主题分子上的另一个主题分支然后变基到其他分支.png" alt="变基-截取主题分子上的另一个主题分支然后变基到其他分支" style="zoom:50%;" />
+<img src="/Users/henry/Markup/Git/images/变基-快进合并master分支使其包含来自client分支的修改.png" alt="变基-快进合并master分支使其包含来自client分支的修改" style="zoom:50%;" />
+<img src="/Users/henry/Markup/Git/images/变基-将server中的修改变基到master上.png" alt="变基-将server中的修改变基到master上" style="zoom:50%;" />
+<img src="/Users/henry/Markup/Git/images/变基-最终提交的历史.png" alt="变基-最终提交的历史" style="zoom:50%;" />
+
+命令
+```shell
+# Figure 32
+git checkout client
+git rebase --onto master server client  # 取出 client 分支，找出它从 server 分支分歧之后的补丁， 然后把这些补丁在 master 分支上重放一遍，让 client 看起来像直接基于 master 修改一样
+# Figure 33
+git checkout master
+git merge client  
+# Figure 34
+git rebase master server  # 省去git checkout server,git rebase master
+# Figure 35
+git checkout master
+git merge server
+```
+
+### 拣选
+
+`git cherry-pick`命令用来获得在单个提交中引入的变更，然后尝试将作为一个新的提交引入到你当前分支上。 从一个分支单独一个或者两个提交而不是合并整个分支的所有变更是非常有用的。
+
+<img src="/Users/henry/Markup/Git/images/拣选-拣选之前的示例历史.png" alt="拣选-拣选之前的示例历史" style="zoom:50%;" />
+<img src="/Users/henry/Markup/Git/images/拣选-拣选主题分支中的一个提交后的历史.png" alt="拣选-拣选主题分支中的一个提交后的历史" style="zoom:50%;" />
+
+命令
+
+```shell
+git checkout master
+git cherry-pick e43a6
+```
+
+其他命令
+
+```shell
+git checkout master
+git cherry-pick  希望合并的commitId   # 合并单一提交
+
+git cherry-pick (commitId1..commitId100)  # 合并多个，commitId1为最老提交，commitId100为最新提交，左开右闭
+git cherry-pick (commitId1^..commitId100)  # 合并多个，commitId1为最老提交，commitId100为最新提交，左闭右闭
 ```
 
 ### 删除
