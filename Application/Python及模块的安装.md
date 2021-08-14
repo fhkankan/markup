@@ -861,23 +861,30 @@ $jupyter notebook
 # windows
 在官方地址下载安装包
 # Ubuntu
-进入下载目录，打开终端，输入
-bash Anaconda3-4.3.1-Linux-x86_64.sh 
+wget https://repo.anaconda.com/archive/Anaconda3-2021.05-Linux-x86_64.sh
+bash Anaconda3-2021.05-Linux-x86_64.sh 
+
+https://mirrors.tuna.tsinghua.edu.cn/anaconda/miniconda/Miniconda3-py39_4.10.3-Linux-x86_64.sh
+bash Miniconda3-py39_4.10.3-Linux-x86_64.sh
+
 # mac
 brew cask install anaconda
-# 取消默认启用conda环境
-conda config --set auto_activate_base false
+brew cask install miniconda
 
 2. 环境变量
 # windows
 在系统环境变量path处添加安装路径
 C:\ProgramData\Anaconda3;C:\ProgramData\Anaconda3\Scripts
 # Ubuntu
-会自动在.bashrc文件中生成配置项
+会自动在.bashrc文件中生成配置项，若是没有自动生成，手动配置
+export PATH="/home/Sweeneys/anaconda3/bin:$PATH"
 # 更新bashrc以立即生效
 source ~/.bashrc
 # mac 
 conda init zsh/bash
+
+# 取消默认启用conda环境
+conda config --set auto_activate_base false
 
 3. 检查
 conda -V
@@ -886,11 +893,22 @@ conda -V
 ## 修改源
 
 ```python
-# 添加新的镜像源，自动添加至~/.condarc
-conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/
-conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free
-conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main
-conda config --set show_channel_urls yes
+# 编辑~/.condarc
+channels:
+  - defaults
+show_channel_urls: true
+default_channels:
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/r
+custom_channels:
+  conda-forge: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+  msys2: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+  bioconda: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+  menpo: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+  pytorch: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+  simpleitk: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+auto_activate_base: false
 ```
 
 ## 包管理

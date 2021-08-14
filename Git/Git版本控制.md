@@ -359,8 +359,10 @@ git merge topic
 命令
 
 ```shell
+# ---变基
 git checkout develop
 git rebase master 
+git rebase master develop  # 包含了上面两条
 # ---有冲突，则解决冲突，提交记录
 git add .
 git commit -m 'merge...' 
@@ -415,19 +417,23 @@ drop：丢弃该commit（缩写:d）
 - 合并多个commit为一个完整commit
 
 ```shell
-# 查看提交历史
+# 1.查看提交历史
 git log
-# 对commit进行rebase操作
-git rebase -i HEAD~4  # 最近的4个进行处理
+# 2.对commit进行rebase操作
+git rebase -i HEAD~3  # 最近的3个进行处理
 git rebase -i commitId  # 对commitId后的所有commit进行处理
-# 对弹窗commands处理
-p/r/e/s/f/x/d
-# 编辑后保存退出，git 会自动压缩提交历史，
-wq
-# 如果有冲突，记得解决冲突后，使用 
+# 3.对弹窗commands进行处理，按照从旧到新的顺序排列
+p	xxx
+s	xxx
+s	xxx
+# 4.编辑后保存退出，git 会自动压缩提交历史,弹窗git messge
+# 5.编辑需要的commit信息，保存退出
+# 6.如果有冲突，记得解决冲突后，使用 
 git rebase --continue # 重新回到当前的 git 压缩过程；
 git rebase --abort		# 放弃压缩命令
-# 推送到远程仓库
+# 7.查看日志
+git log
+# 8.推送到远程仓库
 git push -f
 ```
 

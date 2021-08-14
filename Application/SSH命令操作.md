@@ -39,15 +39,26 @@ user root  # 指定登录用户名
 ssh root@192.168.56.11 ==> ssh master1
 ```
 
-- 无密登陆
+- 免密登陆
 
-```
+```shell
 # 首先使用生成密钥
 ssh-keygen -t rsa
 # 将id_rsa.pub中的内容复制到远端计算机的.ssh/authorized_keys文件中，就可无密码访问远端计算机
 ssh-copy-id user@host
 # 无密码访问
 ssh user_name@远端计算机IP
+```
+
+4台机器互相免密
+
+```shell
+# 4台机器分别执行密钥生成
+ssh-keygen  -t  dsa  -P  ''  -f  ~/.ssh/id_dsa
+# 分别将4台机器的密钥追加到authorized_keys中
+cat ~/.ssh/id_dsa.pub >> ~/.ssh/authorized_keys
+# 将汇总了4台机器密钥的authorized_keys文件分发给4台机器
+scp ~/.ssh/authorized_keys 其他服务器的.ssh地址
 ```
 
 ## 隧道建立

@@ -335,10 +335,6 @@ server {
 }
 ```
 
-
-
-
-
 ## 常见问题
 
 403
@@ -352,18 +348,46 @@ server {
 
 ## 配置指南
 
-### 全局配置参数
+### 全局模块
 
-| 全局配置指令       | 说明                                                         |
-| ------------------ | ------------------------------------------------------------ |
-| user               | 配置worker进程的用户和组，若忽略group，则group的名字等于该参数指定用户的用户组 |
-| worker_processes   | 指定woeker进程启动的数量。用于处理客户的所有连接，经验法则是设置该参数的值与cpu绑定的负载处理器核心数数量相同，并用1.5~2之间的数乘以这个数作为I/O密集型负载 |
-| error_log          | 所有错误写入的日志，第二个参数指定了错误的级别(debug,info,notice,warn,error,crit,alert,emerg)。debug级别的错误需在编译时配置了--with-debug |
-| pid                | 设置记录主进程ID的文件，会覆盖编译时的默认配置               |
-| use                | 用于指示使用什么样的连接方式。会覆盖编译时的默认配置。若配置此指令，需要一个events区段。 |
-| worker_connections | 配置一个工作进程能够接受并发连接的最大数。这个连接包括客户连接和向上游服务器的连接，但并不限于此。对于反向代理服务器尤为重要，为达到这个并发性连接数量，需要在操作系统层面进行一些额外调整。 |
+```shell
+#user  nobody;
+worker_processes  1;
+#error_log  logs/error.log;
+#error_log  logs/error.log  notice;
+#error_log  logs/error.log  info;
+#pid        logs/nginx.pid;
+```
 
-### Http的server部分
+配置说明
+
+| 配置指令         | 说明                                                         |
+| ---------------- | ------------------------------------------------------------ |
+| user             | 配置worker进程的用户和组，若忽略group，则group的名字等于该参数指定用户的用户组 |
+| worker_processes | 指定woeker进程启动的数量。用于处理客户的所有连接，经验法则是设置该参数的值与cpu绑定的负载处理器核心数数量相同，并用1.5~2之间的数乘以这个数作为I/O密集型负载，不确定时可设置为auto |
+| error_log        | 所有错误写入的日志，第二个参数指定了错误的级别(debug,info,notice,warn,error,crit,alert,emerg)。debug级别的错误需在编译时配置了--with-debug |
+| pid              | 设置记录主进程ID的文件，会覆盖编译时的默认配置               |
+
+### events
+
+```shell
+events {
+    worker_connections  1024;
+}
+```
+
+`events`块涉及的指令主要影响Nginx服务器与用户的网络连接，常用的设置包括是否开启对多work process下的网络连接进行序列化，是否允许同时接受多个网络连接，选取哪种事件驱动模型来处理连接请求，每个work process可以同时支持的最大连接数等。
+
+并发总数为：max_clients = worker_processes * worker_connections，设置了反向代理时，max_clients=worker_processes * worker_connections / 4。worker_connections 值的设置跟物理内存大小有关，因为并发受IO约束，max_clients的值须小于系统可以打开的最大文件数
+
+配置说明
+
+| 配置指令             | 说明                                                         |
+| -------------------- | ------------------------------------------------------------ |
+| `use`                | 用于指示使用什么样的连接方式。会覆盖编译时的默认配置。`kqueue,rtsig,epoll,/dev/poll,select,poll`，epoll模型是Linux 2.6以上版本内核中的高性能网络I/O模型，如果跑在FreeBSD上面，就用kqueue模型。
+| `worker_connections` | 配置一个工作进程能够接受并发连接的最大数。这个连接包括客户连接和向上游服务器的连接，但并不限于此。对于反向代理服务器尤为重要，为达到这个并发性连接数量，需要在操作系统层面进行一些额外调整。 |
+
+### Http
 
 #### 客户端指令
 
@@ -430,6 +454,97 @@ server {
 | send_tiemout             | 在两次成功的客户端接收响应的写操作之间设置一个超时时间       |
 | tcp_nodelay              | 启用或禁用tcp_nodelay，用于keep-alive连接                    |
 | tcp_push                 | 仅依赖于sendfile的使用，使Nginx在一个数据包中尝试发送响应头以及在数据包中发送一个完成的文件 |
+
+#### server指令
+
+虚拟主机，就是将一台物理服务器虚拟为多个服务器来使用，从而实现在一台服务器上配置多个站点，即可以在一台物理主机上配置多个域名。Nginx 中，一个 server 标签就是一台虚拟主机，配置多个 server 标签就虚拟出了多台主机。Nginx 虚拟主机的实现方式有两种：域名虚拟方式与端口虚拟方式。域名虚拟方式是指不同的虚拟机使用不同的域名，通过不同的域名虚拟出不同的主机；端口虚拟方式是指不同的虚拟机使用相同的域名不同的端口号，通过不同的端口号虚拟出不同的主机。基于端口的虚拟方式不常用。
+
+指令server开始了一个新的上下文，在Nginx中，默认服务器是指特定配置文件中监听同一IP地址、同一端口作为另一个服务器中的第一个服务器。默认服务器可以通过为listen指令配置default_server参数来实现
+
+默认服务器定义一组通用指令，监听在相同IP地址和端口的随后的服务器将会重复利用这些指令
+
+```
+server {
+    listen 127.0.0.1:80;
+    server_name default.example.com;
+    server_name_in_redirect on;
+}
+server {
+	liaten 127.0.0.1:80;
+	server_name www.example.com;
+}
+```
+
+服务器指令
+
+| HTTP Server指令         | 说明                                                         |
+| ----------------------- | ------------------------------------------------------------ |
+| Port_in_redirect        | 确定Nginx是否对端口指定重定向                                |
+| server                  | 该指令创建一个新的配置区段，定义一个虚拟主机。listen指令指定IP地址和端口号，server_name指令列举用于匹配的Host头值 |
+| server_name             | 配置用于响应请求的虚拟主机名称                               |
+| Server_name_in_redirect | 在该context中，对任何由Nginx发布的重定向，该指令都使用server_name指令中的第一个值来激活 |
+| Server_tokens           | 在错误信息中，该指令禁止发送Nginx的版本号和server响应头(默认值为on) |
+
+#### Access_log
+
+配置文件的灭一个级别都可以有访问日志，在每一个级别上可以指定多个访问日志，每个日志用一个不同的log_format指令。log_format指令允许你明确指定记录要记在的内容，该指令需要在http部分内定义。
+
+```
+http{
+    log_format vhost '$host $remote_addr - $remote_user [$time_local]'
+    '"$request" $status $body_bytes_sent'
+    '"$http_referer" "$http_user_agent"';
+    
+    log_format downloads '$time_iso8601 $host $remote_addr'
+    '"$request" $status $body_bytes_sent $request_tiem';
+    
+    open_log_file_cache max=1000 inactive=60s;
+    access_log logs/access.log;
+   
+    server{
+        server_name ~^(www\.)?(.+)$;
+        access_log logs/combined.log vhost;
+        access_log logs/$2/accesslog;
+        location /downloads{
+            access_log logs/downloads.log downloads;
+        }
+    }
+}
+```
+
+日志指令
+
+| HTTP日志指令        | 说明                                                         |
+| ------------------- | ------------------------------------------------------------ |
+| Access_log          | 描述在哪里、怎么样写入访问日志。第一个参数是日志文件被存储位置的路径。在构建的路中可使用变量，特殊值off可以禁止记录访问日志。第二个可选参数用于指定log_format指令设定的日志格式。若未配置第二个参数，则试用预定义的combined格式。若写缓存用于记录日志，第三个可选参数则知名了写缓存的大小。若使用写缓存，则这个大小不能超过写文件系统的原子磁盘大小。若第三个参数是gzip，那么缓冲日志将会被动态压缩，在构建Nginx二进制时需要提供zlib库。最后一个采纳数时flush，表明在将缓冲日志数据冲洗到磁盘之前，它们能够在内存中停留的最大时间 |
+| log_format          | 指定出现在日志文件的字段和采用的格式。日志中指定日志变量参考下表 |
+| Log_not_found       | 禁止在错误日志中报告404错误(默认on)                          |
+| log_subrequest      | 在访问日志中启用记录子请求(默认off)                          |
+| Open_log_file_cache | 存储access_logs在路径中使用到的打开的变量文件描述符的缓存。用到如下参数：max:指定文件描述符在缓存中的最大数量<br>inactive:在文件描述符被关闭前，使用该参数表明Nginx将会等待一个时间间隔用于写入该日志<br>min_uses:使用该参数表明文件描述符被使用的次数，在inactive时间内达到指定的次数，该文件描述符将会被保持打开<br>valid:使用该参数表明Nginx将经常检查次文件描述符是否仍有同名文件匹配<br>off:该参数禁止缓存 |
+
+当指定了gzip后，则不可选用log_format参数
+
+```
+# 日志条目使用gzip压缩为4级，缓存默认64kb，至少每分钟都将缓存刷新到磁盘
+access_log /var/log/nginx/access.log.gz combined gzip=4 flush=1m;
+```
+
+日志格式变量名称
+
+| 日子格式变量名称          | 值                                                           |
+| ------------------------- | ------------------------------------------------------------ |
+| `$body_bytes_sent`        | 指定发送到客户端的字节数，不包括响应头                       |
+| `$bytes_sent`             | 指定发送到客户端的字节数                                     |
+| `$connection`             | 指定一个串号，用于标识一个唯一的连接                         |
+| `$connection_requests`    | 指定通过一个特定连接的请求数                                 |
+| `$msec`                   | 指定以秒为单位的时间，毫秒级别                               |
+| `$pipe `                  | 指示请求是否是管道(p)                                        |
+| `$request_length`         | 指定请求的长度，包括HTTP方法、URI、HTTP协议、头和请求体      |
+| `$request_time`           | 单位秒，从接受用户请求的第一个字节到发送完响应数据的时间，包括接收客户端请求数据的时间、后端程序响应的时间、发送响应数据给客户端的时间(不包含写日志的时间) |
+| `$upstream_response_time` | 单位秒，从Nginx向后端建立连接开始到接受完数据然后关闭连接为止的时间 |
+| `$status`                 | 指定响应状态                                                 |
+| `$time_iso8601`           | 指定本地时间，ISO8601格式                                    |
+| `$time_local`             | 指定本地时间普通日志格式(%d/%b/%y:%H:%M:%S %z)               |
 
 #### listen指令
 
@@ -520,22 +635,22 @@ http://localhost/category/id/1111 则最终匹配到规则H，因为以上规则
 
 ```shell
 location ^~ /t/ {
-     root /www/root/html/;  # 进行拼接
+    root /www/root/html/;  # 进行拼接
 }
 # 请求是/t/a.html时，返回服务器上的/www/root/html/t/a.html的文件。
 
 location ^~ /t/ {
- 		alias /www/root/html/new_t/;   # 进行替换
+ 	alias /www/root/html/new_t/;   # 进行替换
 }
 # 请求有/t/a.html时，返回服务器上的/www/root/html/new_t/a.html的文件。
 
 location /api/ {
-		proxy_pass http://localhost:8080;  # 不带URI，进行拼接
+	proxy_pass http://localhost:8080;  # 不带URI，进行拼接
 }
 # 访问http://localhost/api/xxx时，代理到http://localhost:8080/api/xxx
 
 location /api/ {
-		proxy_pass http://localhost:8080/;  # 带URI，进行替换
+	proxy_pass http://localhost:8080/;  # 带URI，进行替换
 }
 # 访问http://localhost/api/xxx时，代理到http://localhost:8080/xxx
 ```
@@ -544,11 +659,15 @@ location /api/ {
 
 Nginx能够作为一个反向代理来终结来自客户端的请求，并且向上游服务器打开一个新的请求
 
-```
-# 在请求传递到上游服务器时，/uri会被替换为/newuri
+```shell
+# 在请求传递到上游服务器时，url发生变化
 location /uri{
-    proxy_pass http://localhost:8080/newuri;
+    proxy_pass http://localhost:8080/newuri;  # 带URI，进行替换
 }
+location /api/ {
+	proxy_pass http://localhost:8080;  # 不带URI，进行拼接
+}
+
 # 有以下情况例外,不发生转换
 # 正则
 location ~ ^/local{
@@ -758,95 +877,6 @@ Nginx建立在一个模块化的方式之上。master进程提供了每个模块
 子请求是Nginx根据客户端发送的不同URL返回的不同结果。这依赖于配置，可能会多重嵌套和调用其他的子请求。过滤器能够从多个子请求收集响应，并将它们组合成一个响应发送给客户端。然后，最终确定响应并将其发送到客户端。在这种方式下，可以让多个模块发挥作用。
 
 ### 核心模块
-
-#### server指令
-
-指令server开始了一个新的上下文，在Nginx中，默认服务器是指特定配置文件中监听同一IP地址、同一端口作为另一个服务器中的第一个服务器。默认服务器可以通过为listen指令配置default_server参数来实现
-
-默认服务器定义一组通用指令，监听在相同IP地址和端口的随后的服务器将会重复利用这些指令
-
-```
-server {
-    listen 127.0.0.1:80;
-    server_name default.example.com;
-    server_name_in_redirect on;
-}
-server {
-	liaten 127.0.0.1:80;
-	server_name www.example.com;
-}
-```
-
-服务器指令
-
-| HTTP Server指令         | 说明                                                         |
-| ----------------------- | ------------------------------------------------------------ |
-| Port_in_redirect        | 确定Nginx是否对端口指定重定向                                |
-| server                  | 该指令创建一个新的配置区段，定义一个虚拟主机。listen指令指定IP地址和端口号，server_name指令列举用于匹配的Host头值 |
-| server_name             | 配置用于响应请求的虚拟主机名称                               |
-| Server_name_in_redirect | 在该context中，对任何由Nginx发布的重定向，该指令都使用server_name指令中的第一个值来激活 |
-| Server_tokens           | 在错误信息中，该指令禁止发送Nginx的版本号和server响应头(默认值为on) |
-
-#### 日志
-
-配置文件的灭一个级别都可以有访问日志，在每一个级别上可以指定多个访问日志，每个日志用一个不同的log_format指令。log_format指令允许你明确指定记录要记在的内容，该指令需要在http部分内定义。
-
-```
-http{
-    log_format vhost '$host $remote_addr - $remote_user [$time_local]'
-    '"$request" $status $body_bytes_sent'
-    '"$http_referer" "$http_user_agent"';
-    
-    log_format downloads '$time_iso8601 $host $remote_addr'
-    '"$request" $status $body_bytes_sent $request_tiem';
-    
-    open_log_file_cache max=1000 inactive=60s;
-    access_log logs/access.log;
-   
-    server{
-        server_name ~^(www\.)?(.+)$;
-        access_log logs/combined.log vhost;
-        access_log logs/$2/accesslog;
-        location /downloads{
-            access_log logs/downloads.log downloads;
-        }
-    }
-}
-```
-
-日志指令
-
-| HTTP日志指令        | 说明                                                         |
-| ------------------- | ------------------------------------------------------------ |
-| Access_log          | 描述在哪里、怎么样写入访问日志。第一个参数是日志文件被存储位置的路径。在构建的路中可使用变量，特殊值off可以禁止记录访问日志。第二个可选参数用于指定log_format指令设定的日志格式。若未配置第二个参数，则试用预定义的combined格式。若写缓存用于记录日志，第三个可选参数则知名了写缓存的大小。若使用写缓存，则这个大小不能超过写文件系统的原子磁盘大小。若第三个参数是gzip，那么缓冲日志将会被动态压缩，在构建Nginx二进制时需要提供zlib库。最后一个采纳数时flush，表明在将缓冲日志数据冲洗到磁盘之前，它们能够在内存中停留的最大时间 |
-| log_format          | 指定出现在日志文件的字段和采用的格式。日志中指定日志变量参考下表 |
-| Log_not_found       | 禁止在错误日志中报告404错误(默认on)                          |
-| log_subrequest      | 在访问日志中启用记录子请求(默认off)                          |
-| Open_log_file_cache | 存储access_logs在路径中使用到的打开的变量文件描述符的缓存。用到如下参数：max:指定文件描述符在缓存中的最大数量<br>inactive:在文件描述符被关闭前，使用该参数表明Nginx将会等待一个时间间隔用于写入该日志<br>min_uses:使用该参数表明文件描述符被使用的次数，在inactive时间内达到指定的次数，该文件描述符将会被保持打开<br>valid:使用该参数表明Nginx将经常检查次文件描述符是否仍有同名文件匹配<br>off:该参数禁止缓存 |
-
-当指定了gzip后，则不可选用log_format参数
-
-```
-# 日志条目使用gzip压缩为4级，缓存默认64kb，至少每分钟都将缓存刷新到磁盘
-access_log /var/log/nginx/access.log.gz combined gzip=4 flush=1m;
-```
-
-日志格式变量名称
-
-| 日子格式变量名称          | 值                                                           |
-| ------------------------- | ------------------------------------------------------------ |
-| `$body_bytes_sent`        | 指定发送到客户端的字节数，不包括响应头                       |
-| `$bytes_sent`             | 指定发送到客户端的字节数                                     |
-| `$connection`             | 指定一个串号，用于标识一个唯一的连接                         |
-| `$connection_requests`    | 指定通过一个特定连接的请求数                                 |
-| `$msec`                   | 指定以秒为单位的时间，毫秒级别                               |
-| `$pipe `                  | 指示请求是否是管道(p)                                        |
-| `$request_length`         | 指定请求的长度，包括HTTP方法、URI、HTTP协议、头和请求体      |
-| `$request_time`           | 单位秒，从接受用户请求的第一个字节到发送完响应数据的时间，包括接收客户端请求数据的时间、后端程序响应的时间、发送响应数据给客户端的时间(不包含写日志的时间) |
-| `$upstream_response_time` | 单位秒，从Nginx向后端建立连接开始到接受完数据然后关闭连接为止的时间 |
-| `$status`                 | 指定响应状态                                                 |
-| `$time_iso8601`           | 指定本地时间，ISO8601格式                                    |
-| `$time_local`             | 指定本地时间普通日志格式(%d/%b/%y:%H:%M:%S %z)               |
 
 #### 查找文件
 

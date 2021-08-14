@@ -79,27 +79,51 @@ cd /path/to/download/
 tar -zxvf zookeeper-3.4.12.tar.gz
 cd zookeeper-3.4.12
 mkdir data
-# 3.创建配置文件
+mkdir /var/bjsxt/zookeeper/datalog  # 创建日志文件夹
+# 3.编辑配置文件
 vi conf/zoo.cfg
+# 4.若zookeeper做集群
+echo 1 > /opt/zookeeper-3.4.6/data/myid  # 写下当前zookeeper的编号
+scp -r zookeeper-3.4.12/ 其他服务器合理位置
+echo xxx > /opt/zookeeper-3.4.6/data/myid  # 分别改写其他服务器上的编号
+```
 
-tickTime = 2000
-dataDir = /path/to/zookeeper/data
-clientPort = 2181
+配置信息
+
+```shell
+tickTime = 2000  # 发送心跳间隔时间，单位毫秒
+dataDir = /path/to/zookeeper/data  # ZooKeeper保存数据的目录
+dataLogDir=/var/bjsxt/zookeeper/datalog # 日志目录
+clientPort = 2181  # 客户端连接 ZooKeeper服务器的端口，ZooKeeper会监听这个端口，接受客户端的访问请求。
+
+# 获取zookeeper为集群部署，则需配置如下选项
+initLimit=5  # 这个配置项是用来配置 ZooKeeper 接受客户端（这里所说的客户端不是用户连接ZooKeeper服务器的客户端，而是 ZooKeeper 服务器集群中follower或observer连接到 Leader的Follower 服务器）初始化连接时最长能忍受多少个心跳时间间隔数。当已经超过 5 个心跳的时间（也就是 tickTime）长度后 ZooKeeper 服务器还没有收到客户端的返回信息，那么表明这个客户端连接失败。总的时间长度就是 5*2000=10秒
+syncLimit=2  # 这个配置项标识 Leader 与 Follower 之间发送消息，请求和应答时间长度，最长不能超过多少个tickTime 的时间长度，总的时间长度就是 4*2000=8 秒
+server.1=server2:2881:3881
+server.2=server3:2881:3881  
+server.3=node4:2881:3881  #observer（表示对应节点不参与投票）
+# server.A=B：C：D：其 中 A是一个数字，表示这个是第几号服务器；B是这个服务器的ip地址；C表示的是这个服务器与集群中的Leader服务器交换信息的端口；D表示的是万一集群中的 Leader 服务器挂了，需要一个端口来重新进行选举，选出一个新的Leader，而这个端口就是用来执行选举时服务器相互通信的端口。如果是伪集群的配置方式，由于B都是一样，所以不同的ZooKeeper实例通信端口号不能一样，所以要给它们分配不同的端口号。
 ```
 
 ### 使用
 
-启动与停止zookeeper
-
 ```python
 # 启动zookeeper服务器
 bin/zkServer.sh start
-# 启动CLI
-bin/zkCli.sh
-
 # 停止zookeeper服务器
 bin/zkServer.sh stop
+# 检查zookeeper服务器状态
+bin/zkServer.sh status
+
+# 启动CLI
+bin/zkCli.sh
+# 退出cli
+quit
 ```
+
+## 客户端命令
+
+
 
 ## python交互
 
@@ -107,13 +131,13 @@ kazoo是Python连接操作ZooKeeper的客户端库。我们可以通过kazoo来�
 
 - 安装
 
-```
+```shell
 pip install kazoo
 ```
 
 - 使用
 
-连接zookeepe
+连接zookeeper
 
 ```python
 from kazoo.client import KazooClient
@@ -155,5 +179,3 @@ def my_func(event):
 # 当子节点发生变化的时候，调用my_func
 children = zk.get_children("/my/favorite/node", watch=my_func)
 ```
-
-## 

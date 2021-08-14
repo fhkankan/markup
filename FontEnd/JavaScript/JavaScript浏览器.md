@@ -1032,20 +1032,20 @@ html
 
 所有的HTML元素上都可以使用style特性，而在javascript中通过style属性可以访问该特性，并返回CSSStyleDeclaration对象(键/值对集合)
 
-```
-# 通过下面的方法修改此对象中的样式声明
-setProperty()	添加一个声明，接收两个必须的参数(属性/值)以及一个可选的优先级参数(空白/important)
-getpropertyValue()	作为参数传入属性名并返回相应的值
-getPropertyPriority()	如果指定的属性有关键字important，则返回important
-cssText		返回该样式中的所有声明，并格式化为CSS文件中的格式
-removeProperty()	删除指定的属性
+```javascript
+//  通过下面的方法修改此对象中的样式声明
+setProperty()	// 添加一个声明，接收两个必须的参数(属性/值)以及一个可选的优先级参数(空白/important)
+getpropertyValue()	// 作为参数传入属性名并返回相应的值
+getPropertyPriority()	// 如果指定的属性有关键字important，则返回important
+cssText		// 返回该样式中的所有声明，并格式化为CSS文件中的格式
+removeProperty()	//删除指定的属性
 ```
 
 - 设置样式属性
 
 针对每个CSS属性，CSSStyleDeclaration对象都有一个属性与之对应。
 
-```
+```javascript
 // 获取或设置属性
 var p = document.querySelector("p");
 p.style.fontStyle = "italic";
@@ -1057,7 +1057,7 @@ console.log("Current color is " + p.style.color)
 
 通过setAttribute()方法设置任何HTML特性值，它接收两个参数：特性名称、想要设置的值
 
-```
+```javascript
 var p = document.querySelector("p");
 p.setAttribute("style", "font-style:italic; font-size:xx-small;");
 ```
