@@ -34,38 +34,6 @@ Apache™ Hadoop®  是一个开源的, **可靠的**(reliable), **可扩展**�
 - Hadoop生态系统成熟
 ```
 
-## 核心组件
-
-- **Hadoop Common**: The common utilities that support the other Hadoop modules.
-
-hadoop的通用组件
-
-包含了其他hadoop模块要用到的库文件和工具
-
-- **Hadoop Distributed File System (HDFS™)**: A distributed file system that provides high-throughput access to application data.
-
-分布式文件系统
-
-运行于通用硬件上的分布式文件系统，高吞吐，高可靠
-
-源自于Google的GFS论文, 论文发表于2003年10月，HDFS是GFS的开源实现，HDFS的特点:扩展性&容错性&海量数量存储，将文件切分成指定大小的数据块, 并在多台机器上保存多个副本，数据切分、多副本、容错等操作对用户是透明的。
-
-- **Hadoop MapReduce**: A YARN-based system for parallel processing of large data sets.
-
-分布式计算
-
-用于处理超大数据集计算的MapReduce编程模型的实现
-
-源于Google的MapReduce论文，论文发表于2004年12月，MapReduce是GoogleMapReduce的开源实现，MapReduce特点:扩展性&容错性&海量数据离线处理。
-
-- **Hadoop YARN**: A framework for job scheduling and cluster resource management.
-
-资源调度系统
-
-用于管理集群中的计算资源并在这些资源上调度用户应用。
-
-YARN特点:扩展性&容错性&多框架资源统一调度
-
 ## 安装部署
 
 - 下载
@@ -163,6 +131,59 @@ sbin/stop-yarn.sh
 jps
 ```
 
+## 核心组件
+
+- **Hadoop Common**: The common utilities that support the other Hadoop modules.
+
+hadoop的通用组件
+
+包含了其他hadoop模块要用到的库文件和工具
+
+- **Hadoop Distributed File System (HDFS™)**: A distributed file system that provides high-throughput access to application data.
+
+分布式文件系统
+
+运行于通用硬件上的分布式文件系统，高吞吐，高可靠
+
+源自于Google的GFS论文, 论文发表于2003年10月，HDFS是GFS的开源实现，HDFS的特点:扩展性&容错性&海量数量存储，将文件切分成指定大小的数据块, 并在多台机器上保存多个副本，数据切分、多副本、容错等操作对用户是透明的。
+
+- **Hadoop MapReduce**: A YARN-based system for parallel processing of large data sets.
+
+分布式计算
+
+用于处理超大数据集计算的MapReduce编程模型的实现
+
+源于Google的MapReduce论文，论文发表于2004年12月，MapReduce是GoogleMapReduce的开源实现，MapReduce特点:扩展性&容错性&海量数据离线处理。
+
+- **Hadoop YARN**: A framework for job scheduling and cluster resource management.
+
+资源调度系统
+
+用于管理集群中的计算资源并在这些资源上调度用户应用。
+
+YARN特点:扩展性&容错性&多框架资源统一调度
+
+## 发行版本
+
+- Apache Hadoop
+
+```
+- 开源社区版
+- 最新的Hadoop版本都是从Apache Hadoop发布的
+- 涉及的组件Hadoop Hive Flume可能存在版本不兼容的问题
+```
+
+- CDH:[Cloudera Distributed Hadoop](http://archive.cloudera.com/cdh5/cdh/5/)
+
+```
+- Cloudera 在社区版的基础上做了一些修改
+- hadoop-2.6.0-cdh-5.7.0 和 Flume*****-cdh5.7.0 cdh版本一致 的各个组件配合是有不会有兼容性问题
+- CDH版本的这些组件 没有全部开源
+- 新版更新版本比社区版慢
+```
+
+- HDP: Hortonworks Data Platform
+
 ## 关联项目
 
 1. Apache Ambari是一种基于Web的工具，支持Apache Hadoop集群的供应、管理和监控。Apache Ambari 支持HDFS、MapReduce、Hive、Pig、Hbase、Zookeepr、Sqoop和Hcatalog等的集中管理。也是5个顶级hadoop管理工具之一。
@@ -179,8 +200,61 @@ jps
 12. Flume:日志收集框架
 13. Sqoop:数据交换框架，例如：关系型数据库与HDFS之间的数据交换
 14. Kafka: 消息队列
-15. Storm: 分布式的流式计算框架  python操作storm 
+15. Storm: 分布式的流式计算框架，不适合python操作storm 
 16. Flink: 分布式的流式计算框架
+
+## 大数据与互联网
+
+分布式系统执行任务瓶颈: 延迟高 MapReduce 几分钟 Spark几秒钟
+
+**互联网产品要求**：1.毫秒级响应(1秒以内完成)，2.需要通过大数据实现 统计分析 数据挖掘 关联推荐 用户画像
+
+**大数据平台**：整合网站应用和大数据系统之间的差异, 将应用产生的数据导入到大数据系统, 经过处理计算后再导出给应用程序使用
+
+**互联网大数据平台架构**
+
+![](images/bigdata_arcit.png)
+
+数据采集
+
+```
+- App/Web 产生的数据&日志同步到大数据系统
+- 数据库同步:Sqoop 日志同步:Flume 打点: Kafka
+- 不同数据源产生的数据质量可能差别很大
+    - 数据库 也许可以直接用
+    - 日志 爬虫 大量的清洗,转化处理 
+```
+
+数据处理
+
+```
+- 大数据存储与计算的核心
+- 数据同步后导入HDFS
+- MapReduce Hive Spark 读取数据进行计算 结果再保存到HDFS
+- MapReduce Hive Spark 离线计算, HDFS 离线存储
+    - 离线计算通常针对(某一类别)全体数据, 比如 历史上所有订单
+    - 离线计算特点: 数据规模大, 运行时间长
+- 流式计算
+    - 淘宝双11 每秒产生订单数 监控宣传
+    - Storm(毫秒) SparkStreaming(秒)
+```
+
+数据输出与展示
+
+```
+- HDFS需要把数据导出交给应用程序, 让用户实时展示  ECharts
+    - 淘宝卖家量子魔方
+- 给运营和决策层提供各种统计报告, 数据需要写入数据库
+    - 很多运营管理人员, 上班后就会登陆后台数据系统
+```
+
+任务调度系统
+
+```
+将上面三个部分整合起来
+```
+
+
 
 ## HDFS
 
@@ -249,6 +323,55 @@ hadoop fs -rm URI [URI …]
     - 缺点
         - 不能用于低延迟的数据访问
         - 不适用于小文件存储
+
+### 执行流程
+
+1. 客户端向NameNode发出写文件请求。
+
+2. 检查是否已存在文件、检查权限。若通过检查，直接先将操作写入EditLog，并返回输出流对象。 
+    （注：WAL，write ahead log，先写Log，再写内存，因为EditLog记录的是最新的HDFS客户端执行所有的写操作。如果后续真实写操作失败了，由于在真实写操作之前，操作就被写入EditLog中了，故EditLog中仍会有记录，我们不用担心后续client读不到相应的数据块，因为在第5步中DataNode收到块后会有一返回确认信息，若没写成功，发送端没收到确认信息，会一直重试，直到成功）
+
+3. client端按128MB的块切分文件。
+
+4. client将NameNode返回的分配的可写的DataNode列表和Data数据一同发送给最近的第一个DataNode节点，此后client端和NameNode分配的多个DataNode构成pipeline管道，client端向输出流对象中写数据。client每向第一个DataNode写入一个packet，这个packet便会直接在pipeline里传给第二个、第三个…DataNode。 
+    （注：并不是写好一个块或一整个文件后才向后分发）
+
+5. 每个DataNode写完一个块后，会返回确认信息。 
+    （注：并不是每写完一个packet后就返回确认信息，个人觉得因为packet中的每个chunk都携带校验信息，没必要每写一个就汇报一下，这样效率太慢。正确的做法是写完一个block块后，对校验信息进行汇总分析，就能得出是否有块写错的情况发生）
+
+6. 写完数据，关闭输输出流。
+
+7. 发送完成信号给NameNode。
+
+（注：发送完成信号的时机取决于集群是强一致性还是最终一致性，强一致性则需要所有DataNode写完后才向NameNode汇报。最终一致性则其中任意一个DataNode写完后就能单独向NameNode汇报，HDFS一般情况下都是强调强一致性） 
+
+### 高可用保证
+
+数据存储故障容错
+```
+- 磁盘介质在存储过程中受环境或者老化影响,数据可能错乱
+- 对于存储在 DataNode 上的数据块，计算并存储校验和（CheckSum)
+- 读取数据的时候, 重新计算读取出来的数据校验和, 校验不正确抛出异常, 从其它
+```
+DataNode上读取备份数据
+```
+- 磁盘故障容错
+    - DataNode 监测到本机的某块磁盘损坏
+    - 将该块磁盘上存储的所有 BlockID 报告给 NameNode
+    - NameNode 检查这些数据块在哪些DataNode上有备份,
+    - 通知相应DataNode, 将数据复制到其他服务器上
+- DataNode故障容错
+    - 通过心跳和NameNode保持通讯
+    - 超时未发送心跳, NameNode会认为这个DataNode已经宕机
+    - NameNode查找这个DataNode上有哪些数据块, 以及这些数据在其它DataNode服务器上的存储情况
+    - 从其它DataNode服务器上复制数据
+```
+NameNode故障容错
+```
+- 主从热备，必须通过zookeeper（secondary namenode来处理namenode数据的备份）
+- zookeeper配合 master节点选举，负责数据一致性保证
+```
+
 
 ## YARN
 
