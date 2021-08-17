@@ -791,6 +791,15 @@ os模块除了提供使用操作系统功能和访问文件系统之外，还有
 | walk(top, topdown=True, onerror=None)                   | 遍历目录树，该方法返回一个元组，包括3个元素，所有路径名、所有目录列表与文件列表 |
 | write(fd, data)                                         | 将bytes对象data写入文件fd                                    |
 
+设置环境变量
+
+```python
+import os
+
+JAVA_HOME = '/root/jdk'
+os.environ["JAVA_HOME"] = JAVA_HOME
+```
+
 ## os.path
 
 提供了大量用于路径判断、切分、连接及文件夹遍历的方法

@@ -1,8 +1,17 @@
 # os
 
+## 设置环境变量
+
+```python
+import os
+
+JAVA_HOME = '/root/jdk'
+os.environ["JAVA_HOME"] = JAVA_HOME
+```
+
 
 ## 文件重命名
-```
+```python
 os.rename(src,dst)
 # 重命名文件或目录，从 src 到 dst
 
@@ -11,7 +20,7 @@ os.renames(old,new)
 ```
 
 ## 删除文件
-```
+```python
 os.remove(path)
 # 删除路径为path的文件。如果path 是一个文件夹，将抛出OSError; 查看下面的rmdir()删除一个 directory。
 
@@ -19,7 +28,7 @@ os.removedirs(path)
 # 递归删除目录
 ```
 ## 创建文件夹
-```
+```python
 os.mkdir(path[,mode])
 # 以数字mode的mode创建一个名为path的文件夹.默认的 mode 是 0777 (八进制)。
 
@@ -27,12 +36,12 @@ os.makedirs(path)
 # 创建path中所有必须文件夹 
 ```
 ## 删除文件夹
-```
+```python
 os.rmdir(path)
 # 删除path指定的空目录，如果目录非空，则抛出一个OSError异常。
 ```
 ## 当前工作目录
-```
+```python
 os.getcwd()
 # 返回当前工作目录
 
@@ -47,7 +56,7 @@ os.chroot(path)
 # 改变当前进程的根目录
 ```
 ## 路径
-```
+```python
 # 路径和文件名
 os.path.dirname(path)
 # 返回path参数中的路径名称字符串
@@ -72,7 +81,7 @@ os.path.getsize(path)
 # 产看文件的大小
 ```
 ## 获取信息
-```
+```python
 os.listdir(path)
 #返回path指定的文件夹包含的文件或文件夹的名字的列表 
 # ./当前路径(相对路径)
@@ -96,7 +105,7 @@ os.utime(path, times)
 # 返回指定的path文件的访问和修改的时间
 ```
 ## 文件权限
-```
+```python
 os.access(path,mode)
 # 检验权限模式
 
@@ -107,7 +116,7 @@ os.chown(path,uid,gid)
 # 更改文件所有者
 ```
 ## 创建
-```
+```python
 os.stat_float_times([newvalue])
 # 决定stat_result是否以float对象显示时间戳
 
@@ -148,7 +157,7 @@ os.unlink(path)
 # 删除文件路径
 ```
 ## 设备相关
-```
+```python
 os.major(device)
 # 从原始的设备号中提取设备major号码 (使用stat中的st_dev或者st_rdev field)。
 
@@ -159,7 +168,7 @@ os.minor(device)
 # 从原始的设备号中提取设备minor号码 (使用stat中的st_dev或者st_rdev field )
 ```
 ## 连接对象
-```
+```python
 os.symlink(src,dst)
 # 创建一个软链接
 
@@ -185,7 +194,7 @@ os.lseek(fd,pos,how)
 # 设置文件描述符fd当前位置为pos, how方式修改: SEEK_SET 或者 0 设置从文件开始的计算的pos; SEEK_CUR或者 1 则从当前位置计算; os.SEEK_END或者2则从文件尾部开始. 在unix，Windows中有效
 ```
 ## 文件描述符
-```
+```python
 os.read(fd,n)
 # 从文件描述符fd中读取最多 n 个字节，返回包含读取字节的字符串，文件描述符 fd对应文件已达到结尾, 返回一个空字符串。
 
@@ -251,21 +260,14 @@ os.ttyname(fd)
 
 如下函数都执行一个新的程序，然后用新的程序替换当前子进程的进程空间，而该子进程从新程序的main函数开始执行。在Unix下，该新程序的进程id是原来被替换的子进程的进程id。在原来子进程中打开的所有描述符默认都是可用的，不会被关闭。
 
-```
+```python
 os.execl(path, arg0, arg1, ...)
-
 os.execle(path, arg0, arg1, ..., env)
-
 os.execlp(file, arg0, arg1, ...)
-
 os.execlpe(file, arg0, arg1, ..., env)
-
 os.execv(path, args)
-
 os.execve(path, args, env)
-
 os.execvp(file, args)
-
 os.execvpe(file, args, env)
 ```
 
@@ -273,11 +275,8 @@ os.execvpe(file, args, env)
 
 ```
 execl*系列的函数表示其接受的参数是一个个独立的参数传递进去的。
-
 execv*系列的函数表示其接受的参数是以一个list或者是一个tuple表示的参数表
-
 exec*p*系列函数表示在执行参数传递过去的命令时使用PATH环境变量来查找命令
-
 exec*e系列函数表示在执行命令的时候读取该参数指定的环境变量作为默认的环境配置，最后的env参数必须是一个mapping对象，可以是一个dict类型的对象。
 ```
 
@@ -286,16 +285,16 @@ exec*e系列函数表示在执行命令的时候读取该参数指定的环境�
 程序重启
 
 ```python
- import sys
- import os
+import sys
+import os
  
- python = sys.executable
- os.execl(python, python, *sys.argv)
+python = sys.executable
+os.execl(python, python, *sys.argv)
 ```
 
 控制台清屏
 
-```
+```python
 os.system("cls)
 ```
 
