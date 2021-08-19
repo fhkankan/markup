@@ -111,6 +111,12 @@ sudo nginx -s stop    # 快速停止nginx
 sudo nginx -s quit 		# 不再接受新的请求，等正在处理的请求出完成后在进行停止（优雅的关闭）
 ```
 
+测试
+
+```shell
+nginx -t -c xxx		# 测试nginx配置是否ok
+```
+
 浏览器访问
 
 ```
@@ -239,15 +245,36 @@ server {
 
 ```
 http {
-	client_max_body_size 8M;  # 客户端上传最大单文件大小
-	client_body_buffer_size 128k; # 缓存大小
+		client_max_body_size 8M;  # 客户端上传最大单文件大小
+		client_body_buffer_size 128k; # 缓存大小
     include       mime.types;
     default_type  application/octet-stream;
+}
+```
+
+静态文件支持跨域配置
+
+```shell
+server {
+        listen       80;
+ 				add_header 'Access-Control-Allow-Origin' '*';
+        server_name  localhost;
+        location / {
+            root   html;
+            index  index.html index.htm;
+            try_files $uri $uri/ /index.html
+        }
+        location /filedata{
+        		alias /NginxData;
+        		allow all;
+        		autoindex on;
+        }
+}
 ```
 
 反向代理
 
-```
+```shell
 upstream burn_backend {
     server xx.xx.xx.xx:12000;
     server xx.xx.xx.xx:12001;
