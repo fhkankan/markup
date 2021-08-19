@@ -748,10 +748,11 @@ GitHub的示例配置文件：[https://github.com/github/gitignore](https://gith
 ```python
 # 此为注释 – 将被 Git 忽略
 *.sample 　　 # 忽略所有.sample 结尾的文件
-!lib.sample 　　 # 但 lib.sample 除外
 /TODO 　　 # 仅仅忽略项目根目录下的 TODO 文件，不包括 subdir/TODO
 build/ 　　 # 忽略 build/ 目录下的所有文件
 doc/*.txt 　　# 会忽略 doc/notes.txt 但不包括 doc/server/arch.txt
+
+!lib.sample 　　 # 但 lib.sample 除外
 ```
 
 - 规则不生效的解决办法
