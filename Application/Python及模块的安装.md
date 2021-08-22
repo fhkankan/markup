@@ -139,8 +139,8 @@ pip国内的一些镜像
 ```
 1.临时使用： 
 可以在使用pip的时候在后面加上-i参数，指定pip源 
-eg: pip install scrapy -i https://pypi.tuna.tsinghua.edu.cn/simple
-
+pip install scrapy -i https://pypi.tuna.tsinghua.edu.cn/simple --trusted-host
+pip install scrapy -i http://mirrors.aliyun.com/pypi/simple/  --trusted-host mirrors.aliyun.com
 
 2.永久修改： 
 linux/mac: 
