@@ -257,7 +257,7 @@ http {
 ```shell
 server {
         listen       80;
- 				add_header 'Access-Control-Allow-Origin' '*';
+ 		add_header 'Access-Control-Allow-Origin' '*';
         server_name  localhost;
         location / {
             root   html;
@@ -415,6 +415,14 @@ events {
 | `worker_connections` | 配置一个工作进程能够接受并发连接的最大数。这个连接包括客户连接和向上游服务器的连接，但并不限于此。对于反向代理服务器尤为重要，为达到这个并发性连接数量，需要在操作系统层面进行一些额外调整。 |
 
 ### Http
+
+添加位置不同，限制不同
+
+```shell
+# 添加在http{ }中，控制所有请求报文大小;
+# 添加在server{ }中，控制该server的所有请求报文大小;
+# 添加在location{ }中，控制满足该路由规则的请求报文大小;
+```
 
 #### 客户端指令
 
@@ -1178,7 +1186,7 @@ location /videos{
 | $content_type                                                | 指定请求头Content-Type的值                                   |
 | $cookie_name                                                 | 指定cookie标签名字                                           |
 | $document_root                                               | 指定当前请求中指令root或者alias的值                          |
-| $document_uri                                                | 指定$uri的别名                                               |
+| $document_uri                                                | 指定$uri的别名 |                                                              |
 | $host                                                        | 若当前有Host，该变来个则指定请求头host的值，若无这个头，则该值等于匹配该请求的server_name的值 |
 | $hostname                                                    | 指定运行Nginx主机的主机名                                    |
 | $http_name                                                   | 指定请求头name值，若这个头有破折号，会被转换为下划线，大写字母转为小写字母 |
@@ -1187,7 +1195,7 @@ location /videos{
 | $limit_rate                                                  | 指定指令limit_rate的值，若无设置，允许速率限制使用这个变量   |
 | $nginx_version                                               | 指定允许的Nginx二进制版本                                    |
 | $pid                                                         | 指定worker进程的ID                                           |
-| $query_string                                                | 指定$args的别名                                              |
+| $query_string                                                | 指定$args的别名 |                                                              |
 | $realpath_root                                               | 指定当前请求中指令root和alias的值，用所有的符号链接解决问题  |
 | $remote_addr                                                 | 指定客户端的IP                                               |
 | $remote_port                                                 | 指定客户端的端口                                             |
@@ -1206,6 +1214,6 @@ location /videos{
 | $server_port                                                 | 指定接受请求的服务器端口                                     |
 | $server_protocol                                             | 指定在当前请求中使用的HTTP协议                               |
 | $status                                                      | 指定响应状态                                                 |
-| $tcpinfo_rtt<br>$tcpinfo_rttvar<br>$tcpinfo_snd_cwnd<br>$tcpinfo_rcv_space | 若系统支持TCP_INFO套接字选项，这些变量将会被相关的信息填充   |
+| `$tcpinfo_rtt<br>$tcpinfo_rttvar<br>$tcpinfo_snd_cwnd<br>$tcpinfo_rcv_space` | 若系统支持TCP_INFO套接字选项，这些变量将会被相关的信息填充   |
 | $uri                                                         | 指定当前请求的变转化URI                                      |
 
