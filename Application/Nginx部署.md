@@ -241,14 +241,24 @@ server {
 }
 ```
 
-修改能够上传的数据大小
+上传大文件
 
-```
-http {
-		client_max_body_size 8M;  # 客户端上传最大单文件大小
-		client_body_buffer_size 128k; # 缓存大小
-    include       mime.types;
-    default_type  application/octet-stream;
+```shell
+http{
+	server{
+		location /trail {
+				# 防止Entity Too Large
+				clint_max_body_size 501m; # 客户端上传文件大小500M，默认1m，若超过返回413错误
+				client_body_buffer_size 1m; # 缓存大小
+				# 防止504 gateway time-out
+			 	proxy_connect_timeout  1800s; #nginx跟后端服务器连接超时时间(代理连接超时)，默认60s
+    		proxy_send_timeout  1800s;#后端服务器数据回传时间(代理发送超时)，默认60s
+    		proxy_read_timeout  1800s;#连接成功后，后端服务器响应时间(代理接收超时)，默认60s
+    		fastcgi_connect_timeout 1800s;#指定nginx与后端fastcgi server连接超时时间
+    		fastcgi_send_timeout 1800s;#指定nginx向后端传送请求超时时间（指已完成两次握手后向fastcgi传送请求超时时间）
+    		fastcgi_read_timeout 1800s;#指定nginx向后端传送响应超时时间（指已完成两次握手后向fastcgi传送响应超时时间）
+		}
+	}
 }
 ```
 
@@ -257,7 +267,6 @@ http {
 ```shell
 server {
         listen       80;
- 				add_header 'Access-Control-Allow-Origin' '*';
         server_name  localhost;
         location / {
             root   html;
@@ -265,6 +274,7 @@ server {
             try_files $uri $uri/ /index.html
         }
         location /filedata{
+        		add_header 'Access-Control-Allow-Origin' '*';
         		alias /NginxData;
         		allow all;
         		autoindex on;
@@ -362,17 +372,6 @@ server {
 }
 ```
 
-## 常见问题
-
-403
-
-```
-# 问题一：
-网站目录下无index.html文件
-# 问题二：
-网站目录无权限,chmod 755
-```
-
 ## 配置指南
 
 ### 全局模块
@@ -425,10 +424,10 @@ events {
 | client_body_in_file_only     | 用于调试或进一步处理客户端请求体。该指令设置为“on”能够将客户端请求体强制写入到磁盘文件 |
 | client_body_in_single_buffer | 为了减少复制的操作，使用该指令强制Nginx将整个客户端请求保存在单个缓存中 |
 | client_body_temp_path        | 定义一个命令路径用于保存客户端请求体                         |
-| client_body_timeout          | 指定客户体成功读取的两个操作之间的时间间隔                   |
+| `client_body_timeout`        | 指定客户体成功读取的两个操作之间的时间间隔，超过返回413错误  |
 | client_header_buffer_size    | 为客户端请求头指定一个缓存大小，当请求头大于1kb时会用到这个设置 |
-| client_header_timeout        | 该超时是读取整个客户端头的时间长度                           |
-| client_max_body_size         | 定义允许最大的客户端请求头，若大于这个设置，客户端将会是413错误 |
+| `client_header_timeout`      | 该超时是读取整个客户端头的时间长度，超过返回408错误          |
+| `client_max_body_size`       | 定义允许最大的客户端请求头，默认1m，若超过返回413错误        |
 | keepalive_disable            | 对某些类型的客户禁用keep-alive请求功能                       |
 | keepalive_requests           | 定义在一个keep-alive关闭之前可以接受多少个请求               |
 | keepalive_timeout            | 指定keep-alive连接持续多久，第二个参数也可以设置，用于在响应头中设置"keepalive"头 |
@@ -711,7 +710,7 @@ location / {
 
 | Proxy模块指令                 | 说明                                                         |
 | ----------------------------- | ------------------------------------------------------------ |
-| proxy_connect_timeout         | 指明Nginx从接受请求到连接到上游服务器的最长等待时间          |
+| `proxy_connect_timeout`       | 指明Nginx从接受请求到连接到上游服务器的最长等待时间，默认60s |
 | proxy_cookie_domain           | 替代从上游服务器来的Set-Cookie头中的domain属性；domain被替换为一个字符串、一个正则表达式，或者是引用的变量 |
 | proxy_cookie_path             | 替代从上游服务器来的Set-Cookie头中的path属性；path被替换为一个字符串、一个正则表达式，或者是引用的变量 |
 | proxy_headers_has_bucket_size | 指定头名字的最大值                                           |
@@ -726,9 +725,9 @@ location / {
 | proxy_pass_header             | 该指令覆盖掉在proxy_hide_header指令中设置的头，允许这些头传递到客户端 |
 | proxy_pass_request_body       | 若设置为off,则阻止请求体发送到上游服务器                     |
 | proxy_pass_request_header     | 如设置为off,则阻止请求头发送到上游服务器                     |
-| proxy_read_timeout            | 给出链接关闭前从上游服务器两次成功的读操作耗时。若上游服务器处理请求比较慢，则该指令应设置的高些 |
+| `proxy_read_timeout`          | 给出链接关闭前从上游服务器两次成功的读操作耗时。若上游服务器处理请求比较慢，则该指令应设置的高些，默认60s |
 | proxy_redirect                | 该指令重写来自于上游服务器的Location和Refresh头，这对于某种应用程序框架非常有用 |
-| proxy_send_timeout            | 该指令指定在连接关闭之前，向上游服务器两次写成功的操作完成所需要的时间长度 |
+| `proxy_send_timeout`          | 该指令指定在连接关闭之前，向上游服务器两次写成功的操作完成所需要的时间长度，默认60s |
 | proxy_set_body                | 发送到上游服务器的请求体可能会被该指令的设置值修改           |
 | proxy_set_header              | 该指令重写发送到上游服务器头的内容，也可以通过将某种头的值设置为空字符，而不发送某种头的方法实现 |
 | proxy_temp_file_write_size    | 该指令限制在同一时间内缓冲到一个临时文件的数据量，以使得Nginx不会过长地阻止单个请求 |
