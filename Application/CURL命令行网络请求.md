@@ -184,6 +184,12 @@ curl 是常用的命令行工具，用来请求 Web 服务器。它的名字就�
 
 上面命令添加 HTTP 请求的标头是`Content-Type: application/json`，然后用`-d`参数发送 JSON 数据。
 
+```shell
+curl -H 'Host: https://google.com' 192.168.13.25/index
+```
+
+上面的命令添加Host
+
 ## **-i**
 
 `-i`参数打印出服务器回应的 HTTP 标头。
