@@ -650,6 +650,7 @@ chown [option]...--reference=rfile file
 
 chown root /var/run/httpd.pid
 chown runoob:runoobgroup file1.txt
+chown opuser:opuser demo
 chown -R runoob:runoobgroup *
 ```
 

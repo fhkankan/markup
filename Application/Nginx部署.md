@@ -248,7 +248,7 @@ http{
 	server{
 		location /trail {
 				# 防止Entity Too Large
-				clint_max_body_size 501m; # 客户端上传文件大小500M，默认1m，若超过返回413错误
+				client_max_body_size 501m; # 客户端上传文件大小500M，默认1m，若超过返回413错误
 				client_body_buffer_size 1m; # 缓存大小
 				# 防止504 gateway time-out
 			 	proxy_connect_timeout  1800s; #nginx跟后端服务器连接超时时间(代理连接超时)，默认60s
