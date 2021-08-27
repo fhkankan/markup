@@ -38,6 +38,8 @@ get
 
 ```shell
 curl -v -G -d 'q=kitties' -d 'count=20' https://google.com/search
+
+curl -v -H 'Authorization: fe350335-b617-4470-91f5-00f76d50a5e2'  https://google.com/search
 ```
 
 post

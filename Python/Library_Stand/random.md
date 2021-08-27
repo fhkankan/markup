@@ -1,4 +1,9 @@
 # random
+
+```
+import random
+```
+
 随机数
 
 ```
