@@ -213,8 +213,10 @@ print(localtime)
 ```python
 from datetime import datetime
 now = datetime.now()
+# str
+print(now)
+# strftime
 print(now.strftime('%a, %b, %Y %m %d %H:%M:%S'))
-
 # python3.6开始可以使用f
 time_obj = datetime.now()
 print(f"当前时间:{time_obj:%Y-%m-%d %H:%M:%S}")

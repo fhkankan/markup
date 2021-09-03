@@ -650,6 +650,7 @@ chown [option]...--reference=rfile file
 
 chown root /var/run/httpd.pid
 chown runoob:runoobgroup file1.txt
+chown opuser:opuser demo
 chown -R runoob:runoobgroup *
 ```
 
@@ -1363,6 +1364,9 @@ uname [option]...
 -m:显示系统主机类型
 -n:显示系统的计算机主机名
 -r:显示系统发行版的内核编号
+
+cat /etc/issue
+# 查看操作系统名称
 ```
 
 ## 日期时间

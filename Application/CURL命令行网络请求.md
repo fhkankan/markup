@@ -20,6 +20,38 @@ curl 是常用的命令行工具，用来请求 Web 服务器。它的名字就�
 
 上面命令向`www.example.com`发出 GET 请求，服务器返回的内容会在命令行输出。
 
+## 常用
+
+上传文件
+
+```shell
+curl -F 'file=@/home/test/photo.png' https://google.com/profile
+```
+
+带域名
+
+```
+curl -H 'Host: https://google.com' 192.168.13.25/index
+```
+
+get
+
+```shell
+curl -v -G -d 'q=kitties' -d 'count=20' https://google.com/search
+
+curl -v -H 'Authorization: fe350335-b617-4470-91f5-00f76d50a5e2'  https://google.com/search
+```
+
+post
+
+```shell
+# application/json
+curl -v -d '{"login": "emma", "pass": "123"}' -H 'Content-Type: application/json' https://google.com/login
+
+# application/x-www-form-urlencoded
+curl -v -d'login=emma＆password=123'-X POST https://google.com/login
+```
+
 ## **-A**
 
 `-A`参数指定客户端的用户代理标头，即`User-Agent`。curl 的默认用户代理字符串是`curl/[version]`。

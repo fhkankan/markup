@@ -28,10 +28,12 @@ pip install aiochclient[speedups]
 from aiochclient import ChClient
 from aiohttp import ClientSession
 
-	async def main():
-        async with ClientSession() as s:
-            client = ChClient(s)
-            assert await client.is_alive() # returns True if connection is Ok
+
+async def main():
+    async with ClientSession() as s:
+        client = ChClient(s)
+        assert await client.is_alive()  # returns True if connection is Ok
+
 ```
 
 ### 查询
@@ -68,7 +70,7 @@ assert row["b"]==(dt.date(2018,9,7),None)
 
 ```python
 val = await client.fetchval("SELECT b FROM t WHERE a=2")
-assertval == (dt.date(2018,9,8),3.14)
+assert val == (dt.date(2018,9,8),3.14)
 ```
 
 通过查询结果的异步迭代，您可以获取 多行而不同时将它们全部加载到内存中：
