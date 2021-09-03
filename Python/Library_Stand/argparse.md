@@ -6,8 +6,6 @@ argparse 是 Python 内置的一个用于命令项选项与参数解析的模块
 import argparse
 ```
 
-## 基础
-
 三步骤
 
 ```
@@ -16,9 +14,11 @@ import argparse
 使用 parse_args() 解析添加的参数
 ```
 
-prog.py
+## 无参数
 
-```
+`prog.py`
+
+```python
 import argparse
 
 parser = argparse.ArgumentParser()
@@ -27,32 +27,32 @@ parser.parse_args()
 
 运行
 
-```
-$ python3 prog.py #运行脚本，无输出
-$ python3 prog.py --help	#系统默认帮助信息
-$ python3 prog.py --verbose #报错
-$ python3 prog.py foo  #报错
+```shell
+python3 prog.py # 运行脚本，无输出
+python3 prog.py --help	#系统默认帮助信息
+python3 prog.py --verbose #报错
+python3 prog.py foo  #报错
 ```
 
 ## 位置参数
 
 prog.py
 
-```
+```python
 import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument("echo")
 args = parser.parse_args()
-print args.echo
+print(args.echo)
 ```
 
 运行
 
-```
-$ python prog.py  #报错
-$ python prog.py -h #系统帮助信息
-$ python prog.py hahaha #输出输入信息hahaha
+```shell
+python prog.py  # 报错
+python prog.py -h # 系统帮助信息
+python prog.py hahaha #输出输入信息hahaha
 ```
 
 ## 可选参数
@@ -67,7 +67,7 @@ $ python prog.py hahaha #输出输入信息hahaha
 
 prog.py
 
-```
+```python
 import argparse
 
 parser = argparse.ArgumentParser()

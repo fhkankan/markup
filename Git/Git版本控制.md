@@ -741,6 +741,13 @@ git push origin --delete serverfix  # 本地推送删除远程分支(服务器�
 
 GitHub的示例配置文件：[https://github.com/github/gitignore](https://github.com/github/gitignore)
 
+```
+# ide
+.idea/
+.vscode
+.DS_Store
+```
+
 - 忽略规则：
 
 在git中如果想忽略掉某个文件，不让这个文件提交到版本库中，可以使用修改根目录中` .gitignore` 文件的方法。

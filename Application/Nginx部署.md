@@ -374,6 +374,8 @@ server {
 
 ## 配置指南
 
+[配置参数建议](https://cloud.tencent.com/document/product/214/15171)
+
 ### 全局模块
 
 ```shell
