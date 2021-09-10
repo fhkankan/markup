@@ -690,10 +690,14 @@ poetry env use <python>  # 对当前项目激活/创建一个虚环境
 激活虚拟环境
 
 ```shell
-# 执行poetry的命令并不需要激活虚拟环境，因为poetry会自动检测当前虚拟环境
-poetry run <命令>
 # 显示激活的虚拟环境
 poetry shell
+
+# 执行poetry的命令并不需要激活虚拟环境，因为poetry会自动检测当前虚拟环境
+poetry run <命令>
+
+# 查看python版本
+poetry run python -V
 ```
 
 查看当前项目的虚环境
@@ -712,7 +716,50 @@ poetry env remove <python>  # 删除项目中特定的虚环境
 
 - 配置
 
+概述
 
+```shell
+# 可配置参数
+cache-dir  # Poetry 使用的缓存目录的路径。
+installer.parallel  # 使用新的安装程序时并行执行，默认true
+virtualenvs.create  # 如果不存在则创建一个新的虚环境，默认true
+virtualenvs.in-project  # 在项目的根目录中创建virtualenv，默认None
+virtualenvs.path # 虚环境被创建的目录位置，默认`{cache-dir}/virtualenvs`
+repositories.<name>  # 设置一个新的替代存储库
+
+# 可配置方法
+1.命令行
+2.直接修改config.toml（不建议）
+```
+
+设置
+
+```shell
+# 本地参数配置
+poetry config virtualenvs.create false --local
+# 执行后，当前项目在执行poetry install/poetry add时如果没有虚拟环境的话就会直接安装到系统路径上。执行后，会在当前项目生成poetry.toml文件，不影响全局配置config.toml
+
+# 全局配置
+poetry config virtualenvs.create false
+poetry config cache-dir E:\Documents\Library  
+# 修改缓存目录，同时也修改了虚拟环境目录
+```
+
+删除
+
+```shell
+poetry config virtualenvs.create --unset  # 重置全局配置
+poetry config virtualenvs.create --local --unset  # 重置项目配置
+```
+
+查看
+
+```shell
+poetry config --list
+# 列出配置时，包括了全局和本地的配置，本地的配置会覆盖全局的参数
+
+poetry config virtualenvs.path  # 直接展示特定配置
+```
 
 - 安装依赖
 
@@ -723,10 +770,13 @@ poetry env remove <python>  # 删除项目中特定的虚环境
 [tool.poetry.dependencies]
 pendulum = "^1.4"
 my-package = {path = "../my/path", develop = true}
+
 # 方法二：使用命令
 poetry add pendulum  # 安装自适应最新
 poetry add pendulum@^2.0.5  # 安装固定版本
 poetry add "pendulum>=2.0.5" 
+poetry add pendulum --dev  # 安装开发依赖
+
 poetry add git+https://github.com/sdispater/pendulum.git
 poetry add git+ssh://git@github.com/sdispater/pendulum.git
 poetry add git+https://github.com/sdispater/pendulum.git#develop
@@ -763,7 +813,7 @@ poetry update requests toml  # 更新特定的包
 
 - 查看
 
-```
+```shell
 poetry show	# 展示所有包
 poerty show --no-dev  # 不展示dev
 poetry show --tree	# 以树形展示
