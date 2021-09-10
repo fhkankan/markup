@@ -82,7 +82,9 @@ python3 --version
 
 #模块安装
 
-## pip---包管理工具
+
+
+## pip
 
 - 安装
 
@@ -127,44 +129,28 @@ python3 -m pip install -U pip
 - 更换国内源
 
 pip国内的一些镜像
-
-  阿里云 http://mirrors.aliyun.com/pypi/simple/ 
-  中国科技大学 https://pypi.mirrors.ustc.edu.cn/simple/ 
-  豆瓣(douban) http://pypi.douban.com/simple/ 
-  清华大学 https://pypi.tuna.tsinghua.edu.cn/simple/ 
-  中国科学技术大学 http://pypi.mirrors.ustc.edu.cn/simple/
-
-修改源方法：
-
 ```
-1.临时使用： 
-可以在使用pip的时候在后面加上-i参数，指定pip源 
+阿里云 http://mirrors.aliyun.com/pypi/simple/ 
+中国科技大学 https://pypi.mirrors.ustc.edu.cn/simple/ 
+豆瓣(douban) http://pypi.douban.com/simple/ 
+清华大学 https://pypi.tuna.tsinghua.edu.cn/simple/ 
+中国科学技术大学 http://pypi.mirrors.ustc.edu.cn/simple/
+```
+修改源方法
+
+```shell
+# 临时使用
 pip install scrapy -i https://pypi.tuna.tsinghua.edu.cn/simple --trusted-host
 pip install scrapy -i http://mirrors.aliyun.com/pypi/simple/  --trusted-host mirrors.aliyun.com
 
-2.永久修改： 
-linux/mac: 
-修改 ~/.pip/pip.conf (没有就创建一个)， 内容如下：
+# 永久修改： 
+# linux/mac：修改 ~/.pip/pip.conf (没有就创建一个)
+# windows：直接在user目录中创建一个pip目录，如：C:\Users\xx\pip，新建文件pip.ini
 [global]
-index-url = https://pypi.tuna.tsinghua.edu.cn/simple
-[install]
-trusted-host=pypi.tuna.tsinghua.edu.cn
-
-[global]
-timeout = 6000
+timeout = 6000  # 可以不写
 index-url = https://mirrors.aliyun.com/pypi/simple/
 [install]
 trusted-host=mirrors.aliyun.com
-
-[global]
-index-url = https://pypi.douban.com/simple
-[install]
-trusted-host=pypi.douban.com
-
-windows: 
-直接在user目录中创建一个pip目录，如：C:\Users\xx\pip，新建文件pip.ini，内容如下
-[global]
-index-url = https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
 - 使用
@@ -178,18 +164,14 @@ pip2 install 包名
 pip3 install 包名
 
 # 默认python版本下安装单个包
-pip install somepackage
-
-安装特定版本的package，通过使用==, >=, <=, >, <来指定一个版本号。
+# 安装特定版本的package，通过使用==, >=, <=, >, <来指定一个版本号。
 pip install 'Markdown==2.0'
 pip install 'Markdown<2.0'
 pip install 'Markdown>2.0,<2.0.3
 
 # 安装批量包
-# 生成依赖包
-$ pip freeze > requirements.txt
-# 安装依赖包
-pip install -r requirements.txt
+pip freeze > requirements.txt  # 生成依赖包
+pip install -r requirements.txt  # 安装依赖包
 
 # 卸载
 pip uninstall SomePackage  
@@ -205,59 +187,6 @@ pip list
 
 # 显示已过时的包
 pip list --outdated
-```
-
-## ipython---交互环境
-
-```
-sudo pip install ipython
-
-sudo pip3 install ipython
-```
-
-帮助
-
-```python
-# 获取文档
-help(len)
-len?
-
-# 获取源码
-square??
-```
-
-魔法命令
-
-```shell
-%paste/%cpaste  # 粘贴代码块
-%run 			# 执行外部脚本
-
-%history		# 可查看历史输入
-%magic			# 获取可用魔法函数的通用描述及示例
-%lsmagic		# 获取所有可用魔法函数的列表
-```
-
-输出
-
-```python
-print(_)		# 更新以前的输出
-print(__)		# 获得倒数第二个历史输出
-print(_2)		# 等价于Out[2]
-2+2;			# ;会禁止输出
-```
-
-性能
-
-```shell
-%time			# 运行一行代码执行时间
-%timeit			# 重复运行计算接下来一行的语句执行时间
-%%timeit		# 处理多行输入的执行时间
-%prun			# 统计代码执行过程耗时细节
-%load_ext line_profiler
-%lprun -f func_name()  # 对代码生成逐行分析报告
-%load_ext memory_profiler
-%memit func_name()  # 内存消耗计算类似%timeit
-%mprun func_name()  # 内存消耗计算类似%lprun
 ```
 
 ## virtualenv
@@ -440,119 +369,6 @@ venv [-h] [--system-site-packages] [--symlinks | --copies] [--clear]
 # 创建环境后，您可能希望激活它，例如通过在其bin目录中找到一个激活脚本。
 ```
 
-## pipenv
-
-依赖系统中python环境，基于项目文件夹创建python环境
-
-集成pip与virtualenv，替代virtualenv和pyenv
-
-> 安装
-
-将pipenv安装在用户主目录下
-
-```
-pip install pipenv --user [username]
-```
-
-> 创建虚环境
-
-```
-cd projectPath
-
-pipenv --two		# 使用系统中的python2创建虚环境
-pipenv --three		# 使用系统中的python3创建虚环境
-pipenv --python3.6	# 创建特定版本的虚环境
-pipenv install		# 若是项目中无配置文件，创建一个默认虚环境
-```
-
-pipenv install 是安装已经提供的包并将它们加入到Pipfile中，同时创建了项目的虚拟环境
-
-Pipfile是python包依赖文件，列出了项目中所有包的依赖，这是pipenv相当大的创新，对应的是Pipfile.lock文件，两者构成虚拟环境的管理工作。
-
-pipenv install的时候有三种逻辑：
-
-- 如果目录下没有Pipfile和Pipfile.lock文件，表示创建一个新的虚拟环境；
-- 如果有，表示使用已有的Pipfile和Pipfile.lock文件中的配置创建一个虚拟环境；
-
-- 如果后面带诸如django这一类库名，表示为当前虚拟环境安装第三方库。
-
-> 激活虚环境
-
-```
-pipenv shell
-```
-
-> 退出虚环境
-
-```
-exit
-```
-
-> 安装卸载第三方库
-
-```
-cd projectPath
-pipenv install django	# 安装第三方最新库
-pipenv install django==2.0.5	# 安装特定版本第三方库
-pipenv uninstall django	# 卸载第三方库
-```
-
-> 开发环境管理 
-
-Pipenv使用--dev标志区分两个环境(开发和生产)，实现在同一个虚环境中管理两种开发环境
-
-```
-pipenv install --dev django
-```
-
-项目克隆其他位置后，可使用如下命令分别安装相关依赖
-
-```
-pipenv install		# 安装生产环境依赖
-pipenv install --dev	# 安装开发环境依赖
-```
-
-> pipenv虚拟环境运行python命令
-
-```
-pipenv run python your_script.py
-```
-
-> 其他命令
-
-```
-$ pipenv
-Usage: pipenv [OPTIONS] COMMAND [ARGS]...
-
-Options:
-  --update         更新Pipenv & pip
-  --where          显示项目文件所在路径
-  --venv           显示虚拟环境实际文件所在路径
-  --py             显示虚拟环境Python解释器所在路径
-  --envs           显示虚拟环境的选项变量
-  --rm             删除虚拟环境
-  --bare           最小化输出
-  --completion     完整输出
-  --man            显示帮助页面
-  --three / --two  使用Python 3/2创建虚拟环境（注意本机已安装的Python版本）
-  --python TEXT    指定某个Python版本作为虚拟环境的安装源
-  --site-packages  附带安装原Python解释器中的第三方库
-  --jumbotron      不知道啥玩意....
-  --version        版本信息
-  -h, --help       帮助信息
-  
-Commands:
-  check      检查安全漏洞
-  graph      显示当前依赖关系图信息
-  install    安装虚拟环境或者第三方库
-  lock       锁定并生成Pipfile.lock文件
-  open       在编辑器中查看一个库
-  run        在虚拟环境中运行命令
-  shell      进入虚拟环境
-  uninstall  卸载一个库
-  update     卸载当前所有的包，并安装它们的最新版本
-```
-
 ## pyenv
 
 不依赖于系统环境，在系统中安装多版本python环境
@@ -697,141 +513,339 @@ pyenv local env364
 pyenv uninstall env364 # 删除 env364 这个虚拟环境
 ```
 
-## Django--web框架
+## pipenv
 
-1、安装
+依赖系统中python环境，基于项目文件夹创建python环境
 
-```
-pip install django[==1.8.2]  //指定版本
-```
+集成pip与virtualenv，替代virtualenv和pyenv
 
-一个Django项目（project），包含了多个应用(app)，一个应用代表一个功能模块，一个应用就是一个Python包
+- 安装
 
-2、创建Django项目的两种方式：
-
-命令行创建
+将pipenv安装在用户主目录下
 
 ```
-# 进出入虚环境
-workon 虚拟环境名
-# 创建Django项目
-django-admin startproject 项目名
-# 创建应用，进入项目目录下
-python manage.py startapp 应用名
-# 配置应用与项目之间的关联文件
+pip install pipenv --user [username]
 ```
 
-pycharm创建
+- 虚环境
 
-3、运行django项目
+创建虚环境
 
-开发调试阶段，可以使用django自带的服务器。有两种方式运行服务器
+```shell
+cd projectPath
 
-命令行运行
+pipenv --two		# 使用系统中的python2创建虚环境
+pipenv --three		# 使用系统中的python3创建虚环境
+pipenv --python3.6	# 创建特定版本的虚环境
+pipenv install		# 若是项目中无配置文件，创建一个默认虚环境
+
+
+# 介绍
+pipenv install 是安装已经提供的包并将它们加入到Pipfile中，同时创建了项目的虚拟环境
+Pipfile是python包依赖文件，列出了项目中所有包的依赖，这是pipenv相当大的创新，对应的是Pipfile.lock文件，两者构成虚拟环境的管理工作。
+
+pipenv install的时候有三种逻辑：
+- 如果目录下没有Pipfile和Pipfile.lock文件，表示创建一个新的虚拟环境；
+- 如果有，表示使用已有的Pipfile和Pipfile.lock文件中的配置创建一个虚拟环境；
+- 如果后面带诸如django这一类库名，表示为当前虚拟环境安装第三方库。
+```
+激活虚环境
 
 ```
-# 启动django服务器：
-python manage.py runserver
-
-默认主机和端口号为:127.0.0.1:8000，如果想指定主机和端口号，可以类似如下命令指定：
-python manage.py runserver 192.168.210.137:8001
-
-# 打开浏览器，访问服务器：http://127.0.0.1:8000
-
-如果增加、修改、删除python文件，服务器会自动重启
-可以按ctrl + C停止服务器
+pipenv shell
 ```
 
-pycharm运行
-
-## django rest framework
-
-基于Django的restful 风格前后端分离框架
+退出虚环境
 
 ```
-pip install djangorestframework
-pip install markdown       # Markdown support for the browsable API.
-pip install django-filter  # Filtering support
+exit
 ```
 
-
-
-## Flask---web框架
-
-安装Flask
+pipenv虚拟环境运行python命令
 
 ```
-# 创建虚环境
-mkvirtualenv flask_py2	
-workon flask_py2
-
-# 指定Flask版本安装
-$ pip install flask==0.10.1
-
-# Mac系统：
-$ easy_install flask==0.10.1
+pipenv run python your_script.py
 ```
 
-安装依赖包
+- 安装卸载第三方库
 
 ```
-# 安装依赖包（须在虚拟环境中）
-$ pip install -r requirements.txt
-
-# 生成依赖包（须在虚拟环境中）
-$ pip freeze > requirements.txt
-
-# 在ipython中测试安装是否成功
-$ from flask import Flask
+cd projectPath
+pipenv install django	# 安装第三方最新库
+pipenv install django==2.0.5	# 安装特定版本第三方库
+pipenv uninstall django	# 卸载第三方库
 ```
 
-## pymysql
+- 开发环境管理 
+
+Pipenv使用--dev标志区分两个环境(开发和生产)，实现在同一个虚环境中管理两种开发环境
+
+```
+pipenv install --dev django
+```
+
+项目克隆其他位置后，可使用如下命令分别安装相关依赖
+
+```
+pipenv install		# 安装生产环境依赖
+pipenv install --dev	# 安装开发环境依赖
+```
+
+- 其他命令
+
+```
+$ pipenv
+Usage: pipenv [OPTIONS] COMMAND [ARGS]...
+
+Options:
+  --update         更新Pipenv & pip
+  --where          显示项目文件所在路径
+  --venv           显示虚拟环境实际文件所在路径
+  --py             显示虚拟环境Python解释器所在路径
+  --envs           显示虚拟环境的选项变量
+  --rm             删除虚拟环境
+  --bare           最小化输出
+  --completion     完整输出
+  --man            显示帮助页面
+  --three / --two  使用Python 3/2创建虚拟环境（注意本机已安装的Python版本）
+  --python TEXT    指定某个Python版本作为虚拟环境的安装源
+  --site-packages  附带安装原Python解释器中的第三方库
+  --jumbotron      不知道啥玩意....
+  --version        版本信息
+  -h, --help       帮助信息
+  
+Commands:
+  check      检查安全漏洞
+  graph      显示当前依赖关系图信息
+  install    安装虚拟环境或者第三方库
+  lock       锁定并生成Pipfile.lock文件
+  open       在编辑器中查看一个库
+  run        在虚拟环境中运行命令
+  shell      进入虚拟环境
+  uninstall  卸载一个库
+  update     卸载当前所有的包，并安装它们的最新版本
+```
+
+## poetry
+
+[官方文档](https://python-poetry.org/docs/)
+
+- 安装配置
 
 安装
 
-```python
-# 安装
-pip install pymysql
+```shell
+curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python3 -
+# 下载文件至本地，使用python3 文件名.py
 ```
 
 配置
 
+```
+1. 拷贝
+按照提示，将类似`export PATH="/Users/henry/.local/bin:$PATH"`命令拷贝至.bashrc/.zshrc中
+2. 生效
+source .zshrc
+```
+
+检查
+
+```
+poetry --version
+```
+
+卸载
+
+```
+python install-poetry.py --uninstall
+```
+
+- 初始化
+
+```shell
+# 创建项目及poetry相关
+poetry new my-package
+poetry new my-folder --name my-package
+
+# 已有项目添加poetry管理
+cd 项目名
+poetry init
+```
+
+- 虚环境
+
+创建虚拟环境
+
+```shell
+# 1.利用virtualenvs.create=true自动创建
+# 当参数 virtualenvs.create=true 时，执行 poetry install 或 poetry add 时会检测当前项目是否有虚拟环境，没有就自动创建。
+poetry install 
+poetry add 
+
+# 2.利用poetry env use创建
+# 会在虚拟路径下创建一个envs.toml文件，存储虚拟环境指定Python解释器的版本
+poetry env use <python>  # 对当前项目激活/创建一个虚环境
+```
+
+激活虚拟环境
+
+```shell
+# 执行poetry的命令并不需要激活虚拟环境，因为poetry会自动检测当前虚拟环境
+poetry run <命令>
+# 显示激活的虚拟环境
+poetry shell
+```
+
+查看当前项目的虚环境
+
+```shell
+poetry env list  # 与当前项目有关的所有虚环境
+poetry env list --full-path  # 显示绝对路径
+poetry env info [-p]   # 展示当前虚环境的信息
+```
+
+删除虚环境
+
+```shell
+poetry env remove <python>  # 删除项目中特定的虚环境
+```
+
+- 配置
+
+
+
+- 安装依赖
+
+添加
+
+```shell
+# 方法一：修改pyproject.toml
+[tool.poetry.dependencies]
+pendulum = "^1.4"
+my-package = {path = "../my/path", develop = true}
+# 方法二：使用命令
+poetry add pendulum  # 安装自适应最新
+poetry add pendulum@^2.0.5  # 安装固定版本
+poetry add "pendulum>=2.0.5" 
+poetry add git+https://github.com/sdispater/pendulum.git
+poetry add git+ssh://git@github.com/sdispater/pendulum.git
+poetry add git+https://github.com/sdispater/pendulum.git#develop
+poetry add git+https://github.com/sdispater/pendulum.git#2.0.5
+poetry add ./my-package/
+poetry add ../my-package/dist/my-package-0.1.0.tar.gz
+poetry add ../my-package/dist/my_package-0.1.0.whl
+```
+
+安装`pyproject.toml/pyproject.lock`文件中依赖
+
+```shell
+poetry install  # 默认安装
+poetry install --no-dev # 不安装开发依赖项
+poetry install --no-root  # 不安装root包
+poetry install --extras "mysql pgsql"  # 安装特定
+poetry install -E mysql -E pgsql
+poetry install --remove-untracked  # 删除锁定文件中不再存在的旧依赖项
+```
+
+- 删除
+
+```shell
+poetry remove pendulum  # 删除依赖
+```
+
+- 更新
+
+```shell
+poetry self update  # 更新poetry本身
+poetry update  # 更新所有依赖版本和poetry.lock
+poetry update requests toml  # 更新特定的包
+```
+
+- 查看
+
+```
+poetry show	# 展示所有包
+poerty show --no-dev  # 不展示dev
+poetry show --tree	# 以树形展示
+poetry show --latest  # 展示最新版本
+poetry show --outdated  # 展示过时包的最新版本
+
+poetry show pedulum  # 查看包的详细信息
+```
+
+- 锁定
+
+```shell
+poetry lock  # 将所有依赖项锁定到最新的可用兼容版本。
+poetry lock --no-update  # 要仅刷新锁定文件
+```
+
+- 导出
+
+```shell
+# 将锁定文件导出为其他格式
+poetry export -f requirements.txt --output requirements.txt
+```
+
+- 发布
+
+```shell
+poetry build  # 打包
+poetry publish  # 发布到pypi
+poetry publish -r my-repository  # 发布到私有仓库
+```
+
+## ipython
+
+```
+sudo pip install ipython
+
+sudo pip3 install ipython
+```
+
+帮助
+
 ```python
-# 在__init__.py中
-import pymysql
-pymsql.install_as_MySQLdb()
+# 获取文档
+help(len)
+len?
+
+# 获取源码
+square??
 ```
 
-## mysql-python
+魔法命令
 
-ubuntu
+```shell
+%paste/%cpaste  # 粘贴代码块
+%run 			# 执行外部脚本
 
-```
-# ubuntu下安装简单
-pip install MySQL-python
-```
-
-windows
-
-```
-pip install mysql-python
+%history		# 可查看历史输入
+%magic			# 获取可用魔法函数的通用描述及示例
+%lsmagic		# 获取所有可用魔法函数的列表
 ```
 
-会报异常
+输出
 
+```python
+print(_)		# 更新以前的输出
+print(__)		# 获得倒数第二个历史输出
+print(_2)		# 等价于Out[2]
+2+2;			# ;会禁止输出
 ```
-error: Microsoft Visual C++ 9.0 is required (Unable to find vcvarsall.bat).
-Get it from http://aka.ms/vcpython27
-```
 
-解决方法
+性能
 
-```
-1. 在http://www.lfd.uci.edu/~gohlke/pythonlibs/#mysql-python下载对应的包版本:
-若是32位2.7版本的python，则下载MySQL_python‑1.2.5‑cp27‑none‑win32.whl
-若是64位2.7版本的python，就下载MySQL_python-1.2.5-cp27-none-win_amd64.whl
-
-2.在cmd下跳转到下载MySQL_python-1.2.5-cp27-none-win_amd64.whl的目录下,然后在命令行执行pip install MySQL_python-1.2.5-cp27-none-win_amd64.whl
+```shell
+%time			# 运行一行代码执行时间
+%timeit			# 重复运行计算接下来一行的语句执行时间
+%%timeit		# 处理多行输入的执行时间
+%prun			# 统计代码执行过程耗时细节
+%load_ext line_profiler
+%lprun -f func_name()  # 对代码生成逐行分析报告
+%load_ext memory_profiler
+%memit func_name()  # 内存消耗计算类似%timeit
+%mprun func_name()  # 内存消耗计算类似%lprun
 ```
 
 ## jupyter
