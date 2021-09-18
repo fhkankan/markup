@@ -246,8 +246,20 @@ git branch --no-merged # 查看尚未合并到当前分支的分支
 
 git branch -r  		# 远程分支
 git remote show origin  # 查看远程分支详细情况
-
 ```
+### 重命名
+
+```shell
+# 重命名远程分支对应的本地分支
+git branch -m old-local-branch-name new-local-branch-name
+
+# 删除远程分支
+git push origin  :old-local-branch-name
+
+# 上传新命名的本地分支
+git push origin  new-local-branch-name
+```
+
 ### 切换
 
 ```shell
