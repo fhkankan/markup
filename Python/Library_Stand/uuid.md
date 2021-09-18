@@ -77,3 +77,11 @@ res = str(uuid.uuid5(uuid.NAMESPACE_DNS, 'hello'))
 | `urn`      |                                                              |
 | `is_safe`  | SafeUUID的枚举，指示平台是否以多处理安全的方式生成UUID。(3.7新增) |
 
+使用
+
+```python
+from uuid import uuid1
+
+res = uuid1().hex
+```
+
