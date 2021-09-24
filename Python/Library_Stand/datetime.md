@@ -325,12 +325,12 @@ datetime.datetime(2015, 5, 18, 17, 2, 10, 871012, tzinfo=datetime.timezone(datet
 ## 获取当前时间距离次日凌晨的间隔
 
 ```python
-import datetime
+from datetime import datetime, timedelta
 
 def getRestSeconds():
-    now = datetime.datetime.now()
-    today_begin = datetime.datetime(now.year, now.month, now.day, 0, 0, 0)
-    tomorrow_begin = today_begin + datetime.timedelta(days=1)
+    now = datetime.now()
+    today_begin = datetime(now.year, now.month, now.day, 0, 0, 0)
+    tomorrow_begin = today_begin + timedelta(days=1)
     rest_seconds = (tomorrow_begin - now).seconds
     print(rest_seconds)
 ```

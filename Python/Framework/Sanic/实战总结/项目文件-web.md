@@ -86,7 +86,8 @@ async def register_api(request, params):
 
 
 async def login_api(request, params):
-    pass
+    request.ctx.session["user_id"] = 1
+    return 1, dict(msg="ok", data={"user_id": 1})
 ```
 
 ## common
@@ -231,6 +232,9 @@ PARAM_FOR_REDIS = dict(
     minsize=8,
     maxsize=32,
 )
+
+COOKIE_NAME = "__sid__"
+COOKIE_PREFIX = "iwc"
 ```
 
 ## models
@@ -285,9 +289,7 @@ class User(BaseModel):
 
 ```python
 from importlib import import_module
-from inspect import isclass
 
-from peewee import Model
 from sanic import Sanic, Blueprint
 from sanic.log import logger
 from sanic.exceptions import SanicException
@@ -333,7 +335,7 @@ async def init_server(app, loop):
 
     # init session
     from mtkext.ses import install_session
-    install_session(app, app.redis, cookie_name=conf.COOKIE_NAME, expiry=86400)
+    install_session(app, app.redis, prefix=conf.COOKIE_PREFIX, cookie_name=conf.COOKIE_NAME, expiry=86400)
     
     # init localCache
     from mtkext.cache import LocalCache
@@ -366,10 +368,10 @@ def catch_exceptions(request, ex):
     logger.exception(ex)
     if isinstance(ex, SanicException):
         status = 51000 + ex.status_code
-        return json(dict(code=status, msg=str(ex)))
+        return res_ng(code=status, msg=str(ex))
     else:
         msg = ex.__class__.__name__ + ": " + str(ex)
-        return json(dict(code=50000, msg=msg))
+        return res_ng(code=50000, msg=msg)
 
 
 @app.middleware('request')
@@ -386,11 +388,10 @@ async def auth(request):
     url = request.url
     no_login = ["/login", "/register"]
     if next((0 for x in no_login if x in url), 1):
-        userid = request.ctx.session.get('userid')
-        if not userid:
-            return json(dict(code=RC.NOT_LOGIN, msg="用户未登录"))
-        request.ctx.user_id = userid
-        user_info = request.ctx.session.get('userinfo')
+        user_id = request.ctx.session.get('user_id')
+        if not user_id:
+            return res_ng(code=RC.NOT_LOGIN, msg="用户未登录")
+        request.ctx.user_id = user_id
         
 
 def init_blueprint(app, url_prefix):
