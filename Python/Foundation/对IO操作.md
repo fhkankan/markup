@@ -702,148 +702,120 @@ for pdf1 in pdfs:
 header={"ct":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"}
 files = {'file':open('D:\\test_data\\summer_test_data_05.txt','rb')}#此处是重点！我们操作文件上传的时候，把目标文件以open打开，然后存储到变量file里面存到一个字典里面
 upload_data={"parentId":"","fileCategory":"personal","fileSize":179,"fileName":"summer_text_0920.txt","uoType":1}
-upload_res=requests.post(upload_url,upload_data,files=files,headers=header)##此处是重点！我们操作文件上传的时候，接口请求参数直接存到upload_data变量里面，在请求的时候，直接作为数据传递过去
+upload_res=requests.post(upload_url,upload_data,files=files,headers=header)
 ```
 
 ## 文件下载
 
-Python开发中时长遇到要下载文件的情况，最常用的方法就是通过Http利用urllib或者urllib2模块。
+当然你也可以利用ftplib从ftp站点下载文件。
 
-当然你也可以利用ftplib从ftp站点下载文件。此外Python还提供了另外一种方法requests。
-
-下面来看看三种方法是如何来下载zip文件的：
-
-方法一：
+此外Python还提供了下载方法
 
 ```python
 import urllib 
-import urllib2 
-import requests
-print "downloading with urllib" 
-url = 'http://www.pythontab.com/test/demo.zip'  
-print "downloading with urllib"
-urllib.urlretrieve(url, "demo.zip")
-```
-
-方法二：
-
-```python
 import urllib2
-print "downloading with urllib2"
-url = 'http://www.pythontab.com/test/demo.zip' 
-f = urllib2.urlopen(url) 
-data = f.read() 
-with open("demo2.zip", "wb") as code:     
-    code.write(data)
-```
-
-方法三：
-
-```python
 import requests 
-print "downloading with requests"
-url = 'http://www.pythontab.com/test/demo.zip' 
+
+url = 'http://www.pythontab.com/test/demo.zip'  
+
+# 方法一
+urllib.urlretrieve(url, "demo.zip")
+
+# 方法二
+f = urllib2.urlopen(url) 
+with open("demo2.zip", "wb") as code:     
+    code.write(f.read())
+
+# 方法三
 r = requests.get(url) 
 with open("demo3.zip", "wb") as code:
      code.write(r.content)
-```
-
-看起来使用urllib最为简单，一句语句即可。当然你可以把urllib2缩写成：
-
-```python
-f = urllib2.urlopen(url) 
-with open("demo2.zip", "wb") as code:
-   code.write(f.read())
 ```
 
 # 文件和目录
 
 ## os
 
-os模块除了提供使用操作系统功能和访问文件系统之外，还有大量文件和文件夹操作方法
-
-| 方法                                                    | 说明                                                         |
-| ------------------------------------------------------- | ------------------------------------------------------------ |
-| access(path, mode)                                      | 测试是否可以按照mode指定的权限访问文件                       |
-| chdir(path)                                             | 把path设为当前工作目录                                       |
-| chmod(path, mode, *, dir_fd=None, follow_symlinks=True) | 改变文件的访问权限                                           |
-| curdir                                                  | 当前文件夹                                                   |
-| environ                                                 | 包含系统环境变量和值的字典                                   |
-| extsep                                                  | 当前操作系统所使用的文件扩展名分隔符                         |
-| get_exec_path()                                         | 返回可执行文件的搜索路径                                     |
-| getcwd()                                                | 返回当前工作目录                                             |
-| listdir(path)                                           | 返回path目录下的问价暖和目录列表                             |
-| mkdir(path[, mode=0777])                                | 创建目录，要求上级目录必须存在                               |
-| makedirs(path1/path2..., mode=511)                      | 创建多级目录，会根据需要自动创建中间缺失的目录               |
-| open(path, flags, mode=0o777,*, dir_fd=None)            | 按照mode指定的权限打开文件，默认权限为可读、可写、可执行     |
-| popen(cmd, mode='r', buffering=-1)                      | 创建进程，启动外部程序                                       |
-| rmdir(path)                                             | 删除目录，目录中不能有文件或子文件                           |
-| remove(path)                                            | 删除指定的文件，要求用户拥有删除文件的权限，并且文件没有只读或其他特殊权限 |
-| removedirs(path1/path2...)                              | 删除多级目录，目录中不能有文件                               |
-| rename(src, dst)                                        | 重命名文件或目录，可以实现文件的移动，若目标文件已存在则抛异常，不能跨越磁盘或分区 |
-| replace(old, new)                                       | 重命名文件或目录，若目标文件已存在则覆盖，不能跨越磁盘或分区 |
-| scandir(path='.')                                       | 返回包含指定文件夹中所有DirEntry对象的迭代对象，遍历文件夹时比listdir()更加高效 |
-| sep                                                     | 当前操作系统所用的路径分隔符                                 |
-| startfile(filepath[, operation])                        | 使用关联的应用程序打开指定文件或启动指定应用程序             |
-| stat(path)                                              | 返回文件的所有属性                                           |
-| system()                                                | 启动外部程序                                                 |
-| truncate(path, length)                                  | 将文件截断，只保留指定长度的内容                             |
-| walk(top, topdown=True, onerror=None)                   | 遍历目录树，该方法返回一个元组，包括3个元素，所有路径名、所有目录列表与文件列表 |
-| write(fd, data)                                         | 将bytes对象data写入文件fd                                    |
-
-设置环境变量
+环境变量
 
 ```python
 import os
 
 JAVA_HOME = '/root/jdk'
+# 设置环境变量
 os.environ["JAVA_HOME"] = JAVA_HOME
+
+# 获取环境变量
+os.environ.get("a")
+os.getenv("a")
 ```
 
-## os.path
+设置路径
 
-提供了大量用于路径判断、切分、连接及文件夹遍历的方法
+```python
+from pathlib import Path
+import os
 
-| 方法                | 说明                                                         |
-| ------------------- | ------------------------------------------------------------ |
-| abspath(path)       | 返回给定路径的绝对路径                                       |
-| basename(path)      | 返回指定路径的最后一个组成部分                               |
-| commonpath(paths)   | 返回给定的多个路径的最长公共路径                             |
-| commonprefix(paths) | 返回给定的多个路径的最长公共前缀                             |
-| dirname(p)          | 返回给定路径的文件夹部分                                     |
-| exists(path)        | 判断文件是否存在                                             |
-| getatime(filename)  | 返回文件的最后访问时间                                       |
-| getctime(filename)  | 返回文件的创建时间                                           |
-| getsize(filename)   | 返回文件的大小                                               |
-| isabs(path)         | 判断path是否为绝对路径                                       |
-| isdir(path)         | 判断path是否为文件夹                                         |
-| isfile(path)        | 判断path是否为文件                                           |
-| join(path, *paths)  | 连接两个或多个path                                           |
-| realpath(path)      | 返回给定路径的绝对路径                                       |
-| relpath(path)       | 返回给定路径的相对路径，不能跨越磁盘驱动器或分区             |
-| samefile(f1,f2)     | 测试f1和f2这两个路径是否引用同一个文件                       |
-| split(path)         | 以路径中最后一个斜线为分隔符把路径分隔成两部分，以列表形式返回 |
-| splitext(path)      | 从路径中分隔文件的扩展名                                     |
-| splitdrive(path)    | 从路径中分割驱动器的名称                                     |
+# 当前文件的父文件夹
+BASE_DIR = Path(__file__).absolute().parent  # 方法一
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # 方法二
+
+# 拼接获取文件路径
+env_path = Path(BASE_DIR).joinpath(".env")
+env_path = os.path.join(BASE_DIR, ".env")
+```
 
 ## shutil
 
 提供了较高级的文件和文件夹操作
 
-| 方法                                                         | 说明                                                         |
-| ------------------------------------------------------------ | ------------------------------------------------------------ |
-| copy(src, dst)                                               | 复制文件，新文件具有同样的文件属性，若目标文件已存在则抛出异常 |
-| copy2(src, dst)                                              | 复制文件，新文件具有源文件完全一致的属性，包括创建时间、修改时间和最后访问时间等，若目标文件已存在则抛异常 |
-| copyfile(src, dst)                                           | 复制文件，不复制文件属性，若目标文件已存在则直接覆盖         |
-| copyfileobj(fsrc, fdst)                                      | 在两个文件对象之间复制数据                                   |
-| copymode(src, dst)                                           | 把src的模式位复制发哦dst上，之后两者具有相同的模式           |
-| copystat(src, dst)                                           | 把src的模式位、访问时间等所有状态都复制到dst上               |
-| copytree(src, dst)                                           | 递归复制文件夹                                               |
-| disk_usage(path)                                             | 查看磁盘使用情况                                             |
-| move(src ,dst)                                               | 移动问价拿货递归移动文件夹，也可以给文件和文件夹重命名       |
-| rmtree(path)                                                 | 递归删除文件夹                                               |
-| make_archive(base_name, format, root_dir=None, base_dir=None) | 创建TAR或ZIP格式的压缩文件                                   |
-| unpack_archive(filename, extract_dir=None, format=None)      | 解压缩压缩文件                                               |
+```python
+# 拷贝文件，可指定长度，fsrc和fdst都是一个文件对象
+copyfileobj(fsrc, fdst, length=16*1024)
+shutil.copyfileobj(open("ss1", "r"), open("ss2", "w"), length=1024)
+
+# 拷贝文件，dst必须可写，存在则覆盖
+copyfile(src, dst, *, follow_symlinks=True)
+
+#拷贝文件和权限，先copyfile后copymode
+copy(src, dst, *, follow_symlinks=True)
+
+#拷贝文件和所有状态信息，如修改时间等
+copy2(src, dst, *, follow_symlinks=True)
+
+#只拷贝状态信息，包括权限，组，用户，时间等
+copystat(src, dst, *, follow_symlinks=True)
+
+#只拷贝权限信息，不更改文件内容，组和用户
+copymode(src, dst, *, follow_symlinks=True)
+
+#递归的复制文件内容及状态信息
+copytree(src, dst, symlinks=False, ignore=None, copy_function=copy2,
+             ignore_dangling_symlinks=False)
+shutil.copytree(olddir, newdir, ignore=ignore_patterns('*.pyc', 'tmp*'))
+#忽略.pyc和.tmp结尾的文件
+
+#递归删除一个目录以及目录内的所有内容
+rmtree(path, ignore_errors=False, onerror=None)
+
+#移动或重命名
+move(src, dst, copy_function=copy2)
+
+# 查看磁盘使用情况
+disk_usage(path)
+
+#压缩打包
+make_archive(base_name, format, root_dir=None, base_dir=None, verbose=0,
+                 dry_run=0, owner=None, group=None, logger=None)
+# 参数
+# base_name：  压缩打包后的文件名或者路径名
+# format：     压缩或者打包格式    "zip", "tar", "bztar"or "gztar"
+# root_dir :   将哪个目录或者文件打包（也就是源文件）
+shutil.make_archive('tarball','tar',root_dir='/root/data')
+
+# 解压缩
+unpack_archive(filename, extract_dir=None, format=None)
+```
 
 ## glob
 
@@ -870,8 +842,6 @@ for i in glob.glob2('tools', '**'):
 | fnmatch(filename, pattern)     | 检查文件名filename是否与模式pattern相匹配，返回True或False   |
 | fnmatchcase(filename, pattern) | 检查文件名filename是否与模式pattern相匹配，返回True或False，区分大小写 |
 | filter(names, pattern)         | 返回names中符合pattern的那部分元素构成的列表                 |
-
-
 
 # 内存映射
 
@@ -918,7 +888,7 @@ with open('data', 'rb') as f:
 
 在内存中读写str
 
-```
+```shell
 # 把str写入StringIO
 >>> from io import StringIO
 >>> f = StringIO()  # 创建一个StringIO
@@ -949,7 +919,7 @@ Goodbye!
 
 操作二进制数据，就需要使用BytesIO
 
-```
+```shell
 # 在内存中读写bytes
 # 写入的不是str，而是经过UTF-8编码的bytes。
 >>> from io import BytesIO

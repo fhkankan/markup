@@ -335,3 +335,25 @@ def getRestSeconds():
     print(rest_seconds)
 ```
 
+## 获取当天凌晨整点时间戳
+
+```python
+import time
+from datetime import datetime
+
+now_time = int(time.time())
+day_time = now_time - now_time%86400 + time.timezone
+print(datetime.fromtimestamp(day_time))
+```
+
+## 获取当前时间整点时间戳
+
+```python
+import time
+from datetime import datetime
+
+cur_time = int(time.time())
+hour_stamp = cur_time - (cur_time %3600)
+print(datetime.fromtimestamp(hour_stamp))
+```
+

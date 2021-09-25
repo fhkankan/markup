@@ -1,46 +1,23 @@
 # os
 
-## 设置环境变量
+os模块除了提供使用操作系统功能和访问文件系统之外，还有大量文件和文件夹操作方法
+
+## 查看
+
+### 当前系统
 
 ```python
-import os
+os.extsep
+# 当前操作系统所使用的文件扩展名分隔符  
 
-JAVA_HOME = '/root/jdk'
-os.environ["JAVA_HOME"] = JAVA_HOME
+os.sep
+# 当前操作系统所用的路径分隔符 
+
+os.get_exec_path()
+# 返回操作系统中可执行文件的搜索路径
 ```
+### 当前目录
 
-
-## 文件重命名
-```python
-os.rename(src,dst)
-# 重命名文件或目录，从 src 到 dst
-
-os.renames(old,new)
-# 递归地对目录进行更名，也可以对文件进行更名。
-```
-
-## 删除文件
-```python
-os.remove(path)
-# 删除路径为path的文件。如果path 是一个文件夹，将抛出OSError; 查看下面的rmdir()删除一个 directory。
-
-os.removedirs(path)
-# 递归删除目录
-```
-## 创建文件夹
-```python
-os.mkdir(path[,mode])
-# 以数字mode的mode创建一个名为path的文件夹.默认的 mode 是 0777 (八进制)。
-
-os.makedirs(path)
-# 创建path中所有必须文件夹 
-```
-## 删除文件夹
-```python
-os.rmdir(path)
-# 删除path指定的空目录，如果目录非空，则抛出一个OSError异常。
-```
-## 当前工作目录
 ```python
 os.getcwd()
 # 返回当前工作目录
@@ -48,46 +25,21 @@ os.getcwd()
 os.getcwsu()
 # 返回一个当前工作目录的Unicode对象
 
+os.curdir()
+# 返回当前文件夹
+
 os.chdir(path)
-# 改变当前工作目录
-# ../上一个文件夹路径
+# 把path设为当前工作目录
 
 os.chroot(path)
 # 改变当前进程的根目录
 ```
-## 路径
+
+### 其他
+
 ```python
-# 路径和文件名
-os.path.dirname(path)
-# 返回path参数中的路径名称字符串
-
-os.path.basename(path)
-# 返回path参数中的文件名
-
-os.path.split(path)
-# 返回参数的路径名称和文件名组成的自负床元组
-
-# 有效性
-os.path.exists(path)
-# 判断参数path的文件或文件夹是否存在。存在返回True，不存在返回False
-
-os.path.isfile(path)
-# 判断参数path存在且是一个文件，是则返回True，都则返回False
-
-os.path.isdir(path)
-# 判断参数path存在且是一个文件夹，是则返回True，否则返回False
-
-os.path.getsize(path)
-# 产看文件的大小
-```
-## 获取信息
-```python
-os.listdir(path)
-#返回path指定的文件夹包含的文件或文件夹的名字的列表 
-# ./当前路径(相对路径)
-
 os.walk(top[, topdown=True[, onerror=None[, followlinks=False]]])
-# 输出在文件夹中的文件名通过在树中游走，向上或者向下。默认遍历所有目录树，返回一个可迭代的生成器，使用for循环可以进行处理
+# 遍历目录树，该方法返回一个元组，包括3个元素，所有路径名、所有目录列表与文件列表
 import os
 o = os.walk('d:\new\')
 print([root, dirs, files] for root, dirs, files in o)
@@ -98,33 +50,151 @@ os.stat(path)
 os.statvfs(path)
 # 获取指定路径的文件系统统计信息
 
+os.listdir(path)
+#返回path指定的文件夹包含的文件或文件夹的名字的列表 
+# ./当前路径(相对路径)            
+            
+os.scandir(path='.')
+# 返回包含指定文件夹中所有DirEntry对象的迭代对象，遍历文件夹时比listdir()更加高效     
+
 os.pathconf(path,name)
 # 返回相关文件的系统配置信息
 
 os.utime(path, times)
-# 返回指定的path文件的访问和修改的时间
+# 返回指定的path文件的访问和修改的时间         
 ```
-## 文件权限
+
+### 路径相关
+
+```python
+os.path.abspath(path)
+# 返回给定路径的绝对路径
+os.path.realpath(path)
+# 返回给定路径的绝对路径
+os.path.relpath(path)
+# 返回给定路径的相对路径，不能跨越磁盘驱动器或分区
+
+os.path.dirname(path)
+# 返回path参数中的路径文件夹部分
+os.path.basename(path)
+# 返回path参数中的文件名
+os.path.commonpath(paths)
+# 返回给定的多个路径的最长公共路径
+os.path.commonprefix(paths)
+# 返回给定的多个路径的最长公共前缀
+
+os.path.exists(path)
+# 判断参数path的文件或文件夹是否存在。存在返回True，不存在返回False
+os.path.isabs(path)
+# 判断path是否为绝对路径
+os.path.isfile(path)
+# 判断参数path存在且是一个文件，是则返回True，都则返回False
+os.path.isdir(path)
+# 判断参数path存在且是一个文件夹，是则返回True，否则返回False
+os.path.samefile(f1,f2)
+# 测试f1和f2这两个路径是否引用同一个文件
+
+os.path.getatime(filename)
+# 返回文件的最后访问时间
+os.path.getctime(filename)
+# 返回文件的创建时间
+
+os.path.getsize(path)
+# 产看文件的大小
+
+os.path.split(path)
+# 以路径中最后一个斜线为分隔符把路径分隔成两部分，以列表形式返回
+os.path.splitext(path)
+# 从路径中分隔文件的扩展名
+os.path.splitdrive(path)
+# 从路径中分割驱动器的名称
+
+os.path.join(path, *paths)
+# 返回连接两个或多个path后的新路径
+```
+
+## 环境变量
+
+```python
+# 包含系统环境变量和值的字典
+os.environ
+
+# 设置环境变量
+os.environ["JAVA_HOME"] = xxx  
+
+# 获取环境变量种key对应的值
+os.environ.get("a") 
+os.getenv("a")
+```
+
+## 重命名
+
+```python
+os.rename(src,dst)
+# 重命名文件或目录，从 src 到 dst，可以实现文件的移动，若目标文件已存在则抛异常，不能跨越磁盘或分区
+
+os.renames(old,new)
+# 递归地对目录进行更名，也可以对文件进行更名。
+
+os.replace(old, new)
+# 重命名文件或目录，若目标文件已存在则覆盖，不能跨越磁盘或分区
+```
+
+## 删除
+
+文件
+
+```python
+os.remove(path)
+# 删除指定的文件，要求用户拥有删除文件的权限，并且文件没有只读或其他特殊权限。如果path是一个文件夹，将抛出OSError; 查看下面的rmdir()删除一个 directory。
+
+os.removedirs(path)
+# 递归删除目录
+
+
+```
+
+文件夹
+
+```python
+os.rmdir(path)
+# 删除path指定的空目录，目录中不能有文件或子文件。如果目录非空，则抛出一个OSError异常。
+
+os.removedirs(path1/path2...)
+# 删除多级目录，目录中不能有文件
+```
+## 权限
+
 ```python
 os.access(path,mode)
-# 检验权限模式
+# 测试是否可以按照mode指定的权限访问文件
 
 os.chmod(path,mode)
-# 更改权限
+# 改变文件的访问权限
 
 os.chown(path,uid,gid)
 # 更改文件所有者
 ```
 ## 创建
+
+创建文件夹
+
+```python
+os.mkdir(path[,mode])
+# 以数字mode的mode创建一个名为path的文件夹.默认的 mode 是 0777 (八进制)。要求上级目录必须存在
+
+os.makedirs(path)
+# 创建多级目录，会根据需要自动创建中间缺失的目录
+```
+
+其他
+
 ```python
 os.stat_float_times([newvalue])
 # 决定stat_result是否以float对象显示时间戳
 
 os.chflags(path,flags)
 # 设置路径的标记为数字标记
-
-os.makedirs(path[,mode])
-# 递归文件夹创建函数。像mkdir()，但创建的所有intermediate-level文件夹需要包含子文件夹
 
 os.mkfifo(path[,mode])
 # 创建命名管道，mode 为数字，默认为 0666 (八进制)
@@ -152,11 +222,9 @@ os.tempnam([dir[, prefix]])
 
 os.tmpfile()
 # 返回一个打开的模式为(w+b)的文件对象 .这文件对象没有文件夹入口，没有文件描述符，将会自动删除
-
-os.unlink(path)
-# 删除文件路径
 ```
 ## 设备相关
+
 ```python
 os.major(device)
 # 从原始的设备号中提取设备major号码 (使用stat中的st_dev或者st_rdev field)。
@@ -192,6 +260,9 @@ os.lchown(path,uid,gid)
 
 os.lseek(fd,pos,how)
 # 设置文件描述符fd当前位置为pos, how方式修改: SEEK_SET 或者 0 设置从文件开始的计算的pos; SEEK_CUR或者 1 则从当前位置计算; os.SEEK_END或者2则从文件尾部开始. 在unix，Windows中有效
+
+os.unlink(path)
+# 删除文件路径的软链接
 ```
 ## 文件描述符
 ```python
@@ -254,9 +325,20 @@ os.tcsetpgrp(fd, pg)
 
 os.ttyname(fd)
 # 返回一个字符串，它表示与文件描述符fd 关联的终端设备。如果fd 没有与终端设备关联，则引发一个异常
+
+os.truncate(path, length)
+# 将文件截断，只保留指定长度的内容
 ```
 
 ## 执行程序
+
+```python
+startfile(filepath[, operation])
+# 使用关联的应用程序打开指定文件或启动指定应用程序
+
+system()
+# 启动外部程序
+```
 
 如下函数都执行一个新的程序，然后用新的程序替换当前子进程的进程空间，而该子进程从新程序的main函数开始执行。在Unix下，该新程序的进程id是原来被替换的子进程的进程id。在原来子进程中打开的所有描述符默认都是可用的，不会被关闭。
 
