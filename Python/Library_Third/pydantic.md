@@ -42,3 +42,19 @@ pip install pydantic[email,dotenv]
 
 不可信数据可以传递给模型，经过解析和验证后，pydantic 保证生成的模型实例的字段将符合模型上定义的字段类型。
 
+- 基本模型
+
+```python
+from pydantic import BaseModel
+
+class User(BaseModel):
+    id:int
+    name = "Jane Doe"
+    
+user = User(id='123')
+assert user.id == 123
+assert user.name == "Jane Doe"
+assert user.__fields_set__ == {'id'}
+
+```
+
