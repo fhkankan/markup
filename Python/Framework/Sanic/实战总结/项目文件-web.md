@@ -448,6 +448,15 @@ async def fetch_token(request):
     return token
 ```
 
+后台执行任务
+
+```python
+# 方法一：使用aiojob
+await app.jobs.spawn(test(app))
+# 方法二：sanic支持add_task
+app.add_task(func())
+```
+
 ## bash
 
 `run.sh`
