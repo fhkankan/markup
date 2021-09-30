@@ -98,6 +98,8 @@ sudo ifconfig ens 33 新的ip地址：修改ip
 ping ip地址
 # 查看ip+端口连接
 telnet ip port
+# 查看公网ip
+curl ipw.cn
 ```
 
 日期时间
