@@ -39,7 +39,7 @@ scheduler.add_job(my_job, 'date', args=[100, 'python'])
 scheduler.start()
 ```
 
-### 调度器 Scheduler
+### 调度器 
 
 负责管理定时任务
 
@@ -65,7 +65,7 @@ scheduler = BackgroundScheduler()
 scheduler.start()  # 此处程序不会发生阻塞
 ```
 
-### 执行器 executors
+### 执行器
 
 在定时任务该执行时，以进程或线程方式执行任务
 
@@ -107,7 +107,7 @@ executors = {
 scheduler = BackgroundScheduler(executors=executors)
 ```
 
-### 触发器 Trigger
+### 触发器
 
 指定定时任务执行的时机
 

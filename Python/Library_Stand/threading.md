@@ -18,12 +18,19 @@
 # 线程对象 = threading.Thread(target = 线程函数名, args=参数元组，kwargs=参数字典，[name=线程名，group=线程组])
 ```
 ## 模块方法
-```
-# threading.Thread()            --->实例化一个线程对象
-# threading.current_thread()    --->返回当前的线程对象
-# threading.currentThread()     --->返回当前的线程变量
-# threading.activeCount()       --->返回当前进程里面线程的个数
-# threading.enumerate()         --->返回当前运行中的Thread对象列表
+```python
+threading.Thread()            
+# 实例化一个线程对象
+threading.current_thread()    
+# 返回当前的线程对象
+threading.currentThread()
+# 返回当前的线程变量
+threading.activeCount()       
+# 返回当前进程里面线程的个数
+threading.enumerate()         
+# 返回当前运行中的Thread对象列表
+threading.Timer()
+# 用于在指定时间之后调用一个函数
 ```
 ## 类方法
 ```
