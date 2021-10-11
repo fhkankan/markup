@@ -49,7 +49,7 @@ async def register(request):
         o_k_v = {k: req_dict.get(k) for k in o_k if req_dict.get(k)}
         params_dict = r_k_v
         params_dict.update(o_k_v)
-        flag, result = await register_api(request, params_dict)
+        flag, result = await register_api(request.app, params_dict)
         return res_ok(**result) if flag else res_ng(**result)
     except AssertionError as e:
         return res_ng(code=RC.PARAMS_INVALID, msg=str(e))
@@ -81,7 +81,7 @@ async def login(request):
 from playhouse.shortcuts import model_to_dict
 
 
-async def register_api(request, params):
+async def register_api(app, params):
     pass
 
 
@@ -298,7 +298,7 @@ from common.const import RC
 from common.utils import res_ok, res_ng
 
 
-app = Sanic("iwc_badge")
+app = Sanic("demo")
 
 
 @app.listener('before_server_start')
@@ -358,10 +358,11 @@ async def check_server(app, loop):
 
 @app.listener('after_server_stop')
 async def kill_server(app, loop):
-    await app.http.close()
+    await app.jobs.close()
     await app.db.close()
     app.redis.close()
     await app.redis.wait_closed()
+    await app.http.close()
 
 
 @app.exception(Exception)
