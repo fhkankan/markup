@@ -1313,7 +1313,7 @@ async def make_tea(variety):
 meta_task = asyncio.gather(
 	make_tea('chamomile'),
     make_tea('green'),
-    mkae_tea('herbal')
+    make_tea('herbal')
 )
 
 meta_task.done()  # False

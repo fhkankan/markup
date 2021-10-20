@@ -3,7 +3,7 @@
 # Excel
 
 ```shell
-# 方法一：
+# 方法一：注意：xlrd1.2.0及之前可以读取xlsx，新版本ng
 pip install xlrd
 pip install xlwt
 # 方法二
@@ -12,6 +12,8 @@ pip install xlutils
 pip install pyExcelerator
 # 方法四
 pip install XlsxWriter
+# 方法五
+pip install openpyxl
 ```
 
 ## 读取

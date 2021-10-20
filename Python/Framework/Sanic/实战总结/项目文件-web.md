@@ -34,6 +34,7 @@ from common.const import RC
 from common.utils import res_ng, res_ok
 
 from biz.user import register_api, login_api, veri_code_api
+from common.utils import check_params
 
 bp = Blueprint("user", url_prefix="/user")
 
@@ -41,10 +42,9 @@ bp = Blueprint("user", url_prefix="/user")
 @bp.post("/register")
 async def register(request):
     try:
-        req_dict = request.json
+        params = request.json
         r_k = ["user_name", "gender", "birth_day", "phone", "veri_code"]
-        r_k_v = {k: req_dict.get(k) for k in r_k if req_dict.get(k)}
-        assert len(r_k) == len(r_k_v.keys()), "必填参数有缺失"
+        r_k_v = check_params(r_k, params)
         o_k = ["province", "city"]
         o_k_v = {k: req_dict.get(k) for k in o_k if req_dict.get(k)}
         params_dict = r_k_v
@@ -135,6 +135,25 @@ def build_random_str(l):
     x = string.digits + string.ascii_letters + string.punctuation
     k = l - len(t)
     return t + ''.join(random.choice(x) for i in range(k))
+
+def check_params(r_k, params):
+    l_k, r_k_v = [], {}
+    for k in r_k:
+        v = params.get(k)
+        if v:
+            r_k_v[k] = v
+        else:
+            l_k.append(k)
+    assert not l_k, f"{','.join(l_k)}参数缺失"
+    return r_k_v
+
+
+def get_rest_seconds():
+    now = datetime.now()
+    today_begin = datetime(now.year, now.month, now.day, 0, 0, 0)
+    tomorrow_begin = today_begin + timedelta(days=1)
+    rest_seconds = (tomorrow_begin - now).seconds
+    return rest_seconds
 
 
 def login_required(func):
@@ -380,9 +399,12 @@ def catch_exceptions(request, ex):
 async def request_interceptor(request):
     method = request.method
     url = request.url
-    args = request.args
-    body = request.json
-    logger.info(f'***** {method} {url} {args} {body} *****')
+    params = ""
+    if method == "GET":
+        params = request.args
+    elif method == "POST":
+        params = request.json
+    logger.info(f'*** {method} {url} {params} ***')
 
     
 @app.middleware('request')
