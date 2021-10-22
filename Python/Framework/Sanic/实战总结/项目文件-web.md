@@ -79,7 +79,16 @@ async def login(request):
 
 ```python
 from playhouse.shortcuts import model_to_dict
+from models.model import User
 
+
+async def user_index(app, params):
+    db = app.db
+    result = await db.execute(User.select().where(User.is_delete==0).dicts())
+    # 注意：
+    # 1.result是一个可迭代对象，在response中自动转化为了list
+    # 2.里面的create_time是datetime类型，在response中自动转化为了string
+    return 1, dict(msg="ok", data=result)
 
 async def register_api(app, params):
     pass
