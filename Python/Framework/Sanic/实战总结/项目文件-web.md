@@ -408,11 +408,11 @@ def catch_exceptions(request, ex):
 async def request_interceptor(request):
     method = request.method
     url = request.url
-    params = ""
-    if method == "GET":
-        params = request.args
-    elif method == "POST":
+    if method == "POST":
         params = request.json
+    else:
+        params = request.args
+    
     logger.info(f'*** {method} {url} {params} ***')
 
     

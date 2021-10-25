@@ -402,7 +402,15 @@ asyncio.run(main())
 
 ### 事件循环
 
-在计算机系统中，能够产生事件的尸体被称为事件源(evnet source)，而负责协商管理事件的实体被称为事件处理器(evnet handler)。有时可能还存在被称为事件循环的第三个实体。它实现了管理计算代码中所有事件的功能。更准确地说，在沉痼执行期间事件循环不断周期反复，追踪某个数据结构内部发生的事件，将其纳入队列，如果主线程空闲则调用事件处理器一个一个地处理这些事件。如下是一段事件循环管理器的伪代码。while循环中的所有事件被事件处理器捕捉，然后逐一处理。事件的处理器是系统中唯一进行的活动，在处理器结束后，控制被传递给下一个执行的事件。
+#### 概念
+
+- 事件/循环
+
+事件(event)是程序的的一部分在一定条件下发出的消息。循环(loop)是一种结构，它在一定的条件下完成，并执行一定的程序，直到它完成为止。事件循环是允许订阅事件传输和注册处理程序/回调函数的循环。它让程序能以异步方式运行。事件循环将它接收到的所有事件委托给它们各自的回调函数。
+
+能够产生事件的实体被称为事件源(evnet source)，而负责协商管理事件的实体被称为事件处理器(evnet handler)。有时可能还存在被称为事件循环的第三个实体。它实现了管理计算代码中所有事件的功能。更准确地说，在程序执行期间事件循环不断周期反复，追踪某个数据结构内部发生的事件，将其纳入队列，如果主线程空闲则调用事件处理器一个一个地处理这些事件。
+
+如下是一段事件循环管理器的伪代码。while循环中的所有事件被事件处理器捕捉，然后逐一处理。事件的处理器是系统中唯一进行的活动，在处理器结束后，控制被传递给下一个执行的事件。
 
 ```c
 while (1) {
@@ -416,7 +424,38 @@ while (1) {
 
 将一个函数注册到事件循环会导致它变成一个任务。事件循环负责在获得任务后，马上执行它。另一种方式是事件循环有时在等待一定时间后，再执行任务
 
-管理事件循环的方法
+- 回调处理
+
+大多数回调模式的实现都有一个显著的缺点：它们的编程风格引入了大量的嵌套。这是由于同步代码的执行需要遵循其指令的顺序。因此，为了表示程序的某些部分相互依赖，我们需要对它们进行排序。然而，根据异步结果的不同，目前发展出了以下三种模式
+
+```
+- 嵌套回调函数，使得内部回调函数可以访问外部回调函数返回的结果（闭包）
+  嵌套回调函数的经验法则是，如果需要等待一个回调函数的返回结果，那么就需要将你的代码嵌入相应的回调中。很快就会陷入一种被称为回调地狱的境地中。回调地狱是指由于回调嵌套层级太深，从而导致推理和改进程序成为维护噩梦。
+- 使用对象作为未来结果（future或promise）的代理（proxy）
+  future/promise是封装异步调用结果的结果和饿错误处理的对象。它们最终会提供用来查询结果/异常的当前状态的API，以及注册回调函数以处理结果/异常的方法。由于它们封装了异步调用的future对象上下文并且需要嵌套，因此产生的的程序看起来是用一种更自顶向下的方式编写的。
+- 协程，是在事件循环中运行的可暂停的函数
+  协程可看作为可暂停的函数。可暂停意味着可以在任何给定的点上暂停协程。也就是说，它一定是由某种原子单元组成的。这就是我们所说的刻度（tick），可以用于表示和测量。刻度是事件循环的时间单位。它包含在事件循环的一个迭代步骤中发生的所有操作。协程实际上还会做其他事情：会暂停自己并等待另一个协程的结果。等待背后的所有逻辑都是由事件循环协调，因为它知道各个协程的状态。
+```
+
+#### 方法
+
+asyncio中事件循环有4种状态
+
+```
+- 空闲idle
+  空闲状态是事件循环创建后的状态。在此状态下，它不能使用任何协程或任何回调函数。在这种状态下，loop.is_running返回的值是False
+  
+- 运行running
+  运行状态是事件循环在调用loop.run_forever或loop.run_until_complete后的状态。在这种状态下，loop.is_running方法返回的值是True。这两种方法的区别在于，就loop.run_until_complete而言，协程(作为参数)被封装得到asyncio.Future中。回调函数被注册为asyncio.Future对象得到处理程序，该对象在协程被完全使用后运行loop.stop方法。
+  
+- 停止stopped
+  停止状态是事件循环调用stop命令后的状态。对于is_running方法，事件循环不会在调用stop方法后返回False。任何一批挂起到的回调函数都将优先被使用。只有在它们被消耗掉之后，事件循环才会进入空闲状态。
+
+- 关闭closed
+  事件循环通过调用close方法进入关闭状态。只有在事件循环未处于运行状态时才能调用它。
+```
+
+可以通过事件循环方法与事件循环生命周期进行交互
 
 | 方法                                        | 说明                                                         |
 | ------------------------------------------- | ------------------------------------------------------------ |
@@ -473,7 +512,7 @@ loop.is_runing()  # False,第一次获得循环对象，其并未执行
 
 ```
 
-创建新循环
+由于asyncio中循环与循环策略的概念紧密耦合，所以不建议通过循环构造函数创建循环实例。否则，可能会遇到作用域问题，因为全局`asyncio.get_eveent_loop`函数仅检索自己创建的或通过`asyncio.set_eveent_loop`设置的循环
 
 ```python
 import asyncio
@@ -483,7 +522,9 @@ loop = asyncio.new_event_loop()
 
 print(loop)  # Print the loop
 asyncio.set_event_loop(loop)
+# 这个API不会更改当前安装的事件循环，但是会出初始化asyncio全局事件循环策略-如果它之前没有被初始化到的话
 
+# 将新创建的的循环附加到事件循环策略的监视器中，以确保我们的事件循环可以监视在UNIX系统上新生成的子进程的终止状态
 if sys.platform != "win32":
     watcher = asyncio.get_child_watcher()
     watcher.attach_loop(loop)
@@ -498,12 +539,14 @@ from threading import Thread
 class LoopShowerThread(Thread):
     def run(self):
         try:
+            # 仅在LoopShowerThread中调用get_event_loop是不足以实现在实例化之前在线程中获得一个循环实例的，因为asyncio.get_event_loop只是在主线程上创建一个循环
             loop = asyncio.get_event_loop()
             print(loop)
         except RuntimeError:
             print("no event loop!")
 
 
+# 预先在主线程上调用不影响结果，符合预期            
 loop = asyncio.get_event_loop()
 print(loop)
 thread = LoopShowerThread()
@@ -513,6 +556,8 @@ thread.join()
 
 - 在线程上附加循环
 
+使用`threading.Thread`和`asyncio.new_event_loop()`可以创建具有唯一事件循环实例的线程实例
+
 ```python
 import asyncio
 import threading
@@ -521,7 +566,7 @@ import threading
 def create_event_loop_thread(worker, *args, **kwargs):
     def _worker(*args, **kwargs):
         loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
+        asyncio.set_event_loop(loop)  # 创建线程本地事件循环
         try:
             loop.run_until_complete(worker(*args, **kwargs))
         finally:
@@ -554,12 +599,13 @@ if __name__ == '__main__':
 
 - 在进程上附加循环
 
-unix中，可使用系统级api`os.fork()`
+方法一：unix中，可使用系统级`os.fork()`
 
 ```python
 import asyncio
 import os
 
+# 在unix系统中为每个进程提供一个事件循环并将其缓存在pid_loops字典中
 pid_loops = {}
 
 
@@ -575,21 +621,25 @@ def asyncio_init():
     pid_loops[pid] = asyncio.new_event_loop()
     pid_loops[pid].pid = pid
 
+if __name__ == "__main__":
+    # 注册一个钩子，用来创建一个新的事件循环实例，并使用当前pid作为字典的键将其保存在pid_loops字典中
+    os.register_at_fork(after_in_parent=asyncio_init, after_in_child=asyncio_init)
 
-os.register_at_fork(after_in_parent=asyncio_init, after_in_child=asyncio_init)
-
-if os.fork() == 0:
-    # Child
-    loop = get_event_loop()
-    assert os.getpid() == loop.pid
-else:
-    # Parent
-    loop = get_event_loop()
-    assert os.getpid() == loop.pid
-
+    if os.fork() == 0:
+        # Child
+        loop = get_event_loop()
+        pid = os.getpid()
+        assert pid == loop.pid
+        print(pid)
+    else:
+        # Parent
+        loop = get_event_loop()
+        pid = os.getpid()
+        assert pid == loop.pid
+        print(pid)
 ```
 
-通用高级多处理模块
+方法二：通用高级多处理模块
 
 ```python
 import asyncio
