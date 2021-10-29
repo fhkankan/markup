@@ -247,11 +247,11 @@ server {
 http{
 	server{
 		location /trail {
-				# 防止Entity Too Large
-				client_max_body_size 501m; # 客户端上传文件大小500M，默认1m，若超过返回413错误
-				client_body_buffer_size 1m; # 缓存大小
-				# 防止504 gateway time-out
-			 	proxy_connect_timeout  1800s; #nginx跟后端服务器连接超时时间(代理连接超时)，默认60s
+			# 防止Entity Too Large
+			client_max_body_size 501m; # 客户端上传文件大小500M，默认1m，若超过返回413错误
+			client_body_buffer_size 1m; # 缓存大小
+			# 防止504 gateway time-out
+			proxy_connect_timeout  1800s; #nginx跟后端服务器连接超时时间(代理连接超时)，默认60s
     		proxy_send_timeout  1800s;#后端服务器数据回传时间(代理发送超时)，默认60s
     		proxy_read_timeout  1800s;#连接成功后，后端服务器响应时间(代理接收超时)，默认60s
     		fastcgi_connect_timeout 1800s;#指定nginx与后端fastcgi server连接超时时间
@@ -274,10 +274,10 @@ server {
             try_files $uri $uri/ /index.html
         }
         location /filedata{
-        		add_header 'Access-Control-Allow-Origin' '*';
-        		alias /NginxData;
-        		allow all;
-        		autoindex on;
+        	add_header 'Access-Control-Allow-Origin' '*';
+        	alias /NginxData;
+        	allow all;
+        	autoindex on;
         }
 }
 ```
@@ -303,7 +303,7 @@ server {
     root /opt/www/api.xx.cn;
     access_log /opt/log/api.xx.cn.log main;
 		
-		location /micro/burn {
+	location /micro/burn {
         proxy_pass http://burn_backend/prod;
         proxy_http_version 1.1;
         proxy_set_header Connection "";

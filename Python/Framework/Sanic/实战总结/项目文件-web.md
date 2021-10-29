@@ -31,10 +31,9 @@ from sanic import Blueprint
 from sanic.log import logger
 
 from common.const import RC
-from common.utils import res_ng, res_ok
+from common.utils import res_ng, res_ok, check_params
 
 from biz.user import register_api, login_api, veri_code_api
-from common.utils import check_params
 
 bp = Blueprint("user", url_prefix="/user")
 
@@ -46,10 +45,10 @@ async def register(request):
         r_k = ["user_name", "gender", "birth_day", "phone", "veri_code"]
         r_k_v = check_params(r_k, params)
         o_k = ["province", "city"]
-        o_k_v = {k: req_dict.get(k) for k in o_k if req_dict.get(k)}
-        params_dict = r_k_v
-        params_dict.update(o_k_v)
-        flag, result = await register_api(request.app, params_dict)
+        o_k_v = {k: params.get(k) for k in o_k if params.get(k)}
+        params = r_k_v
+        params.update(o_k_v)
+        flag, result = await register_api(request.app, params)
         return res_ok(**result) if flag else res_ng(**result)
     except AssertionError as e:
         return res_ng(code=RC.PARAMS_INVALID, msg=str(e))
@@ -78,6 +77,7 @@ async def login(request):
 `user.py`
 
 ```python
+from sanic.log import logger
 from playhouse.shortcuts import model_to_dict
 from models.model import User
 
@@ -125,10 +125,10 @@ class RC:
 import string
 import time as _time
 import random
+from datetime import datetime, timedelta
 from functools import wraps
 from sanic.response import json
 from common.const import RC
-from common.jwt import parse_payload
 
 
 def res_ok(code=RC.OK, msg="ok", data=''):
@@ -408,11 +408,14 @@ def catch_exceptions(request, ex):
 async def request_interceptor(request):
     method = request.method
     url = request.url
-    if method == "POST":
-        params = request.json
-    else:
-        params = request.args
-    
+    params = ""
+    try:
+        if method == "POST":
+            params = request.json
+        else:
+            params = request.args
+    except Exception as e:
+        pass
     logger.info(f'*** {method} {url} {params} ***')
 
     
