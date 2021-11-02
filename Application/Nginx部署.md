@@ -228,7 +228,7 @@ http {
 
 修改服务器网站根目录
 
-```
+```shell
 server {
         # listen       8080;  # 端口号
         listen       0.0.0.0:8080;
@@ -260,6 +260,10 @@ http{
 		}
 	}
 }
+
+# 腾讯云
+# client_max_body_size默认配置范围为1M～256M，直接配置即可，最大支持2048M，>256M时，proxy_request_buffering为off
+# 同时此配置不能指定到域名，只能指定lb实例，关联哪个lb，那个lb生效，
 ```
 
 静态文件支持跨域配置
@@ -370,6 +374,38 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 }
+```
+
+### 用户名密码
+
+使用模块`ngx_http_auth_basic_module`, 实现让用户只有输入正确的用户名密码才允许访问web内容。
+
+服务器安装工具
+
+```
+yum -y install httpd
+```
+
+配置账号密码
+
+```
+# 命令行生成账号密码文件
+htpasswd -c /etc/nginx/passwd user_name
+# 根据提示输入密码
+```
+
+配置nginx
+
+```
+auth_basic "Please input password"; #这里是验证时的提示信息 
+auth_basic_user_file /etc/nginx/passwd;
+```
+
+重启服务
+
+```shell
+nginx -t
+service nginx restart
 ```
 
 ## 配置指南
