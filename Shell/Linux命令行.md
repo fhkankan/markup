@@ -1,6 +1,8 @@
 [TOC]
 
-# 系统配置
+# Linux命令行
+
+## 系统配置
 
 ```
 # 更改系统默认引导
@@ -24,7 +26,7 @@ id:5:initdefault:  # 将其更改为id:3:initdefault:即可在开机后进入文
 或终端中init 3
 ```
 
-# 快捷键
+## 快捷键
 
 ```python
 # 打开终端窗口
@@ -63,16 +65,7 @@ ctrl + win + T       	在当前窗口打开一个终端
 ctrl + win + n		   	打开一个新的终端窗口
 ```
 
-# 快捷命令
-
-```python
-# pycharm
-vim ~/.bashrc
-alias pycharm = "bash pycharm.sh所在的目录路径"
-source ~/.bashrc
-```
-
-# 简单shell
+## 简单shell
 
 帮助命令
 
@@ -165,20 +158,48 @@ test 3 -gt 2
 echo $?  # 打印上一行命令执行结果，成立返回0，不成立返回1
 ```
 
-`PATH`
+## 环境变量
+
+查看
 
 ```shell
-# 在shell中执行命令的时候，默认到PATH置顶的路径中查找可执行文件
-echo $PATH
-# 在.bashrc文件中手动配置增加可执行文件
-export PATH="/home/Sweeneys/anaconda3/bin:$PATH"
+printenv/env  # 查看全局环境变量
+printenv HOME  # 查看具体的环境变量
+echo $HOME  # 显示变量的值
+
+set		# 显示全局变量、局部变量和用户定义变量
 ```
 
+设置
 
+```shell
+# 设置局部用户定义变量
+my_var=hello	# 等号两边不能有空格
+my_var="Hello word"  # 若变量值需要空格，需要用“”界定首尾
 
-# 进程管理
+# 设置全局环境变量
+export my_var	# 将变量my_var设置为全局环境变量
 
-## 查看进程
+# 删除环境变量
+unset my_var
+```
+
+`path`
+
+```shell
+# 在shell中执行命令的时候，默认到PATH置顶的路径中查找可执行文件，PATH中的目录使用冒号分割
+echo $PATH
+# 添加临时命令或程序至path搜索目录，生命周期持续到退出或重启系统
+PATH=$PATH:/home/test/scripts
+# 环境变量持久化，在.bashrc文件中手动配置增加可执行文件
+export PATH="/home/Sweeneys/anaconda3/bin:$PATH"
+# 快捷命令持久化，在.bashrc文件中配置
+alias pycharm="xxx"
+```
+
+## 进程管理
+
+### 查看进程
 
 ```python
 ps
@@ -240,11 +261,15 @@ ps -aux | sort -k3nr | head -K
 或 top P
 ```
 
-## 停止进程
+### 结束进程
 
 ```shell
-# 杀死单个进程
-kill 进程编号，杀死指定进程， kill -9 进程编号，强制杀死进程
+# 指定pid杀死单个进程
+kill 进程编号，杀死指定进程， 
+kill -9 进程编号，强制杀死进程
+
+# 指定进程名结束进程，慎用
+killall http*
 
 # 批量杀死进程
 ps aux|grep python|grep -v grep|cut -c 9-15|xargs kill -15
@@ -258,7 +283,7 @@ ps aux|grep python|grep -v grep|cut -c 9-15|xargs kill -15
 “kill -15”会正常退出指定进程，-9强行杀掉
 ```
 
-# 端口管理
+## 端口管理
 
 | 端口类型 | 范围         | 说明                                                         |
 | -------- | ------------ | ------------------------------------------------------------ |
@@ -266,7 +291,7 @@ ps aux|grep python|grep -v grep|cut -c 9-15|xargs kill -15
 | 注册端口 | 1024～49151  | 它们松散地绑定于一些服务                                     |
 | 私有端口 | 49152～65535 | 可用于任意软件与任何其他的软件通信的端口数<br/>使用因特网的传输控制协议，或用户传输协议 |
 
-## 端口范围
+### 端口范围
 
 查看系统端口范围
 
@@ -285,7 +310,7 @@ vim /etc/sysctl.conf
 net.ipv4.ip_local_port_range = 1024 65000
 ```
 
-## 查看端口
+### 查看端口
 
 > 查看本机
 
@@ -335,7 +360,7 @@ netcat
 nc -vv ip port
 ```
 
-## 开放端口
+### 开放端口
 
 > iptables
 
@@ -357,7 +382,7 @@ sudo ufw allow  5600
 sudo ufw allow  8000
 ```
 
-# 防火墙
+## 防火墙
 
 ufw
 
@@ -374,7 +399,7 @@ sudo ufw status
 sudo ufw allow port
 ```
 
-# 终端显示
+## 终端显示
 
 ```python
 more
@@ -403,31 +428,33 @@ q         ：离开 less 这个程序；
 ls -ih | more
 ```
 
-# 目录管理
+## 目录管理
 
-## 查看目录
+### 查看目录
 
 ```python
-# 当前路径下的文件与文件夹
-ls
-# 查看路径下的额文件与文件夹
-ls 路径
+# 查看路径下的文件与文件夹，没有指定时为当前路径
+ls [文件夹/文件]
 # 显示指定目录下所有子目录与文件，包括隐藏文件
 ls -a
 # 以列表方式显示文件的详细信息
 ls -l
+# 可以区分文件和目录
+ls -F
+# 递归显示
+ls -R
 # 以人性化的方式显示文件大小
 ls -lh
 ls -lht 
 # 当前的文件路径
 pwd
 # 以树状形式显示目录结构
-tree
+tree [文件夹]
 # 查看可执行命令位置
 which command
 ```
 
-## 切换目录
+### 切换目录
 
 ```shell
 /home/python
@@ -448,7 +475,7 @@ cd -
 cd ~
 ```
 
-## 创建目录
+### 创建目录
 
 ```shell
 mkdir 目录名  		# 在当前目录下创建文件夹
@@ -456,9 +483,15 @@ mkdir -p 目录名  	# 当前路径下创建可嵌套的文件夹
 mkdir -v 目录名   	# 显示创建进度信息
 ```
 
-# 文件管理
+### 删除目录
 
-## 查找文件
+```shell
+rmdir 目录名  # 只能删除空目录，一般使用rm命令
+```
+
+## 文件管理
+
+### 查找文件
 
 ```shell
 正则表达式
@@ -475,30 +508,6 @@ a$
 # 匹配任意一个非空字符（find）
 ?
 
-
-grep
-# 在文件中查找特定的内容
-# 注意：
-1. 在查看某个文件的内容的时候，是需要有<文件名>
-2. grep命令个在结合|(管道符)使用的情况下，后面的<文件名>是没有的
-3. 可以通过 grep --help查看grep的帮助信息
-grep [-选项] '搜索内容串' 文件名 
-# 参数：
--c	只能输出匹配行的计数
--n	显示匹配行及行号
--v	显示不包含匹配文本的所有行
-
-grep  -v 's' filename.txt  # 显示filename文件中不含有’s'字符的所有行
-grep  -c 's' filename.txt # 显示filename文件中含有’s'字符的行数
-grep  -n 's' filename.txt  # 显示filename文件中含有’s'字符的行数和内容
-grep  -i 's' filename.txt  # 忽略大小写，显示filename文件中含有’s'字符的内 
-grep -nr [错误关键字] *  # 精确定位错误代码
-
-# 与或非
-grep 'pattern1' filename | grep 'pattern2'  # 与
-grep 'pattern1\|pattern2' filename  # 或
-grep -E 'pattern1|pattern2' filename  # 或
-grep -v 'pattern' filename  # 非
 
 find
 # 查找符合条件文件并将查找结果输出
@@ -520,9 +529,14 @@ find [路径] [参数] [关键字]
 -mindepth n	查找文件时，查找当前目录中的第n层目录的文件，然后再在其子目录中查找
 ```
 
-## 查看输出
+### 查看文件
 
 ```shell
+file 
+# 查看文件类型
+file my_file
+file new_dir
+
 cat
 # 将文件内容连接后传送到标准输出或重定向到文件
 cat [option][file]...
@@ -582,18 +596,10 @@ cut
 # 示例
 cut -d ":" -f 3-5 /etc/passwd
 
-sort
-# 排序，字典序和数值序
--n # 按数值排序
--r # 倒序
--t # 自定义分隔符
--k # 选择排序列
--f # 忽略大小写
-# 示例
-sort sort.txt
+
 ```
 
-## 创建文件
+### 创建文件
 
 ```shell
 touch
@@ -610,7 +616,47 @@ ls > test.txt
 ls >> test.txt
 ```
 
-## 权限更改
+### 复制移动
+
+```python
+cp 
+# 复制目录时使用，保留链接、文件属性，并递归地复制文件夹及文件
+cp 文件夹名 目标文件夹名 -a
+# 已存在的目标文件而不提示
+cp 文件名 目标文件名 -f
+# 交互式复制，在覆盖目标文件之前将给出提示要求用户确认
+cp 文件名 目标文件名 -i
+# 若给出的源文件是目录文件，则递归复制该目录下的所有子目录和文件
+cp 文件夹名 目标文件夹名 -r
+# 显示拷贝进度和路径
+cp 文件名 目标文件名 -v
+
+mv 
+# 移动文件，若是在同一目录下，则为重命名
+mv 当前文件名路径 新文件名路径
+# 禁止交互式操作，如有覆盖也不会给出提示
+mv 文件名 文件名 -f
+# 确认交互方式操作，如果mv将导致目标文件的覆盖，系统会询问是否重写，要求用户回答以免覆盖文件
+mv 文件名 文件名 -i
+# 显示移动进度和剪切的路劲
+mv 文件名 文件名 -v
+```
+
+### 删除文件/夹
+
+```shell
+rm
+# 删除文件和目录
+rm [option]...file...
+# 参数
+-i:删除前逐一询问确认
+-f:强行删除，无需逐一确认
+-r:以地柜的方式将目录及子目录和文件逐一删除
+```
+
+
+
+### 权限更改
 
 ```shell
 chmod
@@ -656,11 +702,9 @@ chown opuser:opuser demo
 chown -R runoob:runoobgroup *
 ```
 
-## 链接
+### 软硬链接
 
 ```shell
-ln
-# 在文件之间创建链接，硬链接和软链接
 ln [option]...[-T]target link_name
 # 参数
 -f:在链接时先将同名文件删除
@@ -668,6 +712,7 @@ ln [option]...[-T]target link_name
 -i:在删除同名文件时先询问
 -n:在进行软链接时，将dist视为一般的档案
 -s:创建软连链接
+
 # 创建硬链接，占用相同的空间，无法创建文件夹的硬链接，会使硬链接数+1
 ln 源文件 链接文件
 # 创建软链接，不占用空间，若不在一个目录，源文件要使用绝对路径
@@ -679,19 +724,7 @@ ln -fns source target  # 文件夹
 rm -rf symbolic_name
 ```
 
-## 删除
-
-```shell
-rm
-# 删除文件和目录
-rm [option]...file...
-# 参数
--i:删除前逐一询问确认
--f:强行删除，无需逐一确认
--r:以地柜的方式将目录及子目录和文件逐一删除
-```
-
-## 计算字数
+### 计算字数
 
 ```shell
 wc
@@ -706,7 +739,7 @@ wc sort.txt
 wc -l sort.txt
 ```
 
-## 文件分割
+### 文件分割
 
 ```shell
 split
@@ -718,7 +751,7 @@ split [option][input][prefix]
 -l:指定每个输出文件的行数(默认1000行)
 ```
 
-# 文件传输
+### 文件传输
 
 ```python
 scp	将要传输的文件		要放置的位置
@@ -734,7 +767,7 @@ scp root@192.168.8.15:/root/python.tar.gz ./
 远程连接的用户@远程主机:远程主机的文件路径
 ```
 
-# 文件的备份
+### 文件的备份
 
 ```python
 # 文件的备份要有一定的标志符号，使用时间戳
@@ -757,40 +790,51 @@ cp nihao nihao-$(date + %Y%m%d%H%M%S)
 mv nihao nihao-$(date + %Y%m%d%H%M%S)
 ```
 
-# 复制移动
+## 处理数据文件
 
-```python
-cp
-# 拷贝文件到指定路径
-文件名 ../新文件名：复制文件至路径下新文件
-文件名 路径：复制文件至新路径
-# 复制目录时使用，保留链接、文件属性，并递归地复制文件夹及文件
-cp 文件夹名 目标文件夹名 -a
-# 已存在的目标文件而不提示
-cp 文件名 目标文件名 -f
-# 交互式复制，在覆盖目标文件之前将给出提示要求用户确认
-cp 文件名 目标文件名 -i
-# 若给出的源文件是目录文件，则递归复制该目录下的所有子目录和文件
-cp 文件夹名 目标文件夹名 -r
-# 显示拷贝进度和路径
-cp 文件名 目标文件名 -v
+### 排序数据
 
-mv 
-# 移动文件到指定路径
-文件(夹)名 文件(夹)名: 同一目录下为重命名文件夹
-文件名 ../新文件名：剪切文件至路径下新文件
-文件名 路径：剪切文件至文件夹
-# 禁止交互式操作，如有覆盖也不会给出提示
-mv 文件名 文件名 -f
-# 确认交互方式操作，如果mv将导致目标文件的覆盖，系统会询问是否重写，要求用户回答以免覆盖文件
-mv 文件名 文件名 -i
-# 显示移动进度和剪切的路劲
-mv 文件名 文件名 -v
-# 打开文件，编辑内容 
-gedit
+```shell
+sort
+# 排序，字典序和数值序
+-n # 按数值排序
+-r # 倒序
+-t # 自定义分隔符
+-k # 选择排序列
+-f # 忽略大小写
+# 示例
+sort sort.txt
 ```
 
-# 编辑修改
+### 搜索数据
+
+```shell
+grep
+# 在文件中查找特定的内容
+# 注意：
+1. 在查看某个文件的内容的时候，是需要有<文件名>
+2. grep命令个在结合|(管道符)使用的情况下，后面的<文件名>是没有的
+3. 可以通过 grep --help查看grep的帮助信息
+grep [-选项] '搜索内容串' 文件名 
+# 参数：
+-c	只能输出匹配行的计数
+-n	显示匹配行及行号
+-v	显示不包含匹配文本的所有行
+
+grep  -v 's' filename.txt  # 显示filename文件中不含有’s'字符的所有行
+grep  -c 's' filename.txt # 显示filename文件中含有’s'字符的行数
+grep  -n 's' filename.txt  # 显示filename文件中含有’s'字符的行数和内容
+grep  -i 's' filename.txt  # 忽略大小写，显示filename文件中含有’s'字符的内 
+grep -nr [错误关键字] *  # 精确定位错误代码
+
+# 与或非
+grep 'pattern1' filename | grep 'pattern2'  # 与
+grep 'pattern1\|pattern2' filename  # 或
+grep -E 'pattern1|pattern2' filename  # 或
+grep -v 'pattern' filename  # 非
+```
+
+### 编辑修改
 
 ```python
 sed
@@ -867,7 +911,7 @@ awk -F ':' '{print $1}' passwd  # 指定分割符查看内容，只显示/etc/pa
 awk 'BEGIN{OFS='列分割符'}{动作}' 文件名  # 设置显示分割符，显示内容
 ```
 
-# 压缩解压
+### 压缩解压
 
 ```python
 tar
@@ -973,9 +1017,9 @@ gunzip[options][-S suffix][name...]
 -S:更改压缩后缀字符串
 ```
 
-# 程序管理
+## 程序管理
 
-运行
+### 运行
 
 ```
 切换至目录下，输入./文件名, 直接执行
@@ -995,7 +1039,7 @@ gunzip[options][-S suffix][name...]
 nohup xxx &
 ```
 
-作业管理
+### 作业管理
 
 ```python
 # 将“当前”作业放到后台“暂停”
@@ -1008,6 +1052,7 @@ command&
 nohup ./myjob &
 # 忽略HUP信号
 disown -hmyjob
+
 # 观察当前后台作业状态
 jobs
 参数：
@@ -1018,6 +1063,7 @@ jobs
 fg %jobnumber(%可有可无)
 # 将一个在后台暂停的命令，继续执行
 bg %jobnumbern
+
 # 终止后台作业
 kill -signal %jobnumber
 参数：
@@ -1030,9 +1076,9 @@ signal：表示给后台的作业什么指示，用man 7 signal可知
 # 终止前台作业
 ctr + c
 ```
-# 磁盘管理
+## 磁盘管理
 
-## 块复制
+### 块复制
 
 ```shell
 dd
@@ -1048,7 +1094,7 @@ cbs=bytes:每次转储的字节数，即指定转储缓冲区的大小
 obs=bytes:每次输出的字节数，即指定块的大小
 ```
 
-## 交换分区
+### 交换分区
 
 ```shell
 mkswap
@@ -1060,7 +1106,7 @@ mkswap[option][-l label]device[size]
 -v1:创建新式交换分区
 ```
 
-## 磁盘分区
+### 磁盘分区
 
 ```shell
 fdisk
@@ -1093,7 +1139,7 @@ fsck [-t 文件系统] [-ACay] 装置名称
 -y : 选项指定检测每个文件是自动输入yes，在不确定那些是不正常的时候，可以执行 # fsck -y 全部检查修复。
 ```
 
-## 磁盘空间
+### 磁盘空间
 
 ```shell
 df [options] [目录或文件名]
@@ -1120,7 +1166,7 @@ du [-ahskm] 文件或目录名称
 du -sh ./*  # 查看当前目录下占用磁盘空间情况
 ```
 
-## 挂卸载文件系统
+### 挂卸载文件系统
 
 ```shell
 mount
@@ -1128,8 +1174,15 @@ mount
 mount [-lhV]
 mount -a [-fFnrsvw][-t vfstype][-O optlist]
 mount [-fnrsvw][-o options[,...]] device | dir
-
 mount [-t 文件系统] [-L Label名] [-o 额外选项] [-n]  装置文件名  挂载点
+
+# 输出当前系统上挂载的设备列表
+mount
+# 将光驱挂载在/mnt目录
+mount /dev/cdrom /mnt  
+df -h
+
+
 umount [-fn] 装置文件名或挂载点
 # 参数
 -a:将/etc/fstab文件中定义的所有文件系统挂载
@@ -1140,14 +1193,22 @@ umount [-fn] 装置文件名或挂载点
 -o ro:用只读模式挂载
 -o rw:用可读写模式挂载
 
-# 示例
-mount /dev/cdrom /mnt  # 将光驱挂载在/mnt目录
-df -h
-unmount /mnt  # 卸载掉挂载的分区/mnt
+# 卸载掉挂载的分区/mnt
+unmount /mnt  
 df -h
 ```
 
-# 账户
+## 账户组
+
+配置文件
+
+```shell
+/etc/passwd   	# 存放用户登录名、UID等信息
+/etc/shadow		# 存放系统密码管理信息
+/etc/group		# 共享资源的组信息
+```
+
+登录查看
 
 ```python
 # 远程登陆
@@ -1163,10 +1224,10 @@ whoami
 who
 # 切换用户
 su 用户名 
-
-# 创建超级用户密码
-sudo passwd
-
+```
+密码管理
+```shell
+passwd
 # 密码管理
 passwd 选项 用户名
 -l 锁定口令，即禁用账号。
@@ -1175,9 +1236,16 @@ passwd 选项 用户名
 -f 强迫用户下次登录时修改口令。
 # 例子
 passwd 用户名  # root登陆，设置修改其他用户密码
-passwd 				# 修改当前用户密码(若是root则修改root，普通则修改普通)
+passwd 		  # 修改当前用户密码(若是root则修改root，普通则修改普通)
 sudo passwd root  # 普通用户修改root账户密码，输入当前账户和root用户密码修改
 
+chpasswd
+# 从标准输入自动读取登录名和密码对（用冒号分割）列表，给密码加密，然后为用户账户设置
+chpasswd < user.txt
+```
+用户管理
+```shell
+useradd
 # 添加用户
 sudo useradd 选项 用户名
 -c comment 指定一段注释性描述。
@@ -1191,6 +1259,7 @@ useradd -d /user/sam -m sam
 useradd -s /bin/sh -g group –G adm,root gem
 # 此命令新建了一个用户gem，该用户的登录Shell是 /bin/sh，它属于group用户组，同时又属于adm和root用户组，其中group用户组是其主组。 
 
+usermod
 # 修改用户
 usermod 选项 用户名
 # 用户组新创建的用户，默认不能sudo,需进行以下操作
@@ -1199,46 +1268,74 @@ sudo usermod -a -G sudo 用户名
 usermod -s /bin/ksh -d /home/z –g developer sam
 # 此命令将用户sam的登录Shell修改为ksh，主目录改为/home/z，用户组改为developer
 
+userdel
 # 删除用户
+# 只删除/etc/password文件中的用户信息，不会删除系统中属于该账户的任何文件
 sudo userdel -r 用户名
+
+chsh
+# 修改默认的用户登录shell
+chfn
+# 将用于unix的finger命令的信息存进备注字段
+chage
+# 管理用户账户的有效期
+-d	# 设置上次修改密码到现在的天数
+-E	# 设置密码过期的日期
+-I	# 设置密码到期到锁定账户的天数
+-m	# 设置修改密码之前最少要多少天
+-n	# 设置密码过期前多久开始出现提醒信息
 ```
 
-# 包管理器
+组管理
+
+```shell 
+groupadd
+# 创建组
+# 默认没有用户被分配到该组
+gropadd shared
+# 将用户添加到组中的选项
+usermode -G shared rich
+
+groupmod
+# 修改组
+# 修改组名时，GID和组成员不会变，只有组名改变
+groupmod -n sharing shared
+```
+
+## 包管理器
+
+- 基于debain版本
 
 apt
 
 ```shell
-sudo apt-cache search package             --->搜索软件包
-sudo apt-cache show package               --->获取包的相关信息，如说明、大小、版本等
-sudo apt-cache depends package            --->了解使用该包依赖哪些包
-sudo apt-cache rdepends package           --->查看该包被哪些包依赖
-sudo apt-get check                        --->检查是否有损坏的依赖
-sudo apt-get update                       --->更新源
-sudo apt-get upgrade                      --->更新已安装的包
-sudo apt-get dist-upgrade                 --->升级系统
-sudo apt-get source package               --->下载该包的源代码
-sudo apt-get install package              --->安装包
-sudo apt-get install package --reinstall  --->重新安装包
-sudo apt-get -f install                   --->修复安装
-sudo apt-get build-dep package            --->安装相关的编译环境
-sudo apt-get remove package               --->删除包
-sudo apt-get remove package --purge       --->删除包，包括配置文件等
-sudo apt-get clean && sudo apt-get autoclean--->清理无用的包
+sudo apt-cache search package               # 搜索软件包
+sudo apt-cache show package                 # 获取包的相关信息，如说明、大小、版本等
+sudo apt-cache depends package              # 了解使用该包依赖哪些包
+sudo apt-cache rdepends package             # 查看该包被哪些包依赖
+
+sudo apt-get check                          # 检查是否有损坏的依赖
+sudo apt-get update                         # 更新源
+sudo apt-get upgrade                        # 更新已安装的包
+sudo apt-get dist-upgrade                   # 升级系统
+sudo apt-get source package                 # 下载该包的源代码
+sudo apt-get install package                # 安装包
+sudo apt-get install package --reinstall    # 重新安装包
+sudo apt-get -f install                     # 修复安装
+sudo apt-get build-dep package              # 安装相关的编译环境
+sudo apt-get remove package                 # 删除包
+sudo apt-get remove package --purge         # 删除包，包括配置文件等
+sudo apt-get clean && sudo apt-get autoclean  # 清理无用的包
+
+sudo aptitude search package_name		# 搜索特定包
+sudo aptitude install package_name		# 安装特定包
+sudo aptitude show [package_name]		# 显示特定包的具体信息
+sudo aptitude safe-upgrade				# 更新软件
+sudo aptitude purge package_name		# 卸载软件及相关数据
+sudo aptitude remove package_name		# 删除软件包而不删除相关数据
 ```
 
-snap
-
-```shell
-sudo snap list				# 查看所有snap安装情况
-sudo snap find 软件包		  # 在应用商店查找软件包 
-sudo snap install 软件包	  # 安装snap包
-sudo snap refresh 软件包	  # 更新snap包
-sudo snap refresh all		# 更新所有snap包
-sudo snap revert 软件包	  # 将snap包恢复到以前安装版本
-sudo snap remove 软件包	  # 卸载snap包
-```
-
-deb包
+dpkg
 
 ```bash
 # 方法一
@@ -1256,6 +1353,48 @@ dpkg-reconfigure xxx  		重新配置软件包
 # 方法三
 sudo apt-get install gdebi  安装gbebi
 sudo gbedi package.deb  	安装软件
+```
+
+- 基于Red Hat版本
+
+```shell
+yum list 	# 列出已经安装的包
+yum list installed > installed_software	# 将已安装的列表重定向到一个文件中
+yum list xterm	# 列出包的详细信息
+yum provides file_name	# 列出某个特定文件属于哪个软件包
+
+yum install package_name  # 从仓库中安装软件包
+yum localinstall package_name.rpm	# 本地安装rpm安装文件
+
+yum list updates	# 列出所有安装包的可用更新
+yum update			# 对更新列表中的所有包进行更新
+yum update package_name		# 更新特定包
+
+yum remove package_name		# 只删除软件而保留配置和数据
+yum erase package_name		# 删除软件和它所有的文件
+
+# 出现损坏的包依赖关系
+yum clean all	
+yum update 
+yum deplist package_name  # 列出所有包的库依赖以及什么软件可以提供这些库依赖关系
+yum install package_name  # 手动安装缺少的依赖
+yum update --skuo-broken	# 允许忽略依赖关系损坏的包，继续更新其他的软件包
+
+yum repolist	# 展示从哪些仓库中获取软件
+```
+
+- 其他
+
+snap
+
+```shell
+sudo snap list				# 查看所有snap安装情况
+sudo snap find 软件包		  # 在应用商店查找软件包 
+sudo snap install 软件包	  # 安装snap包
+sudo snap refresh 软件包	  # 更新snap包
+sudo snap refresh all		# 更新所有snap包
+sudo snap revert 软件包	  # 将snap包恢复到以前安装版本
+sudo snap remove 软件包	  # 卸载snap包
 ```
 
 源码
@@ -1278,9 +1417,9 @@ make uninstall
 rm -rf 目录
 ```
 
-# 系统管理
+## 系统管理
 
-## 终止进程
+### 终止进程
 
 ```shell
 kill
@@ -1327,7 +1466,7 @@ pkill(选项)(进程名)
 -t：指定开启进程的终端。
 ```
 
-## 用户信息
+### 用户信息
 
 ```shell
 last
@@ -1340,7 +1479,7 @@ last[options][name...] [tty...]
 -x:显示系统条目和运行级别的变化
 ```
 
-## 系统内存
+### 系统内存
 
 ```shell
 free
@@ -1355,7 +1494,7 @@ free [options][-s delay][option]
 -t:以kb为单位显示内存值，并统计每列值得总和
 ```
 
-## 系统信息
+### 系统信息
 
 ```shell
 uname
@@ -1371,7 +1510,7 @@ cat /etc/issue
 # 查看操作系统名称
 ```
 
-## 日期时间
+### 日期时间
 
 ```shell
 date
@@ -1394,7 +1533,7 @@ hwclock[options][--ser--date=<date and time>]
 --systohc:将硬件时钟值调整为与目前的系统时钟值一致
 ```
 
-# 关机重启
+## 关机重启
 
 ```shell
 sync			将数据由内存同步到硬盘中

@@ -1345,7 +1345,7 @@ loop.run_until_complete(task)
 
 asyncio模块提供了一种聚合任务的便利方法，聚合任务主要归因于两个原因。1是在一组任务中的任何任务完成后采取某些行动。2是在所有任务都完成后采取某些行动
 
-- 聚集任务
+#### gather
 
 asyncio为聚集任务目的提供的第一种机制是通过gather函数。gather接受一系列协程或任务，并返回将那些任务聚合后的单个任务(包装其接收的任何适用协程)
 
@@ -1404,7 +1404,36 @@ loop.run_until_complete(meta_task)
 # ['green tea', 'herbal tea']
 ```
 
-- 等待任务
+获取结果
+
+```python
+import asyncio
+
+
+async def run(num):
+    try:
+        int(num)
+        flag = True
+    except Exception as e:
+        flag = False
+        num = 0
+    return flag, num
+
+
+async def main():
+    res = await asyncio.gather(run(1), return_exceptions=True)
+    print(res)
+    for item in res:
+        flag, result = item
+        print(flag, result)
+
+
+if __name__ == '__main__':
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(main())
+```
+
+#### wait
 
 asyncio模块提供的另一个工具是内置的wait协程。asyncio.wait协程接受一系列协程或任务(在任务中包装任意协程)，一旦完成后就返回结果。注意该协程的签名与asyncio.gather不同。每一个协程或任务都是gather的一个单独位置参数，而wait接受一个列表作为参数
 

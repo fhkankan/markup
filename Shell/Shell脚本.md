@@ -1,6 +1,6 @@
 # shell脚本
 
-## shell类型
+- shell类型
 
 ```shell
 cat /etc/default/useradd
@@ -8,7 +8,15 @@ cat /etc/default/useradd
 SHELL=/bin/bash
 ```
 
-## 创建脚本
+- 创建脚本
+
+使用多个命令，以分号隔开
+
+```shell
+date; who
+```
+
+常规创建
 
 ```shell
 # 创建工具
@@ -28,7 +36,7 @@ echo '2'
 echo '3'
 ```
 
-## 脚本执行
+- 脚本执行
 
 ```shell
 # 脚本文件本身没有可执行权限或者脚本首行没有命令解释器(推荐)
@@ -41,8 +49,29 @@ bash /path/to/script-name	或 /bin/bash /path/to/script-name
 source script-name			或 . script-name
 ```
 
-## 脚本开发规范
+ - 退出脚本
+```shell
+date
+echo $?		# 展示上个命令的退出码头
 
+```
+
+退出码状态
+
+```
+0	# 命令成功结束
+1  	# 一般性未知错误
+2	# 不适合的shell命令
+126	# 命令不可知性
+127	# 没找到命令
+128	# 无效的退出参数
+128+x	# 与linux信号x相关的严重错误
+130		# 通过Ctrl+C终止的命令
+255		# 正常范围之外的退出状态码
+```
+
+ - 脚本开发规范
+```
 - 脚本命令要有意义，文件后缀.sh
 - 脚本文件首行是且必须是脚本解释器`#!bin/bash`
 - 脚本文件解释器后面要有脚本的基本信息等内容
@@ -50,7 +79,7 @@ source script-name			或 . script-name
 - 脚本内容执行：从上到下，一次执行
 - 代码书写优秀习惯(成对内容一次性写完，[]两端要有空格，流程控制语句一次性写完 )
 - 通过缩进让代码容易易读
-
+```
 # 变量
 
 ```shell
