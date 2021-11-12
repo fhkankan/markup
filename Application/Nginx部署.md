@@ -272,11 +272,13 @@ http{
 server {
         listen       80;
         server_name  localhost;
+        # 根目录
         location / {
             root   html;
             index  index.html index.htm;
             try_files $uri $uri/ /index.html
         }
+        # 前端静态文件
         location /filedata{
         	add_header 'Access-Control-Allow-Origin' '*';
         	alias /NginxData;
