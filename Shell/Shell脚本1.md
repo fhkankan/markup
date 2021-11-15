@@ -886,7 +886,77 @@ ls -al > /dev/null
 
 ### 创建临时文件
 
+Linux系统有特殊的目录，专供临时文件使用。Linux使用`/tmp`目录来存放不需要永久保留的文件。大多数Linux发行版配置了系统在启动时自动删除`/tmp`目录的所有文件。
+
+系统上任何用户账户都有权限在读写`/tmp`目录中的文件。这个特性提供了一种创建临时文件的简单方法，不用操心清理工作。
+
+`mktemp`可以在`/tmp`目录中创建一个唯一的临时文件。shell会创建这个文件，但不用默认的umask值。它会将文件的读写权限分配给文件的属主，并将你设成文件的属主。一旦创建了文件，就在脚本中有了完整的读写权限，但其他人无法访问它（root除外）。
+
+- 创建本地临时文件
+
+默认情况下，`mktemp`会在本地目录中创建一个文件。要用`mktemp`命令在本地目录中创建一个临时文件，只要指定一个文件名模版即可。模版可以包含任意文本文件名，在文件名末尾加上6个X就可以了
+
+```shell
+mktemp testing.XXXXXX
+# mktemp会用6个字符码替换X，从而保证文件名在目录中是唯一的。可以创建多个临时文件，它可以保证每个文件都是唯一的。
+# 在脚本中使用
+tempfile=$(mkteemp test.XXXXXX)
+exec 3>$tempfile
+echo "This is the first line" >&3
+exec 3>&-
+echo "Done creating temp file. The contents are:"
+cat $tempfile
+rm -f $tmpfile 2> /dev/null
+```
+
+- 在`/tmp`目录创建临时文件
+
+```shell
+mktemp -t test.XXXXXX
+# -t选项会强制mktemp命令来在系统的临时目录来创建该文件。在用这个特性时，mktemp命令会返回用来创建临时文件的全路径，而不是只有文件名
+# 在脚本中使用
+tempfile=$(mkteemp -t test.XXXXXX)
+echo "This is the first line" > $tempfile
+echo "This is the second line" >> $tempfile
+echo "The temp file is located at: $tempfile"
+cat $tempfile
+rm -f $tempfile
+```
+
+- 创建临时目录
+
+```shell
+mktemp -d test.XXXXXX
+# -d选项告诉mktemp来创建一个临时目录而不是临时文件
+tempdir=$(mktemp -d dir.XXXXXX)
+cd $tempdir
+tempfile1=$(mktemp temp.XXXXXX)
+tempfile2=$(mktemp temp.XXXXXX)
+exec 7> $tempfile1
+exec 8> $tempfile2
+echo "sending data to dir $tempdir"
+echo "This is a test line of data for $tempfile1" >&7
+echo "This is a test line of data for $tempfile2" >&8
+```
+
 ### 记录消息
+
+将输出同时发送到显示器和日志文件，不用将输出重定向两次，只要用特殊的`tee`命令就行.
+
+`tee`命令相当于管道的一个T型接头，将从STDDIN过来的数据同时发往两处，一处是STDOUT，另一个是tee命令行所指定的文件名。
+
+```shell
+tee filename
+# 由于tee会重定向来自STDIN的数据，可以配合管道命令来重定向命令输出
+date | tee testfile  # 输出同时出现在了STDOUT（显示器）和指定的文件中
+# 默认情况下，tee命令会在每次使用时覆盖输出文件内容，若想将数据追加到文件中，用-a选项
+date ｜ tee -a testfile
+# 脚本中
+tempfile=test22file
+echo "This is the start of the test" | tee $tempfile
+echo "This is the seccond line of the test" | tee -a $tempfile
+echo "This is the end of the test" | tee -a $tempfile
+```
 
 ## 控制脚本
 
