@@ -1,6 +1,6 @@
 # Shell脚本高级
 
-## 函数
+## 创建函数
 
 - 简单函数
 
@@ -56,63 +56,13 @@ dayin(){
 dayin 111 df dfs
 ```
 
-## 实践
+## 正则表达式
 
-- zonghe.sh 脚本执行时候需要添加参数才能执行
+## sed
 
-    参数和功能详情如下：
+## gawk
 
-    ```
-    参数			执行效果
-    start		服务启动中...
-    stop		服务关闭中...
-    restart		服务重启中...
-    *			脚本帮助信息...
-    
-    ```
-
-- 参数的数量有限制，只能是1个，多余一个会提示脚本的帮助信息
-
-- 帮助信息使用函数来实现
-
-    信息内容：脚本 zonghe.sh 使用方式 zonghe.sh [ start|stop|restart ]
-
-**实践**
-
-```
-#！/bin/bash
-
-# 定义本地变量
-arg="$1"
-
-# 脚本帮助信息
-usage(){
-    echo "脚本$0的使用方式是：$0[ start|stop|restart ]"
-}
-
-# 函数主框架
-if [ $# -eq 1 ]
-then
-	case "${arg}" in
-		start)
-			echo "服务启动中..."
-			;;
-		stop)
-			echo "服务关闭中..."
-			;;
-		restart)
-			echo "服务重启中..."
-			;;
-		*)
-			usage
-			;;
-		esac
-else
-	usage
-fi
-```
-
-
+## 其他shell
 
 # 代码发布
 

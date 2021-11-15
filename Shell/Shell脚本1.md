@@ -85,7 +85,7 @@ exit 5
 ```
 ## 使用变量
 
-### 环境变量
+- 环境变量
 
 ```shell
 # 查看
@@ -100,7 +100,7 @@ export 变量
 export 变量=值
 ```
 
-### 用户变量
+- 用户变量
 
 ```shell
 # 临时存储数据并在整个脚本中使用，可以是任何由字母数字或下划线组成的文本字符串，长度不超过20个
@@ -112,7 +112,7 @@ export 变量=值
 变量名="变量值"
 ```
 
-### 内置变量
+- 内置变量
 
 ```shell
 $0	# 获取当前执行的shell脚本文件名，包括脚本路径
@@ -122,7 +122,7 @@ $?	# 获取执行上一个指令的返回值(0表示成功，非0为失败)
 $$  # 当前shell的PID
 ```
 
-### 变量操作
+- 变量操作
 
 ```shell
 # 查看变量
@@ -657,9 +657,11 @@ done
 echo "Finished processing the file"
 ```
 
-## 数据展示
+## 呈现数据
 
-### 数据展示
+### 输入输出
+
+- 输出命令
 
 ```shell
 echo
@@ -674,3 +676,222 @@ echo -n "The time and date are: "
 date
 ```
 
+- 标准文件描述符
+
+Linux系统将每个对象当作文件处理。这包括输入和输出进程。Linux用文件描述符来标识每个文件对象。文件描述符是一个非负整数，可以唯一标识会话中打开的文件。每个进程一次最多可以有9个文件描述符。处于特殊目的，bash shell保留了前三个文件描述符
+
+| 文件描述符 | 缩写   | 描述     |
+| ---------- | ------ | -------- |
+| 0          | STDIN  | 标准输入 |
+| 1          | STFOUT | 标准输出 |
+| 2          | STDERR | 标准错误 |
+
+`STDIN`
+
+```
+STDIN文件描述符代表shell的标准输入。对于终端界面来说，标准输入是键盘。shell从STDIN文件描述符对应的键盘获得输入，在用户输入时处理每个字符。
+在使用输入重定向符号(<)时，Linux会用重定向指定的文件来替换标准输入文件描述符。它会读取文件并提取数据，就如同它是键盘上输入的。
+```
+
+`STDOUT`
+
+```
+STDOUT文件描述符代表shell的标准输出。在终端界面上，标准输出是终端显示器。shell的所有输出（包括shell中圆形的额程序和脚本）会被定向到标准输出中，也就是显示器。
+通过输出重定向符号(>/>>)，会显示到显示器的额所有输出会被shell重定向到指定的重定向文件。
+```
+
+`STDERR`
+
+```
+shell通过特殊的STDERR文件描述符来处理错误消息。STDERR文件描述符代表shell的标准错误输出，shell或shell中圆形的程序和脚本出错时生成的错误消息都会发送到这个位置。
+默认情况下，STDERR文件描述符和STDOUT文件描述符只想同样的大地方（尽管分配给他们的文件描述符值不同）。也即是，默认情况下，错误消息也会输出到显示器中输出。
+```
+
+示例
+
+```shell
+$ ls -al badfile > test
+ls: cannot access badfile:No such file or directory
+$ cat test
+$
+
+# 命令生成错误消息时，shell并未将错误消息重定向到输出重定向文件。shell创建了输出重定向文件，但错误信息却显示在了显示器屏幕上。
+```
+
+- 重定向错误
+
+只重定向错误
+
+```shell
+# STDERR文件描述符被设为2，将文件描述符值放在重定向符号前可以实现只重定向错误
+ls -al badfile 2> test
+```
+
+重定向错误和数据
+
+```shell
+# 使用2个重定向符号，可将错误和数据重定向到不同的输出文件
+# 需要在符号前面放上待重定向数据所对应的文件描述符，然后指向用于保存数据的输出文件
+ls -al badfile 2> test2 1> test2
+
+# 可将错误和数据重定向到同一个输出文件
+ls -al badfile &> test3
+```
+
+### 脚本中重定向
+
+- 重定向输出
+
+临时重定向
+
+```shell
+# 若有意在脚本中胜澈鞥错误信息，可将单独的一行输出重定向到STDERR
+echo "This is an error message" >&2
+
+# 示例
+# test.sh
+echo "This is an error" >&2
+echo "This is normal oouput"
+# 终端执行
+./test.sh
+./test.sh 2>test2
+cat test2
+# STDOUT显示的文本显示在屏幕，发送给STDERR的重定向到输出到文件
+```
+
+永久重定向脚本中的所有命令
+
+```shell
+# 用exec命令告诉shell在脚本执行期间重定向某个特定文件描述符
+exec 1>testout
+exec 2>testerror
+echo ...
+# exec命令会启动一个新的sheell并将STDOUT/STDERR文件描述符重定向到文件
+```
+
+- 重定向输入
+
+```shell
+# exec命令允许将STDIN重定向到Linux系统上的文件
+exec 0< testfile
+count=1
+while read line  # 当read试图从STDIN读入数据时，由于重定向，会从文件中读取而不是键盘
+do
+  echo "Line #$count: $line"
+  count=$[ $count + 1 ]
+done
+```
+
+### 自定义重定向
+
+在脚本中重定向输入和输出时，并不局限于这3个默认的文件描述符，其他6个均可作为输入或输出重定向。
+
+- 创建输出文件描述符
+
+```shell
+# exec可以给输出分配文件描述符。和标准的文件描述符一样，一旦将另一个文件描述符分配给一个文件，这个重定向就会一直有效，直到重新分配
+exec 3>testout
+echo "test"
+echo "this should be stored in the file" >&3
+```
+
+- 重定向文件描述符
+
+```shell
+# 临时重定向输出，然后恢复默认输出位置
+exec 3>&1  # 将文件描述符3重定向到1的STDOUT，发送给3的输出都将出现在显示器上
+exec 1>testout  # 将STDOUT重定向到文件，但是3仍然指向STDOUT原来的位置即显示器
+echo "hello, to file"
+echo "this line end to file"
+exec 1>&3  # 将STDOUT重定向到3（显示器），则STDOUT已经被重指向了原来的位置：显示器
+echo "back to normal"
+```
+
+- 创建输入文件描述符
+
+```shell
+# 可以和重定向输出文件描述符同样的方法重定向输入文件描述符。
+exec 6<&0
+exec 0< testfile
+
+count=1
+while read line
+do
+  echo "Line #$count: $line"
+  count=$[ $count + 1 ]
+done
+exec 0<&6
+read -p "Are you done now? " answer
+case $answer in
+ Y|y) echo "bye";;
+ N|n) echo "Sorry, this is the end.";;
+esac
+```
+
+- 创建读写文件描述符
+
+```shell
+# 可以用同一个文件描述符对同一个文件进行读写
+# 由于是对同一个文件进行数据读写，shell会维护一个内部指针，指明在文件中的当前位置。任何读或写都会从文件指针上次的位置开始。
+# test.sh
+exec 3<> testfile
+read line <&3
+echo "Read: $line"
+echo "This is a test line" >&3
+# testfile.sh
+This is the first line.
+This is the second line.
+This is the third line.
+```
+
+- 关闭文件描述符
+
+```shell
+# 若是创建了新的输入或输出文件描述符，shell会在脚本退出时自动关闭他们。
+# 若需要在脚本结束前手动关闭文件描述符，可以将它重定向得到特殊符号&-
+exec 3<&-
+```
+
+### 列出打开的文件描述符
+
+```shell
+/usr/sbin/lsof
+# 普通用户来运行，需要通过全路径名来引用
+
+# 示例
+/usr/sbin/lsof -a -p $$ -d 0,1,2
+# -p允许指定进程PID，-d允许指定要显示的文件描述符编号，$$可以知道当前PID，-a用来对其他两个选项的结果执行布尔AND运算
+```
+
+`lsof`的默认输出
+
+```shell
+COMMAND		# 正在运行的命令名的前9个字符
+PID			# 进程的PID
+USER		# 进程属主的登录名
+FD			# 文件描述符及访问类型
+TYPE		# 文件的类型（CHR字符型，BLK块型，REG常规文件）
+DEVICE		# 设备的设备号
+SIZE		# 文件大小
+NODE		# 本地文件的节点号
+NAME		# 文件名
+```
+
+### 阻止命令输出
+
+```shell
+# 不想显示脚本的输出，尤其是将脚本作为后台进程运行时很常见
+ls -al > /dev/null
+```
+
+### 创建临时文件
+
+### 记录消息
+
+## 控制脚本
+
+### 处理信号
+
+### 运行脚本
+
+### 作业控制
