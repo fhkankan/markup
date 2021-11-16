@@ -962,6 +962,287 @@ echo "This is the end of the test" | tee -a $tempfile
 
 ### 处理信号
 
-### 运行脚本
+Linux信号
+
+| 信号 | 值      | 描述                           |
+| ---- | ------- | ------------------------------ |
+| 1    | SIGHUP  | 挂起进程                       |
+| 2    | SIGINT  | 终止进程                       |
+| 3    | SIGQUIT | 停止进程                       |
+| 9    | SIGKILL | 无条件终止进程                 |
+| 15   | SIGTERM | 尽可能终止进程                 |
+| 17   | SIGSTOP | 无条件停止进程，但不是终止进程 |
+| 18   | SIGTSTP | 停止或暂停进程，但不终止进程   |
+| 19   | SIGCONT | 继续运行停止的进程             |
+
+默认情况下，bash shell会忽略收到的任何STGQUIT(3)和SIGTERM(15)信号，但是会处理收到的SIGUP(1)和SIGINT(2)。
+
+如果收到SIGHUP信号，比如要历来一个交互式shell，它就会退出。但是在退出之前，它会将SIGHUP信号传给所有由该shell所启动的进程（包括正在运行的shell脚本）
+
+通过SIGINT信号，可以中断shell。Linux内核会停止为shell分配CPU处理时间。这种情况发生时，shell会将SIGNINT信号传给所有由它所启动的进程，一次告知出现的状况。
+
+- 生成信号
+
+bash shell允许用键盘上的组合键生成两种基本的Linux信号。
+
+中断进程
+
+```
+Ctrl+C生成SIGINT信号，并将其发送给当前在shell中运行的所有进程，来停止当前运行的进程。
+```
+
+暂停进程
+
+```
+Ctrl+Z生成SIGTSTP信号，停止shell总运行的任何进程。停止进程会让程序继续保留在内存中，并能从上次停止的位置继续运行。
+暂停可能会比较危险，比如：脚本打开了一个关键的系统文件的文件锁。
+```
+
+- 捕获信号
+
+可以不忽略信号，在信号出现时捕获它们并执行其他命令。`trap`命令允许指定shell脚本要监看并从shell中拦截的Linux信号。如果脚本收到了`trap`命令中列出的信号，该信号不再由shell处理。而是交由本地处理。
+
+```shell
+trap commands signals
+# 示例
+trap "echo 'sorry, I have trapped Ctrl-C'" SIGINT
+echo This is a test script
+count=1
+while [ $count -le 10]
+do
+  echo "Loop #$count"
+  sleep 1
+  count=$[ $count + 1 ]
+done
+echo "This is the end of the test script"
+```
+
+- 捕获脚本退出
+
+ 除了可以在shell脚本中捕获信号，也可以在shell脚本退出时进行捕获。
+
+```shell
+trap commandds exit
+# 示例
+trap "echo goodbye" exit  # 当脚本运行到正常退出位置时/提前退出脚本，会触发信息
+echo This is a test script
+count=1
+while [ $count -le 5]
+do
+  echo "Loop #$count"
+  sleep 1
+  count=$[ $count + 1 ]
+done
+```
+
+- 修改或移除捕获
+
+若要在脚本不同位置进行不同的捕获处理，需重新使用带有新选项的`trap`命令
+
+修改
+
+```shell
+trap "echo 'sorry, I have trapped Ctrl-C'" SIGINT
+echo This is a test script
+count=1
+while [ $count -le 5]
+do
+  echo "Loop #$count"
+  sleep 1
+  count=$[ $count + 1 ]
+done
+trap "echo 'I modified the trap!'" SIGINT
+count=1
+while [ $count -le 5]
+do
+  echo "Second Loop #$count"
+  sleep 1
+  count=$[ $count + 1 ]
+done
+```
+
+删除
+
+```shell
+trap "echo 'sorry, I have trapped Ctrl-C'" SIGINT
+echo This is a test script
+count=1
+while [ $count -le 5]
+do
+  echo "Loop #$count"
+  sleep 1
+  count=$[ $count + 1 ]
+done
+trap -- SIGINT
+echo "I just removed the trap"
+count=1
+while [ $count -le 5]
+do
+  echo "Second Loop #$count"
+  sleep 1
+  count=$[ $count + 1 ]
+done
+```
+
+### 后台运行脚本
+
+- 控制台运行脚本
+
+在后台模式中，进程运行时不会和终端上点会话上的STDIN,STDOUT,STDERR关联。但是当后台进程运行时，仍然会使用终端显示器来显示STDOUT和STDERR消息。
+
+在终端会话中使用后台进程时需注意：每一个后台进程都和终端会话终端关联，若终端会话退出，那么后台进程也会随之退出。
+
+以后台模式运行shell脚本，在命令后加上`&`，将命令和bash shell分离开来，将命令作为系统中的一个独立的后台进程运行。
+
+```shell
+>>>./demo.sh &
+[1] 3221
+# 方括号中的数字是shell分配给后台进程的作业号。下一个数是Liunx系统分配给进程的进程ID(PID)。
+# 当显示这些内容后，新的命令行界面提示符就出现了，可以回到shell，继续输入新的命令
+# 当后台进程结束时，会在终端显示
+[1] Done. ./demo.sh
+```
+
+- 在非控制台下运行脚本
+
+使用`nohup`可以即使退出了终端会话，脚本也可以一直以后台模式运行到结束。当关闭会话时，脚本会忽略终端会话发过来的SIGHUP信号。
+
+```shell
+nohup ./test.sh &
+```
+
+由于`nohup`命令会解除终端与进程的关联，进程也就不再同STDOUT和STDERR联系在一起。为了保存该命令产生的输出，会自动将STOUT和STDERR的消息重定向到一个名为`nohup.out`的文件中。
+
+注意：当运行位于同一个目录中的多个命令时要消息，因为所有的输出都会被发送到同一个`nohup.out`文件中。
 
 ### 作业控制
+
+```shell
+jobs
+# 查看作业
+-l 	# 列出进程到的PID以及作业号
+-n	# 只列出上次shell发出的通知后改变了状态的作业
+-p	# 只列出作业的PID
+-r	# 只列出运行中的作业
+-s	# 只列出已停止的作业
+
+bg [作业号]
+# 重启停止的作业
+```
+
+### 调整谦让度
+
+在多任务操作系统中，内核负责将CPU时间分配给系统上运行的每个进程。调度优先级是内核分配给进程的CPU时间（相对于其他进程）。在Liunx系统中，由shell启动的所有进程的调度优先级默认都是相同的。
+
+调度优先级是整个数值，从-20（最高优先级）到+19（最低优先级）。默认情况下，bash shell以优先级0来启动所有进程。
+
+```shell
+nice
+# nice命令会让脚本以指定的优先级运行
+nice -n 优先级数 启动命令
+nice -优先级数 启动命令
+
+renice
+# renice可以改变系统上已经运行的命令的优先级
+# 只能对属于你的进程进行，只能通过renice降低进程的优先级，root用户可以通过renice来任意调整进程的优先级
+renice -n 优先级数 -p PID
+```
+
+### 定时运行作业
+
+- at命令
+
+`at`命令允许指定Linux系统何时运行脚本。`at`命令会将作业提交到队列中，指定shell何时运行该作业。`at`的守护进程`atd`会以后台模式运行，检查作业队列来运行作业。大多Linux发行版在启动时运行此守护进程。
+
+`atd`守护进程会检查系统上的一个特殊目录(通常`/var/spool/at`)来获取用`at`命令提交的作业。默认情况下，`atd`守护进程会每60s检查一下这个目录。有作业时，`atd`守护进程会检查作业设置运行的额时间。如果时间跟当前时间匹配，`atd`守护进程就会运行此作业。
+
+> at格式
+
+```shell
+at [-f filename] time
+# 默认情况下，at命令会讲STDIN的输入放到队列中，可以用-f指定用于读取命令（脚本文件）的文件名
+# time参数指定了何时运行该作业，若指定的时间已经错过，at命令会在第二天的那个时间运行指定的作业
+# time时间格式
+# 标准的小时+分钟：10:15
+# AM/PM指示符：10:15 PM
+# 特定可命名时间：now,noon,midnight,teatime
+# 标准日期格式：MMDDYY，MM/DD/YY，DD.MM.YY
+# 文本日期：2012 Jul 4, Dec 25
+# 时间增量：now+25min,tomorow10:15PM,10:15+7days
+```
+
+该作业被提交到作业队列，针对优先级不同，存在26种不同的作业队列，通常用字母a~z和A～Z。字母排序越高，作业运行的优先级就越低。默认会被提交到a作业队列，可以使用`-q`参数指定不同的队列字母
+
+> 获取作业的输出
+
+当作业在linux系统上运行时，显示器并不会关联到该作业。Linux会将提交作业的用户的电子邮件地址作为STDOUT和STDERR。为了避免使用email，需要对STDOUT和STDERR进行重定向。
+
+```shell
+# 脚本test.sh
+echo "This script ran at $(date + %B%d,%T)" > test.out
+echo >> test.out
+sleep 5
+echo "This is the script end..." >> test.out
+# 执行脚本
+at -M -f test.sh now
+# 查看输出
+cat test.out
+```
+
+> 列出等待的作业
+
+```shell
+apq
+```
+
+> 删除作业
+
+```shell
+atrm [作业号]
+```
+
+- cron
+
+`cron`可以安排要定期执行的作业。`cron`程序会在后台运行并检查一个特殊的表（cron时间表），以获知已安排执行的作业。
+
+> cron时间表
+
+```shell
+min hour dayofmonth month dayofweek command
+# cron时间表允许用特定值、取值范围、通配符*来指定条目
+```
+
+> 构建cron时间表
+
+```shell
+crontab -l  # 列出已有的cron时间表
+crontab -e	# 为时间表添加条目
+```
+
+> 浏览cron目录
+
+若创建的脚本对精确到的执行时间要求不高，用预置的cron脚本目录会更方便。有四个基本目录：`hourly,daily,monthly,weekly`
+
+```shell
+ls /etc/cron.*ly
+```
+
+> anacron程序
+
+cron程序的问题是假设Linux系统是7*24小时运行。若非，则Linux系统不运行时会错过程序。故许多linux系统包含了anacron程序。
+
+anacron若知道某个作业错过了执行时间，会尽快运行该作业。此功能常用于日志维护的脚本。anacron可以保证系统每次启动时整理日志文件。
+
+anacron程序只会处理位于cron目录的程序（不会运行`/etc/cron.hourly`的脚本，因为不会处理执行时间需求小于1天的脚本）。它用时间戳来决定作业是否在正确的计划间隔内运行了。每个cron目录都有个时间戳文件，该文件位于`/var/spool/anacron`
+
+anacron时间表`/etc/anacrontab`
+
+```shell
+period delay identifier command
+# anacron时间表的基本格式
+# period定义了作业多久运行一次，以天为单位。anacron程序用此条目来检查作业的时间戳文件
+# delay会指定系统启动后anacron程序需要等待等多少分钟再开始运行错过的脚本。
+# command条目包含了run-parts程序和一个cron脚本目录名。run-parts程序负责运行目录中传给它的任何脚本
+# identifier是一种特别的非空字符串，入cron-weekly。用于唯一标识日志消息和错误邮件中作业
+```
+
