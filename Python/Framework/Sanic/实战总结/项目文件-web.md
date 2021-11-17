@@ -31,7 +31,7 @@ from sanic import Blueprint
 from sanic.log import logger
 
 from common.const import RC
-from common.utils import res_ng, res_ok, check_params
+from common.utils import res_ng, res_ok, check_params, check_auth
 
 from biz.user import register_api, login_api, veri_code_api
 
@@ -70,6 +70,11 @@ async def login(request):
     except Exception as e:
         logger.exception(e)
         return res_ng(code=RC.INTERNAL_ERROR, msg="服务器错误，请稍后再试")
+      
+@bp.get("data_list")
+@check_auth(role_ids=[1,2])
+async def data_list(request):
+    pass
 ```
 
 ## biz
@@ -128,6 +133,9 @@ import random
 from datetime import datetime, timedelta
 from functools import wraps
 from sanic.response import json
+from sanic.request import Request
+from sanic.exceptions import InvalidUsage
+from sanic.views import HTTPMethodView
 from common.const import RC
 
 
@@ -185,6 +193,38 @@ def login_required(func):
         return await func(request, *args, **kwargs)
 
     return wrapper
+
+def check_auth(role_ids=[], method="GET"):
+    def _wrapper(func):
+        @wraps(func)
+        async def handler(*args, **kwargs):
+            if len(args) >= 1 and isinstance(args[0], Request):
+                request = args[0]
+            elif len(args) >= 2 and isinstance(args[0], HTTPMethodView) and isinstance(args[1], Request):
+                request = args[1]
+            else:
+                raise InvalidUsage("Can't decorate a bad handler")
+  
+            auth_user = request.ctx.auth_user
+    				role_id = auth_user.get("role_id")
+            brand_code = auth_user.get("brand_code")
+            try:
+                params = request.args if method == "GET" else request.json
+            except Exception as e:
+                params = {}
+            if role_id in role_ids:
+                r_brand_code = params.get("brand_code")
+                if r_brand_code:
+                    if brand_code != "99" and r_brand_code != brand_code:
+                        return res_ng(code=RC.NO_AUTH, msg="无权限")
+                return await func(*args, **kwargs)
+            else:
+                return res_ng(code=RC.NO_AUTH, msg="无权限")
+
+        return handler
+
+    return _wrapper
+
 ```
 
 `jwt.py`
