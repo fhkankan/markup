@@ -92,7 +92,8 @@ ping ip地址
 # 查看ip+端口连接
 telnet ip port
 # 查看公网ip
-curl ipw.cn
+curl ifconfig.me
+curl ip.sb
 ```
 
 日期时间
@@ -133,29 +134,13 @@ clear
 
 查看程序执行时间
 
-```
+```shell
 time -p python ./demo.py
 
 # 结果
 real 0.04	# 执行脚本总时间
 user 0.03	# 执行脚本消耗CPU时间
 sys 0.00	# 执行内核函数消耗时间
-```
-
-输出
-
-```shell
-# 对标准输出写入变量
-echo 'hello word!'
-echo -e 'hello \nworld'
-echo 'hellp \nworld'
-```
-
-测试
-
-```shell
-test 3 -gt 2
-echo $?  # 打印上一行命令执行结果，成立返回0，不成立返回1
 ```
 
 ## 环境变量

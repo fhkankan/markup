@@ -226,7 +226,84 @@ http {
 
 ### 修改配置
 
-修改服务器网站根目录
+- 多域名配置
+
+nginx配置
+
+```shell
+# 主配置nginx.conf的http中加入
+include vhost/*.conf
+# 拆分1:vhost/test1.com.conf
+server {
+        listen 8000;
+        server_name test1.com;
+        location / {
+            proxy_set_header Host $host:$server_port;
+            proxy_set_header X-Real-Ip $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            # proxy_pass http://xxx.xxx.xxx;
+            echo "test1.com";    # 输出测试
+        }
+
+}
+# 拆分2:vhost/test2.com.conf
+server {
+        listen 8000;
+        server_name test2.com;
+        location / {
+            proxy_set_header Host $host:$server_port;
+            proxy_set_header X-Real-Ip $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            # proxy_pass http://xxx.xxx.xxx;
+            echo "test2.com";    # 输出测试
+
+        }
+
+}
+```
+
+host配置
+
+```shell
+# /etc/hosts
+127.0.0.1 test1.com
+127.0.0.1 test2.com
+```
+
+测试
+
+```
+curl http://test1.com
+cutl http://test2.com
+```
+
+- 多路径配置
+
+```shell
+# nginx配置文件中server中添加
+include vhost/plus.ini
+# plus.ini配置信息
+    location /trial/semir/meeting/phone{
+        add_header 'Access-Control-Allow-Origin' '*';
+        alias /opt/soft/web/semir/six-meeting;
+    }
+
+    location /trial/meeting {
+        proxy_pass http://127.0.0.1:9100/trial/meeting;
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-Server $server_name;
+        proxy_set_header X-Forwarded-For $http_x_forwarded_for;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }                     
+```
+
+- 修改服务器网站根目录
 
 ```shell
 server {
