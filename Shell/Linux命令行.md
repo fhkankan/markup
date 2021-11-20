@@ -67,6 +67,16 @@ ctrl + win + n		   	打开一个新的终端窗口
 
 ## 简单shell
 
+登录shell会从5个不同的启动文件中读取命令
+
+```
+/etc/profile
+$HOME/.bash_profile
+$HOME/.bashrc
+$HOME/.bash_login
+$HOME/.profile
+```
+
 帮助命令
 
 ```shell
