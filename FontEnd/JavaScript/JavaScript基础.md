@@ -693,18 +693,18 @@ ES5中
 
 > 可变参数
 
-```
+```javascript
 // 可变参数
 function f(){
-                var arg = Array.prototype.slice.call(arguments);
-                var sum = 0;
-                arg.forEach(function(item){
-                    sum +=item;
-                })
-                return sum;
-            }
+    var arg = Array.prototype.slice.call(arguments);
+    var sum = 0;
+    arg.forEach(function(item){
+        sum +=item;
+    })
+    return sum;
+}
 
-            console.log('f(1,2,3,4)=',f(1,2,3,4));
+console.log('f(1,2,3,4)=',f(1,2,3,4));
             
 // 位置参数+可变参数
 
