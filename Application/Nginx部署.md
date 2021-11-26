@@ -10,7 +10,7 @@ brew install nginx
 
 开机启动
 
-```
+```shell
 sudo cp /usr/local/opt/nginx/*.plist  /Library/LaunchDaemons
 sudo launchctl load -w /Library/LaunchDaemons/homebrew.mxcl.nginx.plist
 ```
@@ -25,10 +25,15 @@ sudo launchctl load -w /Library/LaunchDaemons/homebrew.mxcl.nginx.plist
 /usr/local/var/www  # 服务器默认路径
 ```
 
-- ubuntu
+- linux
 
-```
+```shell
+# ubuntu
 sudo apt-get install nginx
+# centos
+sudo rpm -Uvh http://nginx.org/packages/centos/7/noarch/RPMS/nginx-release-centos-7-0.el7.ngx.noarch.rpm
+yum search nginx
+sudo yum install -y nginx
 ```
 
 重要文件位置
@@ -96,25 +101,20 @@ brew services reload nginx
 brew services restart nginx
 ```
 
-ubuntu
-
-```
-nginx {start|stop|restart|reload|force-reload|status|configtest|rotate|upgrade}
-```
-
-其他
+linux
 
 ```shell
+sudo systemctl start nginx.service  # 启动nginx
+sudo systemctl enable nginx.service  # 设置开机自动启动
+
+nginx {start|stop|restart|reload|force-reload|status|configtest|rotate|upgrade}
+
 sudo nginx -s reload	# 重新加载配置文件
 sudo nginx -s restart	# 重启
 sudo nginx -s stop    # 快速停止nginx
 sudo nginx -s quit 		# 不再接受新的请求，等正在处理的请求出完成后在进行停止（优雅的关闭）
-```
 
-测试
-
-```shell
-nginx -t -c xxx		# 测试nginx配置是否ok
+sudo nginx -t -c /etc/nginx/xxx		# 测试nginx配置是否ok
 ```
 
 浏览器访问
