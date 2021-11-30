@@ -125,171 +125,237 @@ localhost:8080
 
 ## 配置
 
-### 默认配置
+### 优化默认配置
 
-```
-#user  nobody;
-worker_processes  1;
-#error_log  logs/error.log;
-#error_log  logs/error.log  notice;
-#error_log  logs/error.log  info;
-#pid        logs/nginx.pid;
+`/etc/nginx/nginx.conf`
+
+```shell
+# For more information on configuration, see:
+#   * Official English Documentation: http://nginx.org/en/docs/
+#   * Official Russian Documentation: http://nginx.org/ru/docs/
+
+user nginx;
+worker_processes auto;
+error_log /var/log/nginx/error.log;
+error_log /var/log/nginx/notice.log  notice;
+pid /run/nginx.pid;
+
+# Load dynamic modules. See /usr/share/doc/nginx/README.dynamic.
+include /usr/share/nginx/modules/*.conf;
 
 events {
-    worker_connections  1024;
+    use epoll;
+    worker_connections  50000;
 }
 
 http {
-    include       mime.types;
-    default_type  application/octet-stream;
-    #log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
-    #                  '$status $body_bytes_sent "$http_referer" '
-    #                  '"$http_user_agent" "$http_x_forwarded_for"';
-    #access_log  logs/access.log  main;
-    sendfile        on;
-    #tcp_nopush     on;
-    #keepalive_timeout  0;
-    keepalive_timeout  65;
-    #gzip  on;
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for" '
+                      '$request_time  $upstream_response_time';
+
+    access_log  off;
+    #access_log  /var/log/nginx/access.log  main;
+
+    sendfile            on;
+    tcp_nopush          on;
+    tcp_nodelay         on;
+    keepalive_requests  819200;
+    keepalive_timeout   200s 200s;
+
+    gzip  off;
+    server_tokens       off;
+    types_hash_max_size 2048;
+    server_names_hash_bucket_size 64;
+    proxy_ignore_client_abort on;
+
+    # Default buffer size
+    client_max_body_size 8m;
+    client_header_buffer_size 128k;
+    client_body_buffer_size 1m;
+    proxy_buffer_size 128k;
+    proxy_buffers 64 128k;
+    proxy_busy_buffers_size 1m;
+    proxy_temp_file_write_size 512k;
+    proxy_headers_hash_bucket_size 6400;
+    proxy_headers_hash_max_size 51200;
+
+    include             /etc/nginx/mime.types;
+    default_type        application/octet-stream;
+
+    # Load modular configuration files from the /etc/nginx/conf.d directory.
+    # See http://nginx.org/en/docs/ngx_core_module.html#include
+    # for more information.
+    include /etc/nginx/conf.d/*.conf;
 
     server {
-        listen       8080;
-        server_name  localhost;
-        #charset koi8-r;
-        #access_log  logs/host.access.log  main;
+        listen       80 default_server;
+        listen       [::]:80 default_server;
+        server_name  _;
+        root         /usr/share/nginx/html;
+
+        # Load configuration files for the default server block.
+        include /etc/nginx/default.d/*.conf;
+
         location / {
-            root   html;
-            index  index.html index.htm;
         }
-        #error_page  404              /404.html;
-        # redirect server error pages to the static page /50x.html
-        #
-        error_page   500 502 503 504  /50x.html;
-        location = /50x.html {
-            root   html;
+
+        error_page 404 /404.html;
+            location = /40x.html {
         }
-        # proxy the PHP scripts to Apache listening on 127.0.0.1:80
-        #
-        #location ~ \.php$ {
-        #    proxy_pass   http://127.0.0.1;
-        #}
-        # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
-        #
-        #location ~ \.php$ {
-        #    root           html;
-        #    fastcgi_pass   127.0.0.1:9000;
-        #    fastcgi_index  index.php;
-        #    fastcgi_param  SCRIPT_FILENAME  /scripts$fastcgi_script_name;
-        #    include        fastcgi_params;
-        #}
-        # deny access to .htaccess files, if Apache's document root
-        # concurs with nginx's one
-        #
-        #location ~ /\.ht {
-        #    deny  all;
-        #}
+
+        error_page 500 502 503 504 /50x.html;
+            location = /50x.html {
+        }
     }
 
-    # another virtual host using mix of IP-, name-, and port-based configuration
-    #
-    #server {
-    #    listen       8000;
-    #    listen       somename:8080;
-    #    server_name  somename  alias  another.alias;
-
-    #    location / {
-    #        root   html;
-    #        index  index.html index.htm;
-    #    }
-    #}
-
-
-    # HTTPS server
-    #
-    #server {
-    #    listen       443 ssl;
-    #    server_name  localhost;
-    #    ssl_certificate      cert.pem;
-    #    ssl_certificate_key  cert.key;
-    #    ssl_session_cache    shared:SSL:1m;
-    #    ssl_session_timeout  5m;
-    #    ssl_ciphers  HIGH:!aNULL:!MD5;
-    #    ssl_prefer_server_ciphers  on;
-    #    location / {
-    #        root   html;
-    #        index  index.html index.htm;
-    #    }
-    #}
-    include servers/*;
-}
-```
-
-### 修改配置
-
-- 多域名配置
-
-nginx配置
-
-```shell
-# 主配置nginx.conf的http中加入
-include vhost/*.conf
-# 拆分1:vhost/test1.com.conf
-server {
-        listen 8000;
-        server_name test1.com;
-        location / {
-            proxy_set_header Host $host:$server_port;
-            proxy_set_header X-Real-Ip $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            # proxy_pass http://xxx.xxx.xxx;
-            echo "test1.com";    # 输出测试
-        }
-
-}
-# 拆分2:vhost/test2.com.conf
-server {
-        listen 8000;
-        server_name test2.com;
-        location / {
-            proxy_set_header Host $host:$server_port;
-            proxy_set_header X-Real-Ip $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            # proxy_pass http://xxx.xxx.xxx;
-            echo "test2.com";    # 输出测试
-
-        }
+# Settings for a TLS enabled server.
+#
+#    server {
+#        listen       443 ssl http2 default_server;
+#        listen       [::]:443 ssl http2 default_server;
+#        server_name  _;
+#        root         /usr/share/nginx/html;
+#
+#        ssl_certificate "/etc/pki/nginx/server.crt";
+#        ssl_certificate_key "/etc/pki/nginx/private/server.key";
+#        ssl_session_cache shared:SSL:1m;
+#        ssl_session_timeout  10m;
+#        ssl_ciphers HIGH:!aNULL:!MD5;
+#        ssl_prefer_server_ciphers on;
+#
+#        # Load configuration files for the default server block.
+#        include /etc/nginx/default.d/*.conf;
+#
+#        location / {
+#        }
+#
+#        error_page 404 /404.html;
+#            location = /40x.html {
+#        }
+#
+#        error_page 500 502 503 504 /50x.html;
+#            location = /50x.html {
+#        }
+#    }
 
 }
 ```
 
-host配置
+### 修改局部配置
+
+#### 多域名配置
+
+可针对不同的域名单独配置nginx配置文件
+
+- 配置
 
 ```shell
+# 默认配置nginx.conf的http中加入
+include conf.d/*.conf
+
+# /etc/nginx/conf.d/test1.com.conf
+server {
+    listen 80;
+    server_name test1.com;
+    location / {
+    	default_type "text/plain";
+    	return 200 "ping test1 ok.";
+ 	}
+}
+# /etc/nginx/conf.d/test2.com.conf
+server {
+    listen 80;
+    server_name test2.com;
+    location / {
+    	default_type "text/plain";
+    	return 200 "ping test2 ok.";
+ 	}
+}
+```
+
+- 测试
+
+```shell
+# host配置
 # /etc/hosts
 127.0.0.1 test1.com
 127.0.0.1 test2.com
-```
 
-测试
-
-```
+# 测试
 curl http://test1.com
 cutl http://test2.com
 ```
 
-- 多路径配置
+#### 多路径配置
+
+对于同一个域名，可以配置多个文件夹
 
 ```shell
-# nginx配置文件中server中添加
-include vhost/plus.ini
-# plus.ini配置信息
+# nginx域名配置文件中server中添加
+include conf.d/plus.ini
+
+
+# /etc/nginx/conf.d/plus.ini配置信息
+    location /trial/meeting {
+        ...
+    }                     
+```
+
+#### 反向代理
+
+```shell
+upstream burn_backend {
+    server xx.xx.xx.xx:12000;
+    server xx.xx.xx.xx:12001;
+    keepalive 100;
+}
+
+server {
+	location /trial/burn {
+        proxy_pass http://burn_backend/trial/burn;  # uri替换
+        ...
+    }
+    
+    location /micro {
+        proxy_pass http://burn_backend;  # uri追加
+        ...
+    }
+}
+```
+
+#### http/https配置
+
+- 配置
+
+`http`
+
+```shell
+upstream semir_6_80 {
+    server xx.xx.xx.xx:9000;
+    server xx.xx.xx.xx:9001;
+    keepalive 100;
+}
+
+server { 
+    listen 80;
+    server_name  liuhui.semirapp.cn;
+    access_log   /var/log/nginx/liuhui80.log main;
+    
+    # 前端静态文件
     location /trial/semir/meeting/phone{
-        add_header 'Access-Control-Allow-Origin' '*';
+        add_header Access-Control-Allow-Origin *;  # 支持跨域
+        add_header Access-Control-Allow-Methods 'GET, POST, OPTIONS';
+        add_header Access-Control-Allow-Headers 'DNT,X-Mx-ReqToken,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization';
+        if ($request_method = 'OPTIONS') {
+            return 204;
+        }
         alias /opt/soft/web/semir/six-meeting;
     }
 
-    location /trial/meeting {
-        proxy_pass http://127.0.0.1:9100/trial/meeting;
+	# 后端接口访问
+    location /trial {
+        proxy_pass http://emir_6_80;
         proxy_http_version 1.1;
         proxy_set_header Connection "";
 
@@ -300,25 +366,76 @@ include vhost/plus.ini
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Host $host;
         proxy_set_header X-Forwarded-Proto $scheme;
-    }                     
-```
+    }
 
-- 修改服务器网站根目录
+    location / {
+        default_type "text/plain";
+        return 200 "ping 80 ok.";
+    }
 
-```shell
-server {
-        # listen       8080;  # 端口号
-        listen       0.0.0.0:8080;
-        server_name  localhost;  # 可为ip地址
-        location / {
-            root   html;  # 根目录位置
-            index  index.html index.htm;
-            autoindex on;  # 显示目录
-        }
 }
 ```
 
-上传大文件
+`https`
+
+```shell
+upstream semir_6_meeting_443 {
+    server xx.xx.xx.xx:9000;
+    server xx.xx.xx.xx:9001;
+    keepalive 100;
+}
+
+server {
+    charset utf-8;
+    client_max_body_size 128M;
+    proxy_headers_hash_bucket_size 6400;
+    proxy_headers_hash_max_size 51200;
+
+    listen 443 ssl;
+    server_name  liuhui.semirapp.cn;
+    access_log   /var/log/nginx/liuhui443.log main;
+
+    ssl_certificate  /etc/nginx/cert/semir.pem;
+    ssl_certificate_key  /etc/nginx/cert/semir.key;
+    ssl_session_timeout 5m;
+    ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE:ECDH:AES:HIGH:!NULL:!aNULL:!MD5:!ADH:!RC4;
+    ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+    ssl_prefer_server_ciphers on;
+
+	location /trial {
+        proxy_pass http://semir_6_443;
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-Server $server_name;
+        proxy_set_header X-Forwarded-For $http_x_forwarded_for;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location / {
+        default_type "text/plain";
+        return 200 "ping 443 ok.";
+    } 
+}
+```
+
+- 测试
+
+```shell
+# host配置
+# /etc/hosts
+127.0.0.1 liuhui.semirapp.cn
+
+# 测试
+curl http://liuhui.semirapp.cn/
+cutl https://liuhui.semirapp.cn/
+```
+
+#### 上传大文件
 
 ```shell
 http{
@@ -334,128 +451,36 @@ http{
     		fastcgi_connect_timeout 1800s;#指定nginx与后端fastcgi server连接超时时间
     		fastcgi_send_timeout 1800s;#指定nginx向后端传送请求超时时间（指已完成两次握手后向fastcgi传送请求超时时间）
     		fastcgi_read_timeout 1800s;#指定nginx向后端传送响应超时时间（指已完成两次握手后向fastcgi传送响应超时时间）
+    		proxy_headers_hash_max_size 51200;
+        	proxy_headers_hash_bucket_size 6400;
 		}
 	}
 }
+
+# 注意
+# 配置信息可以放置到location，server，http中，位置不同，生效区域不同
 
 # 腾讯云
 # client_max_body_size默认配置范围为1M～256M，直接配置即可，最大支持2048M，>256M时，proxy_request_buffering为off
 # 同时此配置不能指定到域名，只能指定lb实例，关联哪个lb，那个lb生效，
 ```
 
-静态文件支持跨域配置
+#### 修改网站根目录
 
 ```shell
 server {
-        listen       80;
-        server_name  localhost;
-        # 根目录
-        location / {
-            root   html;
-            index  index.html index.htm;
-            try_files $uri $uri/ /index.html
-        }
-        # 前端静态文件
-        location /filedata{
-        	add_header 'Access-Control-Allow-Origin' '*';
-        	alias /NginxData;
-        	allow all;
-        	autoindex on;
-        }
-}
-```
-
-反向代理
-
-```shell
-upstream burn_backend {
-    server xx.xx.xx.xx:12000;
-    server xx.xx.xx.xx:12001;
-    keepalive 100;
-}
-
-server {
-    charset utf-8;
-    client_max_body_size 128M;
-    proxy_headers_hash_bucket_size 6400;
-    proxy_headers_hash_max_size 51200;
-
-    listen 80;
-    server_name  api.xx.cn;
-
-    root /opt/www/api.xx.cn;
-    access_log /opt/log/api.xx.cn.log main;
-		
-	location /micro/burn {
-        proxy_pass http://burn_backend/prod;
-        proxy_http_version 1.1;
-        proxy_set_header Connection "";
-
-        proxy_set_header Host $http_host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-Server $server_name;
-        proxy_set_header X-Forwarded-For $http_x_forwarded_for;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Host $host;
-        proxy_set_header X-Forwarded-Proto $scheme;
+    # listen       8080;  # 端口号
+    listen       0.0.0.0:8080;
+    server_name  localhost;  # 可为ip地址
+    location / {
+        root   html;  # 根目录位置
+        index  index.html index.htm;
+        autoindex on;  # 显示目录
     }
 }
 ```
 
-https
-
-```
-server {
-    charset utf-8;
-    client_max_body_size 128M;
-    proxy_headers_hash_bucket_size 6400;
-    proxy_headers_hash_max_size 51200;
-
-
-    listen 443;
-    server_name  stg.xx.cn;
-
-    root /home/apollo/coupon_backendV2/public;
-    index frontend.php index.html index.htm;
-
-    ssl on;
-    ssl_certificate  stg_cert/1_stg.miniapp.mcdonalds.com.cn_bundle.crt;
-    ssl_certificate_key  stg_cert/2_stg.miniapp.mcdonalds.com.cn.key;
-    ssl_session_timeout 5m;
-    ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE:ECDH:AES:HIGH:!NULL:!aNULL:!MD5:!ADH:!RC4;
-    ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
-    ssl_prefer_server_ciphers on;
-
-    access_log /opt/log/stg-443.log main;
-    #access_log off;
-    #resolver 8.8.8.8;
-
-    include ./conf.d/flyer-trial-debug.part;
-
-
-    # 网站后台
-    location /backend.php {
-        #root /home/apollo/coupon_backend/public;
-        rewrite ^/backend.php(.*)$ /backend.php;
-    }
-    
-    location ~ /trial/imcd/openapi/token/member_info {
-        proxy_pass http://xx.xx.xx.xx:28000;
-        proxy_http_version 1.1;
-        proxy_set_header Connection "";
-
-        proxy_set_header Host $http_host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-Server $server_name;
-        proxy_set_header X-Forwarded-For $http_x_forwarded_for;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Host $host;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-}
-```
-
-### 用户名密码
+#### 用户名密码
 
 使用模块`ngx_http_auth_basic_module`, 实现让用户只有输入正确的用户名密码才允许访问web内容。
 
