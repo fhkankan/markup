@@ -4,7 +4,7 @@
 
 ## 系统配置
 
-```
+```shell
 # 更改系统默认引导
 # 1.打开配置文件
 cd /boot/grub/
@@ -24,6 +24,10 @@ id:5:initdefault:  # 将其更改为id:3:initdefault:即可在开机后进入文
 # 图形回文本
 使用了startx的直接注销
 或终端中init 3
+
+
+# centos7修改默认时区
+timedatectl set-timezone Asia/Shanghai (这里是设置亚洲上海上海)
 ```
 
 ## 快捷键
@@ -58,11 +62,11 @@ ctrl+k
 windows下
 
 ```
-ctrl + win + 向左    	窗口显示左半屏
-ctrl + win + 向右    	窗口显示右半屏
-ctrl + win + 向上    	窗口最大化
-ctrl + win + T       	在当前窗口打开一个终端
-ctrl + win + n		   	打开一个新的终端窗口
+ctrl + win + 向左        窗口显示左半屏
+ctrl + win + 向右        窗口显示右半屏
+ctrl + win + 向上        窗口最大化
+ctrl + win + T           在当前窗口打开一个终端
+ctrl + win + n               打开一个新的终端窗口
 ```
 
 ## 简单shell
@@ -148,9 +152,9 @@ clear
 time -p python ./demo.py
 
 # 结果
-real 0.04	# 执行脚本总时间
-user 0.03	# 执行脚本消耗CPU时间
-sys 0.00	# 执行内核函数消耗时间
+real 0.04    # 执行脚本总时间
+user 0.03    # 执行脚本消耗CPU时间
+sys 0.00    # 执行内核函数消耗时间
 ```
 
 ## 环境变量
@@ -162,18 +166,18 @@ printenv/env  # 查看全局环境变量
 printenv HOME  # 查看具体的环境变量
 echo $HOME  # 显示变量的值
 
-set		# 显示全局变量、局部变量和用户定义变量
+set        # 显示全局变量、局部变量和用户定义变量
 ```
 
 设置
 
 ```shell
 # 设置局部用户定义变量
-my_var=hello	# 等号两边不能有空格
+my_var=hello    # 等号两边不能有空格
 my_var="Hello word"  # 若变量值需要空格，需要用“”界定首尾
 
 # 设置全局环境变量
-export my_var	# 将变量my_var设置为全局环境变量
+export my_var    # 将变量my_var设置为全局环境变量
 
 # 删除环境变量
 unset my_var
@@ -200,10 +204,10 @@ alias pycharm="xxx"
 ps
 # 显示终端上的所有进程，包括其他用户的进程
 -a  显示现行终端机下的所有程序,包括其他用户的程序
--u	显示进程的详细状态
--x	显示没有控制终端的进程
--w	显示加宽，以便显示更多的信息
--r	只显示正在运行的进程
+-u    显示进程的详细状态
+-x    显示没有控制终端的进程
+-w    显示加宽，以便显示更多的信息
+-r    只显示正在运行的进程
 
 pstree(选项)
 # 树状显示进程信息
@@ -233,13 +237,13 @@ pgrep(选项)(进程名)
 
 top 
 # 动态显示进程
-M	根据内存使用量来排序
-P	根据cpu占有率来排序
-T	根据进程时间的长短来排序
-U	可以根据后面输入的用户名来筛选进程
-K	可以根据后面面输入的PID来杀死进程
-q	退出
-h	获得帮助
+M    根据内存使用量来排序
+P    根据cpu占有率来排序
+T    根据进程时间的长短来排序
+U    可以根据后面输入的用户名来筛选进程
+K    可以根据后面面输入的PID来杀死进程
+q    退出
+h    获得帮助
 htop
 
 # 显示系统中名为xxx的进程
@@ -280,10 +284,10 @@ ps aux|grep python|grep -v grep|cut -c 9-15|xargs kill -15
 
 ## 端口管理
 
-| 端口类型 | 范围         | 说明                                                         |
-| -------- | ------------ | ------------------------------------------------------------ |
-| 公认端口 | 0～1023      | 与一些常见服务绑定                                           |
-| 注册端口 | 1024～49151  | 它们松散地绑定于一些服务                                     |
+| 端口类型 | 范围          | 说明                                             |
+| ---- | ----------- | ---------------------------------------------- |
+| 公认端口 | 0～1023      | 与一些常见服务绑定                                      |
+| 注册端口 | 1024～49151  | 它们松散地绑定于一些服务                                   |
 | 私有端口 | 49152～65535 | 可用于任意软件与任何其他的软件通信的端口数<br/>使用因特网的传输控制协议，或用户传输协议 |
 
 ### 端口范围
@@ -473,9 +477,9 @@ cd ~
 ### 创建目录
 
 ```shell
-mkdir 目录名  		# 在当前目录下创建文件夹
-mkdir -p 目录名  	# 当前路径下创建可嵌套的文件夹
-mkdir -v 目录名   	# 显示创建进度信息
+mkdir 目录名          # 在当前目录下创建文件夹
+mkdir -p 目录名      # 当前路径下创建可嵌套的文件夹
+mkdir -v 目录名       # 显示创建进度信息
 ```
 
 ### 删除目录
@@ -508,20 +512,20 @@ find
 # 查找符合条件文件并将查找结果输出
 find [路径] [参数] [关键字]
 # 参数
--name	按照文件名查找文件
--perm	按照文件权限来查找文件
--user	按照文件属性来查找文件
--group	按照文件所属的组来查找文件
--type	查找某一类型的文件
-	b	块设备文件
-	d	目录
-	c	子符设备文件
-	p	管道文件
-	l	符号链接文件
-	f	普通文件
+-name    按照文件名查找文件
+-perm    按照文件权限来查找文件
+-user    按照文件属性来查找文件
+-group    按照文件所属的组来查找文件
+-type    查找某一类型的文件
+    b    块设备文件
+    d    目录
+    c    子符设备文件
+    p    管道文件
+    l    符号链接文件
+    f    普通文件
 -size n:[c] 查找文件长度为n块的文件，带有c时表示文件长度以字节计
--depth	在查找文件时，首相查找当前目录中文件，然后再在其子目录中查找
--mindepth n	查找文件时，查找当前目录中的第n层目录的文件，然后再在其子目录中查找
+-depth    在查找文件时，首相查找当前目录中文件，然后再在其子目录中查找
+-mindepth n    查找文件时，查找当前目录中的第n层目录的文件，然后再在其子目录中查找
 ```
 
 ### 查看文件
@@ -565,7 +569,7 @@ tail notes.log  # 显示最后10行
 tail -f notes.log  # 跟踪文件实时最后10行
 tail -f -n 20 notes.log # 跟踪文件实时最后20行
 tail -n +20 notes.log  # 从第20行到末尾
-tail -c 10 notes.log	# 显示最后10个字符
+tail -c 10 notes.log    # 显示最后10个字符
 tail -f notes.log |grep getUserInfo\ response # 跟踪用户的日志中getUserInfo\ response信息
 
 
@@ -590,8 +594,6 @@ cut
 -f # 选定显示哪些列，m-n表示m列到n列，-n表示第1列到n列，m-表示第m列到最后，n表示第n列
 # 示例
 cut -d ":" -f 3-5 /etc/passwd
-
-
 ```
 
 ### 创建文件
@@ -648,8 +650,6 @@ rm [option]...file...
 -f:强行删除，无需逐一确认
 -r:以地柜的方式将目录及子目录和文件逐一删除
 ```
-
-
 
 ### 权限更改
 
@@ -749,13 +749,13 @@ split [option][input][prefix]
 ### 文件传输
 
 ```python
-scp	将要传输的文件		要放置的位置
+scp    将要传输的文件        要放置的位置
 
 # 将本地文件推送到远程主机
 scp python.tar.gz root@192.168.8.15:/root/
 # 将远程主机上的文件拉取到本地
 scp root@192.168.8.15:/root/python.tar.gz ./
-    
+
 # 远端主机文件放置位置的表示形式
 远程连接的用户@远程主机:远程主机的目录路径
 # 远端主机文件位置的表示形式
@@ -768,15 +768,15 @@ scp root@192.168.8.15:/root/python.tar.gz ./
 # 文件的备份要有一定的标志符号，使用时间戳
 date  [option]
 # 参数
-%F	显示当前日期格式， %Y-%m-%d
-%T	显示当前日期格式， %H:%M:%S
+%F    显示当前日期格式， %Y-%m-%d
+%T    显示当前日期格式， %H:%M:%S
 
 # 指定命令显示的格式
-年月日	date + %Y%m%d
-时分秒	date + %H%M%S
+年月日    date + %Y%m%d
+时分秒    date + %H%M%S
 
 # 指定时间戳格式
-年月日时分秒	date + %Y%m%d%H%M%S
+年月日时分秒    date + %Y%m%d%H%M%S
 
 # 备份命令效果格式
 # 复制备份
@@ -812,9 +812,9 @@ grep
 3. 可以通过 grep --help查看grep的帮助信息
 grep [-选项] '搜索内容串' 文件名 
 # 参数：
--c	只能输出匹配行的计数
--n	显示匹配行及行号
--v	显示不包含匹配文本的所有行
+-c    只能输出匹配行的计数
+-n    显示匹配行及行号
+-v    显示不包含匹配文本的所有行
 
 grep  -v 's' filename.txt  # 显示filename文件中不含有’s'字符的所有行
 grep  -c 's' filename.txt # 显示filename文件中含有’s'字符的行数
@@ -837,18 +837,18 @@ sed
 sed [参数] '<匹配条件> [动作]' [文件名]
 
 # 参数
-参数为空	表示sed的操作效果，实际上不对文件进行编辑
--i		表示对文件进行编辑
-		注意：mac中需在后面单独加上：-i ''
+参数为空    表示sed的操作效果，实际上不对文件进行编辑
+-i        表示对文件进行编辑
+        注意：mac中需在后面单独加上：-i ''
 # 匹配条件
 数字行号
-关进字		---> '/关键字/'
-			注意：隔离符号/可更换为@#！等			
+关进字        ---> '/关键字/'
+            注意：隔离符号/可更换为@#！等            
 # 动作详解(参数为i)
--a		在匹配到的内容下一行增加内容
--i		在匹配到的内容上一行增加内容
--d		删除匹配到的内容
--s		替换匹配到的内容
+-a        在匹配到的内容下一行增加内容
+-i        在匹配到的内容上一行增加内容
+-d        删除匹配到的内容
+-s        替换匹配到的内容
 
 # 替换命令
 # 替换每行首个匹配内容
@@ -885,19 +885,19 @@ awk
 awk [参数] '[动作]' [文件名]
 
 # 参数
--F		指定行的分隔符
+-F        指定行的分隔符
 
 # 动作
-print	显示内容
-	$0	显示文档所有内容
-	$n	显示文档的第n列内容，若存在多个$n,他们之间使用逗号隔开
+print    显示内容
+    $0    显示文档所有内容
+    $n    显示文档的第n列内容，若存在多个$n,他们之间使用逗号隔开
 
 # 内置变量
-FILENAME	当前输入文件的文件名，该变量是只读的
-NR			指定显示行的行号
-NF			输出最后一列的内容
-OFS			输出格式的列分隔符，缺省是空格
-FS			输入文件的类分隔符，缺省是连续的空格和Tab
+FILENAME    当前输入文件的文件名，该变量是只读的
+NR            指定显示行的行号
+NF            输出最后一列的内容
+OFS            输出格式的列分隔符，缺省是空格
+FS            输入文件的类分隔符，缺省是连续的空格和Tab
 
 # 示例
 awk '动作' 文件名  # 打印指定列的内容
@@ -965,8 +965,8 @@ bzip2[options][filenames...]
 # 组合
 打包及压缩:tar -jcvf xxx.bz2 *.txt
 解压并解包:tar -jxvf xxx.bz2
-	         tar -jxvf xxx.bz2 -C ../ 解压后放置的路径  
-        
+             tar -jxvf xxx.bz2 -C ../ 解压后放置的路径  
+
 gzip
 # 压缩后的文件以.gz为文件后缀名
 gzip[options][name...]
@@ -976,9 +976,9 @@ gzip[options][name...]
 -l:列出压缩文件的相关信息
 -n:当压缩文件时不保存原来的文件名及时间戳，与-N选项功能相反
 -q:忽略警告信息
-    
-    
-    
+
+
+
 unzip
 # 解压缩.zip命令的压缩文件
 unzip[options][filename]
@@ -989,7 +989,7 @@ unzip[options][filename]
 -a:对文本文件进行必要的字符转换
 -C:当压缩文件时忽略文件名大小写
 -n: 当解压缩时不覆盖原有的文件，与-o选项作用相反
-    
+
 
 bunzip2
 # 解压缩.bz2格式的压缩包
@@ -1051,9 +1051,9 @@ disown -hmyjob
 # 观察当前后台作业状态
 jobs
 参数：
--l	除了列出作业号之外同时列出PID
--r	列出仅在后台运行(run)的作业
--s	仅列出暂停的作业
+-l    除了列出作业号之外同时列出PID
+-r    列出仅在后台运行(run)的作业
+-s    仅列出暂停的作业
 # 将后台作业调到前台来继续运行
 fg %jobnumber(%可有可无)
 # 将一个在后台暂停的命令，继续执行
@@ -1071,6 +1071,7 @@ signal：表示给后台的作业什么指示，用man 7 signal可知
 # 终止前台作业
 ctr + c
 ```
+
 ## 磁盘管理
 
 ### 块复制
@@ -1149,7 +1150,7 @@ df [options] [目录或文件名]
 # 示例
 df -h 查看磁盘存储情况
 
-du [-ahskm] 文件或目录名称 		
+du [-ahskm] 文件或目录名称         
 # 检测目录所占磁盘空间
 -a ：列出所有的文件与目录容量，因为默认仅统计目录底下的文件量而已。
 -h ：以人们较易读的容量格式 (G/M) 显示；
@@ -1198,9 +1199,9 @@ df -h
 配置文件
 
 ```shell
-/etc/passwd   	# 存放用户登录名、UID等信息
-/etc/shadow		# 存放系统密码管理信息
-/etc/group		# 共享资源的组信息
+/etc/passwd       # 存放用户登录名、UID等信息
+/etc/shadow        # 存放系统密码管理信息
+/etc/group        # 共享资源的组信息
 ```
 
 登录查看
@@ -1220,7 +1221,9 @@ who
 # 切换用户
 su 用户名 
 ```
+
 密码管理
+
 ```shell
 passwd
 # 密码管理
@@ -1231,14 +1234,16 @@ passwd 选项 用户名
 -f 强迫用户下次登录时修改口令。
 # 例子
 passwd 用户名  # root登陆，设置修改其他用户密码
-passwd 		  # 修改当前用户密码(若是root则修改root，普通则修改普通)
+passwd           # 修改当前用户密码(若是root则修改root，普通则修改普通)
 sudo passwd root  # 普通用户修改root账户密码，输入当前账户和root用户密码修改
 
 chpasswd
 # 从标准输入自动读取登录名和密码对（用冒号分割）列表，给密码加密，然后为用户账户设置
 chpasswd < user.txt
 ```
+
 用户管理
+
 ```shell
 useradd
 # 添加用户
@@ -1274,16 +1279,16 @@ chfn
 # 将用于unix的finger命令的信息存进备注字段
 chage
 # 管理用户账户的有效期
--d	# 设置上次修改密码到现在的天数
--E	# 设置密码过期的日期
--I	# 设置密码到期到锁定账户的天数
--m	# 设置修改密码之前最少要多少天
--n	# 设置密码过期前多久开始出现提醒信息
+-d    # 设置上次修改密码到现在的天数
+-E    # 设置密码过期的日期
+-I    # 设置密码到期到锁定账户的天数
+-m    # 设置修改密码之前最少要多少天
+-n    # 设置密码过期前多久开始出现提醒信息
 ```
 
 组管理
 
-```shell 
+```shell
 groupadd
 # 创建组
 # 默认没有用户被分配到该组
@@ -1322,12 +1327,12 @@ sudo apt-get remove package                 # 删除包
 sudo apt-get remove package --purge         # 删除包，包括配置文件等
 sudo apt-get clean && sudo apt-get autoclean  # 清理无用的包
 
-sudo aptitude search package_name		# 搜索特定包
-sudo aptitude install package_name		# 安装特定包
-sudo aptitude show [package_name]		# 显示特定包的具体信息
-sudo aptitude safe-upgrade				# 更新软件
-sudo aptitude purge package_name		# 卸载软件及相关数据
-sudo aptitude remove package_name		# 删除软件包而不删除相关数据
+sudo aptitude search package_name        # 搜索特定包
+sudo aptitude install package_name        # 安装特定包
+sudo aptitude show [package_name]        # 显示特定包的具体信息
+sudo aptitude safe-upgrade                # 更新软件
+sudo aptitude purge package_name        # 卸载软件及相关数据
+sudo aptitude remove package_name        # 删除软件包而不删除相关数据
 ```
 
 dpkg
@@ -1337,45 +1342,45 @@ dpkg
 使用Ubuntu软件中心安装，即直接双击软件包就可以了；
 
 # 方法二
-dpkg -i xxx.deb  			安装deb软件包 
-dpkg -r xxx.deb  			删除软件包 
-dpkg -r --purge xxx.deb  	连同配置文件一起删除 
-dpkg -info xxx.deb  		查看软件包信息 
-dpkg -L xxx.deb  			查看文件拷贝详情 
-dpkg -l  					查看系统中已安装软件包信息 
-dpkg-reconfigure xxx  		重新配置软件包
+dpkg -i xxx.deb              安装deb软件包 
+dpkg -r xxx.deb              删除软件包 
+dpkg -r --purge xxx.deb      连同配置文件一起删除 
+dpkg -info xxx.deb          查看软件包信息 
+dpkg -L xxx.deb              查看文件拷贝详情 
+dpkg -l                      查看系统中已安装软件包信息 
+dpkg-reconfigure xxx          重新配置软件包
 
 # 方法三
 sudo apt-get install gdebi  安装gbebi
-sudo gbedi package.deb  	安装软件
+sudo gbedi package.deb      安装软件
 ```
 
 - 基于Red Hat版本
 
 ```shell
-yum list 	# 列出已经安装的包
-yum list installed > installed_software	# 将已安装的列表重定向到一个文件中
-yum list xterm	# 列出包的详细信息
-yum provides file_name	# 列出某个特定文件属于哪个软件包
+yum list     # 列出已经安装的包
+yum list installed > installed_software    # 将已安装的列表重定向到一个文件中
+yum list xterm    # 列出包的详细信息
+yum provides file_name    # 列出某个特定文件属于哪个软件包
 
 yum install package_name  # 从仓库中安装软件包
-yum localinstall package_name.rpm	# 本地安装rpm安装文件
+yum localinstall package_name.rpm    # 本地安装rpm安装文件
 
-yum list updates	# 列出所有安装包的可用更新
-yum update			# 对更新列表中的所有包进行更新
-yum update package_name		# 更新特定包
+yum list updates    # 列出所有安装包的可用更新
+yum update            # 对更新列表中的所有包进行更新
+yum update package_name        # 更新特定包
 
-yum remove package_name		# 只删除软件而保留配置和数据
-yum erase package_name		# 删除软件和它所有的文件
+yum remove package_name        # 只删除软件而保留配置和数据
+yum erase package_name        # 删除软件和它所有的文件
 
 # 出现损坏的包依赖关系
-yum clean all	
+yum clean all    
 yum update 
 yum deplist package_name  # 列出所有包的库依赖以及什么软件可以提供这些库依赖关系
 yum install package_name  # 手动安装缺少的依赖
-yum update --skuo-broken	# 允许忽略依赖关系损坏的包，继续更新其他的软件包
+yum update --skuo-broken    # 允许忽略依赖关系损坏的包，继续更新其他的软件包
 
-yum repolist	# 展示从哪些仓库中获取软件
+yum repolist    # 展示从哪些仓库中获取软件
 ```
 
 - 其他
@@ -1383,13 +1388,13 @@ yum repolist	# 展示从哪些仓库中获取软件
 snap
 
 ```shell
-sudo snap list				# 查看所有snap安装情况
-sudo snap find 软件包		  # 在应用商店查找软件包 
-sudo snap install 软件包	  # 安装snap包
-sudo snap refresh 软件包	  # 更新snap包
-sudo snap refresh all		# 更新所有snap包
-sudo snap revert 软件包	  # 将snap包恢复到以前安装版本
-sudo snap remove 软件包	  # 卸载snap包
+sudo snap list                # 查看所有snap安装情况
+sudo snap find 软件包          # 在应用商店查找软件包 
+sudo snap install 软件包      # 安装snap包
+sudo snap refresh 软件包      # 更新snap包
+sudo snap refresh all        # 更新所有snap包
+sudo snap revert 软件包      # 将snap包恢复到以前安装版本
+sudo snap remove 软件包      # 卸载snap包
 ```
 
 源码
@@ -1531,19 +1536,12 @@ hwclock[options][--ser--date=<date and time>]
 ## 关机重启
 
 ```shell
-sync			将数据由内存同步到硬盘中
-reboot	        重新启动操作系统
-halt			关闭系统
-init 0 			关机
-shutdown –r now	重新启动操作系统，shutdown会给别的用户提示
-shutdown -h now	立刻关机，其中now相当于时间为0的状态
-shutdown -h 20:25	系统在今天的20:25 会关机
-shutdown -h +10	系统再过十分钟后自动关机
+sync            将数据由内存同步到硬盘中
+reboot            重新启动操作系统
+halt            关闭系统
+init 0             关机
+shutdown –r now    重新启动操作系统，shutdown会给别的用户提示
+shutdown -h now    立刻关机，其中now相当于时间为0的状态
+shutdown -h 20:25    系统在今天的20:25 会关机
+shutdown -h +10    系统再过十分钟后自动关机
 ```
-
-
-
-
-
-
-

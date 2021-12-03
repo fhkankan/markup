@@ -24,7 +24,6 @@ pymsql.install_as_mysqldb()
 mysql官方维护的库，支持python2和python3
 ```
 
-
 安装驱动
 
 ```
@@ -61,7 +60,7 @@ charset：通信采用的编码方式，推荐使用utf8
 
 ```python
 cursor()  # 返回Cursor对象，用于执行sql语句并获得结果
-commit()  # 对数据库数据进行增删更时需提交	
+commit()  # 对数据库数据进行增删更时需提交    
 rollback()  # 提交出错时回滚
 close()  # 关闭连接
 ```
@@ -97,7 +96,7 @@ connection  # 获得当前连接对象
 
 ```python
 with conn.cursor() as cursor:
-	pass
+    pass
 ```
 
 ### 参数化
@@ -156,13 +155,13 @@ if __name__ == '__main__':
 
 ```python
 import pymysql
- 
+
 # 打开数据库连接
 db = pymysql.connect("localhost","testuser","test123","TESTDB" )
- 
+
 # 创建游标对象
 cursor = db.cursor()
- 
+
 # 执行sql语句
 # 增删改
 sql = "DROP TABLE IF EXISTS EMPLOYEE"
@@ -191,7 +190,7 @@ data = cursor.fetchone()  # 获取sql执行单行结果
 results = cursor.fetchall()  # 获取sql执行后多行结果
 for row in results:
      pass
-    
+
 # 关闭游标
 cursor.close()
 # 关闭数据库连接
@@ -383,7 +382,7 @@ create database db_django01 charset=utf8;
 
 2、在Django中配置mysql
 1)、修改setting.py中的DATABASES
-	# Project01/setting.py
+    # Project01/setting.py
 DATABASES = {
     'default': {
         # 'ENGINE': 'django.db.backends.sqlite3',
@@ -409,7 +408,7 @@ pymysql.install_as_MySQLdb()
 2. 修改源码屏蔽版本控制
 (1)在python\Lib\site-packages\django\db\backends\mysql/base.py中注释掉如下代码
 if version < (1, 3, 13): 　　　　　　　　　　
-		raise ImproperlyConfigured(‘mysqlclient 1.3.13 or newer is required; you have %s.’ % Database.version) 　
+        raise ImproperlyConfigured(‘mysqlclient 1.3.13 or newer is required; you have %s.’ % Database.version) 　
 (2)在Python\lib\site-packages\django\db\backends\mysql\operations.py”, line 146
 decode修改为encode
 
@@ -519,6 +518,4 @@ if __name__ == '__main__':
     mysql_end(conn)
     end = time.process_time()
     print('total_time2', end - start)
-
 ```
-
