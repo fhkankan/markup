@@ -413,8 +413,8 @@ async def init_server(app, loop):
     import aiojos
     app.jobs = await aiojobs.create_scheduler(close_timeout=0.5)
     await app.jobs.spawn(test(app))  # 项目启动时执行的异步任务
-    await app.jobs.spawn(cron_job_by_time(app, test))  # 每日定时执行的脚本
-    await app.jobs.spawn(cron_job(app, test, 60*60))  # 固定间隔执行的脚本
+    await app.jobs.spawn(cron_job_by_daily_time(app, test))  # 每日定时执行的脚本
+    await app.jobs.spawn(cron_job_by_interval(app, test, 60*60))  # 固定间隔执行的脚本
         
 
 @app.listener('after_server_start')
@@ -484,7 +484,7 @@ def init_blueprint(app, url_prefix):
     app.blueprint(bp_group)
 
         
-async def cron_job(app, method, interval=60):
+async def cron_job_by_interval(app, method, interval=60):
     import time
     import asyncio
     p_stamp = 0
@@ -499,7 +499,7 @@ async def cron_job(app, method, interval=60):
         await asyncio.sleep(0.3)
 
 
-async def cron_job_by_time(app, method, delta_time=0):
+async def cron_job_by_daily_time(app, method, delta_time=0):
     import time
     from datetime import datetime
     import asyncio

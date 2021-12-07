@@ -6,7 +6,7 @@ import random
 
 随机数
 
-```
+```im
 random.randint(start,end)
 # 随机生成[start,end]之间的所有整数 
 
