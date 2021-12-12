@@ -29,7 +29,7 @@ Connection 接口
 Statement接口
 // 执行sql的对象，用于将SQL语句发送给数据库服务器
 PreparedStatement接口
-// 一个SQL语句对象，是Statement的子接口
+// 一个sql语句对象，是Statement的子接口
 ResultSet接口
 // 结果集对象，用于封装数据库查询的结果集，返回给客户端Java程序
 ```
@@ -37,7 +37,7 @@ ResultSet接口
 使用步骤
 
 ```
-1.导入驱动jar包
+1.导入驱动jar包：复制驱动包到libs目录，IDE右键add as library
 2.注册驱动
 3.获取数据库连接对象
 4.定义sql
@@ -47,15 +47,29 @@ ResultSet接口
 8.释放资源
 ```
 
+目录
+
+```
+-test
+  -libs
+  	mysql-connector-java-5.1.37-bin.jar
+  -src
+  	-cn
+  		-itcast
+  			- jdbc
+  				demo.java		
+```
+
 快速入门
 
 ```java
+package cn.itcast.jdbc;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
 
 
-public class JdbcDemo1 {
+public class Demo {
     public static void main(String[] args) throws Exception {
         //1.导入驱动jar包
         //2.注册驱动
@@ -83,6 +97,12 @@ public class JdbcDemo1 {
 类中的方法
 
 ```java
+// 注册驱动
+static void registerDriver(Driver driver)
+// mysql5之前需要注册驱动，不直接调用注册驱动方法，而是使用Class.forName("com.mysql.jdbc.Driver")，是由于com.mysql.jdbc.Driver类中有static直接调用了注册驱动方法
+// mysql5之后不需要注册驱动声明，是由于META-INF/service/java.sql.Driver中声明了com.mysql.jdbc.Driver
+
+// 获取数据库连接
 Connection getConnection (String url, String user, String password)
 // 通过连接字符串，用户名，密码来得到数据 库的连接对象
 Connection getConnection (String url, Properties info)
@@ -108,6 +128,9 @@ import java.sql.SQLException;
 
 public class Demo2 {
 		public static void main(String[] args) throws SQLException {
+      // 注册驱动
+      Class.forName("com.mysql.jdbc.Driver"); //mysql5之后可以省略注册驱动步骤
+      
       // 1.使用用户名、密码、URL 得到连接对象
       String url = "jdbc:mysql://localhost:3306/day24"; 
       Connection connection = DriverManager.getConnection(url, "root", "root"); 
@@ -124,18 +147,24 @@ public class Demo2 {
 }
 ```
 
-### Connection接口
+### Connection
 
 Connection 接口，具体的实现类由数据库的厂商实现，代表一个连接对象。
 
 方法
 
 ```java
-Statement createStatement()
-// 创建一条 SQL 语句对象
+// 获取执行sql对象
+Statement createStatement()//用于执行静态sql语句并返回其生成结果的对象
+PreparedStatement prepareStatement(String sql)//指定预编译的SQL语句，SQL语句中变量使用占位符? 创建一个语句对象
+ 
+// 管理事务
+void setAutoCommit(boolean autoCommit)//参数是 true,false，如果设置为false，表示关闭自动提交，相当于开启事务
+void commit()//提交事务
+void rollback()//回滚事务
 ```
 
-### Statement接口
+### Statement
 
 代表一条语句对象，用于发送 SQL 语句给服务器，用于执行静态 SQL 语句并返回它所生成结果的对象。
 
@@ -144,10 +173,18 @@ Statement createStatement()
 ```java
 int executeUpdate(String sql)
 // 用于发送 DML 语句，增删改的操作，insert、update、delete
-// 参数:SQL 语句，返回值:返回对数据库影响的行数
+// 参数:SQL 语句，
+// 返回值:对于DML语句返回对数据库影响的行数，对于DDL语句不返回任何内容
+
 ResultSet executeQuery(String sql)
-// 用于发送 DQL 语句，执行查询的操作。select 
-// 参数:SQL 语句，返回值:查询的结果集
+// 用于发送 DQL 语句，执行查询的操作，select 
+// 参数:SQL 语句，
+// 返回值:查询的结果集
+  
+- next()：游标向下移动一行，判断当前是否有数据，无则false，有则true
+- getXXX()：获取当前行中列的数据
+  参数int：代表列的编号，从1开始
+  参数string：代表列的名称 
 ```
 
 常用数据转换类型
@@ -168,7 +205,7 @@ ResultSet executeQuery(String sql)
 释放资源
 
 ```
-1.需要释放的对象:ResultSet 结果集，Statement 语句，Connection 连接 
+1.需要释放的对象:ResultSet结果集，Statement语句，Connection连接 
 2.释放原则:先开的后关，后开的先关。ResultSet->Statement->Connection 
 3.放在哪个代码块中:finally 块
 ```
@@ -257,6 +294,42 @@ public class Demo {
 }
 ```
 
+### PreparedStatement
+
+PreparedStatement 是 Statement 接口的子接口，继承于父接口中所有的方法。它是一个预编译的 SQL 语句。
+
+因为有预先编译的功能，提高 SQL 的执行效率。 可以有效的防止 SQL 注入的问题，安全性更高
+
+执行原理
+```
+statement对象每执行一条sql语句都会将sql语句发送给数据库，数据库先编译SQL，再执行，若多条sql语句，需要编译多次。
+PreparedStatement会先将sql语句发送给数据库预编译，会引用预编译后的结果，可以多次传入不同的参数并执行。若多条sql语句，只需编译一次，减少了编译次数，提高了执行效率。
+```
+
+方法
+
+```java
+int executeUpdate()					//	执行 DML，增删改的操作，返回影响的行数。
+ResultSet executeQuery() 		//	执行 DQL，查询的操作，返回结果集
+  
+// PreparedStatement 中设置参数的方法
+void setDouble(int parameterIndex, double x)		// 将指定参数设置为给定 Java double 值。
+void setFloat(int parameterIndex, float x) 			// 将指定参数设置为给定 Java REAL 值。
+void setInt(int parameterIndex, int x)					// 将指定参数设置为给定 Java int 值。
+void setLong(int parameterIndex, long x) 				// 将指定参数设置为给定 Java long 值。
+void setObject(int parameterIndex, Object x)		// 使用给定对象设置指定参数的值。
+void setString(int parameterIndex, String x) 		// 将指定参数设置为给定 Java String 值。
+```
+
+使用步骤
+
+```
+1.编写 SQL 语句，未知内容使用?占位:"SELECT * FROM user WHERE name=? AND password=?"; 获得 PreparedStatement 对象
+2.设置实际参数:setXxx(占位符的位置, 真实的值)
+3.执行参数化 SQL 语句
+4.关闭资源
+```
+
 数据库工具类
 
 ```java
@@ -327,46 +400,6 @@ public class JdbcUtils {
 }
 ```
 
-### PreparedStatement接口
-
-PreparedStatement 是 Statement 接口的子接口，继承于父接口中所有的方法。它是一个预编译的 SQL 语句。
-
-因为有预先编译的功能，提高 SQL 的执行效率。 可以有效的防止 SQL 注入的问题，安全性更高
-
-执行原理
-```
-statement对象每执行一条sql语句都会将sql语句发送给数据库，数据库先编译SQL，再执行，若多条sql语句，需要编译多次。
-PreparedStatement会先将sql语句发送给数据库预编译，会引用预编译后的结果，可以多次传入不同的参数并执行。若多条sql语句，只需编译一次，减少了编译次数，提高了执行效率。
-```
-
-方法
-
-```java
-// connection创建perparedStatement对象
-PreparedStatement prepareStatement(String sql)  // 指定预编译的 SQL 语句，SQL 语句中使用占位符? 创建一个语句对象
-  
-// PreparedStatement 接口中的方法
-int executeUpdate()					//	执行 DML，增删改的操作，返回影响的行数。
-ResultSet executeQuery() 		//	执行 DQL，查询的操作，返回结果集
-  
-// PreparedStatement 中设置参数的方法
-void setDouble(int parameterIndex, double x)		// 将指定参数设置为给定 Java double 值。
-void setFloat(int parameterIndex, float x) 			// 将指定参数设置为给定 Java REAL 值。
-void setInt(int parameterIndex, int x)					// 将指定参数设置为给定 Java int 值。
-void setLong(int parameterIndex, long x) 				// 将指定参数设置为给定 Java long 值。
-void setObject(int parameterIndex, Object x)		// 使用给定对象设置指定参数的值。
-void setString(int parameterIndex, String x) 		// 将指定参数设置为给定 Java String 值。
-```
-
-使用步骤
-
-```
-1.编写 SQL 语句，未知内容使用?占位:"SELECT * FROM user WHERE name=? AND password=?"; 获得 PreparedStatement 对象
-2.设置实际参数:setXxx(占位符的位置, 真实的值)
-3.执行参数化 SQL 语句
-4.关闭资源
-```
-
 使用-增删改
 
 ```java
@@ -420,20 +453,6 @@ public class Demo {
 ```
 
 ### 事务
-
-`connection`接口中与事务有关的方法
-
-```java
-void setAutoCommit(boolean autoCommit)
-// 参数是 true 或 false
-// 如果设置为 false，表示关闭自动提交，相当于开启事务
-
-void commit() 
-// 提交事务
-
-void rollback()
-// 回滚事务
-```
 
 开发步骤
 

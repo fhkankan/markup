@@ -28,7 +28,20 @@ XML是一套定义语义标记的规则，这些标记将文档分成许多部�
 4.服务器端和客户端解析xml花费较多资源和时间
 ```
 
+基本语法
+
+```
+1.文档后缀名.xml
+2.第一行必须为文档声明
+3.有且仅有一个根标签
+4.属性值必须用引号（单双均可）
+5.标签必须正确关闭
+6.标签名称区分大小写
+```
+
 ## 实例
+
+`demo.xml`
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -37,6 +50,27 @@ XML是一套定义语义标记的规则，这些标记将文档分成许多部�
   <from>Jani</from>
   <heading>Reminder</heading>
   <body>Don't forget me this weekend!</body>
+  <user id="1">
+    <name>zhangsan</name>
+  </user>
+  <user id="2">
+    <name>lisi</name>
+  </user>
+  <code>
+  	<![CDATA[ if(a>b){} ]]>
+  </code>
 </note>
+```
+
+组成部分
+
+```xml
+# 文档声明
+version：版本号，必需
+encoding：编码
+standlone：是否独立，yes/no
+# 自定义标签
+# 属性id
+# CDATA原样输出区域
 ```
 
