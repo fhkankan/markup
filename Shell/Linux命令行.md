@@ -328,7 +328,7 @@ netstat -tunlp| grep 端口号
 # 查看所有端口状态
 netstat -ntlup  
 # 显示详细的网络状况
-netstat -a
+netstat -ano
 # 显示UDP端口号的使用情况
 netstat -apu
 # 显示网卡列表
@@ -339,7 +339,7 @@ netstat -s
 
 lsof
 
-```
+```shell
 sudo lsof -i:端口号
 sudo lsof -Pti:端口号
 lsof -i:端口号 |grep "(LISTEN)"
