@@ -115,7 +115,7 @@ import requests
 url = 'http://httpbin.org/post'
 m = MultipartEncoder(fields={'field0': 'value', 'field1': 'value'})
 h = {'Content-Type': m.content_type}
-r = requests.post(url, data=m, headers=h
+r = requests.post(url, data=m, headers=h)
 ```
 
 - application/json 
