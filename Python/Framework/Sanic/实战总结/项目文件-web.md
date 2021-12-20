@@ -130,12 +130,15 @@ class RC:
 import string
 import time as _time
 import random
-from datetime import datetime, timedelta
+from datetime import datetime, date,timedelta
 from functools import wraps
+from inspect import isawaitable, getabsfile
 from sanic.response import json
 from sanic.request import Request
 from sanic.exceptions import InvalidUsage
 from sanic.views import HTTPMethodView
+from sanic.log import logger
+from sanic.kjson import json_loads, json_dumps
 from common.const import RC
 
 
@@ -171,6 +174,29 @@ def get_rest_seconds():
     tomorrow_begin = today_begin + timedelta(days=1)
     rest_seconds = (tomorrow_begin - now).seconds
     return rest_seconds
+
+# 函数缓存
+def cache_to_date(ttl=120):
+    def warpper_(func):
+        @wraps(func)
+        async def handler(app, *args, to_date, **kwargs):
+            key, use_cache = "", (to_date < date.today())
+            if use_cache:
+                key = f"{func.__name__}@{getabsfile(func)}={':'.join(map(str, args))}:{to_date}:{kwargs}"
+                got = await app.redis.get(key)
+                if got:
+                    logger.info(f"cache-hit: {key}")
+                    return json_loads(got)
+            result = func(app, *args, to_date=to_date, **kwargs)
+            got = await result if isawaitable(result) else result
+            if use_cache:
+                logger.info(f"cache-new: {key}")
+                await app.redis.setex(key, ttl, json_dumps(got))
+            return got
+
+        return handler
+
+    return warpper_
 
 
 def login_required(func):

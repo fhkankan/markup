@@ -770,7 +770,7 @@ ls -al badfile &> test3
 临时重定向
 
 ```shell
-# 若有意在脚本中胜澈鞥错误信息，可将单独的一行输出重定向到STDERR
+# 若有意在脚本中错误信息，可将单独的一行输出重定向到STDERR
 echo "This is an error message" >&2
 
 # 示例
