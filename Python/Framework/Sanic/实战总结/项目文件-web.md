@@ -327,6 +327,15 @@ PARAM_FOR_REDIS = dict(
     maxsize=32,
 )
 
+
+PARAM_FOR_CLICKHOUSE = dict(
+    url="xxxx",
+    user="xxx",
+    password="xxx",
+    database="xxx",
+)
+
+
 COOKIE_NAME = "__sid__"
 COOKIE_PREFIX = "iwc"
 ```
@@ -426,6 +435,9 @@ async def init_server(app, loop):
     from models import model
     from mtkext.db import create_all_tables
     create_all_tables(model, [])
+    # init chc
+    from aiochclient import ChClient
+    app.chc = ChClient(**conf.PARAM_FOR_CLICKHOUSE)
 
     # init session
     from mtkext.ses import install_session
@@ -453,6 +465,7 @@ async def check_server(app, loop):
 @app.listener('after_server_stop')
 async def kill_server(app, loop):
     await app.jobs.close()
+    await app.chc.close()
     await app.db.close()
     app.redis.close()
     await app.redis.wait_closed()
