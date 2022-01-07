@@ -43,6 +43,11 @@ sudo chkconfig rpcbind on
 # 开启
 sudo service rpcbind start 
 sudo service nfs start
+
+sudo systemctl enable nfs.service
+sudo systemctl enable rpcbind.service
+sudo systemctl start nfs.service
+sudo systemctl start rpcbind.service
 ```
 
 - 配置分享目录
