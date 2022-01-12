@@ -21,8 +21,8 @@ https://www.digitalocean.com/community/tutorials/how-to-set-up-an-nfs-mount-on-c
 服务器
 
 ```
-Master: 12.34.56.789
-Client: 12.33.44.555
+Master: 10.195.11.30
+Client: 10.195.11.31
 ```
 
 ### Server
@@ -55,7 +55,7 @@ sudo chmod -R 777 /opt/data
 # 配置exports文件
 sudo vim  /etc/exports
 # 文件末尾添加信息
-/opt/data     12.33.44.555(rw,sync,no_root_squash,no_subtree_check)
+/opt/data     10.195.11.31(rw,sync,no_root_squash,no_subtree_check)
 # 参数含义
 - rw: # 此选项允许客户端服务器在共享目录中读取和写入
 - sync: # 只有在提交更改后，同步才会确认对共享目录的请求。 
@@ -70,7 +70,7 @@ sudo exportfs -a
 
 ```shell
 # 可用showmount -e 服务端ip来查看可mount目录
-sudo showmount -e  192.168.1.1
+sudo showmount -e  10.195.11.30
 ```
 
 ###  Client
@@ -88,7 +88,7 @@ sudo yum install nfs-utils nfs-utils-lib
 sudo mkdir /opt/data
 
 # 挂载目录
-sudo mount 12.34.56.789:/opt/data /opt/data
+sudo mount 10.195.11.30:/opt/data /opt/data
 
 # 检查挂载
 df -h  # 查看挂载的文件目录
@@ -109,7 +109,7 @@ sudo umount /opt/data
 ```shell
 sudo vim /etc/fstab
 # 填写信息
-12.34.56.789:/opt/data  /opt/data   nfs      auto,noatime,nolock,bg,nfsvers=3,intr,tcp,actimeo=1800 0 0
+10.195.11.30:/opt/data /opt/data nfs auto,noatime,nolock,bg,nfsvers=3,intr,tcp,actimeo=1800 0 0
 ```
 
 ### 测试

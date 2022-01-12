@@ -1235,6 +1235,11 @@ atrm [作业号]
 ```shell
 min hour dayofmonth month dayofweek command
 # cron时间表允许用特定值、取值范围、通配符*来指定条目
+minute: 区间为 0 – 59 
+hour: 区间为0 – 23 
+day-of-month: 区间为0 – 31 
+month: 区间为1 – 12. 1 是1月. 12是12月. 
+Day-of-week: 区间为0 – 7. 周日可以是0或7.
 ```
 
 > 构建cron时间表
@@ -1242,6 +1247,18 @@ min hour dayofmonth month dayofweek command
 ```shell
 crontab -l  # 列出已有的cron时间表
 crontab -e	# 为时间表添加条目
+crontab -r 	# 删除 crontab 文件
+```
+
+示例
+
+```shell
+1 0 * * * /root/bin/backup.sh  # 在 12:01 a.m 运行，即每天凌晨过一分钟
+10 13 1 * * /root/bin/backup.sh	# 每个月的第一天 1:10 p.m 运行
+59 11 * * 1,2,3,4,5 /root/bin/backup.sh  # 每个工作日11:59 p.m运行
+0 23 * * 1-5 /root/bin/incremental-backup.sh #每个工作日 11 p.m 运行。
+*/5 * * * * /root/bin/check-status.sh  # 每5分钟运行一次
+* */1 * * * /root/bin/check-status.sh  # 每1小时运行一次
 ```
 
 > 浏览cron目录
