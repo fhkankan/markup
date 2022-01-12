@@ -175,30 +175,6 @@ def get_rest_seconds():
     rest_seconds = (tomorrow_begin - now).seconds
     return rest_seconds
 
-# 函数缓存
-def cache_to_date(ttl=120):
-    def warpper_(func):
-        @wraps(func)
-        async def handler(app, *args, to_date, **kwargs):
-            key, use_cache = "", (to_date < date.today())
-            if use_cache:
-                key = f"{func.__name__}@{getabsfile(func)}={':'.join(map(str, args))}:{to_date}:{kwargs}"
-                got = await app.redis.get(key)
-                if got:
-                    logger.info(f"cache-hit: {key}")
-                    return json_loads(got)
-            result = func(app, *args, to_date=to_date, **kwargs)
-            got = await result if isawaitable(result) else result
-            if use_cache:
-                logger.info(f"cache-new: {key}")
-                await app.redis.setex(key, ttl, json_dumps(got))
-            return got
-
-        return handler
-
-    return warpper_
-
-
 def login_required(func):
     @wraps(func)
     async def wrapper(request, *args, **kwargs):
@@ -251,6 +227,64 @@ def check_auth(role_ids=[], method="GET"):
 
     return _wrapper
 
+# 函数缓存
+def cache_to_date(ttl=120):
+    def warpper_(func):
+        @wraps(func)
+        async def handler(app, *args, to_date, **kwargs):
+            key, use_cache = "", (to_date < date.today())
+            if use_cache:
+                key = f"{func.__name__}@{getabsfile(func)}={':'.join(map(str, args))}:{to_date}:{kwargs}"
+                got = await app.redis.get(key)
+                if got:
+                    logger.info(f"cache-hit: {key}")
+                    return json_loads(got)
+            result = func(app, *args, to_date=to_date, **kwargs)
+            got = await result if isawaitable(result) else result
+            if use_cache:
+                logger.info(f"cache-new: {key}")
+                await app.redis.setex(key, ttl, json_dumps(got))
+            return got
+
+        return handler
+
+    return warpper_
+  
+# 数据缓存->数据库
+async def get_conf_content(cache_db, db, *keys):
+    if not keys:
+        return {}
+
+    key_list = [item for item in keys]
+    key_val = {}
+
+    # 获取缓存
+    contents = await cache_db.mget(*keys)
+    no_val_keys = []
+    if logger.isEnabledFor(logging.DEBUG):
+        logger.debug(f"read {keys} from redis: {contents}")
+    for i, x in enumerate(contents):
+        if x:
+            key_val[key_list[i]] = ujson.loads(x)
+        else:
+            no_val_keys.append(key_list[i])
+    # 数据库
+    if no_val_keys:
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug(f"need read from mysql: {no_val_keys}")
+        db_res = await db.execute(ConfigModel.select().where(
+            (RCKey.project_name + ConfigModel.conf_key) in no_val_keys, ConfigModel.is_delete == 0))
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug(f"read from mysql result: {len(db_res)}")
+        for x in db_res:
+            store_key = RCKey.project_name + x.conf_key
+            key_val[store_key] = x.content
+            await cache_db.setex(store_key, 1 * 60, ujson.dumps(x.content))
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug(f"setex: {x.conf_key}, {x.content}")
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug(f"read from mysql: {x}")
+    return key_val
 ```
 
 `jwt.py`

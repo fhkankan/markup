@@ -146,7 +146,7 @@ hgetall(key, *)
 hkeys(key, *)
 hlen(key)
 hvals(key, *)
-hscan(keey, cursor=0, match=None, count=None)
+hscan(key, cursor=0, match=None, count=None)
 hexists(key, field)
 
 hmget(key, field, *fields)
@@ -279,7 +279,7 @@ pexpireat(key, timestamp)  # 毫秒级别的时间戳
 rename(key, newkey)
 renamenx(key, newkey)
 
-reestore(key, ttl, value)
+restore(key, ttl, value)
 move(key, db)
 ```
 
