@@ -160,7 +160,7 @@ def check_params(r_k, params):
     l_k, r_k_v = [], {}
     for k in r_k:
         v = params.get(k)
-        if v:
+        if v is not None:
             r_k_v[k] = v
         else:
             l_k.append(k)
