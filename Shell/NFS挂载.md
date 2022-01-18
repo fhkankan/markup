@@ -115,6 +115,8 @@ sudo umount /opt/data
 sudo vim /etc/fstab
 # 填写信息
 10.195.11.30:/opt/data /opt/data nfs auto,noatime,nolock,bg,nfsvers=3,intr,tcp,actimeo=1800 0 0
+
+10.195.11.30:/opt/data /opt/data nfs sec=sys,vers=3,nolock,proto=tcp  0 0
 ```
 
 ### 测试
