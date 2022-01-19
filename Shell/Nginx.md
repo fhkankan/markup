@@ -344,8 +344,9 @@ server {
     
     # 前端静态文件
     location /trial/semir/meeting/phone{
-        add_header Access-Control-Allow-Origin *;  # 支持跨域
-        add_header Access-Control-Allow-Methods 'GET, POST, OPTIONS';  # 支持跨域
+        add_header Access-Control-Allow-Origin http://xxx;  # 当前端只跨域不带cookie时，可为*
+        add_header Access-Control-Allow-Credentials true;
+        add_header Access-Control-Allow-Methods 'GET, POST, OPTIONS';
         add_header Access-Control-Allow-Headers 'DNT,X-Mx-ReqToken,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization';
         if ($request_method = 'OPTIONS') {
             return 204;
@@ -357,7 +358,8 @@ server {
     location /trial {
         proxy_pass http://emir_6_80;
         
-        add_header Access-Control-Allow-Origin *;  # 支持跨域
+        add_header Access-Control-Allow-Origin http://xxx;  # 当前端只跨域不带cookie时，可为*
+        add_header Access-Control-Allow-Credentials true;  # 允许传递cookie凭证
         add_header Access-Control-Allow-Methods 'GET, POST, OPTIONS';  # 支持跨域
         add_header Access-Control-Allow-Headers 'DNT,X-Mx-ReqToken,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization';
         
