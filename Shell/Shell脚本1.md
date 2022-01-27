@@ -1258,7 +1258,11 @@ crontab -r 	# 删除 crontab 文件
 59 11 * * 1,2,3,4,5 /root/bin/backup.sh  # 每个工作日11:59 p.m运行
 0 23 * * 1-5 /root/bin/incremental-backup.sh #每个工作日 11 p.m 运行。
 */5 * * * * /root/bin/check-status.sh  # 每5分钟运行一次
-* */1 * * * /root/bin/check-status.sh  # 每1小时运行一次
+0 */1 * * * /root/bin/check-status.sh  # 每1小时运行一次
+0 0 * * * /root/bin/check-status.sh  # 每天运行一次
+0 0 * * 0 /root/bin/check-status.sh  # 每周运行一次
+0 0 1 * * /root/bin/check-status.sh  # 每月运行一次
+0 0 1 1 * /root/bin/check-status.sh  # 每年运行一次
 ```
 
 > 浏览cron目录
