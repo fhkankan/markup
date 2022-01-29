@@ -169,7 +169,7 @@ timestamp的值与时区毫无关系，因为timestamp一旦确定，其UTC时�
 1429417200.0
 
 
-time.mktime(datetime.timetuple())
+time.mktime(datetimeobj.timetuple())
 ```
 
 ## timestamp--->datetime
