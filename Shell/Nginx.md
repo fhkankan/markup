@@ -766,31 +766,44 @@ location @name ...
 
 - 匹配规则
 
+语法规则
+```shell
+location [=|~|~*|^~] /uri/ { … }
+
+=		# 开头表示精确匹配
+^~	# 开头表示uri以某个常规字符串开头，理解为匹配 url路径即可。nginx不对url做编码，因此请求为/static/20%/aa，可以被规则^~ /static/ /aa匹配到（注意是空格）。以xx开头
+~		# 开头表示区分大小写的正则匹配，以xx结尾
+~*	# 开头表示不区分大小写的正则匹配，以xx结尾
+!~,!~*	# 分别为区分大小写不匹配及不区分大小写不匹配的正则
+/				# 通用匹配，任何请求都会匹配到。
+```
+匹配顺序
+
+```
+首先精确匹配 =-》其次以xx开头匹配^~-》然后是按文件中顺序的正则匹配-》最后是交给 / 通用匹配。
+
+当有匹配成功时候，停止匹配，按当前匹配规则处理请求。
+```
+
+匹配实例
+
 ```shell
 # 默认选择最长前缀
-location = / {
-   #规则A
+location = / { #规则A
 }
-location = /login {
-   #规则B
+location = /login {#规则B
 }
-location ^~ /static/ {
-   #规则C
+location ^~ /static/ {#规则C
 }
-location ~ \.(gif|jpg|png|js|css)$ {
-   #规则D，注意：是根据括号内的大小写进行匹配。括号内全是小写，只匹配小写
+location ~ \.(gif|jpg|png|js|css)$ { #规则D，注意：是根据括号内的大小写进行匹配
 }
-location ~* \.png$ {
-   #规则E
+location ~* \.png$ {#规则E
 }
-location !~ \.xhtml$ {
-   #规则F
+location !~ \.xhtml$ {#规则F
 }
-location !~* \.xhtml$ {
-   #规则G
+location !~* \.xhtml$ {#规则G
 }
-location / {
-   #规则H
+location / {#规则H
 }
 
 
@@ -814,28 +827,25 @@ http://localhost/category/id/1111 则最终匹配到规则H，因为以上规则
 | internal       | 指定一个仅用于内部请求的location(其他指定定义的重定向、rewrite请求、error请求等) |
 | limit_except   | 限定一个location可以执行的HTTP操作(GET也包括HEAD)            |
 | proxy_pass     | 对location的uri，proxy_pass不带URI时进行拼接，带URI时则进行替换 |
+
 示例
 
 ```shell
 location ^~ /t/ {
-    root /www/root/html/;  # 进行拼接
+  root /www/root/html/;  # 进行拼接，请求是/t/a.html时，返回服务器上的/www/root/html/t/a.html的文件。
 }
-# 请求是/t/a.html时，返回服务器上的/www/root/html/t/a.html的文件。
 
 location ^~ /t/ {
- 	alias /www/root/html/new_t/;   # 进行替换
+ 	alias /www/root/html/new_t/;   # 进行替换，请求有/t/a.html时，返回服务器上的/www/root/html/new_t/a.html的文件。
 }
-# 请求有/t/a.html时，返回服务器上的/www/root/html/new_t/a.html的文件。
 
 location /api/ {
-	proxy_pass http://localhost:8080;  # 不带URI，进行拼接
+	proxy_pass http://localhost:8080;  # 不带URI，进行拼接，访问http://localhost/api/xxx时，代理到http://localhost:8080/api/xxx
 }
-# 访问http://localhost/api/xxx时，代理到http://localhost:8080/api/xxx
 
 location /api/ {
-	proxy_pass http://localhost:8080/;  # 带URI，进行替换
+	proxy_pass http://localhost:8080/;  # 带URI，进行替换，访问http://localhost/api/xxx时，代理到http://localhost:8080/xxx
 }
-# 访问http://localhost/api/xxx时，代理到http://localhost:8080/xxx
 ```
 
 ## 反向代理
