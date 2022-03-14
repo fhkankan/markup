@@ -136,10 +136,10 @@ ssh -p 6000 服务器用户名@localhost
 3.服务器server2可访问服务器server3数据库
 
 # 实现目的
-外网访问服务器3的数据库
+外网通过访问server1来访问服务器3的数据库
 
 # 配置步骤
-1.通过ssh建立server1的端口映射到server3
+1.在server1上通过ssh建立server1的端口映射到server3
 ssh -o TCPKeepAlive=yes -NCPf user@server2 -L 0.0.0.0:33661:server3:3306
 2.通过ssh连接到server1,访问其33661端口，即是访问server3的数据库
 ssh user@server1
