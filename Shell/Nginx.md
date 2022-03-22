@@ -351,7 +351,7 @@ server {
         if ($request_method = 'OPTIONS') {
             return 204;
         }
-        alias /opt/soft/web/semir/six-meeting;
+        alias /opt/soft/web/semir/six-meeting; # 直接映射到本地；也可以映射到其他服务器80端口，在其他服务器上映射到本地
     }
 
 	# 后端接口访问
