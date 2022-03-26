@@ -446,20 +446,42 @@ done
 
 while循环
 
-```
+```shell
 while 条件
 do
 	执行语句
 done
+
+# 示例
+#!/bin/bash
+declare -i i=1
+declare -i sum=0
+while ((i<=10))
+do
+  let sum+=i
+  let ++i
+done
+echo $sum
 ```
 
 until循环
 
-```
+```shell
 until 条件
 do
 	执行语句
 done
+
+# 示例
+#!/bin/bash
+declare -i i=10
+declare -i sum=0
+until ((i>10))
+do
+  let sum+=i
+  let ++i
+done
+echo $sum
 ```
 
 - 打断

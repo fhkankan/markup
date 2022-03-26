@@ -187,6 +187,9 @@ pip list
 
 # 显示已过时的包
 pip list --outdated
+
+# 解决依赖过多：This is taking longer than usual. You might need to provide the dependency
+--use-deprecated=legacy-resolver
 ```
 
 ## virtualenv
