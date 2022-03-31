@@ -1506,8 +1506,23 @@ uname [option]...
 -n:显示系统的计算机主机名
 -r:显示系统发行版的内核编号
 
-cat /etc/issue
-# 查看操作系统名称
+cat /etc/issue	# 查看操作系统名称
+```
+
+hostname
+
+```shell
+hostname	# 查看系统名字
+# 修改系统名字
+vim /etc/hostname	# 方法一：直接输入
+hostnamectl set-hostname new_host_name  # 方法二：使用命令
+```
+
+hosts
+
+```shell
+vim /etc/hosts
+127.0.0.1.  localhost
 ```
 
 ### 日期时间
