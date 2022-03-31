@@ -368,8 +368,6 @@ EOF
 )
 ```
 
-
-
 ## 流程控制
 
 ### 选择
@@ -441,6 +439,14 @@ done
 for i in {1..9}
 do
 	echo "202${i}"
+done
+
+#例子2
+cmd=$1
+num=$2
+for((i=0; i<num; i++))
+do
+  echo "${cmd}:${i}"
 done
 ```
 
