@@ -941,6 +941,7 @@ zip[options][file1 file2...]
 # 参数
 -c:给压缩文件加上注释
 -d:删除压缩文件内指定的文件
+-e:对文件进行加密
 -g:将文件压缩后附加已有压缩文件
 -j: 只保存文件名称及其内容
 -m:删除被压缩文件的原文件
@@ -950,7 +951,8 @@ zip[options][file1 file2...]
 # 实例
 zip -r xxx.zip ./*  # 压缩当前文件为xxx.zip
 unzip xxx.zip    # 解压文件
-
+zip -e Demo.zip 1.txt 2.txt   # 使用隐式加密
+zip -P 12345 Demo.zip 1.txt 2.txt  # 使用显式加密
 
 bzip2
 # 采用新的压缩演算法，压缩效果较好，但不能压缩目录
@@ -1300,6 +1302,27 @@ groupmod
 # 修改组
 # 修改组名时，GID和组成员不会变，只有组名改变
 groupmod -n sharing shared
+```
+
+sudo命令使用
+
+```shell
+# root下添加编辑权限
+chmod u+w /etc/sudoers
+# 编辑sudoers
+vim /etc/sudoers
+# 在root ALL=(ALL) ALL下添加下列其中一条命令
+youuser ALL=(ALL) ALL
+%youuser ALL=(ALL) ALL
+youuser ALL=(ALL) NOPASSWD: ALL
+%youuser ALL=(ALL) NOPASSWD: ALL
+
+第一行:允许用户youuser执行sudo命令(需要输入密码).
+第二行:允许用户组youuser里面的用户执行sudo命令(需要输入密码).
+第三行:允许用户youuser执行sudo命令,并且在执行的时候不输入密码.
+第四行:允许用户组youuser里面的用户执行sudo命令,并且在执行的时候不输入密码.
+# 撤销编辑权限
+chmod u-w /etc/sudoers
 ```
 
 ## 包管理器
