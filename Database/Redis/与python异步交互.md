@@ -84,6 +84,10 @@ redis = await aioredis.from_url("redis://user:sEcRet@localhost/")
 
 ### String
 
+```
+await rds.get(group_item_key, encoding="utf-8")
+```
+
 - set
 
 ```python

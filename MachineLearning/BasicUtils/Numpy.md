@@ -114,6 +114,11 @@ a = np.random.permutation(np.arange(9))
 a = np.random.permutation(np.arange(9).reshape((3,3)))
 b = np.arange(9).reshape((3,3))
 np.random.shuffle(b)
+
+# 指定概率取值
+np.random.seed(0)
+p = np.array([0.1, 0.0, 0.7, 0.2])
+index = np.random.choice([0, 1, 2, 3], p = p.ravel())
 ```
 
 ### 序列创建
