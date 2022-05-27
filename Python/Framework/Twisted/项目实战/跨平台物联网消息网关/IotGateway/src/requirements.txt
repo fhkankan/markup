@@ -4,7 +4,7 @@ attrs==18.1.0
 Automat==0.7.0
 cffi==1.11.5
 constantly==15.1.0
-cryptography==2.3
+cryptography==3.3.2
 hyperlink==18.0.0
 idna==2.7
 incremental==17.5.0
@@ -22,7 +22,7 @@ pyzmq==17.1.2
 service-identity==17.0.0
 six==1.11.0
 SQLAlchemy==1.2.10
-Twisted==18.7.0
+Twisted==22.4.0
 Werkzeug==0.14.1
 wrapt==1.10.11
 zope.interface==4.5.0
