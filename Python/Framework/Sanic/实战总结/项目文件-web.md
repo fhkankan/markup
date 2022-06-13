@@ -516,21 +516,6 @@ def catch_exceptions(request, ex):
         msg = ex.__class__.__name__ + ": " + str(ex)
         return res_ng(code=50000, msg=msg)
 
-
-@app.middleware('request')
-async def request_interceptor(request):
-    method = request.method
-    url = request.url
-    params = ""
-    try:
-        if method == "POST":
-            params = request.json
-        else:
-            params = request.args
-    except Exception as e:
-        pass
-    logger.info(f'*** {method} {url} {params} ***')
-
     
 @app.middleware('request')
 async def auth(request):
@@ -541,6 +526,20 @@ async def auth(request):
         if not user_id:
             return res_ng(code=RC.NOT_LOGIN, msg="用户未登录")
         request.ctx.user_id = user_id
+        
+@app.middleware('response')
+async def log_info(request, response):
+    try:
+        url = request.url
+        if request.method == "POST" and request.headers.get("Content-Type").startswith("application/json"):
+            req = request.json
+        else:
+            req = request.body
+        rep = response.body
+        rep = kjson.json_loads(rep.decode('utf-8')) if rep else ""
+        logger.info(f"\n===========\nurl=>{url}\nrequest=>{req}\nresponse=>{rep}\n============\n")
+    except Exception as e:
+        logger.exception(e)
         
 
 def init_blueprint(app, url_prefix):
