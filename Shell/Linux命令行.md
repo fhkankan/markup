@@ -247,9 +247,8 @@ h    获得帮助
 htop
 
 # 显示系统中名为xxx的进程
-ps -aux|grep xxx
-
-ps -elf|g
+ps -aux | grep xxx
+ps -elf | grep xxx
 
 # 查使用内存最多的K个进程
 ps -aux | sort -k4nr | head -K
@@ -383,6 +382,28 @@ sudo ufw allow  8000
 
 ## 防火墙
 
+firewalld
+
+```shell
+#查看防火墙状态
+systemctl status firewalld
+
+#关闭防火墙
+systemctl stop firewalld
+
+#关闭防火墙开机自启动
+systemctl disable firewalld
+
+#centos服务开启关闭命令
+centos6:(某些可以在centos7下使用)
+	service 服务名 start|stop|status|restart
+	chkconfig on|off 服务名
+	
+centos7:	
+	systemctl start|stop|status|restart 服务名
+	systemctl disable|enable 服务名  #开机自启动  关闭自启
+```
+
 ufw
 
 ```shell
@@ -445,6 +466,10 @@ ls -R
 # 以人性化的方式显示文件大小
 ls -lh
 ls -lht 
+
+
+
+
 # 当前的文件路径
 pwd
 # 以树状形式显示目录结构
@@ -933,7 +958,7 @@ zcat  压缩文件  # 查看压缩文件内容
 # 合并打包压缩、解压解包
 打包压缩：tar -zcvf xxx.tar.gz *.txt
 解压解包：tar -zxvf xxx.tar.gz 
-          tar -zxvf xxx.tar.gz -C ../ 解压后放置的路径
+        tar -zxvf xxx.tar.gz -C ../ 解压后放置的路径
 
 zip
 # 压缩程序，压缩后文件以“.zip”为后缀
@@ -1196,7 +1221,7 @@ unmount /mnt
 df -h
 ```
 
-## 账户组
+## 用户管理
 
 配置文件
 
@@ -1286,22 +1311,37 @@ chage
 -I    # 设置密码到期到锁定账户的天数
 -m    # 设置修改密码之前最少要多少天
 -n    # 设置密码过期前多久开始出现提醒信息
+
+cat /etc/passwd | grep 用户名
+# 查看用户信息
 ```
 
 组管理
 
 ```shell
-groupadd
-# 创建组
-# 默认没有用户被分配到该组
-gropadd shared
-# 将用户添加到组中的选项
-usermode -G shared rich
+groupadd 
+# 创建组，默认没有用户被分配到该组
+# -g GID  指定新用户组的的组标识号（GID）
+gropadd shared  # 向系统中增加了一个新组group1，新组的组标识号是在当前已有的最大组标识号的基础上加1。
+groupadd -g 101 group2  # 向系统中增加了一个新组group2，同时指定新组的组标识号是101。
+
 
 groupmod
 # 修改组
 # 修改组名时，GID和组成员不会变，只有组名改变
 groupmod -n sharing shared
+
+
+usermode -G shared rich  
+# 将用户rich添加到组shared
+
+cat /etc/group
+# 查看组信息
+# itheima:x:1001:lisi,wangwu
+itheima组名
+x 密码口号 一般都没有密码
+1001 groupID  gid 组编号
+lisi,wangwu 归属该组的用户
 ```
 
 sudo命令使用
@@ -1519,6 +1559,8 @@ free [options][-s delay][option]
 
 ### 系统信息
 
+查看
+
 ```shell
 uname
 # 显示系统信息
@@ -1530,18 +1572,51 @@ uname [option]...
 -r:显示系统发行版的内核编号
 
 cat /etc/issue	# 查看操作系统名称
+
+hostname	# 查看系统名字
 ```
 
-hostname
+修改主机名
 
 ```shell
-hostname	# 查看系统名字
 # 修改系统名字
 vim /etc/hostname	# 方法一：直接输入
 hostnamectl set-hostname new_host_name  # 方法二：使用命令
 ```
 
-hosts
+修改ip
+
+```shell
+#修改IP
+vim /etc/sysconfig/network-scripts/ifcfg-ens33
+
+TYPE="Ethernet"     #网卡类型 以太网
+PROXY_METHOD="none"
+BROWSER_ONLY="no"
+BOOTPROTO="none"   #ip等信息是如何决定的？  dhcp动态分配、 static|node 手动静态分配
+DEFROUTE="yes"
+IPV4_FAILURE_FATAL="no"
+IPV6INIT="yes"
+IPV6_AUTOCONF="yes"
+IPV6_DEFROUTE="yes"
+IPV6_FAILURE_FATAL="no"
+IPV6_ADDR_GEN_MODE="stable-privacy"
+NAME="ens33"        #网卡名称
+UUID="74c3b442-480d-4885-9ffd-e9f0087c9cf7"
+DEVICE="ens33"
+ONBOOT="yes"       #是否开机启动网卡服务
+IPADDR="192.168.227.152"  #IP地址
+PREFIX="24"   #子网掩码   等效: NETMASK=255.255.255.0
+GATEWAY="192.168.227.2"  #网关服务
+DNS1="192.168.227.2"     #网关DNS解析
+DOMAIN="114.114.114.114" #公网DNS解析  114.114.114.114  谷歌：8.8.8.8  阿里百度DNS
+IPV6_PRIVACY="no
+
+#修改主机名hostname
+node2.itcast.cn
+```
+
+修改主机名和ip对应关系
 
 ```shell
 vim /etc/hosts
@@ -1559,6 +1634,8 @@ date [option]...[+format]
 -r:显示文件最后的修改时间
 -s:将系统时间设为datestr中描述的格式
 -u:显示或设置通用时间值
+
+date +"%Y-%m-%d %H:%M:%S"  # 2021-05-18 14:44:53
 
 hwclock
 # 设置系统硬件时钟
