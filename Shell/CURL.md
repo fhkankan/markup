@@ -40,6 +40,8 @@ get
 curl -v -G -d 'q=kitties' -d 'count=20' https://google.com/search
 
 curl -v -H 'Authorization: fe350335-b617-4470-91f5-00f76d50a5e2'  https://google.com/search
+
+curl -v -H 'X-EACH-SESSION-ID:291fe2a7-cc1a-417a-b0b3-50cc310fb94d' "https://miniapp.troylife.cn/api/miniapp/mall/goods/18000/search?page_id=1&page_size=20&keyword=&cat_id=411618&coupon_id=&order_by=seqid&store_type=1"
 ```
 
 post

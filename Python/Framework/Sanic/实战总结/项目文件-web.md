@@ -159,7 +159,7 @@ def build_random_str(l):
 def check_params(r_k, params):
     l_k, r_k_v = [], {}
     for k in r_k:
-        v = params.get(k)
+        v = params.get(k, None)
         if v is not None:
             r_k_v[k] = v
         else:
@@ -515,6 +515,16 @@ def catch_exceptions(request, ex):
     else:
         msg = ex.__class__.__name__ + ": " + str(ex)
         return res_ng(code=50000, msg=msg)
+      
+
+@app.middleware("request")
+async def middle_request(request):
+    path = request.path
+    if path != "/":
+        _uuid = uuid1().hex
+        request.ctx.request_id = _uuid
+        url = request.url
+        logger.info(f"\n===========>{_uuid}\nurl:{url}\n===========\n")
 
     
 @app.middleware('request')
@@ -537,7 +547,7 @@ async def log_info(request, response):
             req = request.body
         rep = response.body
         rep = kjson.json_loads(rep.decode('utf-8')) if rep else ""
-        logger.info(f"\n===========\nurl=>{url}\nrequest=>{req}\nresponse=>{rep}\n============\n")
+        logger.info(f"\n===========<{request_id}\nurl=>{url}\nrequest=>{req}\nresponse=>{rep}\n============\n")
     except Exception as e:
         logger.exception(e)
         

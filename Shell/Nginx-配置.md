@@ -1,5 +1,7 @@
 # Nginx
 
+[参考](http://nginx.org/en/docs/)
+
 ## 安装
 
 - mac
@@ -430,6 +432,16 @@ server {
 }
 ```
 
+`http->https`
+
+```
+server {
+    listen 80;
+    server_name suntory.eachub.cn;
+    rewrite "^/(.*)$" https://suntory.eachub.cn/$1 break;
+}
+```
+
 - 测试
 
 ```shell
@@ -488,6 +500,16 @@ server {
         index  index.html index.htm;
         autoindex on;  # 显示目录
     }
+}
+```
+
+#### 前端配置
+
+```shell
+location /dev/console {
+    alias /opt/soft/mengniu/mengniu_console/dist;
+        index index.html index.htm;
+    try_files $uri $uri/ /dev/console/index.html;  # 刷新或者路径不太对时直接跳转此处
 }
 ```
 
@@ -759,6 +781,8 @@ listen unix:path;
 
 #### Location指令
 
+[参考](http://t.zoukankan.com/shijianchuzhenzhi-p-6873737.html)
+
 用在虚拟服务器的server部分，提供来自客户端的URI或者内部的重定向访问
 
 ```
@@ -874,6 +898,10 @@ location ~ ^/local{
 location / {
     rewrite /(.*)$ /index.php?page=$1 break;
     proxy_pass http://localhost:8080/index;
+}
+
+location /ghjk {
+    rewrite /ghjk/(.*)$  http://www.guhejk.com/$1 break;
 }
 ```
 

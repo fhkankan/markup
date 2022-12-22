@@ -167,6 +167,8 @@ docker tag [old_image]:[old_version] [new_image]:[new_version]  # 方式一
 docker tag image_id [new_image]:[new_version]  # 方式二
 # 删除
 docker rmi [image_id/image_name:image_version]
+
+docker rmi -f $(docker images | grep "none" | awk '{print $3}')
 ```
 
 > 导入、导出
@@ -241,6 +243,9 @@ eg:docker run nginx /bin/echo "hello docker"
 --net="bridge": 指定容器的网络连接类型，支持 bridge/host/none/container: 四种类型；
 --link=[]: 添加链接到另一个容器；
 --expose=[]: 开放一个端口或一组端口；
+
+
+docker run -it -v /Users/henry/TEST:/opt/soft/test xxx /bin/bash
 ```
 启动已终止的容器
 ```

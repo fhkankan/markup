@@ -21,7 +21,7 @@ import time
 | time.strptime(str,fmt = '%a%b%d%H:%M:%S%Y') | 字符串 | 元组   | 根据fmt的格式把一个时间字符串解析为时间元组                  |
 | time.sleep(secs)                            | 秒数   |        | 推迟调用线程的运行，secs指秒数                               |
 
-eg
+- 时间戳与文本转换
 
 ```python
 import time
@@ -34,7 +34,19 @@ b = int(time.time())
 b = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(b))
 ```
 
-代码执行速度时要使用到time中区别
+- 各个级别时间戳
+
+```python
+import time
+
+t= time.time()
+print(t)  # 原始时间数据
+print(int(t))  # 秒级时间戳
+print(int(round(t * 1000)))  # 毫秒级时间戳
+print(int(round(t * 1000000)))  # 微秒级时间戳
+```
+
+- 代码执行速度时要使用到time中区别
 
 ```
 cpu 的运行机制：cpu是多任务的，例如在多进程的执行过程中，一段时间内会有对各进程被处理。一个进程从从开始到结束其实是在这期间的一些列时间片断上断断续续执行的。所以这就引出了程序执行的cpu时间（该程序单纯在cpu上运行所需时间）和墙上时钟wall time。
