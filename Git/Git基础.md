@@ -1,4 +1,4 @@
-# Git基础
+Git基础
 
 ## 安装与概述
 安装
@@ -161,23 +161,43 @@ git reset --soft HEAD^  # 撤销上次commit，不撤销add，再次commit时作
 - 标记
 
 ```shell
+# 查看
 git tag						# 查看标签
+git tag -l
+git tag -n				# 查看所有tag和说明
+git tag ls-rmote --tags origin  # 查看远程所有tag
+git tag show xx  # 查看xx的内容
+
+# 创建
+git tag tag-name  			# 创建轻量标签/查看标签内容
+git tag tag-name commit-id  # 对以往的记录进行标签 
 
 git tag -a tag-name -m tag-info  # 创建附注标签
 git tag -a tag_name commit-id  # 对以往的记录进行标签
 
-git tag tag-name  			# 创建轻量标签/查看标签内容
-git tag tag-name commit-id  # 对以往的记录进行标签 
-
-git pull --tags  			# 拉取所有标签
-
 git push origin tag-name 	# 推送某个标签
 git push --tags			 	# 推送所有标签
 
+
+
+# 删除
 git tag -d tage-name		# 删除本地标签
 git push origin :refs/tags/tag-name  # 删除远程标签
 
+# 重命名
+# 方法一：强制替换，再删除原有
+git tag -f <new> <old>
+git tag -d <old>
+# 方法二：删除原有，重新添加
+git tag -d <old>
+git tag -a <new> -m 'xxx'
+
+# 迁出
+git pull --tags  			# 拉取所有标签
+
 git checkout tag-name  # 签出标签指向的版本
+git checkout -b branch_name tag_name  # 新建分支检出
+# 注意：不要在检出标签后做修改和提交，会出现不必要的麻烦。正确做法是：创建一个新的分支，在新的分支上做修改和提交
 ```
 
 ### 回退
@@ -398,10 +418,6 @@ git push master
 # 优缺点
 优点：可以对某一段线性提交历史进行编辑、删除、复制、粘贴，提交历史干净简洁，形成线性提交历史。
 缺点：如果变基中要打散的提交被其他人正在开发，则会在此次变基提交后，其他人提送代码时需要合并此次变基操作，同时自己在变基后推送代码也需要合并他人的处理，造成工作繁琐且记录中有多条重复记录，造成混乱。
-
-摘录来自: Scott Chacon. “Pro Git。” Apple Books. 
-
-摘录来自: Scott Chacon. “Pro Git。” Apple Books. 
 
 # 应用场景
 合并未推送的本地修改分支至公共分支时
