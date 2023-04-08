@@ -326,7 +326,7 @@ server {
 }
 ```
 
-#### http/https配置
+#### http/https
 
 - 配置
 
@@ -432,13 +432,49 @@ server {
 }
 ```
 
-`http->https`
+转换
 
-```
+```shell
+#  http->https
 server {
     listen 80;
     server_name suntory.eachub.cn;
+    # 方法一
     rewrite "^/(.*)$" https://suntory.eachub.cn/$1 break;
+    # 方法二：
+    return 301 https://www.xxx.com;
+    # 方法三：
+    location / {        
+            proxy_pass  https://www.xxx.com; 
+    }
+}
+
+#  https->http
+server {
+    charset utf-8;
+    client_max_body_size 128M;
+    proxy_headers_hash_bucket_size 6400;
+    proxy_headers_hash_max_size 51200;
+
+    listen 443 ssl;
+    server_name  liuhui.semirapp.cn;
+    access_log   /var/log/nginx/liuhui443.log main;
+
+    ssl_certificate  /etc/nginx/cert/semir.pem;
+    ssl_certificate_key  /etc/nginx/cert/semir.key;
+    ssl_session_timeout 5m;
+    ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE:ECDH:AES:HIGH:!NULL:!aNULL:!MD5:!ADH:!RC4;
+    ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+    ssl_prefer_server_ciphers on;
+
+		# 方法一
+    rewrite "^/(.*)$" https://suntory.eachub.cn/$1 break;
+    # 方法二：301
+    return 301 http://www.xxx.com; 
+		# 方法三：proxy_pass
+		location / {        
+            proxy_pass  http://www.xxx.com; 
+    }
 }
 ```
 

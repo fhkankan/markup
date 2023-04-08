@@ -178,8 +178,6 @@ git tag -a tag_name commit-id  # 对以往的记录进行标签
 git push origin tag-name 	# 推送某个标签
 git push --tags			 	# 推送所有标签
 
-
-
 # 删除
 git tag -d tage-name		# 删除本地标签
 git push origin :refs/tags/tag-name  # 删除远程标签
@@ -215,10 +213,10 @@ soft  重置： 本地仓库HEAD指针
 
 # 例子
 git reset --soft HEAD^  # 撤销上次commit，不撤销add
-git reset --hard <commit-id>  # 撤销上次commit的内容
 git reset --hard HEAD^		# 后退1步(一个^表示后退一步)
 git reset --hard HEAD^^		# 回退到上上个版本
 git reset --hard HEAD~2		# 后退2步(~后的数字n是后退n步)
+git reset --hard <commit-id>  # 撤销到commit的内容
 git push -f  # 强制提交
 ```
 
@@ -326,7 +324,17 @@ git push master
 对公共仓库代码合并处理时使用
 在主分支进行冲突解决
 ```
+整合提交记录后合并
+
+```shell
+git checkout master
+git merge --squash develop
+
+# squash merge并不会替你产生提交，它只是把所有的改动合并，然后放在本地文件，需要手动执行git commit操作
+```
+
 ### 撤销合并
+
 假设现在在一个主题分支上工作，不小心将其合并到 master 中，有两种方法解决
 ![撤销合并-意外的合并提交](/Users/henry/Markup/Git/images/撤销合并-意外的合并提交.png)
 

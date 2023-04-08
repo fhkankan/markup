@@ -50,6 +50,9 @@ post
 # application/json
 curl -v -d '{"login": "emma", "pass": "123"}' -H 'Content-Type: application/json' https://google.com/login
 
+curl -v -d '{"user_id": "640e8f4766fa757c", "question": "哪里有江诗丹顿专卖店？"}' -H 'Content-Type: application/json' http://bot.eachub.cn/product/chat/dm/vac-
+chatbot-inst
+
 # application/x-www-form-urlencoded
 curl -v -d'login=emma＆password=123'-X POST https://google.com/login
 ```

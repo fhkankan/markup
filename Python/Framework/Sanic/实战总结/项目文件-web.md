@@ -156,16 +156,24 @@ def build_random_str(l):
     k = l - len(t)
     return t + ''.join(random.choice(x) for i in range(k))
 
-def check_params(r_k, params):
-    l_k, r_k_v = [], {}
+def check_params(r_k, o_k, params):
+    l_k, r_k_v, o_k_v = [], {}, {}
     for k in r_k:
-        v = params.get(k, None)
+        v = params.get(k)
         if v is not None:
             r_k_v[k] = v
         else:
             l_k.append(k)
     assert not l_k, f"{','.join(l_k)}参数缺失"
-    return r_k_v
+    o_k_v = {k: params.get(k) for k in o_k if params.get(k) is not None}
+    o_k_v.update(r_k_v)
+    return o_k_v
+
+def encrypt_passwd(salt, password):
+    h = md5()
+    h.update((salt + password).encode('utf-8'))
+    password_encrypt = h.hexdigest()
+    return password_encrypt
 
 
 def get_rest_seconds():
@@ -285,6 +293,55 @@ async def get_conf_content(cache_db, db, *keys):
             if logger.isEnabledFor(logging.DEBUG):
                 logger.debug(f"read from mysql: {x}")
     return key_val
+```
+
+接口签名验证
+
+```python
+channel_vendor = {
+    "1021": {
+        "name": "test",
+        "apps": {
+            "mall": dict(key="Ba185qbFDuzPu", ip={"127.0.0.1"}),
+        },
+    },
+}
+
+
+
+def check_auth(request, table, myapp):
+    hdr = request.headers
+    ###
+    vendor_id = hdr.get("X-EACH-VENDOR-ID")
+    if not vendor_id: return 901, "http头缺少X-EACH-VENDOR-ID"
+    vendor = table.get(vendor_id)
+    if vendor is None: return 902, "错误的vendor_id"
+    ###
+    appid = hdr.get("X-EACH-APP-ID")
+    if not appid: return 901, "http头缺少X-EACH-APP-ID"
+    if appid != myapp: return 900, "appid不匹配"
+    app = vendor["apps"].get(appid)
+    if app is None: return 902, "错误的appid"
+    ###
+    signature = hdr.get("X-EACH-SIGNATURE")
+    if not signature: return 901, "http头缺少X-EACH-SIGNATURE"
+    ###
+    logger.info((request.ip, request.remote_addr))
+    if app["ip"] and request.ip not in app["ip"]:
+        return 907, f"未被允许的ip: {request.ip}"
+    ###
+    todos = [request.path]
+    if request.query_string:
+        todos.append("?" + request.query_string)
+    if request.method.upper() == "POST":
+        todos.append(request.body.decode())
+    todos.append(app["key"])
+    bstr = "".join(todos).encode()
+    hashcode = hashlib.sha256(bstr).hexdigest()
+    if signature == hashcode: return 0, "ok"
+    ###
+    logger.error(f"check-sign-failed: {signature} != {hashcode} <== {bstr}")
+    return 904, "签名不匹配"
 ```
 
 `jwt.py`

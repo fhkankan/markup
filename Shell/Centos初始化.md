@@ -1,5 +1,11 @@
 # 服务器初始化
 
+centos版本
+
+```
+
+```
+
 ## 环境处理
 
 上传`centos_init.sh`
@@ -78,5 +84,3 @@ service kepler status
 systemctl restart kepler.service
 systemctl status kepler.service
 ```
-
-## 
