@@ -131,3 +131,32 @@ Web 应用程序不使用内容安全策略 (CSP)。如果使用得当，CSP 有
 - 建议
 
 从长远来看，审核员建议实施强大的内容安全策略，如下面提到的参考资料中所述。
+
+## SSL/TSL协议漏洞
+
+- 方法一
+
+```
+OpenSSL 1.0.2用户应升级到1.0.2i
+OpenSSL 1.0.1用户应升级到1.0.1u
+openssl最新版本是1.1.1系列，且是TLS版本
+
+# 查看版本
+openssl version
+```
+
+- 方法二
+
+```
+nginx禁用des和3des加密
+
+# 配置加密算法
+ssl_ciphers "HIGH:!aNULL:!MD5:!DES:!3DES";
+```
+
+验证漏洞是否已经修复
+
+```
+nmap -sV --script ssl-cert,ssl-enum-ciphers -p 443 服务IP或域名|grep DES
+```
+

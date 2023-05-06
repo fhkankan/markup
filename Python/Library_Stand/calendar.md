@@ -46,3 +46,24 @@ weekday(year,month,day)
 # 返回给定日期的日期码。0(星期一)到6(星期日)。月从1到12
 ```
 
+## 使用
+
+获取指定年月的天数
+
+```python
+import calendar
+import datetime
+
+
+def get_first_last(year,month):
+    year,month= int(year),int(month)
+    weekDay,monthCountDay = calendar.monthrange(year,month)
+    # 获取某月份第一天
+    range_day = str(datetime.date(year, month, day=1))+"至"+str(datetime.date(year, month, day=monthCountDay))
+    # 获取某月份最后一天
+    return range_day
+  
+  
+print(get_first_last('2022','08'))
+```
+
