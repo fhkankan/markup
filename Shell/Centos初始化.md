@@ -22,8 +22,6 @@ chmod a+x centos_init.sh
 ./centos_init.sh
 
 reboot
-
-
 ```
 
 python3.9安装
