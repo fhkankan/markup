@@ -222,8 +222,6 @@ def get_carts():
 	return render_template('carts.html')
 ```
 
-
-
 ## 循环导入
 
 ```
@@ -631,5 +629,4 @@ if __name__ == '__main__':
 	print app.url_map
 	app.run()
 ```
-
 

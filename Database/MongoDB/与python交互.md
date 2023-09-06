@@ -40,83 +40,192 @@ find 			# 查找多条文档对象
 # 结合for...in...遍历cursor对象
 ```
 
-增加
+#### 运行
 
 ```python
-from pymongo import *
+from pymongo import MongoClient
+from pprint import pprint
 
-try:
-    client=MongoClient('localhost',27017)
-    db=client.py3
+client = MongoClient('mongodb://localhost:27017/')
+
+with client:
+    db = client.testdb
+    status = db.command("serverStatus")
+    print(status)
+    status = db.command("dbstats")
+    print(status)
+```
+
+#### 增加
+
+```python
+with client:
+    db=client.testdb
     
     # 增加一条文档对象
-    doc={'name':'zhangsan','home':'henan'}
-    db.stu.insert_one(doc)
+    car={'name':'zhangsan','price':'1'}
+    db.cars.insert_one(car)
     # 增加多条文档对象
-    doc1={'name':'hr','home':'thd'}
-    doc2={'name':'mnc','home':'njc'}
-    doc=[doc1,doc2]
-    db.stu.insert_many(doc)
+    car1={'name':'hr','price':'2'}
+    car2={'name':'mnc','price':'3'}
+    cars=[car1, car2]
+    db.cars.insert_many(cars)
     print("ok")
 except Exception,e:
     print(e)
 ```
 
-删除
+#### 删除
+
+- 删除集合
 
 ```python
-from pymongo import *
-
-try:
-    client=MongoClient('localhost',27017)
-    db=client.py3
-    
-    # 删除一条文档对象
-    db.stu.delete_one({'gender':True})
-    # 删除多条文档对象
-    db.stu.delete_many({'gender':False})
-    print 'ok'
-except Exception,e:
-    print(e)
+with client
+		db.cars.drop()
 ```
 
-修改
+- 删除文档对象
 
 ```python
-from pymongo import *
+with client:
+		# 删除一条文档对象
+		db.cars.delete_one(car)
+		# 删除多条文档对象
+		db.stu.delete_many(cars)
+```
 
-try:
-    client=MongoClient('localhost',27017)
-    db=client.py3
-    
+#### 修改
+
+```python
+with clinet:
+    condition = {"name": "vol"}  # 查询条件
+  	car = db,cars.find_one(condition)
+    car['price'] = 2
     # 修改一条文档对象
-    db.stu.update_one({'gender':False},{'$set':{'name':'hehe'}})
-    # 修改多条文档对象
-    db.stu.update_many({'gender':True},{'$set':{'name':'haha'}})
-    print('ok')
-except Exception,e:
-    print(e)
+    result = db.cars.update_one(car, {'$set': car})
+    print(result, result.matched_count, result.modified_count)  # matched_count,modified_count表示匹配和影响的数据条数
+		condition = {"price": {"$gt": 2}}  #  查询条件
+    restult = db.cars.update_one(condition, {'$inc': {'age': 1}})
+    print(result, result.matched_count, result.modified_count)
+    
+    # 修改多行文档对象
+    condition = {"price": {"$gt": 2}}  #  查询条件
+    restult = db.cars.update_many(condition, {'$inc': {'age': 1}})
+    print(result, result.matched_count, result.modified_count)   
 ```
 
-查询
+#### 查询
+
+- 列出集合
 
 ```python
-from pymongo import *
-
-try:
-    client=MongoClient('localhost',27017)
-    db=client.py3
-    
-    # 查询一条文档对象
-    doc=db.stu.find_one()
-    print('%s--%s'%(doc['name'],doc['hometown']))
-    # 查询多条文档对象
-    cursor=db.stu.find({'hometown':'大理'})
-    for doc in cursor:
-        print('%s--%s'%(doc['name'],doc['hometown']))
-except Exception,e:
-    print(e)
+with client:
+    db = client.testdb
+    print(db.collection_names())
 ```
+
+- 游标
+
+```python
+with client:
+		db = client.testdb
+		doc = sb.stu.find()  # 返回一个pymongo游标
+		print(doc.next())  # 从结果中获取下一个文档
+    doc.rewind() # 将游标倒回其未评估状态
+    print(doc.next())
+    
+    print(list(doc)) # 将游标转换为python列表，将所有数据加载到内存中
+```
+
+- 读取所有数据
+
+```python
+with client:
+  	db = client.testdb
+    cars = db.cars.find()
+    for cat in cars:
+      print(f"{car['name']}{car['price']}")
+```
+
+- 记数文件
+
+```python
+with client:
+  	db = client.testdb
+    n_cars = db.cars.find().count()
+    print(n_cars)
+```
+
+- 过滤器
+
+```python
+with client:
+    db = client.testdb
+    expensive_cars = db.cars.find({'price': {'$gt': 50000}})
+    for ecar in expensive_cars:
+        print(ecar['name'])
+```
+
+- 投影
+
+通过投影，我们可以从返回的文档中选择特定字段。 投影在`find()`方法的第二个参数中传递。
+
+```python
+with client:
+    db = client.testdb
+    cars = db.cars.find({}, {'_id': 1, 'name':1})
+    for car in cars:
+        print(car)
+```
+
+- 排序
+
+```python
+with client:
+    db = client.testdb
+    cars = db.cars.find().sort("price", DESCENDING)
+    for car in cars:
+        print('{0} {1}'.format(car['name'], 
+            car['price']))
+```
+
+- 聚合
+
+```python
+with client:
+    db = client.testdb
+    # sum运算符计算并返回数值的总和。 group运算符通过指定的标识符表达式对输入文档进行分组，并将累加器表达式（如果指定）应用于每个组。
+    agr = [ {'group': {'_id': 1, 'all': { 'sum': '$price' } } } ]
+    # aggregate()方法将聚合操作应用于cars集合
+    val = list(db.cars.aggregate(agr))
+    print('The sum of prices is {}'.format(val[0]['all']))
+    
+    
+with client:
+    db = client.testdb
+    # 计算奥迪和沃尔沃汽车的价格总和
+    agr = [{ 'match': {'or': [ { 'name': "Audi" }, { 'name': "Volvo" }] }}, 
+        { 'group': {'_id': 1, 'sum2cars': { 'sum': "$price" } }}]
+    val = list(db.cars.aggregate(agr))
+    print('The sum of prices of two cars is {}'.format(val[0]['sum2cars']))
+
+
+```
+
+- 限制输出
+
+`limit`查询选项指定要返回的文档数量，`skip()`选项指定某些文档。
+
+```python
+with client:
+    db = client.testdb
+		# skip()方法跳过前两个文档，limit()方法将输出限制为三个文档
+    cars = db.cars.find().skip(2).limit(3)
+    for car in cars:
+        print('{0}: {1}'.format(car['name'], car['price']))
+```
+
+
 
 ### 集成Django
 

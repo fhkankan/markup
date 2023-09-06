@@ -459,7 +459,7 @@ def index():
 	resp.headers["Itcast3"] = "python3"	# 响应头
 	return resp
 ```
-## 返回json
+### 返回json
 
 ```
 from flask import Flask,jsonify
@@ -480,7 +480,6 @@ import json
         # 方法三:jsonify中直接传内容
         return jsonify(name="python6", age=17)
 ```
-
 
 ## cookie
 
@@ -574,7 +573,7 @@ current_app和g对象都属于应用上下文对象。
 current_app
 
 ```python
-# 表示当前运行程序文件的程序实例。可以通过current_app.name打印当前app的名称，也可以在current_app中存储一些变量，如：应用的启动脚本是哪个文件，启动时指定了哪些参数，加载了哪些配置文件，导入了哪些配置，连了哪个数据库，有哪些public的工具类、常量，应用跑再哪个机器上，IP多少，内存多大
+# 表示当前运行程序文件的程序实例。可以通过current_app.name打印当前app的名称，也可以在current_app中存储一些变量，如：应用的启动脚本是哪个文件，启动时指定了哪些参数，加载了哪些配置文件，导入了哪些配置，连了哪个数据库，有哪些public的工具类、常量，应用跑在哪个机器上，IP多少，内存多大
 current_app.name		# 打印出当前应用程序实例的名字。
 current_app.send_static_file(filename)	# 把文件名返回给浏览器
 

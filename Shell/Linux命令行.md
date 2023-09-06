@@ -257,6 +257,9 @@ ps -aux | sort -k4nr | head -K
 # 查使用CPU最多的K个进程
 ps -aux | sort -k3nr | head -K
 或 top P
+
+# 查看netstat
+netstat -ptln | grep xxx
 ```
 
 ### 结束进程

@@ -111,23 +111,43 @@ _id是一个12字节的十六进制数，保证每一份文件的唯一性。你
 
 # 数据库操作
 
-连接成功后，默认使用test数据库
+登陆
 
+```shell
+# 无认证
+mongo --host 192.168.2.1 --port 27012
+
+# 有认证
+# 方法一：进入和认证同时
+mongo --host 192.168.2.1 --port 27012 -u "root" -p "qwer" --authenticationDatabase "admin"
+# 方法二：先进入后认证
+mongo --host 192.168.2.1 --port 27012
+use admin  # 进入后
+db.auth("root", "qwer")
 ```
+
+查看
+
+```shell
 # 查看当前数据库名称
 db
 
 # 查看所有数据库名称，
 # 列出所有在物理上存在的数据库
 show dbs
+```
+编辑
 
+```shell
 # 切换数据库
 # 如果数据库不存在也并不创建，直到插入数据或创建集合时数据库才被创建
 use 数据库名称
 
 # 删除当前指向的数据库，如果数据库不存在，则什么也不做
 db.dropDatabase()
-
+```
+备份与恢复
+```shell
 # 备份
 mongodump -h dbhost -d dbname -o dbdirector
 -h：服务器地址，也可以指定端口号
@@ -141,7 +161,42 @@ mongorestore -h dbhost -d dbname --dir dbdirectory
 --dir：备份数据所在位置
 ```
 
+创建认证
+
+```shell
+mongo --port 27017
+
+use admin
+
+# 创建管理员
+db.createUser({
+	user: "root",
+	pwd: "qwer"
+	roles:[{role: "useAdminAnyDatabse", db: "admin"}]
+})
+
+# 创建普通用户
+db.createUser({
+	user: "opuser",
+	pwd: "qwer"
+	roles:[
+		{role: "readWrite", db: "foo"},  # foo中可读写，用户验证
+    {role: "read", db: "bar"}  # bar可读，需先在foo中验证
+  ]
+})
+```
+
+
+
 # 集合操作
+
+查看
+
+```
+show collections
+```
+
+编辑
 
 ```
 # 创建集合
@@ -156,9 +211,6 @@ db.createCollection("stu")
 db.createCollection("stu", {capped : true, size : 6142800} )
 - capped：默认值为false表示不设置上限，值为true表示设置上限
 - size：当capped值为true时，需要指定此参数，表示上限大小，当文档达到上限时，会将之前的数据覆盖，单位为字节
-
-# 查看当前数据库的集合
-show collections
 
 # 删除命令
 db.stu.drop()
@@ -367,7 +419,6 @@ $max：获取最大值
 $push：在结果文档中插入值到一个数组中
 $first：根据资源文档的排序获取第一个文档数据
 $last：根据资源文档的排序获取最后一个文档数据
-
 ```
 
 ### $group

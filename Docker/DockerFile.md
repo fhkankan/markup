@@ -35,6 +35,9 @@ docker build
 # 参数详解:
 -t 	# 指定构建后的镜像信息，
 /opt/dockerfile/nginx/ # 则代表Dockerfile存放位置，如果是当前目录，则用 .(点)表示
+
+# 将当前目录作为docker目录
+docker build -t nginx:v0.3 -f ./docker/Dockerfile .
 ```
 
 ## 样例
