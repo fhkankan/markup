@@ -167,6 +167,7 @@ app.url_map
 @app.route('/index', mehoods=["POST"])
 def index1():
 	pass
+	
 @app.route('/index')
 def index2():
 	pass
