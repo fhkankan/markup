@@ -114,3 +114,64 @@ if __name__ == "__main__":
     # 将模块传递给了import_source函数
     import_source(logging)
 ```
+
+## 实例
+
+文档
+
+```
+- import_files
+- - a.py
+- - b.py
+- param_funcs.py
+- main.py
+```
+
+`main.py`
+
+```python
+import os.path as osp
+import os
+import importlib
+import inspect
+
+
+def outter():
+    """通过指定的文件夹/文件来导入"""
+    plugins_contrib_root = osp.join(osp.dirname(__file__), '../import_files')
+    if os.path.exists(plugins_contrib_root):
+        for root, dirs, files in os.walk(plugins_contrib_root):
+            for fn in files:
+                splitext = os.path.splitext(fn)
+                if len(splitext) != 2:
+                    continue
+                if splitext[1] != '.py':
+                    continue
+                fp = os.path.normpath(os.path.join(root, splitext[0]))
+                path_splits = fp.split(os.path.sep)
+                module_path = '.'.join(path_splits[path_splits.index('import_files'):])
+                plugin_module = importlib.import_module(module_path)
+                plugin_list = inspect.getmembers(plugin_module)  # 获取导入模型的所有组成对象
+                total = len(plugin_list)
+                for index, info in enumerate(plugin_list):
+                    name, plugin_cls = info
+                    if inspect.isfunction(plugin_cls):
+                        print("out")
+
+
+def inner():
+    """直接通过导入的模型来导入"""
+    import param_func
+    print(len(dir(param_func)))
+    for i, v in enumerate(dir(param_func)):  # 方法一：使用dir来识别
+        print(i, v)
+    
+    plugin_list = inspect.getmembers(param_func)  # 方法二：使用inspect
+    all_funcs = {}
+    for index, info in enumerate(plugin_list):
+        name, plugin_cls = info
+        if inspect.isfunction(plugin_cls):
+            all_funcs[name] = plugin_cls
+            print(plugin_cls())
+```
+
