@@ -149,6 +149,10 @@ docker-compose pause [SERVICE...]		# 暂停一个服务容器
 docker-compose unpause [SERVICE...]		# 恢复处于暂停状态中的服务。
 docker-compose run [options] [-v VOLUME...] [-p PORT...] [-e KEY=VAL...] SERVICE [COMMAND] [ARGS...]		# 在指定服务上执行一个命令。
 docker-compose scale web=3 db=2		# 设置指定服务运行的容器个数。通过service=num的参数来设置数量
+
+# 指定项目名
+docker-compose -p pro_name up -d
+docker-compose -p pro_name down
 ```
 
 - docker-compose up
