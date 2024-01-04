@@ -1040,8 +1040,11 @@ print(object_columns_df.iloc[0])
 ```python
 # 按索引排序
 ser_obj.sort_index()
-# 默认为行索变动排序，排序规则为升序,
-# axis=0表示列变动，ascending=False表示降序
+
+# 默认为axis=0,ascending=True,inplace=False
+# axis用行还是列排序：0表示列变动，用行索引排序；axis=1是行变动，用列名排序
+# ascending升序还是降序：True升序，False表示降序
+# inplace当前操作是否对原数据生效，False不对原数据生效，True生效
 df_obj.sort_index()
  
 # 按值排序,默认升序
