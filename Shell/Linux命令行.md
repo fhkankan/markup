@@ -208,6 +208,19 @@ ps
 -x    显示没有控制终端的进程
 -w    显示加宽，以便显示更多的信息
 -r    只显示正在运行的进程
+# 下面显示：user/pid/%cpu/%mem/vsz/rss/tty/stat/start/time/command
+USER：进程所有者的用户名
+PID：进程的唯一标识符，即进程 ID
+%CPU：进程使用的 CPU 资源的百分比
+%MEM：进程使用的内存资源的百分比
+VSZ：（Virtual Memory Size）进程的虚拟内存大小（以 KB 为单位）
+RSS：（Resident Set Size）进程占用的物理内存大小（以 KB 为单位）
+TTY：进程所关联的终端
+STAT：进程的状态（例如，R 表示运行，S 表示睡眠，Z 表示僵尸（Zombie）等）
+START：进程启动的时间
+TIME：进程运行过程中占用 CPU 的总时间
+COMMAND：启动进程的命令名称
+
 
 pstree(选项)
 # 树状显示进程信息
