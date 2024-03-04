@@ -221,6 +221,17 @@ START：进程启动的时间
 TIME：进程运行过程中占用 CPU 的总时间
 COMMAND：启动进程的命令名称
 
+# 通过pid查看进程详细信息
+ps -ef | grep pid
+# 显示系统中名为xxx的进程
+ps -aux | grep xxx
+ps -elf | grep xxx
+# 查使用内存最多的K个进程
+ps -aux | sort -k4nr | head -K
+或 top M
+# 查使用CPU最多的K个进程
+ps -aux | sort -k3nr | head -K
+或 top P
 
 pstree(选项)
 # 树状显示进程信息
@@ -259,20 +270,7 @@ q    退出
 h    获得帮助
 htop
 
-# 显示系统中名为xxx的进程
-ps -aux | grep xxx
-ps -elf | grep xxx
 
-# 查使用内存最多的K个进程
-ps -aux | sort -k4nr | head -K
-或 top M
-
-# 查使用CPU最多的K个进程
-ps -aux | sort -k3nr | head -K
-或 top P
-
-# 查看netstat
-netstat -ptln | grep xxx
 ```
 
 ### 结束进程
@@ -338,8 +336,11 @@ nmap 127.0.0.1
 netstat
 
 ```shell
+# 通过端口查看pid
 netstat -anlp | grep 端口号
 netstat -tunlp| grep 端口号
+# 通过pid查看端口
+netstat -anp | grep 进程pid
 # 查看所有端口状态
 netstat -ntlup  
 # 显示详细的网络状况

@@ -22,6 +22,8 @@ git submodule add <repository> <path>   # 添加子模块
 git submodule init 						# 初始化子模块
 git submodule update 					# 更新子模块
 git submodule foreach git pull 			# 拉取所有子模块
+
+git submodule update --init --recursive
 ```
 
 ### 创建带子模块的项目
