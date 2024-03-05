@@ -585,6 +585,47 @@ net: "none"
 net: "host"
   ```
 
+### 变量使用
+
+在Docker Compose中，可以使用`.env`文件来定义变量并将其传递到容器中。
+
+首先，创建一个名为`.env`的文本文件，该文件应与`docker-compose.yml`位于同一目录下。然后，在`.env`文件中添加所需的变量及其值，每行表示一个变量。
+
+```
+DB_HOST=localhost
+DB_PORT=5432
+DB_USERNAME=myuser
+DB_PASSWORD=mypassword
+```
+
+在`docker-compose.yml`文件中引用这些变量。可以通过两种方式进行引用
+
+1. 直接在服务配置部分使用`${VARIABLE}`语法引用变量。
+
+例如：
+
+```
+services:
+  myapp:
+    environment:
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+```
+
+注意，此处不能使用单引号或双引号包裹变量。
+
+2. 使用`environment`关键字指定一个外部文件作为变量源
+
+````
+services:
+  myapp:
+    env_file: ./.env
+````
+
+上面的设置会自动从当前目录下的`.env`文件中读取变量。
+
 ### 示例
 
 - 模版文件
