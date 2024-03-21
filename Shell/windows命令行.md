@@ -1,0 +1,23 @@
+# windows命令行
+
+## 查看
+
+端口和进程
+
+```shell
+# 查看123端口占用情况
+netstat -ano | findstr "123"
+
+# 查看进程相关信息
+tasklist | findstr "PID"
+
+# 关闭进程
+taskkill /f /pid
+```
+
+ip
+
+```
+ipconfig
+```
+
