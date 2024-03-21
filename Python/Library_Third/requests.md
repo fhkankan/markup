@@ -6,7 +6,7 @@ Requests的文档非常完备
 
 开源地址：<https://github.com/kennethreitz/requests>
 
-中文文档 API： <http://docs.python-requests.org/zh_CN/latest/index.html>
+文档 API：https://requests.readthedocs.io/en/latest/
 
 ## 安装
 
