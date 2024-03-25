@@ -98,6 +98,8 @@ os.path.getatime(filename)
 # 返回文件的最后访问时间
 os.path.getctime(filename)
 # 返回文件的创建时间
+os.path.getmtime()
+# 获取指定路径的最后修改时间
 
 os.path.getsize(path)
 # 产看文件的大小
