@@ -1,5 +1,7 @@
 # web项目
 
+版本：20.12.6
+
 ## 目录结构
 
 ```
@@ -595,7 +597,7 @@ async def auth(request):
         request.ctx.user_id = user_id
         
 @app.middleware('response')
-async def log_info(request, response):
+async def middle_response(request, response):
     try:
         url = request.url
         if request.method == "POST" and request.headers.get("Content-Type").startswith("application/json"):
