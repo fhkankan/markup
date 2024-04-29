@@ -9,10 +9,10 @@
 netstat -ano | findstr "123"
 
 # 查看进程相关信息
-tasklist | findstr "PID"
+tasklist | findstr "PID值"
 
 # 关闭进程
-taskkill /f /pid
+taskkill /f /pid 123
 ```
 
 ip
