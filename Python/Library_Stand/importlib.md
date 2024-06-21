@@ -115,6 +115,45 @@ if __name__ == "__main__":
     import_source(logging)
 ```
 
+## 热加载
+
+`funcs.py`
+
+```python
+def say_hello():
+ print("hello, word")
+```
+
+`main.py`
+
+```python
+import importlib
+
+
+def load_module(module_name):
+    return importlib.import_module(module_name)
+
+def reload_module(module_name):
+    return importlib.reload((module_name))
+
+
+if __name__ == "__main__":
+    module_name = "funcs"
+    print("1")
+    example_module = load_module(module_name)
+    example_module.say_hello()
+    print("2")
+    with open("funcs.py", "w") as f:
+        f.write('def say_hello():\n print("hello, update")')
+    
+    importlib.invalidate_caches()  # 清除importlib的缓存
+    example_module = reload_module(example_module)
+    example_module.say_hello()
+
+```
+
+
+
 ## 实例
 
 文档
