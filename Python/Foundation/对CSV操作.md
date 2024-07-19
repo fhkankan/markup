@@ -21,6 +21,16 @@ with open('env.csv) as f:
 		print(row)
 ```
 
+> 读取为字典组成的列表
+
+```
+import csv
+
+with open('env.csv) as f:
+	readCSV = csv.DictReader(f)
+	return [row for row in readCSv]
+```
+
 > 通过第一行数类型的关键字来读取
 
 ```
