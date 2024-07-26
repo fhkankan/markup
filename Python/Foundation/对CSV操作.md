@@ -76,7 +76,7 @@ import csv
 
 headers = ['name', 'age', 'weight']
 rows = [('a', 20, 64),('b', 34, 68)]
-with open('demo.csv', 'w') as f:
+with open('demo.csv', 'w',  encoding="utf-8", newline="") as f:
 	f_csv = csv.writer(f)
 	# 写入单行
 	f_csv.writerow(headers)
@@ -92,7 +92,7 @@ import csv
 headers = ['name', 'age', 'weight']
 rows = [{'name':'a','age':20,'weight':64},
 	    {'name':'b','age':34,'weight':68}]
-with open('demo.csv', 'w') as f:
+with open('demo.csv', 'w',  encoding="utf-8", newline="") as f:
 	f_csv = csv.DictWriter(f, headers)
 	f_csv.writeheader()
 	f_csv.writerows(rows)

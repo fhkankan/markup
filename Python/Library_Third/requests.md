@@ -85,12 +85,6 @@ print r.text
 
 - multipart/form-data 
 
-上传文件用的表单
-
-```python
-requests.post(url='',data={'key1':'value1','key2':'value2'},headers={'Content-Type':'multipart/form-data'})
-```
-
 需要文件
 
 ```python
