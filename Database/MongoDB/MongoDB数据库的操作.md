@@ -126,26 +126,6 @@ use admin  # 进入后
 db.auth("root", "qwer")
 ```
 
-用户
-
-```shell
-# 查看用户
-# 方法1
-use admin
-db.auth('admin', 'password')
-db.getUser('myUser')
-
-# 方法2
-use admin
-db.auth('admin', 'password')
-db.runCommand({userInfo:{user:'myUser', db:'myDatabase'}})
-
-# 方法3
-use admin
-db.auth('admin', 'password')
-show users
-```
-
 查看
 
 ```shell
@@ -155,6 +135,13 @@ db
 # 查看所有数据库名称，
 # 列出所有在物理上存在的数据库
 show dbs
+
+# 查看用户
+use admin
+db.auth('admin', 'password')
+show users # 方法1
+db.getUser('myUser')  # 方法2
+db.runCommand({userInfo:{user:'myUser', db:'myDatabase'}}) # 方法3
 ```
 编辑
 
@@ -165,6 +152,22 @@ use 数据库名称
 
 # 删除当前指向的数据库，如果数据库不存在，则什么也不做
 db.dropDatabase()
+
+# 创建用户
+use admin
+db.createUser({
+	user: "root",
+	pwd: "qwer"
+	roles:[{role: "useAdminAnyDatabse", db: "admin"}]
+})  # 创建管理员
+db.createUser({
+	user: "opuser",
+	pwd: "qwer"
+	roles:[
+		{role: "readWrite", db: "foo"},  # foo中可读写，用户验证
+    	{role: "read", db: "bar"}  # bar可读，需先在foo中验证
+  ]
+})  # 创建普通用户
 ```
 备份与恢复
 ```shell
@@ -180,33 +183,6 @@ mongorestore -h dbhost -d dbname --dir dbdirectory
 -d：需要恢复的数据库实例
 --dir：备份数据所在位置
 ```
-
-创建认证
-
-```shell
-mongo --port 27017
-
-use admin
-
-# 创建管理员
-db.createUser({
-	user: "root",
-	pwd: "qwer"
-	roles:[{role: "useAdminAnyDatabse", db: "admin"}]
-})
-
-# 创建普通用户
-db.createUser({
-	user: "opuser",
-	pwd: "qwer"
-	roles:[
-		{role: "readWrite", db: "foo"},  # foo中可读写，用户验证
-    {role: "read", db: "bar"}  # bar可读，需先在foo中验证
-  ]
-})
-```
-
-
 
 # 集合操作
 
