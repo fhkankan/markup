@@ -126,6 +126,26 @@ use admin  # 进入后
 db.auth("root", "qwer")
 ```
 
+用户
+
+```shell
+# 查看用户
+# 方法1
+use admin
+db.auth('admin', 'password')
+db.getUser('myUser')
+
+# 方法2
+use admin
+db.auth('admin', 'password')
+db.runCommand({userInfo:{user:'myUser', db:'myDatabase'}})
+
+# 方法3
+use admin
+db.auth('admin', 'password')
+show users
+```
+
 查看
 
 ```shell
