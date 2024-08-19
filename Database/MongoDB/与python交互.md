@@ -19,10 +19,10 @@ from pymongo import *
 client = MongoClient('主机ip',端口)
 
 # 通过client对象获取获得数据库对象
-db = client.数据库名称
+db = client.数据库名称  # 若是不存在，在创建数据时创建
 
 # 通过db对象获取集合对象
-collections = db.集合名称
+collections = db.集合名称  # 若是不存在，在创建数据时创建
 
 # 主要方法
 insert 			# 加入多条文档对象
