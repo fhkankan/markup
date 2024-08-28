@@ -718,6 +718,75 @@ ads.shape = (2, 2, 3)
 np.dsplit(ads, 3)  # 按照深度方向拆分3个维度以上的数组
 ```
 
+### 数组填充
+
+用于对数组周围或内部进行填充，以扩展数组的形状。填充可以是常数、线性增长/缩减、最近点重复或镜像映射
+
+```python
+np.pad(array, pad_width, mode='constant', **kwargs)
+
+# 参数
+array: 要进行填充的原始数组。
+pad_width: 一个整数或者整数序列，指定在每个轴的开始和结束处填充的元素数量。可以嵌套，以支持多维填充。
+mode: 指定填充类型，可选的模式包括：
+	constant: 常数值填充（默认）。
+	edge: 边缘值重复。
+	linear_ramp: 线性增长。
+	maximum: 从开始到结束，填充最大值。
+	minimum: 从开始到结束，填充最小值。
+	mean: 填充所在轴的平均值。
+	median: 填充所在轴的中位数值。
+	reflect: 反射映射。
+	symmetry: 对称映射。
+	wrap: 环绕填充。
+kwargs: 其他关键字参数，如 constant_values 用于指定常数填充的值。
+# 返回值
+返回一个新的数组，其形状是原始数组加上填充的宽度
+```
+
+示例
+
+```python
+import numpy as np
+
+# 创建一个原始数组
+original_array = np.array([[1, 2, 3], [4, 5, 6]])
+
+# 应用常数填充，宽度为1，填充值为0
+padded_array = np.pad(original_array, pad_width=1, mode='constant', constant_values=0)
+
+# 应用边缘值重复填充，宽度为2
+padded_array = np.pad(original_array, pad_width=2, mode='edge')
+
+# 应用线性增长填充，宽度为(1, 2)，即行填充1个，列填充2个
+padded_array = np.pad(original_array, pad_width=(1, 2), mode='linear_ramp', end_values=0)
+```
+
+使用opencv和numpy来增加图像的高度
+
+```python
+import cv2
+import numpy as np
+ 
+# 读取图像
+image = cv2.imread('path_to_image.jpg')
+ 
+# 想要增加的高度
+additional_height = 50
+ 
+# 使用numpy的pad函数增加高度
+# 参数1: 填充的维度，None表示保持原有维度
+# 参数2: 上下各填充的行数
+# 参数3: 左右各填充的列数，如果不填充可以不指定
+# 参数4: 填充的方式，constant表示使用常量填充，后面指定常数值
+padded_image = np.pad(image, [(0, additional_height), (0, 0), (0, 0)], 'constant', constant_values=0)
+ 
+# 保存或显示图像
+cv2.imshow('Padded Image', padded_image)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+```
+
 ### ufunc
 
 ufunc(universal function)是一种能对数组中每个元素进行操作的函数。这些函数可以进行四则运算、比较运算及布尔运算等。numpy内置了许多ufunc函数，也可以使用frompyfunc函数来自定义ufunc函数
