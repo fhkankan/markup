@@ -775,10 +775,7 @@ image = cv2.imread('path_to_image.jpg')
 additional_height = 50
  
 # 使用numpy的pad函数增加高度
-# 参数1: 填充的维度，None表示保持原有维度
-# 参数2: 上下各填充的行数
-# 参数3: 左右各填充的列数，如果不填充可以不指定
-# 参数4: 填充的方式，constant表示使用常量填充，后面指定常数值
+# pad_width：每个轴要填充的数据的数目【每个维度前、后各要填充多少个数据】
 padded_image = np.pad(image, [(0, additional_height), (0, 0), (0, 0)], 'constant', constant_values=0)
  
 # 保存或显示图像
