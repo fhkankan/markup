@@ -36,6 +36,8 @@ Celery学习笔记（一）：https://blog.csdn.net/sdulsj/article/details/73741
 
 https://blog.csdn.net/cuomer/article/details/81214438
 
+celery合集：https://www.cnblogs.com/hunterxiong/p/17450464.html
+
 ## 简介
 
 celery是一个用于管理分布式任务的python框架，采用的是面向对象中间件的方法实现。其主要特性包括处理大量小型任务，并将其分发给大量计算节点。最后，每个任务的结果重新组合，构成最终的答案。
@@ -188,6 +190,13 @@ task.send_task('tasks.test1', args=[hotplay_id, start_dt, end_dt], exchange='for
 默认多进程执行，也可以多协程处理(greenlet/gevent)
 
 ## 使用
+
+```
+insert into {new_table_name} 
+select old.*, {cursor.{field},...} from {en_table_name} as old 
+join {temporary_table} as cursor 
+on old.MID = cursor.MID
+```
 
 ### 简单使用
 
