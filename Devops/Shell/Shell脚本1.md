@@ -1180,6 +1180,8 @@ done
 
 ```shell
 nohup ./test.sh &
+
+nohup ./test.sh  > output.log 2>&1 &
 ```
 
 由于`nohup`命令会解除终端与进程的关联，进程也就不再同STDOUT和STDERR联系在一起。为了保存该命令产生的输出，会自动将STOUT和STDERR的消息重定向到一个名为`nohup.out`的文件中。

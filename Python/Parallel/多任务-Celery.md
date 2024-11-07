@@ -90,113 +90,35 @@ python setup.py build
 python setup.py install
 ```
 
+### task
+
+这个任务就是异步任务或者是定时任务，即为 task，我们可以定义这些任务，然后发送到 broker
+
 ### broker
 
-消息中介是一个不依赖于celery的软件组件，是一个中间件，用于向分布式任务工作进程发送和接收消息。消息中介也被称为消息中间件。它负责通信网络中的消息交换。这类中间件的编址方案(addressing scheme)不再是点对点式的，而是面向消息式的，其中最知名的就是发布/订阅范式。Celery支持多种类型的消息中介，如RabbitMQ、Redis、Amazon SQS、MongoDB、Memcached 等，其中最为完整的是RabbitMQ和Redis。
+消息中间件，用于获取异步或者定时任务，形成一个或多个消息队列，然后发送给 worker 处理这些消息。
 
-- RabbitMQ
-
-它是一个面向消息的中间件(中介消息传递，broker messaging)，它实现了高级消息队列协议(AMQP)。RabbitMQ采用Erlang语言编写，其基础是用于管理集群和故障切换的开放电信平台(OTP)框架。
-
-使用RabbitMQ的细节参照以下链接：<http://docs.celeryproject.org/en/latest/getting-started/brokers/rabbitmq.html#broker-rabbitmq>
-
-```
-RabbitMQ是一个功能完备，稳定的并且易于安装的broker. 它是生产环境中最优的选择。
-
-如果我们使用的是Ubuntu或者Debian发行版的Linux，可以直接通过下面的命令安装RabbitMQ: sudo apt-get install rabbitmq-server 安装完毕之后，RabbitMQ-server服务器就已经在后台运行。如果您用的并不是Ubuntu或Debian, 可以在以下网址： http://www.rabbitmq.com/download.html 去查找自己所需要的版本软件。
-```
-
-- Redis
-
-关于是有那个Redis作为Broker，可访下面网址：<http://docs.celeryproject.org/en/latest/getting-started/brokers/redis.html#broker-redis>
-
-```
-Redis也是一款功能完备的broker可选项，但是其更可能因意外中断或者电源故障导致数据丢失的情况。
-```
+消息中介是一个不依赖于celery的软件组件，是一个中间件，用于向分布式任务工作进程发送和接收消息。它负责通信网络中的消息交换。这类中间件的编址方案(addressing scheme)不再是点对点式的，而是面向消息式的，其中最知名的就是发布/订阅范式。Celery支持多种类型的消息中介，如RabbitMQ、Redis、Amazon SQS、MongoDB、Memcached 等，其中最为完整的是RabbitMQ和Redis。
 
 ### worker
 
+处理消息的程序，获取 broker 中的消息，然后在 worker 中执行，然后根据配置决定将处理结果发送到 backend
+
 Worker是任务执行单元，负责从消息队列中取出任务执行，它可以启动一个或者多个，也可以启动在不同的机器节点，这就是其实现分布式的核心
-
-```python
-# 我们首先创建tasks.py模块
-from celery import Celery
-
-# 我们这里案例使用redis作为broker
-# Celery第一个参数是给其设定一个名字， 第二参数我们设定一个中间人broker
-app = Celery('demo', broker='redis://127.0.0.1/1')
-# app = Celery('demo', broker='amqp://guest@localhost//')
-# app = Celery('demo', broker='amqp://name:pwd@url:port//')
-
-# 创建任务函数, 通过加上装饰器app.task, 将其注册到broker的队列中
-@app.task
-def my_task():
-    print("任务函数正在执行....")
-```
-
-现在我们在创建一个worker， 等待处理队列中的任务.打开终端，cd到tasks.py同级目录中，执行命令:
-
-```
-celery -A tasks worker --loglevel=info
-
-celery -A tasks worker -l info
-```
 
 ### backend
 
 Backend结果存储官方也提供了诸多的存储方式支持：RabbitMQ、 Redis、Memcached,SQLAlchemy, Django ORM、Apache Cassandra、Elasticsearch。
 
-使用Redis作为存储结果的方案，任务结果存储配置我们通过Celery的backend参数来设定。我们将tasks模块修改如下:
+### beat
 
-```python
-# 修改tasks.py
-from celery import Celery
+主要用于调用定时任务，根据设定好的定时任务，比如每天晚上十点执行某个函数，beat 则会在相应的时间将这个 task 发送给 broker，然后 worker 获取任务进行处理
 
-# 我们这里案例使用redis作为broker
-# 我们给Celery增加了backend参数，指定redis作为结果存储,并将任务函数修改为两个参数，并且有返回值。
-app = Celery('demo',
-backend='redis://127.0.0.1:6379/2',
-broker='redis://127.0.0.1:6379/1')
+定时任务除了说的每天晚上十点这种周期任务，也可以是间隔任务，比如说每隔多少秒，多少分钟执行一次
 
-# 创建任务函数
-@app.task
-def my_task(a, b):
-    print("任务函数正在执行....")
-    return a + b
-```
-
-### 发送任务
-
-[参考](http://docs.celeryproject.org/en/master/userguide/calling.html)
-
-[参考](http://docs.celeryproject.org/en/master/reference/celery.html#celery.Celery.send_task)
-
-如何将任务函数加入到队列中，可使用如下方法
-
-```python
-# 该任务发送一个任务消息
-apply_async(args[, kwargs[, ...]])
-# 发送任务消息的便捷方法，不支持添加执行选项
-delay(*args, **kwargs)
-# 通过任务名来发送任务，与apply_async支持同样的变量
-send_task(name, args=None, kwargs=None, countdown=None, eta=None, task_id=None, producer=None, connection=None, router=None, result_cls=None, expires=None, publisher=None, link=None, link_error=None, add_to_parent=True, group_id=None, retries=0, chord=None, reply_to=None, time_limit=None, soft_time_limit=None, root_id=None, parent_id=None, route_name=None, shadow=None, chain=None, task_type=None, **options)
-
-# 使用样例
-task.delay(arg1, arg2, kwarg1='x', kwarg2='y')
-task.apply_async(args=[arg1, arg2], kwargs={'kwarg1':'x', 'kwarg2':'y'})
-task.send_task('tasks.test1', args=[hotplay_id, start_dt, end_dt], exchange='for_task_A', routing_key='task_a')
-```
-
-默认多进程执行，也可以多协程处理(greenlet/gevent)
+**注意**：异步任务的发送是不经过 beat 处理，直接发送给 broker 的
 
 ## 使用
-
-```
-insert into {new_table_name} 
-select old.*, {cursor.{field},...} from {en_table_name} as old 
-join {temporary_table} as cursor 
-on old.MID = cursor.MID
-```
 
 ### 简单使用
 
@@ -243,14 +165,77 @@ celery -A tasks worker  -l info
 from tasks import add
 
 # 执行,返回执行的对象
-r = add.delay(2, 2)
-print(r.id)  # 获取任务编号
-print(r.ready()) 
-print(r.result)  # 获取结果
-print(r.get())  # 获取异步任务结果，默认阻塞
+res = add.delay(2, 2)
 ```
 
-- 常用命令
+- 结果追踪
+
+```python
+# 结果信息
+res.id  # 获取任务编号
+res.ready()   # 判断函数运行是否完成
+res.result  # 获取结果
+res.get()  # 获取异步任务结果，默认阻塞
+res.get(timeout=2)
+
+
+# 任务状态
+res.failed()  # 任务执行是否失败，返回 布尔型数据
+res.successful()  # 任务执行是否成功，返回布尔型数据
+res.state  # 执行的任务所处的状态，state 的值会在 PENDING，STARTED，SUCCESS，RETRY，FAILURE 这几种状态中，分别是 待处理中，任务已经开始，成功，重试中，失败
+
+# 报错处理
+res.state # FAILURE
+res.get() # 返回报错
+res.get(propagate=False)  # 忽略程序的报错，把程序报错的信息作为结果返回
+# 当延时任务在程序中报错，它的返回值就不会是正确的，通过 res3.traceback 是否有值来判断函数运行过程中是有报错
+if res.traceback:
+    print("延时任务报错")
+else:
+    print("程序正常运行，可以获取返回值")
+```
+
+- result资源释放
+
+因为 backend 会使用资源来保存和传输结果，为了确保资源被释放，所以在执行完异步任务后，你必须对每一个结果调用 `get()` 或者 `forget()` 函数
+
+查看是否资源被释放也很简单，登录到对应的 backend，我这里是 redis，使用 redis-cli 或者通过 docker 进入 redis：
+
+```
+select 1
+
+keys*
+```
+
+查看相应的 task id 是否还在列表就可以知道该资源是否被释放
+
+如果不想手动释放资源，可以在配置里设置一个过期时间，那么结果就会在指定时间段后被释放：
+
+```
+app.conf.update(result_expires=60)
+```
+
+### 常用发送
+
+如何将任务函数加入到队列中，可使用如下方法
+
+```python
+# 该任务发送一个任务消息
+apply_async(args[, kwargs[, ...]])
+# 发送任务消息的便捷方法，不支持添加执行选项
+delay(*args, **kwargs)
+# 通过任务名来发送任务，与apply_async支持同样的变量
+send_task(name, args=None, kwargs=None, countdown=None, eta=None, task_id=None, producer=None, connection=None, router=None, result_cls=None, expires=None, publisher=None, link=None, link_error=None, add_to_parent=True, group_id=None, retries=0, chord=None, reply_to=None, time_limit=None, soft_time_limit=None, root_id=None, parent_id=None, route_name=None, shadow=None, chain=None, task_type=None, **options)
+
+# 使用样例
+task.delay(arg1, arg2, kwarg1='x', kwarg2='y')
+task.apply_async(args=[arg1, arg2], kwargs={'kwarg1':'x', 'kwarg2':'y'})
+task.send_task('tasks.test1', args=[hotplay_id, start_dt, end_dt], exchange='for_task_A', routing_key='task_a')
+```
+
+默认多进程执行，也可以多协程处理(greenlet/gevent)
+
+### 常用命令
 
 ```shell
 # 后台启动 celery worker进程 
@@ -275,17 +260,83 @@ celery status -A celery_task       # 查看该项目运行的进程数   celery_
 
 Celery 的配置比较多，可以在 官方配置文档：http://docs.celeryproject.org/en/latest/userguide/configuration.html  查询每个配置项的含义。
 
-创建目录结构如下
+- 类的方式加载
 
-```shell
-# proj tree
-__init__.py
-celery.py  # celery实例
-config.py  # 配置文件
-tasks.py  # 任务函数
+文件目录
+
+```
+proj/__init__.py
+    /celery.py
+    /tasks1.py
+    /tasks2.py
 ```
 
-- 单任务
+配置信息
+
+```python
+# celery.py
+from celery import Celery
+
+app = Celery()
+
+class Config:
+    include = ['proj.tasks1', 'proj.tasks2']
+    broker_url = 'redis://localhost:6379/0'
+    result_backend = 'redis://localhost:6379/1'
+    
+app.config_from_object(Config)
+
+if __name__ == '__main__':
+    app.start()
+```
+
+- 文件形式加载
+
+创建目录结构如下
+
+```
+proj/__init__.py
+    /celery.py
+    /celeryconfig.py
+    /tasks1.py
+    /tasks2.py
+```
+
+配置内容
+
+```python
+# celeryconfig.py
+broker_url = 'redis://localhost/0'
+result_backend = 'redis://localhost/1'
+include = ['proj.tasks1', 'proj.tasks2']
+```
+
+celery
+
+```python
+# celery.py
+from celery import Celery
+from . import celeryconfig
+
+
+app = Celery()
+app.config_from_object(celeryconfig)
+
+if __name__ == '__main__':
+    app.start()
+```
+
+常用配置
+
+```python
+# 时区设置
+app.conf.update(
+    enable_utc=False,
+    timezone='Asia/Shanghai',
+)
+```
+
+### 单任务
 
 celery.py
 
@@ -327,7 +378,9 @@ def add(x, y):
 celery -A project worker -l info
 ```
 
-- 多任务1
+### 多任务
+
+- 1
 
 celery.py
 
@@ -393,7 +446,7 @@ celery -A tasks worker -l info -n worker.%h -Q celey
 celery -A tasks -P gevent -c 5 -l ingo -n worker.%h -Q for_task_A
 ```
 
-- 多任务2
+- 2
 
 tasks.py
 
