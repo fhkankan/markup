@@ -1,14 +1,10 @@
 # Celery
 
-## 参考
+[Celery 官网](http://www.celeryproject.org/)
 
-**Celery 官网：http://www.celeryproject.org/**
+[flower官方文档](https://flower.readthedocs.io/en/latest/)
 
-**Celery 官方文档英文版**：[**http://docs.celeryproject.org/en/latest/index.html**](http://docs.celeryproject.org/en/latest/index.html)
-
-**Celery 官方文档中文版：http://docs.jinkan.org/docs/celery/**
-
-celery配置：http://docs.jinkan.org/docs/celery/configuration.html#configuration
+[celery中文](http://celery.xgqyq.com/Celery%E8%B5%B7%E6%AD%A5.html)
 
 参考：http://www.cnblogs.com/landpack/p/5564768.html    http://blog.csdn.net/happyAnger6/article/details/51408266
 
@@ -28,8 +24,6 @@ Celery 分布式任务队列快速入门：http://www.cnblogs.com/alex3714/p/635
 
 celery任务调度框架实践：https://blog.csdn.net/qq_28921653/article/details/79555212
 
-Celery-4.1 用户指南: Monitoring and Management Guide：https://blog.csdn.net/libing_thinking/article/details/78592801
-
 Celery安装及使用：https://blog.csdn.net/u012325060/article/details/79292243
 
 Celery学习笔记（一）：https://blog.csdn.net/sdulsj/article/details/73741350
@@ -38,13 +32,13 @@ https://blog.csdn.net/cuomer/article/details/81214438
 
 celery合集：https://www.cnblogs.com/hunterxiong/p/17450464.html
 
-## 简介
+## 内容简介
 
 celery是一个用于管理分布式任务的python框架，采用的是面向对象中间件的方法实现。其主要特性包括处理大量小型任务，并将其分发给大量计算节点。最后，每个任务的结果重新组合，构成最终的答案。
 
 Celery是由Python开发、简单、灵活、可靠的分布式任务队列，其本质是生产者消费者模型，生产者发送任务到消息队列，消费者负责处理任务。Celery侧重于实时操作，但对调度支持也很好，其每天可以处理数以百万计的任务。
 
-Celery由以下三部分构成：消息中间件(Broker)、任务执行单元Worker、结果存储(Backend)
+Celery由以下三部分构成：消息中间件Broker、任务执行单元Worker、结果存储Backend
 
 ![消息中介架构](images/消息中介架构.png)
 
@@ -73,44 +67,27 @@ celery通过消息进行通信，通常使用一个叫Broker(中间人)来协cli
 向定时导数据报表、定时发送通知类似场景，虽然Linux的计划任务可以帮我实现，但是非常不利于管理，而Celery可以提供管理接口和丰富的API。
 ```
 
-### 安装
-
-使用python的包管理器pip来安装:
-
-```
-pip install -U Celery
-```
-
-从官方直接下载安装包:<https://pypi.python.org/pypi/celery/>
-
-```
-tar xvfz celery-0.0.0.tar.gz
-cd celery-0.0.0
-python setup.py build
-python setup.py install
-```
-
-### task
+- task
 
 这个任务就是异步任务或者是定时任务，即为 task，我们可以定义这些任务，然后发送到 broker
 
-### broker
+- broker
 
 消息中间件，用于获取异步或者定时任务，形成一个或多个消息队列，然后发送给 worker 处理这些消息。
 
 消息中介是一个不依赖于celery的软件组件，是一个中间件，用于向分布式任务工作进程发送和接收消息。它负责通信网络中的消息交换。这类中间件的编址方案(addressing scheme)不再是点对点式的，而是面向消息式的，其中最知名的就是发布/订阅范式。Celery支持多种类型的消息中介，如RabbitMQ、Redis、Amazon SQS、MongoDB、Memcached 等，其中最为完整的是RabbitMQ和Redis。
 
-### worker
+- worker
 
 处理消息的程序，获取 broker 中的消息，然后在 worker 中执行，然后根据配置决定将处理结果发送到 backend
 
 Worker是任务执行单元，负责从消息队列中取出任务执行，它可以启动一个或者多个，也可以启动在不同的机器节点，这就是其实现分布式的核心
 
-### backend
+- backend
 
 Backend结果存储官方也提供了诸多的存储方式支持：RabbitMQ、 Redis、Memcached,SQLAlchemy, Django ORM、Apache Cassandra、Elasticsearch。
 
-### beat
+- beat
 
 主要用于调用定时任务，根据设定好的定时任务，比如每天晚上十点执行某个函数，beat 则会在相应的时间将这个 task 发送给 broker，然后 worker 获取任务进行处理
 
@@ -118,7 +95,20 @@ Backend结果存储官方也提供了诸多的存储方式支持：RabbitMQ、 R
 
 **注意**：异步任务的发送是不经过 beat 处理，直接发送给 broker 的
 
-## 使用
+## 安装使用
+
+```
+pip install -U Celery
+```
+
+或从官方直接下载安装包:<https://pypi.python.org/pypi/celery/>
+
+```
+tar xvfz celery-0.0.0.tar.gz
+cd celery-0.0.0
+python setup.py build
+python setup.py install
+```
 
 ### 简单使用
 
@@ -130,11 +120,19 @@ Backend结果存储官方也提供了诸多的存储方式支持：RabbitMQ、 R
 3.客户应用程序调用
 ```
 
+文件目录结构
+
+```
+proj/tasks.py  # 定义celery和task
+proj/main.py   # 调用task
+```
+
 - 定义任务
 
-创建文件tasks.py
+创建文件
 
 ```python
+# tasks.py
 from celery import Celery
 
 # 配置broker和backend
@@ -146,13 +144,12 @@ app = Celery('tasks', broker=broker, backend=backend)
 # 创建任务函数add
 @app.task
 def add(x, y):
-    retunr x + y
+    return x + y
 ```
 
 - 启动服务
 
-```
-celery -A tasks worker  --loglevel=info
+```shell
 celery -A tasks worker  -l info
 ```
 
@@ -166,11 +163,247 @@ from tasks import add
 
 # 执行,返回执行的对象
 res = add.delay(2, 2)
+print(res.get())
 ```
 
-- 结果追踪
+- result资源释放
+
+因为 backend 会使用资源来保存和传输结果，为了确保资源被释放，所以在执行完异步任务后，你必须对每一个结果调用 `get()` 或者 `forget()` 函数
+
+查看是否资源被释放也很简单，登录到对应的 backend，我这里是 redis，使用 redis-cli 或者通过 docker 进入 redis：
+
+```shell
+select 1
+
+keys*
+```
+
+查看相应的 task id 是否还在列表就可以知道该资源是否被释放
+
+如果不想手动释放资源，可以在配置里设置一个过期时间，那么结果就会在指定时间段后被释放：
+
+```shell
+app.conf.update(result_expires=60)
+```
+
+## 配置加载
+- 常用配置
 
 ```python
+# 时区设置
+enable_utc = False
+timezone = 'Asia/Shanghai'
+# 资源释放
+result_expires = 3600
+# 连接存储
+broker_url = 'redis://localhost:6379/0'
+result_backend = 'redis://localhost:6379/1'
+```
+- 配置加载
+
+函数传参形式
+
+```python
+from celery import Celery
+
+# 配置broker和backend
+broker = 'redis://192.168.3.248:31379/1'
+backend = 'redis://192.168.3.248:31379/2'
+# 创建celery实例，指定任务名，传入broker和backend
+app = Celery('tasks', broker=broker, backend=backend)
+
+# 启动
+celery -A proj worker  -l info  # 文件目录：proj/celery.py
+celery -A tasks worker  -l info  # 文件目录：proj/tasks.py
+```
+
+文件形式加载
+
+```python
+"""
+proj/celery.py
+    /config.py
+    /tasks.py
+"""
+# celeryconfig.py
+broker_url = 'redis://localhost/0'
+result_backend = 'redis://localhost/1'
+include = ['proj.tasks']
+
+
+# celery.py
+from celery import Celery
+
+app = Celery()
+app.config_from_object("proj.config")  # 方式一， 推荐
+from . import config
+app.config_from_object(config)  # 方式二
+
+if __name__ == '__main__':
+    app.start()
+    
+# 启动
+celery -A proj worker  -l info
+```
+
+类的方式加载
+
+```python
+"""
+proj/celery.py
+    /tasks.py
+"""
+# celery.py
+
+from celery import Celery
+
+app = Celery()
+
+class Config:
+    include = ['proj.tasks']
+    broker_url = 'redis://localhost:6379/0'
+    result_backend = 'redis://localhost:6379/1'
+    
+app.config_from_object(Config)
+
+if __name__ == '__main__':
+    app.start()
+    
+    
+# 启动
+celery -A proj worker  -l info
+```
+
+
+
+## 任务task
+
+### 基础定义
+
+```python
+@app.task
+def add(x, y):
+    return x + y
+
+
+# 多个装饰器
+@app.task
+@decorator1
+@decorator2
+def add(x, y):
+    return x + y
+
+# 任务名称
+# 一个task有唯一的名称，如果在定义的时候不指定，系统会为我们默认一个名称
+# tasks1.py
+from .celery import app
+
+@app.task(name="tasks1.add")
+def add(x, y):
+    return x + y
+```
+
+### 日志处理
+
+我们可以在启动 worker 的时候指定日志的输出，定义格式如下：
+
+```python
+celery -A proj worker -l INFO --logfile=/Users/hunter/python/celery_log/celery.log
+```
+
+在 task 中的定义
+
+```shell
+# 可以使用celery中方法：
+from celery.utils.log import get_task_logger
+
+logger = get_task_logger(__name__)
+
+# 也可以直接使用 logging 模块
+import logging
+
+logger1 = logging.getLogger(__name__)
+
+# 直接在 task 中输出
+@app.task(name="tasks1.add")
+def add(x, y):
+    logger.info("this is from logger")
+    return x + y
+```
+
+### 任务重试
+
+对于一个 task，我们可以对其设置 retry 参数来指定其在任务执行失败后会重试几次，以及隔多长时间重试
+
+```python
+# tasks1.py
+
+# autoretry_for 表示的是某种报错情况下重试；default_retry_delay 表示重试间隔时长,以秒为单位，默认值是 3 * 60s；retry_kwargs 是一个 dict，其中有一个 max_retries 参数，表示的是最大重试次数
+@app.task(autoretry_for=(Exception, ),  default_retry_delay=10, retry_kwargs={'max_retries': 5})
+def div(x, y):
+    return x / y
+
+
+# 如果你的 task 依赖另一个 service 服务，比如会调用其他系统的 API，retry_backoff和retry_backoff_max可以用于避免请求过多的占用服务。
+# retry_backoff为 True 的话，自动重试的时间间隔会成倍的增长；retry_backoff_max是重试的最大的间隔时间，比如重试次数设置的很大，retry_backoff 的间隔时间重复达到了这个值之后就不再增大了。这个值默认是 600s，也就是 10分钟。
+# retry_jitter 值设为 False， 时间间隔将不是一个随机值
+@app.task(autoretry_for=(Exception, ), retry_backoff=2, retry_backoff_max=40, retry_jitter=False, retry_kwargs={'max_retries': 8})
+def div(x, y):
+    return x / y
+```
+
+### 任务调用
+
+基础调用
+
+```python
+# 该任务发送一个任务消息
+apply_async(args[, kwargs[, ...]])
+# 发送任务消息的便捷方法，不支持添加执行选项
+delay(*args, **kwargs)
+# 直接调用对象,任务不会被 worker 执行,而是在当前线程中执行(消息不会被发送)
+calling(call)
+
+# 使用样例
+task.delay(arg1, arg2, kwarg1='x', kwarg2='y')
+task.apply_async(args=[arg1, arg2], kwargs={'kwarg1':'x', 'kwarg2':'y'})
+```
+计时和超时
+```python
+add.apply_async((1, 2), countdown=10) # 10s以后执行
+add.apply_async((1, 2), eta=datetime.now() + timedelta(seconds=10))  # 10s以后执行
+add.apply_async((1, 2), countdown=60, expires=120)  # 距现在60秒后开始执行，两分钟后过期
+```
+
+消息重发
+
+```python
+add.apply_async((2, 2), retry=False)  # 默认重试，关闭重试
+
+add.apply_async((2, 2), retry=True, retry_policy={
+    'max_retries': 3,  # 最大重试次数，设置为None表示无限重试，默认值是3
+    'interval_start': 0,  # 重试间隔，浮点数或整数。默认是0.
+    'interval_step': 0.2, # 连续重试时，该数字会被添加到重试间隔时间上，浮点数或者整数。默认是0.2.
+    'interval_max': 0.2,  # 重试之间等待的最大秒数（浮点数或整数）。默认值为0.2
+})
+
+
+# 传输连接丢失或无法启动连接时
+from celery.utils.log import get_logger
+logger = get_logger(__name__)
+try:
+    add.delay(2,2)
+except add.OperationalError as exc:
+    logger.exception('Sending task raised: %r', exc)
+```
+
+
+
+### 结果追踪
+
+```python
+res = add.delay(1, 2)
+
 # 结果信息
 res.id  # 获取任务编号
 res.ready()   # 判断函数运行是否完成
@@ -195,360 +428,26 @@ else:
     print("程序正常运行，可以获取返回值")
 ```
 
-- result资源释放
+### 忽略结果
 
-因为 backend 会使用资源来保存和传输结果，为了确保资源被释放，所以在执行完异步任务后，你必须对每一个结果调用 `get()` 或者 `forget()` 函数
-
-查看是否资源被释放也很简单，登录到对应的 backend，我这里是 redis，使用 redis-cli 或者通过 docker 进入 redis：
-
-```
-select 1
-
-keys*
-```
-
-查看相应的 task id 是否还在列表就可以知道该资源是否被释放
-
-如果不想手动释放资源，可以在配置里设置一个过期时间，那么结果就会在指定时间段后被释放：
-
-```
-app.conf.update(result_expires=60)
-```
-
-### 常用发送
-
-如何将任务函数加入到队列中，可使用如下方法
+有时候延时任务的结果我们并不想保存，但是我们配置了 result_backend 参数，这个时候我们有三种方式不保存运行结果。
 
 ```python
-# 该任务发送一个任务消息
-apply_async(args[, kwargs[, ...]])
-# 发送任务消息的便捷方法，不支持添加执行选项
-delay(*args, **kwargs)
-# 通过任务名来发送任务，与apply_async支持同样的变量
-send_task(name, args=None, kwargs=None, countdown=None, eta=None, task_id=None, producer=None, connection=None, router=None, result_cls=None, expires=None, publisher=None, link=None, link_error=None, add_to_parent=True, group_id=None, retries=0, chord=None, reply_to=None, time_limit=None, soft_time_limit=None, root_id=None, parent_id=None, route_name=None, shadow=None, chain=None, task_type=None, **options)
-
-# 使用样例
-task.delay(arg1, arg2, kwarg1='x', kwarg2='y')
-task.apply_async(args=[arg1, arg2], kwargs={'kwarg1':'x', 'kwarg2':'y'})
-task.send_task('tasks.test1', args=[hotplay_id, start_dt, end_dt], exchange='for_task_A', routing_key='task_a')
-```
-
-默认多进程执行，也可以多协程处理(greenlet/gevent)
-
-### 常用命令
-
-```shell
-# 后台启动 celery worker进程 
-celery multi start work_1 -A appcelery  
-# work_1 为woker的名称，可以用来进行对该进程进行管理
-
-# 多进程相关
-celery multi stop WOERNAME      # 停止worker进程,有的时候这样无法停止进程，就需要加上-A 项目名，才可以删掉
-celery multi restart WORKNAME        # 重启worker进程
-
-# 查看进程数
-celery status -A celery_task       # 查看该项目运行的进程数   celery_task同级目录下
-
-执行完毕后会在当前目录下产生一个二进制文件，celerybeat-schedule 。
-该文件用于存放上次执行结果：
-　　1、如果存在celerybeat-schedule文件，那么读取后根据上一次执行的时间，继续执行。
-　　2、如果不存在celerybeat-schedule文件，那么会立即执行一次。
-　　3、如果存在celerybeat-schedule文件，读取后，发现间隔时间已过，那么会立即执行。
-```
-
-### 配置文件
-
-Celery 的配置比较多，可以在 官方配置文档：http://docs.celeryproject.org/en/latest/userguide/configuration.html  查询每个配置项的含义。
-
-- 类的方式加载
-
-文件目录
-
-```
-proj/__init__.py
-    /celery.py
-    /tasks1.py
-    /tasks2.py
-```
-
-配置信息
-
-```python
-# celery.py
-from celery import Celery
-
-app = Celery()
-
-class Config:
-    include = ['proj.tasks1', 'proj.tasks2']
-    broker_url = 'redis://localhost:6379/0'
-    result_backend = 'redis://localhost:6379/1'
-    
-app.config_from_object(Config)
-
-if __name__ == '__main__':
-    app.start()
-```
-
-- 文件形式加载
-
-创建目录结构如下
-
-```
-proj/__init__.py
-    /celery.py
-    /celeryconfig.py
-    /tasks1.py
-    /tasks2.py
-```
-
-配置内容
-
-```python
-# celeryconfig.py
-broker_url = 'redis://localhost/0'
-result_backend = 'redis://localhost/1'
-include = ['proj.tasks1', 'proj.tasks2']
-```
-
-celery
-
-```python
-# celery.py
-from celery import Celery
-from . import celeryconfig
-
-
-app = Celery()
-app.config_from_object(celeryconfig)
-
-if __name__ == '__main__':
-    app.start()
-```
-
-常用配置
-
-```python
-# 时区设置
-app.conf.update(
-    enable_utc=False,
-    timezone='Asia/Shanghai',
-)
-```
-
-### 单任务
-
-celery.py
-
-```python
-# 拒绝隐式引入，因为celery.py的名字和celery的包名冲突，需要使用这条语句让程序正确地运行
-from __future__ import absolute_import  
-from celery import Celery
- 
-app = Celery('proj', include=['proj.tasks'])
-app.config_from_object('proj.config')
- 
-if __name__ == '__main__':
-	app.start()
-```
-
-config.py
-
-```python
-from __future__ import absolute_import
-
-CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/5'
-BROKER_URL = 'redis://127.0.0.1:6379/6'
-```
-
-tasks.py
-
-```python
-from __future__ import absolute_import
-from proj.celery import app
-
-@app.task
+# 定义特定任务时
+@app.task(ignore_result=True)
 def add(x, y):
-	return x + y
-```
+    return x + y
 
-运行服务
-
-```
-celery -A project worker -l info
-```
-
-### 多任务
-
-- 1
-
-celery.py
-
-```python
-from celery import Celery
-
-app = Celery()
-app.config_from_obj('config.py')
-```
-
-config.py
-
-```python
-from kombu import Exchange,Queue
-
- 
-BROKER_URL = "redis://10.32.105.227:6379/0" 
-CELERY_RESULT_BACKEND = "redis://10.32.105.227:6379/0"
-
-    
-CELERY_QUEUES = (
-     # 注意：使用Redis作为broker时，Exchange的名字必须和Queue名字一样
-　　　Queue("default",Exchange("default"),routing_key="default"),
-　　　Queue("for_task_A",Exchange("for_task_A"),routing_key="task_a"),
-　　　Queue("for_task_B",Exchange("for_task_B"),routing_key="task_b")
-　)
-
- 
-CELERY_ROUTES = {
-	'tasks.taskA':{"queue":"for_task_A","routing_key":"task_a"},
-	'tasks.taskB':{"queue":"for_task_B","routing_key:"task_b"}
-}
-```
-
-tasks.py
-
-```python
-from celery import app
-
-@app.task
-def taskA(x,y):
-	return x + y
-
- 
-@app.task
-def taskB(x,y,z):
-	return x + y + z
-
- 
-@app.task
-def add(x,y):
-	return x + y
-```
-
-运行任务
-
-```shell
-# 启动worker只执行for_task_A队列中的消息，通过指定队列名来指定
-celery -A tasks worker -l info -n worker.%h -Q for_task_A
-# 启动worker默认名字为celery的Queue
-celery -A tasks worker -l info -n worker.%h -Q celey
-# gevent多协程启动
-celery -A tasks -P gevent -c 5 -l ingo -n worker.%h -Q for_task_A
-```
-
-- 2
-
-tasks.py
-
-```python
-
-from celery import Celery
-import time
- 
- 
-app = Celery()
-app.config_from_object('celeryconfig')
- 
-# 视频压缩
-@app.task
-def video_compress(video_name):
-    time.sleep(10)
-    print 'Compressing the:', video_name
-    return 'success'
- 
-@app.task
-def video_upload(video_name):
-    time.sleep(5)
-    print u'正在上传视频'
-    return 'success'
- 
-# 压缩照片
-@app.task
-def image_compress(image_name):
-    time.sleep(10)
-    print 'Compressing the:', image_name
-    return 'success'
- 
-# 其他任务
-@app.task
-def other(str):
-    time.sleep(10)
-    print 'Do other things'
-
-```
-
-celeryconfig.py
-
-```python
-from kombu import Exchange, Queue
-from routers import MyRouter
- 
-# 配置时区
-CELERY_TIMEZONE = 'Asia/Shanghai'
-# 配置broker
-CELERY_BROKER = 'amqp://localhost'
-
-# 定义一个默认交换机
-default_exchange = Exchange('dedfault', type='direct')
- # 定义一个媒体交换机
-media_exchange = Exchange('media', type='direct')
- 
-# 创建三个队列，一个是默认队列，一个是video、一个image
-CELERY_QUEUES = (
-    Queue('default', default_exchange, routing_key='default'),
-    Queue('videos', media_exchange, routing_key='media.video'),
-    Queue('images', media_exchange, routing_key='media.image')
+# 所有任务都不保存
+app.conf.update(
+    task_ignore_result=True
 )
- 
-CELERY_DEFAULT_QUEUE = 'default'
-CELERY_DEFAULT_EXCHANGE = 'default'
-CELERY_DEFAULT_ROUTING_KEY = 'default'
-#
-CELERY_ROUTES = (
-    {
-        'tasks.image_compress': {
-            'queue': 'images',
-            'routing_key': 'media.image'
-        }
-    },
-    {
-        'tasks.video_upload': {
-             'queue': 'videos',
-             'routing_key': 'media.video'
-        }
-    },
-    {
-        'tasks.video_compress': {
-             'queue': 'videos',
-              'routing_key': 'media.video'
-         }
-    }, 
-)
- 
-# 在出现worker接受到的message出现没有注册的错误时，使用下面一句能解决
-CELERY_IMPORTS = ("tasks",)
+
+# 执行单个任务时
+from proj.tasks1 import add
+add.apply_async((1, 2), ignore_result=True)
 ```
 
-启动，把不同类的任务路由到不同的worker上处理
-
-```python
-# 启动默认的worker
-celery worker -Q default --loglevel=info
-# 启动处理视频的worker
-celery worker -Q videos --loglevel=info
-# 启动处理图片的worker
-celery worker -Q images --loglevel=info
-```
 
 ### 定时任务
 
@@ -809,30 +708,559 @@ celery -A celery_task beat
 celery -A celery_task worker --loglevel=info
 ```
 
+### 单任务
+
+文件目录
+
+```
+proj/celery.py
+proj/config.py
+proj/tasks.py
+```
+
+代码
+
+```python
+# celery.py
+from celery import Celery
+ 
+app = Celery('proj', include=['proj.tasks'])
+app.config_from_object('proj.config')
+ 
+if __name__ == '__main__':
+	app.start()
+    
+# config.py    
+result_backend = 'redis://127.0.0.1:6379/5'
+broker_url = 'redis://127.0.0.1:6379/6'
+
+# tasks.py
+from proj.celery import app
+
+@app.task
+def add(x, y):
+	return x + y
+```
+
+运行服务
+
+```
+celery -A project worker -l info
+```
+
+### 多任务
+
+- 1
+
+celery.py
+
+```python
+from celery import Celery
+
+app = Celery()
+app.config_from_obj('config.py')
+```
+
+config.py
+
+```python
+from kombu import Exchange,Queue
+
+ 
+BROKER_URL = "redis://10.32.105.227:6379/0" 
+CELERY_RESULT_BACKEND = "redis://10.32.105.227:6379/0"
+
+    
+CELERY_QUEUES = (
+     # 注意：使用Redis作为broker时，Exchange的名字必须和Queue名字一样
+　　　Queue("default",Exchange("default"),routing_key="default"),
+　　　Queue("for_task_A",Exchange("for_task_A"),routing_key="task_a"),
+　　　Queue("for_task_B",Exchange("for_task_B"),routing_key="task_b")
+　)
+
+ 
+CELERY_ROUTES = {
+	'tasks.taskA':{"queue":"for_task_A","routing_key":"task_a"},
+	'tasks.taskB':{"queue":"for_task_B","routing_key:"task_b"}
+}
+```
+
+tasks.py
+
+```python
+from celery import app
+
+@app.task
+def taskA(x,y):
+	return x + y
+
+ 
+@app.task
+def taskB(x,y,z):
+	return x + y + z
+
+ 
+@app.task
+def add(x,y):
+	return x + y
+```
+
+运行任务
+
+```shell
+# 启动worker只执行for_task_A队列中的消息，通过指定队列名来指定
+celery -A tasks worker -l info -n worker.%h -Q for_task_A
+# 启动worker默认名字为celery的Queue
+celery -A tasks worker -l info -n worker.%h -Q celey
+# gevent多协程启动
+celery -A tasks -P gevent -c 5 -l ingo -n worker.%h -Q for_task_A
+```
+
+- 2
+
+tasks.py
+
+```python
+from celery import Celery
+import time
+ 
+ 
+app = Celery()
+app.config_from_object('celeryconfig')
+ 
+# 视频压缩
+@app.task
+def video_compress(video_name):
+    time.sleep(10)
+    print 'Compressing the:', video_name
+    return 'success'
+ 
+@app.task
+def video_upload(video_name):
+    time.sleep(5)
+    print u'正在上传视频'
+    return 'success'
+ 
+# 压缩照片
+@app.task
+def image_compress(image_name):
+    time.sleep(10)
+    print 'Compressing the:', image_name
+    return 'success'
+ 
+# 其他任务
+@app.task
+def other(str):
+    time.sleep(10)
+    print 'Do other things'
+
+```
+
+celeryconfig.py
+
+```python
+from kombu import Exchange, Queue
+from routers import MyRouter
+ 
+# 配置时区
+CELERY_TIMEZONE = 'Asia/Shanghai'
+# 配置broker
+CELERY_BROKER = 'amqp://localhost'
+
+# 定义一个默认交换机
+default_exchange = Exchange('dedfault', type='direct')
+ # 定义一个媒体交换机
+media_exchange = Exchange('media', type='direct')
+ 
+# 创建三个队列，一个是默认队列，一个是video、一个image
+CELERY_QUEUES = (
+    Queue('default', default_exchange, routing_key='default'),
+    Queue('videos', media_exchange, routing_key='media.video'),
+    Queue('images', media_exchange, routing_key='media.image')
+)
+ 
+CELERY_DEFAULT_QUEUE = 'default'
+CELERY_DEFAULT_EXCHANGE = 'default'
+CELERY_DEFAULT_ROUTING_KEY = 'default'
+#
+CELERY_ROUTES = (
+    {
+        'tasks.image_compress': {
+            'queue': 'images',
+            'routing_key': 'media.image'
+        }
+    },
+    {
+        'tasks.video_upload': {
+             'queue': 'videos',
+             'routing_key': 'media.video'
+        }
+    },
+    {
+        'tasks.video_compress': {
+             'queue': 'videos',
+              'routing_key': 'media.video'
+         }
+    }, 
+)
+ 
+# 在出现worker接受到的message出现没有注册的错误时，使用下面一句能解决
+CELERY_IMPORTS = ("tasks",)
+```
+
+启动，把不同类的任务路由到不同的worker上处理
+
+```python
+# 启动默认的worker
+celery worker -Q default --loglevel=info
+# 启动处理视频的worker
+celery worker -Q videos --loglevel=info
+# 启动处理图片的worker
+celery worker -Q images --loglevel=info
+```
+
 ### 任务监控
 
-flower是一个用于监控任务(运行进度、任务详情、图标、数据)的web工具。
+```
+1.使用flower
+2.自带监控命令
+3.使用日志
+4.使用backend
+5.自定义监控
+6.集成APM工具
+7.使用Prometheus和Grafana
+```
+
+- 使用flower
+
+[flower](https://flower.readthedocs.io/en/latest/)是一个用于监控任务(运行进度、任务详情、图标、数据)的web工具。
+
+安装配置
 
 ```python
 # 安装
 pip install -U flower
 
+
 # 运行flower命令启动web-server
-celery -A proj flower
+celery -A <your_project_name> flower
 
-# 设置端口
-# 缺省的端口是http://localhost:5555, 可以使用–port参数改变
-celery -A proj flower --port=5555
+# your_project_name是Celery 应用实例的名称
 
-# 设置broker的URL
-celery flower --broker=amqp://guest:guest@localhost:5672//
-celery flower --broker=redis://guest:guest@localhost:6379/0    
+# 常用启动项
+--port=<port>：指定 Flower 的监听端口，默认为 5555。
+--broker=<broker_url>：指定 Celery 使用的消息代理（broker）的 URL 地址，例如 Redis 或 RabbitMQ。
+--basic_auth=<username>:<password>：设置基本身份认证，允许你通过用户名和密码保护 Flower 控制台。
+--address=<address>：设置 Flower 绑定的 IP 地址，默认是 127.0.0.1。
+--persistent=True：启用持久化，将任务结果和状态保存到磁盘上。
 
+# 示例
+celery -A <your_project_name> flower --port=5555 --broker=amqp://guest:guest@localhost:5672//  
+celery -A <your_project_name> flower --port=5555 --broker=redis://guest:guest@localhost:6379/0 
+```
+
+使用
+
+```shell
 # 浏览器访问
 open http://localhost:5555
         
 # api使用
 # 获取woker信息
 curl http://127.0.0.1:5555/api/workers
+# 获取任务信息
+curl http://127.0.0.1:5555/api/task/info/<task_id>
+```
+
+- 自带命令
+
+```shell
+# 使用 celery status 命令可以查看工作进程的状态
+celery -A your_project status
+# 使用 celery inspect 命令可以查看任务的信息
+celery -A your_project inspect active
+```
+
+- 使用日志
+
+```python
+# 配置 Celery 的日志记录，可以帮助你追踪任务的执行情况。可以在 Celery 配置中设置日志级别和日志文件路径
+import logging
+
+logging.basicConfig(
+    filename='celery.log',
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+```
+
+- backend
+
+如果你使用了结果后端（如 Redis、Database），可以进入后端中查看task信息
+
+也可以写脚本定期查询任务状态和结果。这样可以手动监控任务的成功率和失败原因。
+
+```python
+# get_result.py
+from celery.result import AsyncResult
+from tasks import app
+
+result = AsyncResult(<task_id>, app)
+if result.successful():
+    print(result.get())
+elif result.failed():
+    print("Task failed:", result.result)
+elif result.status == "pending":
+    print("pending")
+elif result.status == "retry":
+    print("retry")
+elif result.status == "started":
+    print("started")
+```
+
+- 自定义监控
+
+可以编写自定义的监控逻辑，将任务执行情况存储在数据库或外部监控系统中。例如，在任务开始和结束时记录相关信息：
+
+```python
+@app.task(bind=True, acks_late=True)
+def my_task(self):
+    # 记录任务开始
+    log_task_start(self.request.id)
+    
+    try:
+        # 任务逻辑
+        pass
+    except Exception as exc:
+        log_task_failure(self.request.id, exc)
+        raise self.retry(exc=exc)
+    else:
+        log_task_success(self.request.id)
+
+```
+
+-  集成 APM 工具
+
+使用应用性能监控（APM）工具（如 New Relic、DataDog 或 Sentry）可以深入了解 Celery 任务的性能和错误。这些工具通常提供更全面的监控和分析功能。
+
+- 使用Prometheus和Grafana
+
+通过 Prometheus 收集指标，并使用 Grafana 可视化这些指标。可以为 Celery 设置自定义指标，如任务处理时间、成功率等。
+
+## 消息队列
+
+task 的处理方式，将 task 发送到队列 queue，然后 worker 从 queue 中一个个的获取 task 进行处理。task 的队列 queue 可以是多个，处理 task 的 worker 也可以是多个，worker 可以处理任意 queue 的 task，也可以处理指定 queue 的 task。
+
+- 默认队列
+
+当我们运行一个最简单的延时任务比如 `add.delay(1, 2)` 时，并没有设置一个消息队列，因为如果我们没有指定，系统会为我们创建一个默认队列。
+
+这个默认的队列被命名为 celery，值在 app.conf.task_default_queue，我们可以查看一下：
+
+```python
+from hunter.celery import app
+app.conf.task_default_queue
+
+# 输出为 'celery'
+```
+
+- 定义队列
+
+只有一个 worker 处理 task，每个 task 需要处理的时间很长，因为 worker 被占用，这样在我们的任务队列里就会积压很多的 task。
+
+有一些需要即时处理的任务则会被推迟处理，这样的情况下，我们理想的设计是设置多个 worker，多个 worker 分别处理指定队列的 task。
+
+任务队列定义
+
+```python
+# hunter/celery.py
+
+from kombu import Queue
+
+
+app.conf.task_queues = (
+    Queue('blog_tasks'),  # 特定队列
+    Queue('default_queue'),  # 默认队列
+)
+
+app.conf.task_default_queue = 'default_queue'  # 需要额外来指定一个 task_default_queue，否则add.delay(1, 2)会异常。
+```
+
+当我们定义了任务队列之后，我们可以将 task 指定输出到对应的 queue，假设 blog/tasks.py 下有这样一个 task
+
+```python
+# blog/tasks.py
+from celery import shared_task
+
+@shared_task
+def add(x, y):
+    return x + y
+```
+
+接下来我们调用这个 task 的时候，需要指定队列
+
+```python
+from blog.tasks import add
+
+add.apply_async((1, 2), queue='blog_tasks')  # 队列会被 blog_tasks 接收到
+add.delay(1, 2)  # 队列会被 default_queue 接收到
+```
+
+- 将task指定到特定队列消费
+
+任务文件
+
+```python
+# blog/tasks.py
+from celery import shared_task
+
+@shared_task
+def add(x, y):
+    return x + y
+
+@shared_task
+def minus(x, y):
+    return x - y
+
+# polls/tasks.py
+from celery import shared_task
+
+@shared_task
+def multi(x, y):
+    return x * y
+```
+
+想要实现的最终的目的是在调用延时任务的时候，可以直接使用` delay()` 的方式，不需要使用 `apply_async(queue='xx')`
+
+```python
+app.conf.task_queues = (
+    Queue('queue_1'),
+    Queue('queue_2'),
+    Queue('default_queue'),
+)
+
+app.conf.task_routes = {
+    'polls.tasks.*': {
+        'queue': 'queue_1',
+    },
+    'blog.tasks.add': {
+        'queue': 'queue_1',
+    },
+    'blog.tasks.minus': {
+        'queue': 'queue_2',
+    },
+}
+
+app.conf.task_default_queue = 'default_queue'
+```
+
+## worker
+
+### 启动
+
+```shell
+# celery启动命令
+celery -A proj worker  -l info  # tasks为Celery实例所在的文件名
+celery -A proj worker  --loglevel=info
+celery -A proj worker --loglevel=INFO --logfile=/Users/hunter/python/celery_log/celery.log  # 指定日志文件
+
+# 杀死 worker 进程
+ps aux | grep 'celery -A proj' | awk '{print $2}' |xargs sudo kill -9
+
+# 并发处理
+# 一般来说，当我们直接启动 worker 的时候，会默认同时起好几个 worker 进程。如果不指定 worker 的数量，worker 的进程会默认是所在机器的 CPU 的数量。我们也可以通过 concurrency 参数来指定启动 worker 的进程数。
+celery -A proj worker --concurrency=3 -l INFO
+celery -A proj worker -c 3 -l INFO
+
+# 查看进程
+ps aux |grep 'celery -A proj'
+```
+
+### 与队列
+
+我们可以在运行 worker 的时候指定 worker 只消费特定队列的 task，这个特定队列，可以是一个，也可以是多个，用逗号分隔开。
+
+```shell
+celery -A proj worker -l INFO -Q queue_1,queue_2
+```
+
+查看队列
+
+```shell
+celery -A proj inspect active_queues
+```
+
+代码交互
+
+```python
+# 获取所有的队列信息
+from hunter.celery import app
+app.control.inspect().active_queues()
+
+# 获取指定 worker 的队列信息
+app.control.inspect(['worker1@localhost']).active_queues()
+```
+
+### 检测
+
+获取worker信息
+
+```python
+from hunter.celery import app
+
+# 获取所有节点
+i = app.control.inspect()
+
+# 输入数组参数，表示获取多个节点worker信息
+i = app.control.inspect(['worker1@localhost', 'worker2@localhost'])
+
+# 输入单个worker名，指定获取worker信息
+i = app.control.inspect('worker1@localhost')
+
+# 获取已经注册的task列表
+i.registered()
+# 输出示例为 {'worker1@localhost': ['blog.tasks.add', 'blog.tasks.minus', 'polls.tasks.multi']}
+
+# 正在执行的 task
+i.active()
+# 输出示例为 {'worker1@localhost': [{'id': 'xxx', 'name': 'blog.tasks.add', 'args': [3, 4], 'hostname': 'worker1@localhost', 'time_start': 1659450162.58197, ..., 'worker_pid': 41167}
+
+# 即将运行的 task
+i.scheduled()
+# {'worker1@localhost': [{'eta': '2022-08-02T22:56:49.503517+08:00', 'priority': 6, 'request': {'id': '23080c03-a906-4cc1-9ab1-f27890c58adb', 'name': 'blog.tasks.add', 'args': [1, 1], 'kwargs': {}, 'type': 'blog.tasks.add', 'hostname': 'worker1@localhost', 'time_start': None, 'acknowledged': False, 'delivery_info': {...}}]}
+
+# queue队列中等待的 task
+i.reserved()
+```
+
+检测还活着的worker
+
+```python
+from hunter.celery import app
+
+app.control.ping(timeout=0.5)  # [{'worker1@localhost': {'ok': 'pong'}}]
+
+# 可以指定 worker 来操作
+app.control.ping(['worker1@localhost'])
+```
+
+### 常用命令
+
+```shell
+# 后台启动 celery worker进程 
+celery multi start work_1 -A appcelery  # work_1 为woker的名称，可以用来进行对该进程进行管理
+
+# 多进程相关
+celery multi stop WOERNAME      # 停止worker进程,有的时候这样无法停止进程，就需要加上-A 项目名，才可以删掉
+celery multi restart WORKNAME   # 重启worker进程
+
+# 查看进程数
+celery status -A celery_task       # 查看该项目运行的进程数   celery_task同级目录下
+
+执行完毕后会在当前目录下产生一个二进制文件，celerybeat-schedule 。
+该文件用于存放上次执行结果：
+　　1、如果存在celerybeat-schedule文件，那么读取后根据上一次执行的时间，继续执行。
+　　2、如果不存在celerybeat-schedule文件，那么会立即执行一次。
+　　3、如果存在celerybeat-schedule文件，读取后，发现间隔时间已过，那么会立即执行。
 ```
 
