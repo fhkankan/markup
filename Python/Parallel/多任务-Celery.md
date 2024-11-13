@@ -124,7 +124,7 @@ python setup.py install
 
 ```
 proj/tasks.py  # 定义celery和task
-proj/main.py   # 调用task
+main.py   # 调用task
 ```
 
 - 定义任务
@@ -159,7 +159,7 @@ celery -A tasks worker  -l info
 
 ```python
 # main.py
-from tasks import add
+from proj.tasks import add
 
 # 执行,返回执行的对象
 res = add.delay(2, 2)
@@ -186,20 +186,184 @@ keys*
 app.conf.update(result_expires=60)
 ```
 
-## 配置加载
-- 常用配置
+### 单任务
+
+文件目录
+
+```
+proj/celery.py
+proj/config.py
+proj/tasks.py
+main.py
+```
+
+代码
 
 ```python
-# 时区设置
-enable_utc = False
-timezone = 'Asia/Shanghai'
-# 资源释放
-result_expires = 3600
-# 连接存储
+# celery.py
+from celery import Celery
+ 
+app = Celery('proj', include=['proj.tasks'])
+app.config_from_object('proj.config')
+ 
+if __name__ == '__main__':
+	app.start()
+    
+# config.py    
+result_backend = 'redis://127.0.0.1:6379/5'
+broker_url = 'redis://127.0.0.1:6379/6'
+
+# tasks.py
+from proj.celery import app
+
+@app.task
+def add(x, y):
+	return x + y
+
+# main.py
+from proj.task import add
+
+res = add.delay(2, 2)
+print(res.get())
+```
+
+运行服务
+
+```
+celery -A project worker -l info
+```
+
+### 多任务
+
+文件目录
+
+```
+proj/celery.py
+proj/config.py
+proj/tasks.py
+main.py
+```
+
+`celery.py`
+
+```python
+from celery import Celery
+ 
+ 
+app = Celery()
+app.config_from_object('proj.config')
+```
+
+`config.py`
+
+```python
+from kombu import Queue
+
+ 
+BROKER_URL = "redis://192.168.3.248:31379/1" 
+CELERY_RESULT_BACKEND = "redis://192.168.3.248:31379/2"
+
+CELERY_QUEUES = (
+    Queue('default'),
+    Queue('videos'),
+    Queue('images')
+)
+
+CELERY_DEFAULT_QUEUE = 'default'
+
+CELERY_ROUTES = {
+    'proj.tasks.image_compress': {'queue': 'images'},
+    'proj.tasks.video_upload': {'queue': 'videos'},
+    'proj.tasks.video_compress': {'queue': 'videos'}
+}
+ 
+CELERY_INCLUDE = ['proj.tasks']
+```
+
+`tasks.py`
+
+```python
+from proj.celery import app
+
+
+@app.task
+def video_compress(video_name):
+    time.sleep(10)
+    print('Compressing the:', video_name)
+    return 'success'
+ 
+@app.task
+def video_upload(video_name):
+    time.sleep(5)
+    print('正在上传视频', video_name)
+    return 'success'
+ 
+@app.task
+def image_compress(image_name):
+    time.sleep(10)
+    print('Compressing the:', image_name)
+    return 'success'
+ 
+@app.task
+def other(str):
+    time.sleep(10)
+    print('Do other things')
+```
+
+启动，把不同类的任务路由到不同的worker上处理
+
+```python
+# 启动默认的worker
+celery -A proj worker -Q default -l info -P eventlet
+# 启动处理视频的worker
+celery -A proj worker -Q videos -l info
+# 启动处理图片的worker
+celery -A proj worker -Q images -linfo
+```
+
+`main.py`
+
+```python
+from proj.tasks import video_compress, image_compress, other
+from proj.celery import app
+
+res = video_compress.delay("1")
+print(res.get())
+
+res = image_compress.delay("2")
+print(res.get())
+
+res= other.delay("3")
+print(res.get())
+```
+
+## 配置处理
+
+### 常用配置
+
+```python
 broker_url = 'redis://localhost:6379/0'
 result_backend = 'redis://localhost:6379/1'
+include = []
+enable_utc = False
+timezone = 'Asia/Shanghai'
+beat_schedule = {}
+# 资源释放
+result_expires = 3600
+routes = {}
+queues = ()
+
+
+# 老的格式
+BROKER_URL
+CELERY_RESULT_BACKEND
+CELERY_INCLUDE
+CELERY_TIMEZONE
+CELERYBEAT_SCHEDULE
+CELERY_ROUTES
+CELERY_QUEUES
 ```
-- 配置加载
+### 配置加载
 
 函数传参形式
 
@@ -211,10 +375,22 @@ broker = 'redis://192.168.3.248:31379/1'
 backend = 'redis://192.168.3.248:31379/2'
 # 创建celery实例，指定任务名，传入broker和backend
 app = Celery('tasks', broker=broker, backend=backend)
+```
 
-# 启动
-celery -A proj worker  -l info  # 文件目录：proj/celery.py
-celery -A tasks worker  -l info  # 文件目录：proj/tasks.py
+配置更新
+
+```python
+# 直接更新
+app.conf.task_serializer = 'json'
+
+# 集中更新
+app.conf.update(
+    task_serializer='json',
+    accept_content=['json'],  # Ignore other content
+    result_serializer='json',
+    timezone='Europe/Oslo',
+    enable_utc=True,
+)
 ```
 
 文件形式加载
@@ -239,11 +415,9 @@ app.config_from_object("proj.config")  # 方式一， 推荐
 from . import config
 app.config_from_object(config)  # 方式二
 
+
 if __name__ == '__main__':
     app.start()
-    
-# 启动
-celery -A proj worker  -l info
 ```
 
 类的方式加载
@@ -268,13 +442,7 @@ app.config_from_object(Config)
 
 if __name__ == '__main__':
     app.start()
-    
-    
-# 启动
-celery -A proj worker  -l info
 ```
-
-
 
 ## 任务task
 
@@ -478,221 +646,6 @@ celery -A proj worker -l INFO --statedb=/var/run/celery/worker.state
 celery multi start 2 -l INFO --statedb=/var/run/celery/%n.state
 ```
 
-
-
-
-
-### 单任务
-
-文件目录
-
-```
-proj/celery.py
-proj/config.py
-proj/tasks.py
-```
-
-代码
-
-```python
-# celery.py
-from celery import Celery
- 
-app = Celery('proj', include=['proj.tasks'])
-app.config_from_object('proj.config')
- 
-if __name__ == '__main__':
-	app.start()
-    
-# config.py    
-result_backend = 'redis://127.0.0.1:6379/5'
-broker_url = 'redis://127.0.0.1:6379/6'
-
-# tasks.py
-from proj.celery import app
-
-@app.task
-def add(x, y):
-	return x + y
-```
-
-运行服务
-
-```
-celery -A project worker -l info
-```
-
-### 多任务
-
-- 1
-
-celery.py
-
-```python
-from celery import Celery
-
-app = Celery()
-app.config_from_obj('config.py')
-```
-
-config.py
-
-```python
-from kombu import Exchange,Queue
-
- 
-BROKER_URL = "redis://10.32.105.227:6379/0" 
-CELERY_RESULT_BACKEND = "redis://10.32.105.227:6379/0"
-
-    
-CELERY_QUEUES = (
-     # 注意：使用Redis作为broker时，Exchange的名字必须和Queue名字一样
-　　　Queue("default",Exchange("default"),routing_key="default"),
-　　　Queue("for_task_A",Exchange("for_task_A"),routing_key="task_a"),
-　　　Queue("for_task_B",Exchange("for_task_B"),routing_key="task_b")
-　)
-
- 
-CELERY_ROUTES = {
-	'tasks.taskA':{"queue":"for_task_A","routing_key":"task_a"},
-	'tasks.taskB':{"queue":"for_task_B","routing_key:"task_b"}
-}
-```
-
-tasks.py
-
-```python
-from celery import app
-
-@app.task
-def taskA(x,y):
-	return x + y
-
- 
-@app.task
-def taskB(x,y,z):
-	return x + y + z
-
- 
-@app.task
-def add(x,y):
-	return x + y
-```
-
-运行任务
-
-```shell
-# 启动worker只执行for_task_A队列中的消息，通过指定队列名来指定
-celery -A tasks worker -l info -n worker.%h -Q for_task_A
-# 启动worker默认名字为celery的Queue
-celery -A tasks worker -l info -n worker.%h -Q celey
-# gevent多协程启动
-celery -A tasks -P gevent -c 5 -l ingo -n worker.%h -Q for_task_A
-```
-
-- 2
-
-tasks.py
-
-```python
-from celery import Celery
-import time
- 
- 
-app = Celery()
-app.config_from_object('celeryconfig')
- 
-# 视频压缩
-@app.task
-def video_compress(video_name):
-    time.sleep(10)
-    print 'Compressing the:', video_name
-    return 'success'
- 
-@app.task
-def video_upload(video_name):
-    time.sleep(5)
-    print u'正在上传视频'
-    return 'success'
- 
-# 压缩照片
-@app.task
-def image_compress(image_name):
-    time.sleep(10)
-    print 'Compressing the:', image_name
-    return 'success'
- 
-# 其他任务
-@app.task
-def other(str):
-    time.sleep(10)
-    print 'Do other things'
-
-```
-
-celeryconfig.py
-
-```python
-from kombu import Exchange, Queue
-from routers import MyRouter
- 
-# 配置时区
-CELERY_TIMEZONE = 'Asia/Shanghai'
-# 配置broker
-CELERY_BROKER = 'amqp://localhost'
-
-# 定义一个默认交换机
-default_exchange = Exchange('dedfault', type='direct')
- # 定义一个媒体交换机
-media_exchange = Exchange('media', type='direct')
- 
-# 创建三个队列，一个是默认队列，一个是video、一个image
-CELERY_QUEUES = (
-    Queue('default', default_exchange, routing_key='default'),
-    Queue('videos', media_exchange, routing_key='media.video'),
-    Queue('images', media_exchange, routing_key='media.image')
-)
- 
-CELERY_DEFAULT_QUEUE = 'default'
-CELERY_DEFAULT_EXCHANGE = 'default'
-CELERY_DEFAULT_ROUTING_KEY = 'default'
-#
-CELERY_ROUTES = (
-    {
-        'tasks.image_compress': {
-            'queue': 'images',
-            'routing_key': 'media.image'
-        }
-    },
-    {
-        'tasks.video_upload': {
-             'queue': 'videos',
-             'routing_key': 'media.video'
-        }
-    },
-    {
-        'tasks.video_compress': {
-             'queue': 'videos',
-              'routing_key': 'media.video'
-         }
-    }, 
-)
- 
-# 在出现worker接受到的message出现没有注册的错误时，使用下面一句能解决
-CELERY_IMPORTS = ("tasks",)
-```
-
-启动，把不同类的任务路由到不同的worker上处理
-
-```python
-# 启动默认的worker
-celery worker -Q default --loglevel=info
-# 启动处理视频的worker
-celery worker -Q videos --loglevel=info
-# 启动处理图片的worker
-celery worker -Q images --loglevel=info
-```
-
 ## worker
 
 ### 启动
@@ -704,6 +657,9 @@ celery worker -Q images --loglevel=info
 celery -A proj worker  -l info  # tasks为Celery实例所在的文件名
 celery -A proj worker  --loglevel=info
 celery -A proj worker --loglevel=INFO --logfile=/Users/hunter/python/celery_log/celery.log  # 指定日志文件
+
+# 开启Eventlet pool支持
+celery -A proj worker -P eventlet -c 1000
 ```
 
 并发
@@ -892,7 +848,7 @@ Celery beat 是一个调度器，它定期启动任务，然后由集群中的�
 
 ### 配置
 
-timedelta
+**timedelta**
 
 ```python
 # config.py
@@ -928,7 +884,7 @@ CELERYBEAT_SCHEDULE = {
 }
 ```
 
-crontab
+**crontab**
 
 ```python
 # config.py
@@ -956,7 +912,6 @@ CELERYBEAT_SCHEDULE = {
 celery -A celery_task beat  # 启动celery beat服务
 celery -A celery_task worker --loglevel=info  # 启动celery的worker
 celery -A proj worker -B -l info  # 如果不会运行多个worker节点，可以将beat嵌入到worker中
-celery -B -A celery_task worker --loglevel=info  # 合并成一条
 
 # Beat 需要将任务的最后运行时间存储在本地数据库文件中（默认命名为 celerybeat-schedule），因此它需要访问当前目录的写入权限，
 # 文件指定自定义位置
@@ -1013,7 +968,6 @@ beat_schedule = {
         "schedule": crontab(minute=0, hour="*/1"),   # every minute 每小时执行
         "args": ()
     },
-
 }
 ```
 
@@ -1051,6 +1005,7 @@ def celery_run():
 
 if __name__ == '__main__':
     celery_run()
+    
 ------------------------------------------------------------
 # test2.py
 from celery_task.celery import app
@@ -1074,135 +1029,198 @@ if __name__ == '__main__':
     celery_run()
 ```
 
-发布任务
+启动
 
 ```shell
 # 在celery_task同级目录下执行
-celery -A celery_task beat
-```
-
-执行任务
-
-```shell
-# 在celery_task同级目录下执行
+# 执行worker
 celery -A celery_task worker --loglevel=info
+
+# 发布beat任务
+celery -A celery_task beat
 ```
 
 ## 消息队列
 
 task 的处理方式，将 task 发送到队列 queue，然后 worker 从 queue 中一个个的获取 task 进行处理。task 的队列 queue 可以是多个，处理 task 的 worker 也可以是多个，worker 可以处理任意 queue 的 task，也可以处理指定 queue 的 task。
 
-- 默认队列
+### 默认队列
 
 当我们运行一个最简单的延时任务比如 `add.delay(1, 2)` 时，并没有设置一个消息队列，因为如果我们没有指定，系统会为我们创建一个默认队列。
 
 这个默认的队列被命名为 celery，值在 app.conf.task_default_queue，我们可以查看一下：
 
 ```python
+# main.py
 from hunter.celery import app
 app.conf.task_default_queue
 # 输出为 'celery'
 ```
 
-- 定义队列
+### 定义队列
 
 只有一个 worker 处理 task，每个 task 需要处理的时间很长，因为 worker 被占用，这样在我们的任务队列里就会积压很多的 task。
 
 有一些需要即时处理的任务则会被推迟处理，这样的情况下，我们理想的设计是设置多个 worker，多个 worker 分别处理指定队列的 task。
 
-任务队列定义
+文件目录
+
+```
+proj/celery.py
+proj/config.py
+proj/tasks.py
+main.py
+```
+
+`celery.py`
 
 ```python
-# hunter/celery.py
-from kombu import Queue
+from celery import Celery
+ 
+ 
+app = Celery()
+app.config_from_object('proj.config')
+```
 
+`config.py`
 
-app.conf.task_queues = (
-    Queue('blog_tasks'),  # 特定队列
-    Queue('default_queue'),  # 默认队列
+```python
+from kombu import Exchange, Queue
+ 
+# 配置时区
+CELERY_TIMEZONE = 'Asia/Shanghai'
+# 配置broker
+CELERY_BROKER = 'amqp://localhost'
+CELERY_RESULT_BACKEND = "redis://127.0.0.1:31379/2"
+
+# 定义一个默认交换机
+default_exchange = Exchange('default', type='direct')
+ # 定义一个媒体交换机
+media_exchange = Exchange('media', type='direct')
+ 
+# 创建三个队列，一个是默认队列，一个是video、一个image
+CELERY_QUEUES = (
+    Queue('default', default_exchange, routing_key='default'),
+    Queue('videos', media_exchange, routing_key='media.video'),
+    Queue('images', media_exchange, routing_key='media.image')
 )
+ 
+CELERY_DEFAULT_QUEUE = 'default'
+CELERY_DEFAULT_EXCHANGE = 'default'
+CELERY_DEFAULT_ROUTING_KEY = 'default'
 
-app.conf.task_default_queue = 'default_queue'  # 需要额外来指定一个 task_default_queue，否则add.delay(1, 2)会异常。
-```
-
-当我们定义了任务队列之后，我们可以将 task 指定输出到对应的 queue，假设 blog/tasks.py 下有这样一个 task
-
-```python
-# blog/tasks.py
-from celery import shared_task
-
-@shared_task
-def add(x, y):
-    return x + y
-```
-
-接下来我们调用这个 task 的时候，需要指定队列
-
-```python
-from blog.tasks import add
-
-add.apply_async((1, 2), queue='blog_tasks')  # 队列会被 blog_tasks 接收到
-add.delay(1, 2)  # 队列会被 default_queue 接收到
-```
-
-- 将task指定到特定队列消费
-
-任务文件
-
-```python
-# blog/tasks.py
-from celery import shared_task
-
-@shared_task
-def add(x, y):
-    return x + y
-
-@shared_task
-def minus(x, y):
-    return x - y
-
-# polls/tasks.py
-from celery import shared_task
-
-@shared_task
-def multi(x, y):
-    return x * y
-```
-
-想要实现的最终的目的是在调用延时任务的时候，可以直接使用` delay()` 的方式，不需要使用 `apply_async(queue='xx')`
-
-```python
-app.conf.task_queues = (
-    Queue('queue_1'),
-    Queue('queue_2'),
-    Queue('default_queue'),
-)
-
-app.conf.task_routes = {
-    'polls.tasks.*': {
-        'queue': 'queue_1',
-    },
-    'blog.tasks.add': {
-        'queue': 'queue_1',
-    },
-    'blog.tasks.minus': {
-        'queue': 'queue_2',
-    },
+# 任务路由
+CELERY_ROUTES = {
+    'proj.tasks.image_compress': {'queue': 'images','routing_key': 'media.image'},
+    'proj.tasks.video_upload': {'queue': 'videos', 'routing_key': 'media.video'},
+    'proj.tasks.video_compress': {'queue': 'videos', 'routing_key': 'media.video'}
 }
-
-app.conf.task_default_queue = 'default_queue'
 ```
 
-## 任务监控
+`tasks.py`
+
+```python
+from proj.celery import app
+
+
+@app.task
+def video_compress(video_name):
+    time.sleep(10)
+    print('Compressing the:', video_name)
+    return 'success'
+ 
+@app.task
+def video_upload(video_name):
+    time.sleep(5)
+    print('正在上传视频', video_name)
+    return 'success'
+ 
+@app.task
+def image_compress(image_name):
+    time.sleep(10)
+    print('Compressing the:', image_name)
+    return 'success'
+ 
+@app.task
+def other(str):
+    time.sleep(10)
+    print('Do other things')
+```
+
+启动，把不同类的任务路由到不同的worker上处理
+
+```python
+# 启动默认的worker
+celery -A proj worker -Q default -l info
+# 启动处理视频的worker
+celery -A proj worker -Q videos -l info
+# 启动处理图片的worker
+celery -A proj worker -Q images -linfo
+```
+
+`main.py`
+
+```python
+from proj.tasks import video_compress, image_compress, other
+from proj.celery import app
+
+res = video_compress.delay("1")
+print(res.get())
+
+res = image_compress.delay("2")
+print(res.get())
+
+res= other.delay("3")
+print(res.get())
+
+res = other.apply_async(("4",), queue="videos")  # 优先级最高
+print(res.get())
 
 ```
-1.使用flower
-2.自带监控命令
+
+## 监控管理
+
+```
+1.自带命令
+2.使用flower
 3.使用日志
 4.使用backend
 5.自定义监控
 6.集成APM工具
 7.使用Prometheus和Grafana
+```
+
+- 自带命令
+
+```shell
+# 查看
+celery -A proj status  # 列出集群中的活动节点
+celery -A proj inspect active  # 列出活动任务
+celery -A proj inspect scheduled  # 列出计划的ETA任务
+celery -A proj inspect reserved  # 列出保留任务(预读的所有任务，和当前正在等待执行的任务,不包括ETA)
+celery -A proj inspect revoked  # 列出已撤消任务的历史记录
+celery -A proj inspect registered  # 列出注册任务
+celery -A proj inspect stats  # 展示worker统计数据
+
+
+# 具体任务
+celery -A proj inspect query_task e9f6c8f0-fec9-4ae8-a8c6-cf8c8451d4f8  # 查看任务信息
+celery -A proj inspect query_task id1 id2 ... idN  # 查看多个任务信息
+celery -A proj result -t tasks.add 4e196aa4-0141-4601-8138-7aa33db0f577 # 显示一个任务的结果
+
+# 清除（慎用，无法撤回）
+celery -A proj purge  # 清除所有已配置的CELERY_QUEUES任务队列中的消息
+celery -A proj purge -Q celery,foo,bar  # 指定要清除的队列
+celery -A proj purge -X celery  # 排除某个队列
+
+# 管理
+celery -A proj control enable_events  # 启用事件
+celery -A proj control disable_events  # 关闭事件
+celery -A proj migrate redis://localhost amqp://localhost  # 将任务从一个broker迁移到另一个broker(实验性)
+
+# 特定worker
+celery -A proj inspect -d w1@e.com,w2@e.com reserved
+celery -A proj control -d w1@e.com,w2@e.com enable_events
 ```
 
 - 使用flower
@@ -1246,15 +1264,6 @@ curl http://127.0.0.1:5555/api/workers
 curl http://127.0.0.1:5555/api/task/info/<task_id>
 ```
 
-- 自带命令
-
-```shell
-# 使用 celery status 命令可以查看工作进程的状态
-celery -A your_project status
-# 使用 celery inspect 命令可以查看任务的信息
-celery -A your_project inspect active
-```
-
 - 使用日志
 
 ```python
@@ -1271,6 +1280,17 @@ logging.basicConfig(
 - backend
 
 如果你使用了结果后端（如 Redis、Database），可以进入后端中查看task信息
+
+```shell
+# rabbitmq
+rabbitmqctl list_queues name messages messages_ready  messages_unacknowledged  #  查找队列中的任务数量
+rabbitmqctl list_queues name consumers  # 正在从当前队列消费的worker的数量
+rabbitmqctl list_queues name memory  # 给某个队列分配的内存量
+
+# redis
+redis-cli -h HOST -p PORT -n DATABASE_NUMBER llen QUEUE_NAME  # 查找队列中的任务数量
+redis-cli -h HOST -p PORT -n DATABASE_NUMBER keys \*  # 默认队列名是celery，获取所有可用的队列
+```
 
 也可以写脚本定期查询任务状态和结果。这样可以手动监控任务的成功率和失败原因。
 
