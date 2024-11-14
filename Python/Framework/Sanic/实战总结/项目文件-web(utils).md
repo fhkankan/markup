@@ -1015,10 +1015,9 @@ init_logger = set_logger
 
 """
 Some shortcut functions for invoke loggers quickly as:
-```
 if enabled_info():
     plog_info(f"Functions is called ok: {test()}")
-```
+
 Note that the argument of `plog_xxx()` will not be evaluated,
 unless the testing function `enabled_xxx()` return `true`.
 """
@@ -1058,7 +1057,6 @@ enabled_warning = enabled_warn
 enabled_fatal = enabled_critical
 plog_warning = plog_warn
 plog_fatal = plog_critical
-
 ```
 
 
