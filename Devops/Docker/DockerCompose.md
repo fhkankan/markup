@@ -628,60 +628,50 @@ services:
 
 ### 示例
 
-- 模版文件
-
 `docker-compose.yml`
 
 ```
-version: '2'
+version: "3"
+
 services:
-  web1:
-    image: nginx
+  mysanic:
+    image: my-sanic-image
     ports:
-      - "6061:80"
-    container_name: "web1"
-    networks:
-      - dev
-  web2:
-    image: nginx
+      - "8000:8000"
+    restart: always
+
+  mynginx:
+    image: nginx:1.13.6-alpine
     ports:
-      - "6062:80"
-    container_name: "web2"
-    networks:
-      - dev
-      - pro
-  web3:
-    image: nginx
-    ports:
-      - "6063:80"
-    container_name: "web3"
-    networks:
-      - pro
- 
+      - "80:80"
+    depends_on:
+      - mysanic
+    volumes:
+      - ./mysanic.conf:/etc/nginx/conf.d/mysanic.conf
+    restart: always
+
 networks:
-  dev:
-    driver: bridge
-  pro:
+  default:
     driver: bridge
 ```
 
-docker-compose.yml文件指定了3个web服务
+`mysanic.conf`
 
-- 启动应用
+```
+server {
+    listen 80;
+    listen [::]:80;
+    location / {
+      proxy_pass http://mysanic:8000/;
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection upgrade;
+      proxy_set_header Accept-Encoding gzip;
+    }
+}
+```
 
-创建一个webapp目录，将docker-compose.yaml文件拷贝到webapp目录下，使用docker-compose启动应用。
+启动应用
 
 ```
 docker-compose up -d
 ```
-
-- 服务访问
-
-通过浏览器访问web1，web2，web3
-
-```
-http://127.0.0.1:6061
-http://127.0.0.1:6062
-http://127.0.0.1:6063
-```
-

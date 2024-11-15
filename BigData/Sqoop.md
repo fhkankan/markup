@@ -90,6 +90,3 @@ create external table u4(id INT, fname STRING, lname STRING)
 row format delimited fields terminated by ','
 location '/user/root/u/'
 ```
-
-
-

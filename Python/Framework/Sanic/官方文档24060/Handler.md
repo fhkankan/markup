@@ -29,7 +29,7 @@ async def async_handler(request):
 
 ```
 
-命名需唯一
+函数命名需唯一
 
 ```python
 # Handler name will be "foo_handler"
