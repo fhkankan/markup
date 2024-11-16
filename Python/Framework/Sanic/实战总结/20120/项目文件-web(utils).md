@@ -222,7 +222,7 @@ def check_auth(role_ids=[], method="GET"):
                 raise InvalidUsage("Can't decorate a bad handler")
   
             auth_user = request.ctx.auth_user
-    				role_id = auth_user.get("role_id")
+    		role_id = auth_user.get("role_id")
             brand_code = auth_user.get("brand_code")
             try:
                 params = request.args if method == "GET" else request.json

@@ -152,8 +152,6 @@ os.remove(path)
 
 os.removedirs(path)
 # 递归删除目录
-
-
 ```
 
 文件夹
