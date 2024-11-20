@@ -1,6 +1,6 @@
 # Nacos
 
-[文档](https://nacos.io/docs/latest/overview/)
+[文档](https://nacos.io/zh-cn/docs/what-is-nacos.html)
 
 ## 概述
 
@@ -557,6 +557,23 @@ if __name__ == '__main__':
 
 sanic
 
-```
+```python
+from sanic import Sanic
+
+
+app = Sanic("hongpu-sanic")
+
+
+@app.before_server_start
+async def before_server_start(app):    
+  	app.update_config("src/conf/conf.py")
+    conf = app.config
+    from nacos import NacosClient
+    nacos_params = conf.NACOS
+    client = NacosClient(server_addresses=nacos_params.get("server_addresses"), namespace=nacos_params.get("namespace"),
+                         username=nacos_params.get("username"), password=nacos_params.get("password"))
+    client.add_naming_instance(service_name=nacos_params.get("service_name"), ip=nacos_params.get("ip"),
+                               port=nacos_params.get("port"), group_name=nacos_params.get("group_name"),
+                               heartbeat_interval=5)
 ```
 

@@ -491,6 +491,7 @@ ONBUILD COPY index.html /vzr/www/html/
 EXPOSE 80
 # 执行命令ENTRYPOINT
 ENTRYPOINT ["/usr/sbin/nginx", "-g", "daemon off;"]
+
 # 2.构建镜像
 docker build -t ubuntu-nginx:v0.12 .
 # 3.根据镜像创建容器

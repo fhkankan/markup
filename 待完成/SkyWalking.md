@@ -80,6 +80,6 @@ app.add_middleware(FastAPISkywalkingMiddleware, collector="10.30.8.116:30799", s
 # sanic
 from sanic_skywalking_middleware import SanicSkywalingMiddleware
 
-SanicSkywalingMiddleware(app, service='Sanic Skywalking Demo Service', collector='127.0.0.1:11800')
+SanicSkywalingMiddleware(app, service='Sanic Skywalking Demo Service', collector='127.0.0.1:11800', protocol_type="grpc")
 ```
 

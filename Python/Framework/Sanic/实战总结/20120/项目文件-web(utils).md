@@ -1279,7 +1279,7 @@ def init_blueprint(app, url_prefix):
     for subname in glob("api/*.py"):
         if not subname.endswith('.py'):
             continue
-        subname.replace("\\", "/")  # windows
+        subname = subname.replace("\\", "/")  # windows
         modename = subname.replace('/', '.')[:-3]
         module = import_module(modename)
         bp = getattr(module, 'bp', None)
