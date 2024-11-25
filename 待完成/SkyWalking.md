@@ -45,12 +45,11 @@ pip install "apache-skywalking[all]"  # gRPC, HTTP, Kafka
 
 # 异步
 pip install fastapi_skywalking_middleware  # Fastapi
-pip install sanic-skywalking-middleware
 ```
 
 ### 使用
 
-同步使用
+- 同步使用
 
 ```python
 from skywalking import agent, config
@@ -69,17 +68,56 @@ config.init(agent_collector_backend_services='localhost:11800', agent_protocol='
 agent.start()
 ```
 
-异步使用
+- 异步使用
+
+`fastapi`
 
 ```python
-# fastapi
 from fastapi_skywalking_middleware.middleware import FastAPISkywalkingMiddleware
 
 app.add_middleware(FastAPISkywalkingMiddleware, collector="10.30.8.116:30799", service='your awesome service', instance=f'your instance name - pid: {os.getpid()}')
+```
 
-# sanic
-from sanic_skywalking_middleware import SanicSkywalingMiddleware
+`sanic`
 
-SanicSkywalingMiddleware(app, service='Sanic Skywalking Demo Service', collector='127.0.0.1:11800', protocol_type="grpc")
+```python
+from sanic import Sanic
+from sanic.request import Request
+from sanic.response import HTTPResponse
+from skywalking import Layer, Component
+from skywalking.trace.carrier import Carrier
+from skywalking.trace.context import get_context
+from skywalking.trace.tags import TagHttpMethod
+
+
+class SanicSkywalingMiddleware(object):
+    def __init__(self, app: Sanic):
+        @app.middleware("request")
+        def before_request_tracing(request: Request):
+            carrier = Carrier()
+            for item in carrier:
+                item.val = request.headers.get(item.key.capitalize(), None)
+            context = get_context()
+            span = context.new_entry_span(op=request.path, carrier=carrier)
+            span.start()
+            span.layer = Layer.Http
+            span.component = Component.General
+            span.peer = '%s:%s' % request.socket
+            span.tag(TagHttpMethod(val=request.method))
+            request.ctx.sw_span = span
+            app.ctx.trace_id = span.context.segment.related_traces[0]
+            app.ctx.span_id = span.context.segment.segment_id
+
+        @app.middleware("response")
+        def after_request_tracing(request: Request, response: HTTPResponse):
+            if hasattr(request.ctx, 'sw_span') and request.ctx.sw_span:
+                request.ctx.sw_span.stop()
+            return response
+
+
+		@app.exception(Exception)
+		def catch_exceptions(request, ex):
+    		if hasattr(request.ctx, 'sw_span') and request.ctx.sw_span:
+        		request.ctx.sw_span.raised()
 ```
 

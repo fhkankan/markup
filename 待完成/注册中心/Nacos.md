@@ -495,7 +495,7 @@ if __name__ == '__main__':
 
 - 异步使用
 
-fastapi
+`fastapi`
 
 ```python
 # 导入FastAPI库，用于构建API服务
@@ -555,7 +555,7 @@ if __name__ == '__main__':
     uvicorn.run(app, host="0.0.0.0", port=8000)
 ```
 
-sanic
+`sanic`
 
 ```python
 from sanic import Sanic
