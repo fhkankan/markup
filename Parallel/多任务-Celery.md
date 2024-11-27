@@ -1248,7 +1248,7 @@ celery -A <your_project_name> flower
 
 # 示例
 celery -A <your_project_name> flower --port=5555 --broker=amqp://guest:guest@localhost:5672//  
-celery -A <your_project_name> flower --port=5555 --broker=redis://guest:guest@localhost:6379/0 
+celery -A <your_project_name> flower --address='0.0.0.0' --port=5555 --broker='redis://guest:guest@localhost:6379/0'
 ```
 
 使用

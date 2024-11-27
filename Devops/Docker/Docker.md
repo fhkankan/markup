@@ -243,6 +243,7 @@ eg:docker run nginx /bin/echo "hello docker"
 --net="bridge": 指定容器的网络连接类型，支持 bridge/host/none/container: 四种类型；
 --link=[]: 添加链接到另一个容器；
 --expose=[]: 开放一个端口或一组端口；
+--restart="always": 重启容器，no容器退出时不重启容器；on-failure只有在非0状态退出时才重新启动容器；always无论推出状态如何都重启容器
 
 
 docker run -it -v /Users/henry/TEST:/opt/soft/test xxx /bin/bash
