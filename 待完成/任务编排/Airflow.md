@@ -38,8 +38,6 @@ pypi
 # constrains文件固定了依赖的版本号，便于配合主包部署应用
 pip install 'apache-airflow==2.10.3' \
  --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-2.10.3/constraints-3.9.txt"
- 
- 
 ```
 
 ## 使用

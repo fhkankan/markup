@@ -1227,6 +1227,8 @@ celery -A proj control -d w1@e.com,w2@e.com enable_events
 
 [flower](https://flower.readthedocs.io/en/latest/)是一个用于监控任务(运行进度、任务详情、图标、数据)的web工具。
 
+[页面介绍](https://www.jianshu.com/p/4a408657ef76)
+
 安装配置
 
 ```python
@@ -1262,6 +1264,69 @@ open http://localhost:5555
 curl http://127.0.0.1:5555/api/workers
 # 获取任务信息
 curl http://127.0.0.1:5555/api/task/info/<task_id>
+```
+
+Dashboard
+
+```
+# 状态
+Dashboard 页面是展示异步任务队列的主要情况，该页面包括如下几种状态的任务：
+
+Active: 表示worker从队列中获取到任务，且正在执行的任务数
+Processed: 表示worker从队列中获取到任务的总数据量
+Failed: 表示worker从队列中获取到任务，且执行失败了的（异常退出）
+Successed: 表示worker从队列中获取到任务，且执行成功了的
+Retried: 表示worker从队列中获取到任务，因为一些其他原因重新执行的数量
+
+所以，上述这些数量的关系如下：
+Processed = Active + Received + Failed + Successed + Retried
+其中 Received 表示该任务分配到了worker中，但是还没有被处理的任务数量
+
+# worker
+Worker Name 表示的是执行celery任务的worker名称；
+Status 表示的是该worker的状态，包括 Online (在线) 、 Offline（离线），重启flower进程，即可将Offline状态的worker剔除掉；
+Active / Processed / Failed / Successed / Retried 分别表示该worker正在执行的任务数、该worker处理的总任务数、处理失败的任务数、处理成功的任务数、重试的任务数；
+Load Average 表示系统在 1min / 5min / 15min 内的CPU平均负载（百分比）
+```
+
+tasks
+
+```
+Tasks 页面是展示所有worker接收到的任务的处理情况。下面对该表格中的做一些介绍
+
+Name: 表示该任务的名称，默认规则为该函数的路径规则，例如 {模块名}.{文件名}.{函数名}
+UUID: 表示一个唯一字符串ID用于表示该任务
+State: 表示该任务的状态，包括： SUCCESS / FAILURE / STARTED / RECEIVED
+SUCCESS 表示该任务执行完毕且成功
+FAILURE 表示该任务执行失败
+STARTED 表示该任务正在执行
+RECEIVED 表示该任务在worker中，只是被接收而已
+args: 表示该任务的列表参数
+kwargs: 表示该任务的字典参数
+Result: 表示该任务函数的返回结果
+Received: 表示该任务在worker接收到的时间
+Started: 表示该任务在worker开始执行的时间
+Runtime: 表示该任务在worker真正执行的耗时（单位：秒）
+Worker: 表示该任务所在的worker名称
+```
+
+Broker
+
+```
+Broker 页面展示的是celery连接消息队列的信息，包括消息队列的访问URL，下面的截图展示的是链接的RabbitMQ，当然也可以链接Redis等。
+
+Name: 表示队列的名称
+Messages: 表示该队列的消息数量
+Unacked: 表示该队列中还没收到ack确认的消息数量（该消息可能处于 RECEIVED 或是 STARTED）
+Ready: 表示该队列中还未分配到worker的消息数量
+Consumers: 表示消费者数量（即worker数量）
+Idle since: 表示该队列空闲的最初时间，否则为 N/A
+```
+
+Monitor
+
+```
+Monitor 页面展示的是celery后台任务的曲线展示状况。
 ```
 
 - 使用日志
@@ -1321,7 +1386,6 @@ elif result.status == "started":
 def my_task(self):
     # 记录任务开始
     log_task_start(self.request.id)
-    
     try:
         # 任务逻辑
         pass

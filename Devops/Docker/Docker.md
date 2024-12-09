@@ -126,7 +126,9 @@ vim ~/.ssh/daemon.json
 
 ## 使用
 
-### 基本命令
+### 常用命令
+
+服务命令
 
 ```
 systemctl [参数] docker
@@ -137,10 +139,53 @@ restart		重启
 status		状态
 ```
 
-登陆
+登陆命令
 
 ```
 docker login --username=xxxx registry.cn-hangzhou.aliyuncs.com
+```
+
+常用命令
+
+```shell
+docker version  # 查看 docker 的版本号，包括客户端、服务端、依赖的 Go 等
+docker info # 查看 docker 的全局信息，系统(docker)层面信息，包括管理的 images, containers 数等
+docker search <image>  # 在 docker index 中搜索 image
+docker pull <image> # 从docker registry server 中下拉image
+docker push <image|repository> # 推送一个 image 或 repository 到 registry
+docker push <image|repository>:TAG # 同上，指定tag
+docker inspect <image|container> # 查看 image 或 container 的底层信息
+docker images # 查看本机 images
+docker images –a：列出所有的 images
+docker images –qa：列出所有的 images的IMAGE ID
+docker ps：默认显示正在运行中的 container
+docker ps –l：显示最后一次创建的 container，包括未运行的
+docker ps –a：显示所有的 container，包括未运行的
+docker logs <container>：查看 container 的日志，也就是执行命令的一些输出
+docker rm <container...>：删除一个或多个 container
+docker rm -f <container...>：强制删除一个或多个 container
+docker rm $(docker ps -qa)：删除全部 container
+docker rm -f $(docker ps -qa)：强制删除全部 container
+docker ps -aq | xargs docker rm：同上, 删除所有的 container
+docker ps -aq | xargs docker rm -f ：同上, 强制删除所有的 container
+docker rmi <image...>：删除一个或多个 image
+docker rmi -f <image...>：强制删除一个或多个 image
+docker start/stop/restart <container> # 开启/停止/重启 container
+docker start -i <container>：启动一个 container 并进入交互模式
+docker attach <container>：attach一个运行中的 container
+docker exec -it <container>  # 进入一个运行中的容器，退出时容器不会停止
+docker run <image> <command>：使用 image 创建 container 并执行相应命令，然后停止
+docker run -i -t <image> /bin/bash  # 交互式容器
+docker run -d -i -t <image> /bin/bash  # 守护式容器
+docker run -i -t -p <host_port:contain_port>：将 container 的端口映射到宿主机的端口
+docker commit <container> [repo:tag]：将一个 container 固化为一个新的 image，后面的 repo:tag 可选
+docker build <path>：寻找path路径下名为的 Dockerfile 的配置文件，使用此配置生成新的 image
+docker build -t repo[:tag]：同上，可以指定 repo 和可选的 tag
+docker build - <dockerfile>：使用指定的 dockerfile 配置文件，docker 以 stdin 方式获取内容，使用此配置生成新的 image
+docker port <container> <container port>：查看本地哪个端口映射到 container 的指定端口，其实用 docker ps 也可以看到
+docker run -it --hostname centos8.2.2004 centos:8.2.2004 /bin/bash 指定容器内主机名启动一个容器，exit退出容器后会停止
+docker run -it --hostname centos8.2.2004 -d centos:8.2.2004 /bin/bash 指定容器内主机名启动一个容器，exit退出容器后不会停止
+docker run --hostname cenotos999 -d centos:8.2.2004 /usr/sbin/init 指定容器内主机名启动一个容器
 ```
 
 ### 镜像管理

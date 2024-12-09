@@ -600,11 +600,9 @@ DB_PASSWORD=mypassword
 
 在`docker-compose.yml`文件中引用这些变量。可以通过两种方式进行引用
 
-1. 直接在服务配置部分使用`${VARIABLE}`语法引用变量。
+- 直接在服务配置部分使用`${VARIABLE}`语法引用变量。
 
-例如：
-
-```
+```yml
 services:
   myapp:
     environment:
@@ -616,9 +614,9 @@ services:
 
 注意，此处不能使用单引号或双引号包裹变量。
 
-2. 使用`environment`关键字指定一个外部文件作为变量源
+- 使用`environment`关键字指定一个外部文件作为变量源
 
-````
+````shell
 services:
   myapp:
     env_file: ./.env
