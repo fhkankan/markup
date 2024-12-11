@@ -1276,6 +1276,8 @@ atrm [作业号]
 
 - cron
 
+[web设置](https://crontab.guru)
+
 `cron`可以安排要定期执行的作业。`cron`程序会在后台运行并检查一个特殊的表（cron时间表），以获知已安排执行的作业。
 
 > cron时间表
