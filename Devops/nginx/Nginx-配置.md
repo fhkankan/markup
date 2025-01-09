@@ -434,7 +434,7 @@ server {
 
 转换
 
-```shell
+```nginx
 #  http->https
 server {
     listen 80;
@@ -488,6 +488,106 @@ server {
 # 测试
 curl http://liuhui.semirapp.cn/
 cutl https://liuhui.semirapp.cn/
+```
+
+#### ws/wss
+
+ws
+
+```nginx
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    '' close;
+}
+ 
+upstream ws_backend {
+    server 127.0.0.1:8080;
+}
+ 
+server {
+    listen 80;
+    server_name example.com;
+ 
+    location /ws {
+        proxy_pass http://ws_backend;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+    }
+}
+```
+
+wss
+
+```nginx
+server {
+    listen 443 ssl;
+    server_name example.com;
+ 
+    ssl_certificate /path/to/cert.pem;
+    ssl_certificate_key /path/to/key.pem;
+ 
+    location /wss/ {
+        proxy_pass https://websocket.example.com;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+}
+```
+
+#### ws兼容http
+
+```nginx
+http {    
+        #自定义变量 $connection_upgrade
+        map $http_upgrade $connection_upgrade { 
+            default          keep-alive;  #默认为keep-alive 可以支持 一般http请求
+            'websocket'      upgrade;     #如果为websocket 则为 upgrade 可升级的。
+        }
+}
+ 
+server {
+        ...
+ 
+        location /chat/ {
+            proxy_pass http://需要转发的地址;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade; #此处配置 上面定义的变量
+            proxy_set_header Connection $connection_upgrade;
+        }
+}
+```
+
+#### wss兼容https
+
+```nginx
+server {
+    listen 443 ssl;
+    server_name example.com;
+ 
+    ssl_certificate /path/to/your/fullchain.pem; # 证书文件
+    ssl_certificate_key /path/to/your/privkey.pem; # 私钥文件
+ 
+    # SSL 配置（安全策略等）
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256';
+ 
+    # 服务器的其他配置
+    # ...
+ 
+    # WebSocket 配置
+    location /ws {
+        proxy_pass http://websocket_backend; # 假设你有一个名为 websocket_backend 的上游服务器
+        proxy_http_version 1.1;
+ 
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "Upgrade";
+        proxy_set_header Host $host;
+ 
+        # 可能还需要配置其他的 proxy 参数
+    }
+}
 ```
 
 #### 上传大文件

@@ -102,6 +102,10 @@ helm install foo https://example.com/charts/foo-1.2.3.tgz  # 完整的URL
 
 # 列出所有可被部署的版本
 helm list
+# 列出所有命名空间的可被部署的版本
+helm list -A
+# 在当前集群中使用另一个集群的kubeconfig查看另一个集群的helm包信息
+helm list -A --kubeconfig='/etc/kube/config'
 # 查看版本发布
 helm ls
 
